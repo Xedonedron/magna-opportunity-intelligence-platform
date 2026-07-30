@@ -3,11 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Search, MoreHorizontal, ChevronRight, ChevronLeft } from "lucide-react";
+import { Plus, Search, ChevronRight, ChevronLeft, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
-import { useOpportunities } from "@/hooks/use-opportunities";
+import { useOpportunities, useDeleteOpportunity } from "@/hooks/use-opportunities";
 import { timeAgo } from "@/lib/utils";
 import { ALL_STATUSES } from "@/types/opportunity";
 import type { OpportunityStatus } from "@/types/opportunity";
@@ -18,12 +18,26 @@ export default function OpportunitiesPage() {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("");
 
+    const deleteMutation = useDeleteOpportunity();
+
     const { data, isLoading } = useOpportunities({
         page,
         page_size: 20,
         search: search || undefined,
         status: statusFilter || undefined,
     });
+
+    const handleDelete = async (e: React.MouseEvent, id: string, name: string) => {
+        e.stopPropagation();
+        if (confirm(`Apakah Anda yakin ingin menghapus peluang untuk ${name}?`)) {
+            try {
+                await deleteMutation.mutateAsync(id);
+            } catch (err) {
+                console.error("Gagal menghapus peluang", err);
+                alert("Gagal menghapus peluang.");
+            }
+        }
+    };
 
     const totalPages = data ? Math.ceil(data.total / data.page_size) : 1;
 
@@ -152,10 +166,10 @@ export default function OpportunitiesPage() {
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="opacity-0 group-hover:opacity-100 transition-opacity"
-                                                onClick={(e) => e.stopPropagation()}
+                                                className="opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-700 hover:bg-red-50 transition-all"
+                                                onClick={(e) => handleDelete(e, opp.id, opp.company_name)}
                                             >
-                                                <MoreHorizontal className="w-4 h-4" />
+                                                <Trash2 className="w-4 h-4" />
                                             </Button>
                                         </td>
                                     </tr>
