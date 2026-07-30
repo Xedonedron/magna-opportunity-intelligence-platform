@@ -236,3 +236,193 @@ async def delete_opportunity(
 
     db.delete(opportunity)
     db.commit()
+
+
+# --- AI Chat / Brainstorming Endpoint ---
+from pydantic import BaseModel
+from typing import List, Optional
+from datetime import datetime, timedelta, timezone
+from langchain_openai import ChatOpenAI
+from app.core.config import settings
+from app.models.kyc_report import KYCReport
+from app.models.opportunity import OpportunityChatMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+
+class ChatInputPayload(BaseModel):
+    message: str
+    model: Optional[str] = None
+    temperature: Optional[float] = None
+
+def _purge_old_messages(db: Session, opportunity_id: uuid.UUID):
+    """Purge chat messages older than 7 days."""
+    try:
+        expiry_time = datetime.now(timezone.utc) - timedelta(days=7)
+        db.query(OpportunityChatMessage).filter(
+            OpportunityChatMessage.opportunity_id == opportunity_id,
+            OpportunityChatMessage.created_at < expiry_time
+        ).delete(synchronize_session=False)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+
+@router.get("/{opportunity_id}/chat")
+async def get_chat_history(
+    opportunity_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get chat history for an opportunity (with 7-day auto-purge)."""
+    opp = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+
+    # Purge old messages
+    _purge_old_messages(db, opportunity_id)
+
+    # Get history
+    messages = (
+        db.query(OpportunityChatMessage)
+        .filter(OpportunityChatMessage.opportunity_id == opportunity_id)
+        .order_by(OpportunityChatMessage.created_at.asc())
+        .all()
+    )
+
+    return {
+        "messages": [
+            {
+                "id": str(msg.id),
+                "role": msg.role,
+                "content": msg.content,
+                "created_at": msg.created_at.isoformat()
+            }
+            for msg in messages
+        ]
+    }
+
+@router.post("/{opportunity_id}/chat")
+async def chat_with_opportunity(
+    opportunity_id: uuid.UUID,
+    payload: ChatInputPayload,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Brainstorm and chat with AI contextualized by the opportunity and its latest KYC report, saving to DB."""
+    opp = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+
+    # 1. Purge old messages
+    _purge_old_messages(db, opportunity_id)
+
+    # 2. Save user message to DB
+    user_msg = OpportunityChatMessage(
+        opportunity_id=opportunity_id,
+        role="user",
+        content=payload.message
+    )
+    db.add(user_msg)
+    db.commit()
+
+    # 3. Retrieve all non-expired messages (history)
+    db_messages = (
+        db.query(OpportunityChatMessage)
+        .filter(OpportunityChatMessage.opportunity_id == opportunity_id)
+        .order_by(OpportunityChatMessage.created_at.asc())
+        .all()
+    )
+
+    # 4. Fetch latest completed KYC report
+    kyc = (
+        db.query(KYCReport)
+        .filter(KYCReport.opportunity_id == opportunity_id, KYCReport.status == "completed")
+        .order_by(KYCReport.version.desc())
+        .first()
+    )
+
+    # 5. Build opportunity and KYC context
+    context_lines = [
+        f"Opportunity Name: {opp.company_name}",
+        f"Industry: {opp.industry or 'N/A'}",
+        f"Target Product: {opp.product or 'N/A'}",
+        f"Customer Needs: {opp.customer_needs}",
+        f"Additional Notes: {opp.additional_notes or 'N/A'}"
+    ]
+
+    if kyc:
+        context_lines.extend([
+            "\nLatest KYC Report Insights:",
+            f"- Executive Summary: {kyc.executive_summary}",
+            f"- Customer Need Summary: {kyc.customer_need_summary}",
+            f"- Potential Pain Points: {', '.join(kyc.potential_pain_points or [])}",
+            f"- Recommended Use Cases: {', '.join([uc.get('title', '') for uc in kyc.use_cases or []])}"
+        ])
+
+    context_str = "\n".join(context_lines)
+
+    # 6. Build system instruction
+    system_prompt = f"""You are a professional Pre-sales Engineer and Solutions Architect at PT Smartnet Magna Global (SMG).
+Your job is to help the pre-sales team brainstorm, prepare for client meetings, design matching cloud/data/cybersecurity architectures, and answer questions.
+
+Use the following Opportunity & KYC Context to inform your answers. Always align your recommendations with PT Smartnet Magna Global's solutions catalog:
+1. Google Cloud Infrastructure & Modernization (GCP, GKE, Serverless, Cloud Migration)
+2. Data Analytics & AI (BigQuery, Looker, Vertex AI, Predictive/Generative AI)
+3. Cybersecurity Suite (Zero Trust, Cloud Security, SIEM, SOC, Penetration Testing)
+4. Network Solutions (SD-WAN, Enterprise Networking, SASE)
+5. Managed Services & Support
+
+Be specific, professional, and actionable. Keep your tone helpful and advisory.
+
+Opportunity & KYC Context:
+{context_str}
+"""
+
+    # 7. Build messages list for the model
+    api_messages = [SystemMessage(content=system_prompt)]
+    for msg in db_messages:
+        if msg.role == "user":
+            api_messages.append(HumanMessage(content=msg.content))
+        elif msg.role == "assistant":
+            api_messages.append(AIMessage(content=msg.content))
+
+    from fastapi.responses import StreamingResponse
+    from app.core.database import SessionLocal
+
+    async def generate_response_chunks():
+        try:
+            model_name = payload.model or settings.OPENAI_MODEL
+            temp = payload.temperature if payload.temperature is not None else 0.3
+            
+            llm = ChatOpenAI(
+                model=model_name,
+                temperature=temp,
+                api_key=settings.OPENAI_API_KEY,
+                base_url=settings.OPENAI_API_BASE,
+                streaming=True,
+            )
+            
+            full_content = ""
+            async for chunk in llm.astream(api_messages):
+                content_chunk = chunk.content
+                if content_chunk:
+                    full_content += content_chunk
+                    yield content_chunk
+
+            # Save assistant message to DB after stream finishes
+            if full_content.strip():
+                db_session = SessionLocal()
+                try:
+                    assistant_msg = OpportunityChatMessage(
+                        opportunity_id=opportunity_id,
+                        role="assistant",
+                        content=full_content
+                    )
+                    db_session.add(assistant_msg)
+                    db_session.commit()
+                except Exception as e:
+                    db_session.rollback()
+                finally:
+                    db_session.close()
+        except Exception as e:
+            yield f"\n[AI Error]: {str(e)}"
+
+    return StreamingResponse(generate_response_chunks(), media_type="text/plain")

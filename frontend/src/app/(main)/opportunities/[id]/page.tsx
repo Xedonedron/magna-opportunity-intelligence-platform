@@ -10,7 +10,6 @@ import {
     GitCommit,
     FileText,
     Clock,
-    MoreHorizontal,
     Plus,
     Zap,
     CheckCircle2,
@@ -21,6 +20,7 @@ import {
     Building2,
     Package,
     User,
+    Sparkles,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -30,14 +30,15 @@ import { useMeetings } from "@/hooks/use-meetings";
 import { MeetingAccordion } from "@/components/domains/meetings/MeetingAccordion";
 import { CreateMeetingDialog } from "@/components/domains/meetings/CreateMeetingDialog";
 import { KYCReportTab } from "@/components/domains/kyc/KYCReportTab";
+import { OpportunityChatSidebar } from "@/components/domains/opportunities/OpportunityChatSidebar";
 import { formatDateTime, timeAgo } from "@/lib/utils";
 import type { OpportunityStatus } from "@/types/opportunity";
 
 const tabs = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "kyc", label: "KYC Report", icon: FileText },
     { id: "meetings", label: "Meetings", icon: Calendar },
     { id: "timeline", label: "Timeline", icon: GitCommit },
-    { id: "kyc", label: "KYC Report", icon: FileText },
     { id: "versions", label: "Versions", icon: Clock },
 ];
 
@@ -55,6 +56,7 @@ export default function OpportunityDetailPage() {
     const id = params.id as string;
     const [activeTab, setActiveTab] = useState("overview");
     const [showCreateMeeting, setShowCreateMeeting] = useState(false);
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
     const { data: opp, isLoading } = useOpportunity(id);
     const { data: meetingsData } = useMeetings(id);
@@ -93,9 +95,11 @@ export default function OpportunityDetailPage() {
     }
 
     return (
-        <div className="flex flex-col h-full bg-zinc-50">
-            {/* Header */}
-            <div className="bg-white border-b border-zinc-200 px-8 pt-8 pb-0">
+        <div className="flex h-full bg-zinc-50 overflow-hidden w-full">
+            {/* Left Content Area */}
+            <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
+                {/* Header */}
+                <div className="bg-white border-b border-zinc-200 px-8 pt-8 pb-0 shrink-0">
                 <div className="max-w-[1200px] mx-auto">
                     <button
                         onClick={() => router.push("/opportunities")}
@@ -119,8 +123,12 @@ export default function OpportunityDetailPage() {
                             </p>
                         </div>
                         <div className="flex gap-2">
-                            <Button variant="secondary">
-                                <MoreHorizontal className="w-4 h-4" />
+                            <Button
+                                variant="secondary"
+                                className="gap-2 border-zinc-300"
+                                onClick={() => setIsChatOpen(!isChatOpen)}
+                            >
+                                <Sparkles className="w-4 h-4 text-zinc-900" /> Brainstorming AI
                             </Button>
                             <Button
                                 className="gap-2"
@@ -317,6 +325,14 @@ export default function OpportunityDetailPage() {
                     )}
                 </div>
             </div>
+            </div>
+
+            {/* Right Collapsible AI Chat Sidebar */}
+            <OpportunityChatSidebar
+                opportunityId={id}
+                isOpen={isChatOpen}
+                onClose={() => setIsChatOpen(false)}
+            />
 
             {/* Create Meeting Dialog */}
             {showCreateMeeting && (
