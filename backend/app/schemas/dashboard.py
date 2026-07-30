@@ -18,6 +18,18 @@ class StatusCount(BaseModel):
     count: int
 
 
+class ProductCount(BaseModel):
+    """Count by product."""
+    product: str
+    count: int
+
+
+class IndustryCount(BaseModel):
+    """Count by industry."""
+    industry: str
+    count: int
+
+
 class EngineerCount(BaseModel):
     """Count by engineer."""
     engineer_id: str
@@ -61,6 +73,12 @@ class DashboardMetrics(BaseModel):
     recent_opportunities: list[RecentOpportunity]
     upcoming_meetings: list[UpcomingMeeting]
     trend_data: list[TrendData]
+    
+    # New metrics for managers
+    won_rate: float
+    active_count: int
+    by_product: list[ProductCount]
+    by_industry: list[IndustryCount]
     
     # Role-based visibility
     user_role: str

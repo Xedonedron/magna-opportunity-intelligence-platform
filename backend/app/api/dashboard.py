@@ -19,6 +19,8 @@ from app.schemas.dashboard import (
     TrendData,
     RecentOpportunity,
     UpcomingMeeting,
+    ProductCount,
+    IndustryCount,
 )
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
@@ -69,7 +71,7 @@ async def get_dashboard_metrics(
     if status:
         query = query.filter(Opportunity.status == status)
     
-    if engineer_id and user_role in ["admin", "manager"]:
+    if engineer_id and user_role in ["admin", "superadmin", "manager"]:
         query = query.filter(Opportunity.assigned_engineer_id == engineer_id)
     
     if date_from:
@@ -109,7 +111,7 @@ async def get_dashboard_metrics(
         )
     if status:
         status_query = status_query.filter(Opportunity.status == status)
-    if engineer_id and user_role in ["admin", "manager"]:
+    if engineer_id and user_role in ["admin", "superadmin", "manager"]:
         status_query = status_query.filter(Opportunity.assigned_engineer_id == engineer_id)
     if date_from:
         status_query = status_query.filter(Opportunity.created_at >= date_from)
@@ -124,7 +126,7 @@ async def get_dashboard_metrics(
     
     # By engineer (only for admin/manager)
     by_engineer = []
-    if user_role in ["admin", "manager"]:
+    if user_role in ["admin", "superadmin", "manager"]:
         engineer_query = db.query(
             Opportunity.assigned_engineer_id,
             User.full_name,
@@ -313,6 +315,74 @@ async def get_dashboard_metrics(
             won=won_count.count(),
             lost=lost_count.count(),
         ))
+
+    # New Manager Metrics Calculations
+    total_won = query.filter(Opportunity.status == "Won").count()
+    total_lost = query.filter(Opportunity.status == "Lost").count()
+    closed_count = total_won + total_lost
+    won_rate = float(total_won) / closed_count * 100.0 if closed_count > 0 else 0.0
+
+    active_count = query.filter(
+        ~Opportunity.status.in_(["Won", "Lost", "On Hold"])
+    ).count()
+
+    # Product count aggregation
+    product_query = db.query(
+        Opportunity.product,
+        sa_func.count(Opportunity.id).label("count")
+    )
+    if user_role == "lgo":
+        product_query = product_query.filter(Opportunity.created_by == current_user.id)
+    elif user_role == "engineer":
+        product_query = product_query.filter(
+            or_(
+                Opportunity.assigned_engineer_id == current_user.id,
+                Opportunity.created_by == current_user.id,
+            )
+        )
+    if status:
+        product_query = product_query.filter(Opportunity.status == status)
+    if engineer_id and user_role in ["admin", "superadmin", "manager"]:
+        product_query = product_query.filter(Opportunity.assigned_engineer_id == engineer_id)
+    if date_from:
+        product_query = product_query.filter(Opportunity.created_at >= date_from)
+    if date_to:
+        product_query = product_query.filter(Opportunity.created_at < date_to + timedelta(days=1))
+        
+    product_counts = product_query.group_by(Opportunity.product).all()
+    by_product = [
+        ProductCount(product=p or "None", count=c)
+        for p, c in product_counts
+    ]
+
+    # Industry count aggregation
+    industry_query = db.query(
+        Opportunity.industry,
+        sa_func.count(Opportunity.id).label("count")
+    )
+    if user_role == "lgo":
+        industry_query = industry_query.filter(Opportunity.created_by == current_user.id)
+    elif user_role == "engineer":
+        industry_query = industry_query.filter(
+            or_(
+                Opportunity.assigned_engineer_id == current_user.id,
+                Opportunity.created_by == current_user.id,
+            )
+        )
+    if status:
+        industry_query = industry_query.filter(Opportunity.status == status)
+    if engineer_id and user_role in ["admin", "superadmin", "manager"]:
+        industry_query = industry_query.filter(Opportunity.assigned_engineer_id == engineer_id)
+    if date_from:
+        industry_query = industry_query.filter(Opportunity.created_at >= date_from)
+    if date_to:
+        industry_query = industry_query.filter(Opportunity.created_at < date_to + timedelta(days=1))
+        
+    industry_counts = industry_query.group_by(Opportunity.industry).all()
+    by_industry = [
+        IndustryCount(industry=ind or "None", count=c)
+        for ind, c in industry_counts
+    ]
     
     return DashboardMetrics(
         total_opportunities=total_opportunities,
@@ -324,6 +394,10 @@ async def get_dashboard_metrics(
         recent_opportunities=recent_opportunities,
         upcoming_meetings=upcoming_meetings,
         trend_data=trend_data,
+        won_rate=won_rate,
+        active_count=active_count,
+        by_product=by_product,
+        by_industry=by_industry,
         user_role=user_role,
         filtered_by_user=filtered_by_user,
     )

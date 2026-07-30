@@ -33,6 +33,16 @@ export interface UpcomingMeeting {
     meeting_type?: string;
 }
 
+export interface ProductCount {
+    product: string;
+    count: number;
+}
+
+export interface IndustryCount {
+    industry: string;
+    count: number;
+}
+
 export interface DashboardMetrics {
     total_opportunities: number;
     by_status: StatusCount[];
@@ -43,6 +53,10 @@ export interface DashboardMetrics {
     recent_opportunities: RecentOpportunity[];
     upcoming_meetings: UpcomingMeeting[];
     trend_data: TrendData[];
+    won_rate: number;
+    active_count: number;
+    by_product: ProductCount[];
+    by_industry: IndustryCount[];
     user_role: string;
     filtered_by_user: boolean;
 }

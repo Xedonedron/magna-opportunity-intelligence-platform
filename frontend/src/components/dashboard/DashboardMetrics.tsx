@@ -1,6 +1,4 @@
-"use client";
-
-import { TrendingUp, Calendar, Loader2, AlertCircle } from "lucide-react";
+import { TrendingUp, Calendar, Loader2, AlertCircle, Award, Activity } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 
 interface DashboardMetricsProps {
@@ -8,6 +6,8 @@ interface DashboardMetricsProps {
     meetingsToday: number;
     kycRunning: number;
     needFollowUp: number;
+    wonRate: number;
+    activeCount: number;
     userRole: string;
 }
 
@@ -16,6 +16,8 @@ export function DashboardMetrics({
     meetingsToday,
     kycRunning,
     needFollowUp,
+    wonRate,
+    activeCount,
     userRole,
 }: DashboardMetricsProps) {
     const metrics = [
@@ -24,16 +26,28 @@ export function DashboardMetrics({
             value: totalOpportunities,
             icon: TrendingUp,
             description: userRole === "lgo"
-                ? "Opportunities you created"
+                ? "Created by you"
                 : userRole === "engineer"
                     ? "Assigned to you"
                     : "All opportunities",
         },
         {
+            label: "Active Pipelines",
+            value: activeCount,
+            icon: Activity,
+            description: "Excludes won/lost",
+        },
+        {
+            label: "Won Rate",
+            value: `${(wonRate || 0).toFixed(1)}%`,
+            icon: Award,
+            description: "Won / (Won + Lost)",
+        },
+        {
             label: "Meetings Today",
             value: meetingsToday,
             icon: Calendar,
-            description: "Scheduled for today",
+            description: "Scheduled today",
         },
         {
             label: "KYC Running",
@@ -50,19 +64,19 @@ export function DashboardMetrics({
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {metrics.map((metric, i) => (
-                <Card key={i} className="p-5">
+                <Card key={i} className="p-4 shadow-sm hover:shadow transition-shadow">
                     <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-zinc-500">{metric.label}</p>
-                        <metric.icon className="w-4 h-4 text-zinc-400" />
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{metric.label}</p>
+                        <metric.icon className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                     </div>
                     <div className="mt-2 flex items-baseline gap-2">
-                        <span className="text-3xl font-semibold tracking-tight text-zinc-900">
+                        <span className="text-xl font-bold tracking-tight text-zinc-900">
                             {metric.value}
                         </span>
                     </div>
-                    <p className="text-xs text-zinc-500 mt-2">{metric.description}</p>
+                    <p className="text-[10px] text-zinc-500 mt-1 font-medium leading-none truncate">{metric.description}</p>
                 </Card>
             ))}
         </div>
