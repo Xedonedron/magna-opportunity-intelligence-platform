@@ -73,14 +73,47 @@ class WebSearchService:
 
         return results
 
-    def search_industry_use_cases(self, industry: str, customer_needs: str) -> list:
-        """Search for industry-specific use cases and solutions."""
+    def search_industry_use_cases(
+        self, industry: str, customer_needs: str, product: Optional[str] = None
+    ) -> list:
+        """Search for industry-specific use cases and solutions aligned with customer needs."""
         if not self.client:
             return []
 
         try:
+            # Construct a query focused on the industry + product + customer needs keywords
+            query_parts = []
+            if industry:
+                query_parts.append(industry)
+            if product:
+                query_parts.append(product)
+
+            # Simple keyword extraction from customer needs:
+            keywords = ["dashboard", "reporting", "visualization", "migration", "analytics", "business intelligence", "database", "infrastructure", "security"]
+            found_keywords = [kw for kw in keywords if kw in customer_needs.lower()]
+
+            # Translate Indonesian keywords to English for better search results
+            lower_needs = customer_needs.lower()
+            if "visualisasi" in lower_needs:
+                found_keywords.append("visualization")
+            if "laporan" in lower_needs or "report" in lower_needs:
+                found_keywords.append("reporting")
+            if "migrasi" in lower_needs:
+                found_keywords.append("migration")
+            if "keamanan" in lower_needs:
+                found_keywords.append("security")
+
+            if found_keywords:
+                query_parts.append(" ".join(list(set(found_keywords))[:3]))
+
+            if len(query_parts) <= 1:
+                query_parts.append("cloud AI solutions")
+
+            query = " ".join(query_parts) + " use cases solutions enterprise"
+            logger.info(f"[Search Service] Searching industry use cases with query: {query}")
+
             response = self.client.search(
-                query=f"{industry} industry cloud AI solutions use cases enterprise",
+                query=query,
                 search_depth="advanced",
                 max_results=5,
                 include_answer=True,

@@ -18,6 +18,13 @@ from app.core.database import Base, get_db
 from app.main import app
 from app.models import User, Opportunity
 from app.services.auth import create_access_token
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.dialects.postgresql import JSONB
+
+# Map JSONB to JSON for SQLite compatibility in tests
+@compiles(JSONB, "sqlite")
+def compile_jsonb_sqlite(type_, compiler, **kw):
+    return "JSON"
 
 
 # Use in-memory SQLite for testing

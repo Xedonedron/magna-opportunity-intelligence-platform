@@ -33,6 +33,8 @@ class KYCReportResponse(BaseModel):
     preparation_checklist: Optional[list[str]] = None
     references: Optional[list[dict[str, Any]]] = None
     source_type: str
+    progress_step: Optional[str] = None
+    progress_percent: int = 0
     error_message: Optional[str] = None
     created_by: Optional[UUID] = None
     created_at: datetime

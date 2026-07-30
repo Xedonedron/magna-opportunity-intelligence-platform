@@ -20,7 +20,7 @@ export function useLatestKYCReport(opportunityId: string) {
         refetchInterval: (query) => {
             // Auto-refresh while KYC is running
             const status = query.state.data?.status;
-            return status === 'running' ? 3000 : false;
+            return status === 'running' ? 1000 : false;
         },
     });
 }

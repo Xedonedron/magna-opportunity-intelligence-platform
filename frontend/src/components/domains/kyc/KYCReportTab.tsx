@@ -14,6 +14,8 @@ import {
     Edit3,
     X,
     Save,
+    CheckCircle2,
+    Clock,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/Card";
@@ -104,7 +106,11 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
 
     // Handle regenerate with confirmation
     const handleRegenerateClick = () => {
-        setShowConfirmRegenerate(true);
+        if (!report || report.status === "failed") {
+            regenerate.mutate({});
+        } else {
+            setShowConfirmRegenerate(true);
+        }
     };
 
     const handleConfirmRegenerate = () => {
@@ -159,16 +165,101 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
     }
 
     if (report.status === "running") {
+        const percent = report.progress_percent || 15;
+        const currentStep = report.progress_step || "received";
+        
+        const steps = [
+            { key: "received", label: "Penerimaan Data", desc: "Data input diterima dan divalidasi oleh sistem." },
+            { key: "fetching_web", label: "Mengambil Data Web", desc: "Memindai mesin pencari, website perusahaan, dan berita..." },
+            { key: "fetching_industry", label: "Mengambil Data Industri", desc: "Mengambil referensi tren industri dan use case relevan..." },
+            { key: "analyzing", label: "Perkaya Insights (AI)", desc: "AI sedang menganalisis data untuk merumuskan pain points..." },
+        ];
+
+        const getStepState = (stepKey: string, currentStepName: string | undefined) => {
+            const stepOrder = ["received", "fetching_web", "fetching_industry", "analyzing", "completed"];
+            const currentIndex = stepOrder.indexOf(currentStepName || "received");
+            const targetIndex = stepOrder.indexOf(stepKey);
+            
+            if (currentIndex > targetIndex) return "completed";
+            if (currentIndex === targetIndex) return "active";
+            return "pending";
+        };
+
         return (
-            <Card className="p-12 text-center">
-                <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-zinc-900" />
-                <h3 className="text-lg font-medium text-zinc-900 mb-2">
-                    KYC Analysis in Progress (v{report.version})
-                </h3>
-                <p className="text-zinc-500 max-w-md mx-auto">
-                    Magna AI is scanning web sources, company websites, LinkedIn, and news to build
-                    a comprehensive intelligence report. This page will auto-refresh.
-                </p>
+            <Card className="p-8 max-w-2xl mx-auto border border-zinc-200 shadow-sm bg-white mt-4">
+                <div className="text-center mb-6">
+                    <div className="inline-flex p-3 rounded-full bg-zinc-50 border border-zinc-100 mb-3 animate-pulse">
+                        <Loader2 className="w-6 h-6 animate-spin text-zinc-950" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-zinc-950">
+                        Analisis KYC Sedang Berjalan (v{report.version})
+                    </h3>
+                    <p className="text-zinc-500 text-sm mt-1">
+                        Magna AI sedang mengumpulkan informasi dari berbagai sumber. Halaman ini akan diperbarui secara otomatis.
+                    </p>
+                </div>
+
+                {/* Progress bar with percentage indicator */}
+                <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2 text-xs font-medium text-zinc-500">
+                        <span>Progress Analisis</span>
+                        <span className="text-zinc-950 font-semibold">{percent}%</span>
+                    </div>
+                    <div className="w-full bg-zinc-100 h-2 rounded-full overflow-hidden">
+                        <div 
+                            className="bg-zinc-900 h-full transition-all duration-500 ease-out rounded-full"
+                            style={{ width: `${percent}%` }}
+                        />
+                    </div>
+                </div>
+
+                {/* Vertical Timeline Steps */}
+                <div className="space-y-6 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-0.5 before:bg-zinc-100">
+                    {steps.map((step) => {
+                        const state = getStepState(step.key, currentStep);
+                        return (
+                            <div key={step.key} className="flex gap-4 items-start relative z-10">
+                                <div className="flex items-center justify-center">
+                                    {state === "completed" && (
+                                        <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-sm">
+                                            <CheckCircle2 className="w-4 h-4" />
+                                        </div>
+                                    )}
+                                    {state === "active" && (
+                                        <div className="w-8 h-8 rounded-full bg-zinc-950 border border-zinc-800 flex items-center justify-center text-white shadow-md animate-pulse">
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                        </div>
+                                    )}
+                                    {state === "pending" && (
+                                        <div className="w-8 h-8 rounded-full bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-300">
+                                            <Clock className="w-4 h-4" />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex-1 pt-0.5">
+                                    <h4 className={`text-sm font-semibold transition-colors ${
+                                        state === "active" 
+                                            ? "text-zinc-950" 
+                                            : state === "completed" 
+                                                ? "text-zinc-800" 
+                                                : "text-zinc-400"
+                                    }`}>
+                                        {step.label}
+                                    </h4>
+                                    <p className={`text-xs mt-0.5 transition-colors ${
+                                        state === "active" 
+                                            ? "text-zinc-600" 
+                                            : state === "completed" 
+                                                ? "text-zinc-500" 
+                                                : "text-zinc-400"
+                                    }`}>
+                                        {step.desc}
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </Card>
         );
     }

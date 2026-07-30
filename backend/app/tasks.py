@@ -158,10 +158,12 @@ def create_calendar_event(meeting_id: str) -> dict:
 
         company_name = opportunity.company_name if opportunity else "Unknown"
 
-        # Parse participants (comma-separated emails)
-        attendees = [
-            p.strip() for p in (meeting.participants or "").split(",") if p.strip()
-        ]
+        # Parse participants (JSON list of emails)
+        participants_data = meeting.participants or []
+        if isinstance(participants_data, str):
+            attendees = [p.strip() for p in participants_data.split(",") if p.strip()]
+        else:
+            attendees = [str(p).strip() for p in participants_data if str(p).strip()]
 
         # Default duration: 1 hour
         start_time = meeting.date
@@ -202,6 +204,7 @@ def run_kyc_pipeline_task(opportunity_id: str, source_type: str = "automatic") -
     5. Sends completion notification
     """
     import asyncio
+    import time
     from datetime import datetime, timezone
 
     from app.models.kyc_report import KYCReport
@@ -215,28 +218,41 @@ def run_kyc_pipeline_task(opportunity_id: str, source_type: str = "automatic") -
         ).first()
         if not opportunity:
             return {"status": "error", "message": "Opportunity not found"}
-
-        # Determine next version number
-        max_version = (
-            db.query(KYCReport.version)
-            .filter(KYCReport.opportunity_id == opportunity_id)
+        # Check if there is already an active running report (e.g., created by regenerate endpoint)
+        kyc_report = (
+            db.query(KYCReport)
+            .filter(
+                KYCReport.opportunity_id == opportunity_id,
+                KYCReport.status == "running",
+            )
             .order_by(KYCReport.version.desc())
             .first()
         )
-        next_version = (max_version[0] + 1) if max_version else 1
+
+        if kyc_report:
+            next_version = kyc_report.version
+        else:
+            # Determine next version number
+            max_version = (
+                db.query(KYCReport.version)
+                .filter(KYCReport.opportunity_id == opportunity_id)
+                .order_by(KYCReport.version.desc())
+                .first()
+            )
+            next_version = (max_version[0] + 1) if max_version else 1
+
+            # Create KYC report record
+            kyc_report = KYCReport(
+                opportunity_id=opportunity.id,
+                version=next_version,
+                status="running",
+                source_type=source_type,
+            )
+            db.add(kyc_report)
 
         # Update opportunity status
         old_status = opportunity.status
         opportunity.status = "KYC Running"
-
-        # Create KYC report record
-        kyc_report = KYCReport(
-            opportunity_id=opportunity.id,
-            version=next_version,
-            status="running",
-            source_type=source_type,
-        )
-        db.add(kyc_report)
 
         # Add timeline event
         timeline_event = TimelineEvent(
@@ -248,6 +264,25 @@ def run_kyc_pipeline_task(opportunity_id: str, source_type: str = "automatic") -
         )
         db.add(timeline_event)
         db.commit()
+        db.refresh(kyc_report)
+
+        # Define progress callback
+        def update_progress(step: str, percent: int):
+            progress_db = SessionLocal()
+            try:
+                report = progress_db.query(KYCReport).filter(KYCReport.id == kyc_report.id).first()
+                if report:
+                    report.progress_step = step
+                    report.progress_percent = percent
+                    progress_db.commit()
+            except Exception as e:
+                logger.error(f"[KYC Task] Failed to update progress: {e}")
+            finally:
+                progress_db.close()
+
+        # Update initial progress
+        update_progress("received", 15)
+        time.sleep(1.5)
 
         # Run the async pipeline
         result = asyncio.run(
@@ -258,6 +293,7 @@ def run_kyc_pipeline_task(opportunity_id: str, source_type: str = "automatic") -
                 industry=opportunity.industry,
                 product=opportunity.product,
                 additional_notes=opportunity.additional_notes,
+                on_progress=update_progress,
             )
         )
 

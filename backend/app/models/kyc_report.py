@@ -38,6 +38,8 @@ class KYCReport(Base):
     references: Mapped[list | None] = mapped_column(JSONB, nullable=True)
 
     # Metadata
+    progress_step: Mapped[str | None] = mapped_column(String(50), default="pending", nullable=True)
+    progress_percent: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     source_type: Mapped[str] = mapped_column(String(50), default="automatic")
     # source_type: automatic, manual_regenerate, engineer_edited
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)

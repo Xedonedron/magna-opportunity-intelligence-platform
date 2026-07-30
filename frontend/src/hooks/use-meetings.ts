@@ -6,9 +6,8 @@ import type { MeetingCreatePayload, MeetingUpdatePayload } from "@/types/meeting
 
 export function useMeetings(opportunityId?: string) {
     return useQuery({
-        queryKey: ["meetings", opportunityId],
+        queryKey: ["meetings", opportunityId || "global"],
         queryFn: () => meetingApi.list(opportunityId),
-        enabled: !!opportunityId,
     });
 }
 

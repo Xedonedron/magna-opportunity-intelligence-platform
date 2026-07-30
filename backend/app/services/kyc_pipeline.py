@@ -1,17 +1,18 @@
 """AI KYC Pipeline using LangGraph for orchestrated KYC report generation."""
 
+import asyncio
 import json
 import logging
 from datetime import datetime, timezone
-from typing import Any, Optional, TypedDict
+from typing import Any, Callable, Optional, TypedDict
 
 from langchain_openai import ChatOpenAI
+from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph, END
 
 from app.core.config import settings
 from app.services.web_search_service import web_search_service
 from app.services.web_crawler_service import web_crawler_service
-from app.services.rag_service import rag_service
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,6 @@ class KYCState(TypedDict):
     search_results: dict
     website_content: Optional[dict]
     industry_use_cases: list
-    smartnet_solutions: list
 
     # Output sections
     executive_summary: str
@@ -62,10 +62,34 @@ def get_llm() -> ChatOpenAI:
     )
 
 
+async def _update_progress(config: Optional[RunnableConfig], step: str, percent: int):
+    """Helper to dispatch progress updates to the callback in RunnableConfig metadata."""
+    if not config:
+        return
+    metadata = {}
+    if hasattr(config, "get"):
+        metadata = config.get("metadata", {})
+    elif hasattr(config, "metadata"):
+        metadata = config.metadata or {}
+    
+    on_progress = metadata.get("on_progress") if isinstance(metadata, dict) else None
+    if on_progress:
+        try:
+            if asyncio.iscoroutinefunction(on_progress):
+                await on_progress(step, percent)
+            else:
+                await asyncio.to_thread(on_progress, step, percent)
+            # Add a small delay so the user can see this step active in the UI
+            await asyncio.sleep(1.5)
+        except Exception as e:
+            logger.error(f"[KYC Pipeline] Progress callback error: {e}")
+
+
 # --- Pipeline Nodes ---
-async def research_node(state: KYCState) -> dict:
+async def research_node(state: KYCState, config: Optional[RunnableConfig] = None) -> dict:
     """Node 1: Gather research data from web search and crawling."""
     logger.info(f"[KYC Pipeline] Research node: {state['company_name']}")
+    await _update_progress(config, "fetching_web", 40)
 
     # Web search
     search_results = web_search_service.search_company(
@@ -78,12 +102,15 @@ async def research_node(state: KYCState) -> dict:
     if state.get("website"):
         website_content = await web_crawler_service.crawl_website(state["website"])
 
+    await _update_progress(config, "fetching_industry", 65)
+
     # Industry use cases search
     industry_use_cases = []
     if state.get("industry"):
         industry_use_cases = web_search_service.search_industry_use_cases(
             industry=state["industry"],
             customer_needs=state["customer_needs"],
+            product=state.get("product"),
         )
 
     return {
@@ -93,35 +120,10 @@ async def research_node(state: KYCState) -> dict:
     }
 
 
-async def solutions_node(state: KYCState) -> dict:
-    """Node 2: Retrieve relevant Smartnet Magna internal solutions."""
-    logger.info(f"[KYC Pipeline] Solutions node: {state['company_name']}")
-    
-    # Build query from customer needs and industry
-    query_parts = []
-    if state.get("customer_needs"):
-        query_parts.append(state["customer_needs"])
-    if state.get("industry"):
-        query_parts.append(state["industry"])
-    if state.get("product"):
-        query_parts.append(state["product"])
-    
-    query = " ".join(query_parts) if query_parts else "IT solutions Google Cloud cybersecurity"
-    
-    # Retrieve Smartnet solutions
-    smartnet_solutions = rag_service.query_solutions(
-        query=query,
-        industry_filter=state.get("industry"),
-    )
-    
-    return {
-        "smartnet_solutions": smartnet_solutions,
-    }
-
-
-async def analysis_node(state: KYCState) -> dict:
+async def analysis_node(state: KYCState, config: Optional[RunnableConfig] = None) -> dict:
     """Node 3: Analyze research data and generate KYC sections using LLM."""
     logger.info(f"[KYC Pipeline] Analysis node: {state['company_name']}")
+    await _update_progress(config, "analyzing", 85)
 
     llm = get_llm()
 
@@ -160,17 +162,19 @@ async def analysis_node(state: KYCState) -> dict:
             use_cases_lines.append(f"{i}. {uc.get('title', 'N/A')}: {uc.get('content', '')[:300]}")
         use_cases_context = "\n".join(use_cases_lines)
 
-    # Build Smartnet Magna solutions context from RAG
-    smartnet_solutions = state.get("smartnet_solutions", [])
-    solutions_context = ""
-    if smartnet_solutions:
-        solutions_lines = ["\n## Smartnet Magna Solutions Catalog (from internal documents):"]
-        for i, sol in enumerate(smartnet_solutions[:5], 1):
-            solutions_lines.append(f"{i}. {sol.get('content', '')[:400]}")
-        solutions_context = "\n".join(solutions_lines)
+    # Built-in Smartnet Magna Global Profile
+    solutions_context = """
+## Smartnet Magna Global Company Profile & Solutions Catalog
+You are representing Smartnet Magna Global (SMG), a leading IT consulting and solutions provider specializing in:
+1. Google Cloud Infrastructure & Modernization (GCP, GKE, Serverless, Cloud Migration)
+2. Data Analytics & AI (BigQuery, Looker, Vertex AI, Predictive/Generative AI)
+3. Cybersecurity Suite (Zero Trust, Cloud Security, SIEM, SOC, Penetration Testing)
+4. Network Solutions (SD-WAN, Enterprise Networking, SASE)
+5. Managed Services & Support
+"""
 
     # Generate comprehensive KYC report
-    prompt = f"""You are an expert business analyst preparing a KYC (Know Your Customer) report for a presales engineering meeting at PT Smartnet Magna Global (an IT solutions company specializing in Google Cloud, cybersecurity, and enterprise AI).
+    prompt = f"""You are an expert business analyst preparing a KYC (Know Your Customer) report for a presales engineering meeting at PT Smartnet Magna Global.
 
 ## Company Information
 - Company Name: {state['company_name']}
@@ -192,6 +196,8 @@ async def analysis_node(state: KYCState) -> dict:
 ---
 
 Generate a comprehensive KYC report in JSON format with the following structure. All text should be in English. Be specific and actionable.
+
+CRITICAL ALIGNMENT INSTRUCTION: The entire generated report (including executive_summary, customer_need_summary, use_cases, recommended_questions, potential_pain_points, and meeting_objectives) MUST be strictly aligned with the "Customer Needs" and "Target Product" sections above. Adapt the industry research context (like general manufacturing use cases) to solve the customer's *actual* specified needs (e.g., if they ask for visualization/dashboards/reporting, do NOT focus use cases on predictive maintenance, IoT sensors, or hardware utilization just because they are in the Manufacturing industry; instead, focus on analytics dashboards, KPI reporting, and data migration for manufacturing).
 
 IMPORTANT: When generating use_cases, reference the Industry Use Cases Reference and Smartnet Magna Solutions Catalog sections above. Use actual Smartnet Magna solutions from the catalog in the "smartnet_solutions" field of each use case.
 
@@ -275,15 +281,13 @@ def build_kyc_graph() -> StateGraph:
 
     # Add nodes
     workflow.add_node("research", research_node)
-    workflow.add_node("solutions", solutions_node)
     workflow.add_node("analysis", analysis_node)
 
     # Set entry point
     workflow.set_entry_point("research")
 
     # Add edges
-    workflow.add_edge("research", "solutions")
-    workflow.add_edge("solutions", "analysis")
+    workflow.add_edge("research", "analysis")
     workflow.add_edge("analysis", END)
 
     return workflow.compile()
@@ -297,6 +301,7 @@ async def run_kyc_pipeline(
     industry: Optional[str] = None,
     product: Optional[str] = None,
     additional_notes: Optional[str] = None,
+    on_progress: Optional[Callable[[str, int], Any]] = None,
 ) -> dict[str, Any]:
     """Run the full KYC pipeline and return the report data.
 
@@ -320,7 +325,6 @@ async def run_kyc_pipeline(
         "search_results": {},
         "website_content": None,
         "industry_use_cases": [],
-        "smartnet_solutions": [],
         "executive_summary": "",
         "company_overview": {},
         "industry_analysis": "",
@@ -338,7 +342,8 @@ async def run_kyc_pipeline(
 
     try:
         graph = build_kyc_graph()
-        result = await graph.ainvoke(initial_state)
+        config = {"metadata": {"on_progress": on_progress}} if on_progress else {}
+        result = await graph.ainvoke(initial_state, config=config)
 
         if result.get("error"):
             return {"status": "failed", "error": result["error"]}

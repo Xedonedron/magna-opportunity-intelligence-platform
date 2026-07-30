@@ -25,10 +25,10 @@ const formSchema = z.object({
     email: z.string().email("Invalid email").optional().or(z.literal("")),
     phone: z.string().optional(),
     industry: z.string().optional(),
-    product: z.string().optional(),
+    product: z.string().min(1, "Target Product Line is required"),
     customer_needs: z.string().min(1, "Customer needs is required"),
     additional_notes: z.string().optional(),
-    meeting_schedule: z.string().optional(),
+    meeting_schedule: z.string().min(1, "Initial Meeting Date is required"),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -57,6 +57,10 @@ export default function CreateOpportunityPage() {
     const [pipelineState, setPipelineState] = useState(0);
     const [createdId, setCreatedId] = useState<string | null>(null);
 
+    const defaultDate = new Date();
+    defaultDate.setHours(defaultDate.getHours() + 1, 0, 0, 0);
+    const defaultDateStr = new Date(defaultDate.getTime() - defaultDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
     const createOpportunity = useCreateOpportunity();
 
     const {
@@ -74,7 +78,7 @@ export default function CreateOpportunityPage() {
             product: "",
             customer_needs: "",
             additional_notes: "",
-            meeting_schedule: "",
+            meeting_schedule: defaultDateStr,
         },
     });
 
@@ -254,12 +258,18 @@ export default function CreateOpportunityPage() {
                             Meeting & Product
                         </h2>
                         <div className="space-y-4">
-                            <Input
-                                label="Initial Meeting Date"
-                                type="datetime-local"
-                                {...register("meeting_schedule")}
-                            />
-                            <Select label="Target Product Line" {...register("product")}>
+                            <div className="space-y-1">
+                                <Input
+                                    label="Initial Meeting Date"
+                                    type="datetime-local"
+                                    required
+                                    {...register("meeting_schedule")}
+                                />
+                                <p className="text-xs text-zinc-500">
+                                    Click anywhere outside the calendar pop-up to confirm your selection.
+                                </p>
+                            </div>
+                            <Select label="Target Product Line" required {...register("product")}>
                                 <option value="">Select product...</option>
                                 <option value="Cloud Infrastructure">
                                     Cloud Infrastructure

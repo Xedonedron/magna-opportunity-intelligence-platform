@@ -34,6 +34,8 @@ export interface KYCReport {
     version: number;
     status: 'running' | 'completed' | 'failed';
     source_type: 'automatic' | 'manual_regenerate' | 'engineer_edited';
+    progress_step?: string;
+    progress_percent?: number;
     executive_summary?: string;
     company_overview?: KYCCompanyOverview;
     industry_analysis?: string;

@@ -1,27 +1,45 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
     LayoutDashboard,
     FolderOpen,
     Calendar,
-    Bell,
     Settings,
     User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const navItems = [
+interface NavItem {
+    name: string;
+    href: string;
+    icon: React.ComponentType<{ className?: string }>;
+    badge?: number;
+}
+
+const navItems: NavItem[] = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Opportunities", href: "/opportunities", icon: FolderOpen },
     { name: "Meetings", href: "/meetings", icon: Calendar },
-    { name: "Notifications", href: "/notifications", icon: Bell, badge: 3 },
     { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export function Sidebar() {
     const pathname = usePathname();
+    const [user, setUser] = useState<{ full_name: string; email: string } | null>(null);
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem("moip_user");
+        if (storedUser) {
+            try {
+                setUser(JSON.parse(storedUser));
+            } catch (e) {
+                console.error("Failed to parse moip_user", e);
+            }
+        }
+    }, []);
 
     return (
         <div className="w-64 border-r border-zinc-200 bg-zinc-50 flex flex-col h-screen shrink-0 sticky top-0">
@@ -74,9 +92,11 @@ export function Sidebar() {
                     </div>
                     <div className="text-left flex-1 min-w-0">
                         <p className="text-sm font-medium text-zinc-900 truncate">
-                            Alex Mercer
+                            {user?.full_name || "User"}
                         </p>
-                        <p className="text-xs text-zinc-500 truncate">Lead Engineer</p>
+                        <p className="text-xs text-zinc-500 truncate">
+                            {user?.email || ""}
+                        </p>
                     </div>
                 </div>
             </div>
