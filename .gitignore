@@ -1,0 +1,16 @@
+node_modules/
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+dist/
+build/
+.next/
+coverage/
+*.log
+backend/data/
+chromadb/
+*.sqlite3
+*.db

@@ -1,0 +1,102 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: moip_postgres
+    environment:
+      POSTGRES_USER: moip
+      POSTGRES_PASSWORD: moip_secret
+      POSTGRES_DB: moip_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/libpostgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U moip -d moip_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: moip_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: moip_backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://moip:moip_secret@postgres:5432/moip_db
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_WORKSPACE_DOMAIN: ${GOOGLE_WORKSPACE_DOMAIN:-magnaglobal.id}
+      OPENAI_API_BASE: ${OPENAI_API_BASE}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-deepseek-3.2}
+      TAVILY_API_KEY: ${TAVILY_API_KEY}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3001}
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/data:/app/data
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: moip_celery
+    environment:
+      DATABASE_URL: postgresql://moip:moip_secret@postgres:5432/moip_db
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_WORKSPACE_DOMAIN: ${GOOGLE_WORKSPACE_DOMAIN:-magnaglobal.id}
+      OPENAI_API_BASE: ${OPENAI_API_BASE}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-deepseek-3.2}
+      TAVILY_API_KEY: ${TAVILY_API_KEY}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3001}
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/data:/app/data
+    command: celery -A app.core.celery_app worker --loglevel=info
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: moip_frontend
+    ports:
+      - "3001:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      INTERNAL_API_URL: http://backend:8000
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
