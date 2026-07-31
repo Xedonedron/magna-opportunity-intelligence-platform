@@ -20,9 +20,17 @@ app = FastAPI(
 )
 
 # CORS
+origins = [
+    settings.FRONTEND_URL.rstrip("/"),
+    "https://moip.cloudwithmagna.com",
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3009",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL, "http://localhost:3000", "http://localhost:3001"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
