@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, ChevronDown, MapPin, Users, ListChecks, FileText } from "lucide-react";
+import { Calendar, ChevronDown, MapPin, Users, ListChecks, FileText, Edit3 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { EditMeetingDialog } from "./EditMeetingDialog";
 import type { Meeting } from "@/types/meeting";
 
 function formatDate(dateStr: string): string {
@@ -24,6 +26,7 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
     const [openId, setOpenId] = useState<string | null>(
         meetings.length > 0 ? meetings[0].id : null
     );
+    const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
 
     if (meetings.length === 0) {
         return (
@@ -42,13 +45,13 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                 const isOpen = openId === meeting.id;
                 return (
                     <Card key={meeting.id} className="overflow-hidden">
-                        <button
-                            onClick={() =>
-                                setOpenId(isOpen ? null : meeting.id)
-                            }
-                            className="w-full px-5 py-4 flex items-center justify-between hover:bg-zinc-50 transition-colors text-left"
-                        >
-                            <div className="flex items-center gap-3">
+                        <div className="w-full px-5 py-4 flex items-center justify-between hover:bg-zinc-50 transition-colors">
+                            <button
+                                onClick={() =>
+                                    setOpenId(isOpen ? null : meeting.id)
+                                }
+                                className="flex-1 flex items-center gap-3 text-left"
+                            >
                                 <div
                                     className={`p-2 rounded-lg ${isOpen
                                             ? "bg-zinc-900 text-white"
@@ -67,12 +70,32 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                                             ` • ${meeting.location}`}
                                     </p>
                                 </div>
+                            </button>
+
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setEditingMeeting(meeting)}
+                                    className="h-8 text-xs text-zinc-600 hover:text-zinc-900 gap-1"
+                                    title="Edit Meeting & Agenda"
+                                >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                    Edit
+                                </Button>
+                                <button
+                                    onClick={() =>
+                                        setOpenId(isOpen ? null : meeting.id)
+                                    }
+                                    className="p-1 text-zinc-400 hover:text-zinc-600 transition-transform"
+                                >
+                                    <ChevronDown
+                                        className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""
+                                            }`}
+                                    />
+                                </button>
                             </div>
-                            <ChevronDown
-                                className={`w-4 h-4 text-zinc-400 transition-transform ${isOpen ? "rotate-180" : ""
-                                    }`}
-                            />
-                        </button>
+                        </div>
 
                         {isOpen && (
                             <div className="px-5 py-5 border-t border-zinc-100 bg-zinc-50/50 space-y-5">
@@ -162,6 +185,13 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                     </Card>
                 );
             })}
+
+            {editingMeeting && (
+                <EditMeetingDialog
+                    meeting={editingMeeting}
+                    onClose={() => setEditingMeeting(null)}
+                />
+            )}
         </div>
     );
 }

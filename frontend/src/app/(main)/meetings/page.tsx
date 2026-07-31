@@ -13,10 +13,12 @@ import {
     CheckSquare,
     FolderOpen,
     Clock,
+    Edit3,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { EditMeetingDialog } from "@/components/domains/meetings/EditMeetingDialog";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useOpportunities } from "@/hooks/use-opportunities";
 import { formatDateTime } from "@/lib/utils";
@@ -27,6 +29,7 @@ export default function MeetingsPage() {
     const { data: opportunitiesData } = useOpportunities({ page_size: 100 });
     const [searchTerm, setSearchTerm] = useState("");
     const [expandedMeetings, setExpandedMeetings] = useState<Record<string, boolean>>({});
+    const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
 
     // Map opportunity ID to Company Name for easy lookup
     const opportunityMap = opportunitiesData?.items.reduce((acc, opp) => {
@@ -164,21 +167,36 @@ export default function MeetingsPage() {
                                             )}
                                         </div>
                                     </div>
-                                    <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        className="h-8 w-8 p-0 shrink-0"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleExpand(meeting.id);
-                                        }}
-                                    >
-                                        {isExpanded ? (
-                                            <ChevronUp className="w-4 h-4" />
-                                        ) : (
-                                            <ChevronDown className="w-4 h-4" />
-                                        )}
-                                    </Button>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setEditingMeeting(meeting);
+                                            }}
+                                            className="h-8 text-xs text-zinc-600 hover:text-zinc-900 gap-1"
+                                            title="Edit Meeting & Agenda"
+                                        >
+                                            <Edit3 className="w-3.5 h-3.5" />
+                                            Edit
+                                        </Button>
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            className="h-8 w-8 p-0"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleExpand(meeting.id);
+                                            }}
+                                        >
+                                            {isExpanded ? (
+                                                <ChevronUp className="w-4 h-4" />
+                                            ) : (
+                                                <ChevronDown className="w-4 h-4" />
+                                            )}
+                                        </Button>
+                                    </div>
                                 </div>
 
                                 {/* Expanded Details Section */}
@@ -235,6 +253,13 @@ export default function MeetingsPage() {
                         );
                     })}
                 </div>
+            )}
+
+            {editingMeeting && (
+                <EditMeetingDialog
+                    meeting={editingMeeting}
+                    onClose={() => setEditingMeeting(null)}
+                />
             )}
         </div>
     );
