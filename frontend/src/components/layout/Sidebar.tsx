@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
     LayoutDashboard,
     FolderOpen,
     Calendar,
     Settings,
     User,
+    LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +29,14 @@ const navItems: NavItem[] = [
 
 export function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
     const [user, setUser] = useState<{ full_name: string; email: string } | null>(null);
+
+    const handleLogout = () => {
+        localStorage.removeItem("moip_token");
+        localStorage.removeItem("moip_user");
+        router.push("/login");
+    };
 
     useEffect(() => {
         const storedUser = localStorage.getItem("moip_user");
@@ -120,6 +128,13 @@ export function Sidebar() {
                             {user?.email || ""}
                         </p>
                     </div>
+                    <button
+                        onClick={handleLogout}
+                        className="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        title="Logout"
+                    >
+                        <LogOut className="w-4 h-4" />
+                    </button>
                 </div>
             </div>
         </div>
