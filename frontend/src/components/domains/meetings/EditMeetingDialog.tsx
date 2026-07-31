@@ -34,9 +34,6 @@ export function EditMeetingDialog({
         meeting.agenda ? meeting.agenda.join("\n") : ""
     );
     const [notes, setNotes] = useState(meeting.notes || "");
-    const [actionItemsText, setActionItemsText] = useState(
-        meeting.action_items ? meeting.action_items.join("\n") : ""
-    );
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -54,9 +51,6 @@ export function EditMeetingDialog({
                         ? agendaText.split("\n").filter((a) => a.trim())
                         : [],
                     notes: notes || undefined,
-                    action_items: actionItemsText
-                        ? actionItemsText.split("\n").filter((item) => item.trim())
-                        : [],
                 },
             },
             { onSuccess: () => onClose() }
@@ -151,19 +145,6 @@ export function EditMeetingDialog({
                             placeholder="Meeting notes or context..."
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            className="flex w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900"
-                        />
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <label className="block text-sm font-medium text-zinc-700">
-                            Action Items (one per line)
-                        </label>
-                        <textarea
-                            rows={3}
-                            placeholder={"Follow up with GCP pricing proposal\nSend Architecture Diagram PDF"}
-                            value={actionItemsText}
-                            onChange={(e) => setActionItemsText(e.target.value)}
                             className="flex w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900"
                         />
                     </div>

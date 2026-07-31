@@ -8,6 +8,7 @@ from sqlalchemy import func as sa_func
 from app.core.database import get_db
 from app.models.user import User
 from app.models.opportunity import Opportunity, TimelineEvent
+from app.models.meeting import Meeting
 from app.schemas.opportunity import (
     OpportunityCreate,
     OpportunityUpdate,
@@ -113,6 +114,18 @@ async def create_opportunity(
     db.add(opportunity)
     db.flush()
 
+    # Automatically create initial Meeting record if meeting_schedule is provided
+    if data.meeting_schedule:
+        initial_meeting = Meeting(
+            opportunity_id=opportunity.id,
+            title=f"Initial Discovery Call - {data.company_name}",
+            date=data.meeting_schedule,
+            location="Online / Google Meet",
+            notes=f"Initial meeting scheduled for {data.company_name} ({data.product or 'Pre-sales'}).",
+            created_by=current_user.id,
+        )
+        db.add(initial_meeting)
+
     _log_timeline(
         db,
         opportunity.id,
@@ -186,6 +199,28 @@ async def update_opportunity(
 
     for field, value in update_data.items():
         setattr(opportunity, field, value)
+
+    # Sync meeting_schedule with Meeting table
+    if "meeting_schedule" in update_data and update_data["meeting_schedule"]:
+        new_date = update_data["meeting_schedule"]
+        existing_meeting = (
+            db.query(Meeting)
+            .filter(Meeting.opportunity_id == opportunity.id)
+            .order_by(Meeting.created_at.asc())
+            .first()
+        )
+        if existing_meeting:
+            existing_meeting.date = new_date
+        else:
+            new_meeting = Meeting(
+                opportunity_id=opportunity.id,
+                title=f"Initial Discovery Call - {opportunity.company_name}",
+                date=new_date,
+                location="Online / Google Meet",
+                notes=f"Initial meeting scheduled for {opportunity.company_name}.",
+                created_by=current_user.id,
+            )
+            db.add(new_meeting)
 
     # Log status change separately
     if "status" in update_data and update_data["status"] != old_status:

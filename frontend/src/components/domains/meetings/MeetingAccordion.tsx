@@ -154,32 +154,6 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                                         </p>
                                     </div>
                                 )}
-
-                                {/* Action Items */}
-                                {meeting.action_items &&
-                                    meeting.action_items.length > 0 && (
-                                        <div>
-                                            <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider mb-2">
-                                                Action Items
-                                            </h4>
-                                            <ul className="space-y-1.5">
-                                                {meeting.action_items.map(
-                                                    (item, i) => (
-                                                        <li
-                                                            key={i}
-                                                            className="flex items-start gap-2 text-sm text-zinc-600"
-                                                        >
-                                                            <input
-                                                                type="checkbox"
-                                                                className="mt-0.5 w-3.5 h-3.5 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
-                                                            />
-                                                            {item}
-                                                        </li>
-                                                    )
-                                                )}
-                                            </ul>
-                                        </div>
-                                    )}
                             </div>
                         )}
                     </Card>

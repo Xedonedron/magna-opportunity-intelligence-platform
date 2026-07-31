@@ -22,6 +22,7 @@ import {
     User,
     Sparkles,
     ArrowUpDown,
+    Edit3,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -30,6 +31,7 @@ import { useOpportunity, useUpdateOpportunity } from "@/hooks/use-opportunities"
 import { useMeetings } from "@/hooks/use-meetings";
 import { MeetingAccordion } from "@/components/domains/meetings/MeetingAccordion";
 import { CreateMeetingDialog } from "@/components/domains/meetings/CreateMeetingDialog";
+import { EditOpportunityDialog } from "@/components/domains/opportunities/EditOpportunityDialog";
 import { KYCReportTab } from "@/components/domains/kyc/KYCReportTab";
 import { OpportunityChatSidebar } from "@/components/domains/opportunities/OpportunityChatSidebar";
 import { formatDateTime, timeAgo } from "@/lib/utils";
@@ -56,6 +58,7 @@ export default function OpportunityDetailPage() {
     const [activeTab, setActiveTab] = useState("overview");
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [showCreateMeeting, setShowCreateMeeting] = useState(false);
+    const [showEditOpportunity, setShowEditOpportunity] = useState(false);
     const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
     const [user, setUser] = useState<any>(null);
 
@@ -165,6 +168,15 @@ export default function OpportunityDetailPage() {
                             </p>
                         </div>
                         <div className="flex gap-2">
+                            {canCreateEdit && (
+                                <Button
+                                    variant="secondary"
+                                    className="gap-2 border-zinc-300 text-zinc-700"
+                                    onClick={() => setShowEditOpportunity(true)}
+                                >
+                                    <Edit3 className="w-4 h-4" /> Edit Opportunity
+                                </Button>
+                            )}
                             <Button
                                 variant="secondary"
                                 className="gap-2 border-zinc-300"
@@ -208,9 +220,21 @@ export default function OpportunityDetailPage() {
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 <Card className="p-6">
-                                    <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider mb-4">
-                                        Company Information
-                                    </h3>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider">
+                                            Company Information
+                                        </h3>
+                                        {canCreateEdit && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setShowEditOpportunity(true)}
+                                                className="h-8 text-xs text-zinc-600 hover:text-zinc-900 gap-1"
+                                            >
+                                                <Edit3 className="w-3.5 h-3.5" /> Edit
+                                            </Button>
+                                        )}
+                                    </div>
                                     <div className="space-y-3">
                                         <InfoRow
                                             icon={<Building2 className="w-4 h-4" />}
@@ -386,6 +410,14 @@ export default function OpportunityDetailPage() {
                 <CreateMeetingDialog
                     opportunityId={id}
                     onClose={() => setShowCreateMeeting(false)}
+                />
+            )}
+
+            {/* Edit Opportunity Dialog */}
+            {showEditOpportunity && (
+                <EditOpportunityDialog
+                    opportunity={opp}
+                    onClose={() => setShowEditOpportunity(false)}
                 />
             )}
         </div>

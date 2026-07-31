@@ -19,6 +19,27 @@ from app.tasks import create_calendar_event
 router = APIRouter(prefix="/api/meetings", tags=["meetings"])
 
 
+def _sync_missing_initial_meetings(db: Session):
+    """Auto-create Meeting record for any Opportunity that has meeting_schedule but no Meeting entries yet."""
+    opps = db.query(Opportunity).filter(Opportunity.meeting_schedule.isnot(None)).all()
+    created_any = False
+    for opp in opps:
+        count = db.query(Meeting).filter(Meeting.opportunity_id == opp.id).count()
+        if count == 0 and opp.meeting_schedule:
+            meeting = Meeting(
+                opportunity_id=opp.id,
+                title=f"Initial Discovery Call - {opp.company_name}",
+                date=opp.meeting_schedule,
+                location="Online / Google Meet",
+                notes=f"Initial discovery meeting scheduled for {opp.company_name}.",
+                created_by=opp.created_by,
+            )
+            db.add(meeting)
+            created_any = True
+    if created_any:
+        db.commit()
+
+
 @router.get("", response_model=MeetingListResponse)
 def list_meetings(
     opportunity_id: uuid.UUID | None = None,
@@ -27,6 +48,7 @@ def list_meetings(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    _sync_missing_initial_meetings(db)
     query = db.query(Meeting)
     if opportunity_id:
         query = query.filter(Meeting.opportunity_id == opportunity_id)
