@@ -149,3 +149,46 @@ def update_user_access(
         }
     }
 
+
+# Master Data (Pre-Sales & Industries) Configuration
+MASTER_DATA = {
+    "industries": [
+        "Finance & Banking",
+        "Insurance",
+        "Manufacturing",
+        "Healthcare",
+        "Telecommunications",
+        "Retail & E-commerce",
+        "Government",
+        "Technology & SaaS",
+    ],
+    "presales": [
+        "Devi",
+        "Robi",
+        "Gerry",
+    ],
+}
+
+
+class MasterDataPayload(BaseModel):
+    industries: list[str]
+    presales: list[str]
+
+
+@router.get("/master-data")
+def get_master_data():
+    """Retrieve master data options (Industries & Pre-Sales)."""
+    return MASTER_DATA
+
+
+@router.post("/master-data")
+def update_master_data(
+    payload: MasterDataPayload,
+    _admin: User = Depends(require_superadmin)
+):
+    """Update master data options (Super Admin only)."""
+    MASTER_DATA["industries"] = [i.strip() for i in payload.industries if i.strip()]
+    MASTER_DATA["presales"] = [p.strip() for p in payload.presales if p.strip()]
+    return {"status": "success", "master_data": MASTER_DATA}
+
+

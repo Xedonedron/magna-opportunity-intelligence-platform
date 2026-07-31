@@ -19,16 +19,9 @@ import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Select, SuggestedInput } from "@/components/ui/Input";
 import { useCreateOpportunity } from "@/hooks/use-opportunities";
 
-const INDUSTRY_SUGGESTIONS = [
-    "Finance & Banking",
-    "Insurance",
-    "Manufacturing",
-    "Healthcare",
-    "Telecommunications",
-    "Retail & E-commerce",
-    "Government",
-    "Technology & SaaS",
-];
+import { getMasterIndustries, getMasterPresales, fetchMasterData } from "@/lib/master-data";
+
+import { useEffect } from "react";
 
 const formSchema = z.object({
     company_name: z.string().min(1, "Company name is required"),
@@ -73,6 +66,16 @@ export default function CreateOpportunityPage() {
     const defaultDateStr = new Date(defaultDate.getTime() - defaultDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
     const createOpportunity = useCreateOpportunity();
+
+    const [industriesList, setIndustriesList] = useState<string[]>([]);
+    const [presalesList, setPresalesList] = useState<string[]>([]);
+
+    useEffect(() => {
+        fetchMasterData().then((data) => {
+            setIndustriesList(data.industries);
+            setPresalesList(data.presales);
+        });
+    }, []);
 
     const {
         register,
@@ -262,7 +265,7 @@ export default function CreateOpportunityPage() {
                                 placeholder="e.g. Manufacturing, Finance, Healthcare"
                                 value={watch("industry") || ""}
                                 onChange={(val) => setValue("industry", val)}
-                                suggestions={INDUSTRY_SUGGESTIONS}
+                                suggestions={industriesList.length > 0 ? industriesList : getMasterIndustries()}
                             />
                         </div>
                     </div>

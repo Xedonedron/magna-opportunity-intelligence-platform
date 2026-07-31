@@ -17,11 +17,15 @@ import {
     Loader2,
     AlertCircle,
     Save,
+    Plus,
+    Trash2,
+    X,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { api } from "@/lib/api";
+import { fetchMasterData, updateMasterData, getMasterIndustries, getMasterPresales } from "@/lib/master-data";
 
 const tabs = [
     { id: "profile", label: "User Profile", icon: User },
@@ -55,6 +59,13 @@ export default function SettingsPage() {
     const [editDraft, setEditDraft] = useState<{ role: string; capabilities: string; is_active: boolean } | null>(null);
     const [savingUserId, setSavingUserId] = useState<string | null>(null);
 
+    // Master Data State
+    const [masterIndustries, setMasterIndustries] = useState<string[]>([]);
+    const [masterPresales, setMasterPresales] = useState<string[]>([]);
+    const [newIndustry, setNewIndustry] = useState("");
+    const [newPresales, setNewPresales] = useState("");
+    const [savingMasterData, setSavingMasterData] = useState(false);
+
     // Save alerts
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [saveMessage, setSaveMessage] = useState("");
@@ -66,6 +77,7 @@ export default function SettingsPage() {
         { id: "catalog", label: "Magna Solutions Catalog", icon: BookOpen },
     ];
     if (user?.role === "superadmin") {
+        activeTabs.push({ id: "master_data", label: "Master Data (Presales & Industry)", icon: Database });
         activeTabs.push({ id: "users", label: "User Management", icon: Users });
         activeTabs.push({ id: "operations", label: "System Operations", icon: Shield });
     }
@@ -95,7 +107,49 @@ export default function SettingsPage() {
                 console.error("Failed to parse moip_ai_settings", e);
             }
         }
+
+        fetchMasterData().then((data) => {
+            setMasterIndustries(data.industries);
+            setMasterPresales(data.presales);
+        });
     }, []);
+
+    const handleAddIndustry = () => {
+        if (!newIndustry.trim()) return;
+        if (masterIndustries.includes(newIndustry.trim())) return;
+        setMasterIndustries([...masterIndustries, newIndustry.trim()]);
+        setNewIndustry("");
+    };
+
+    const handleRemoveIndustry = (item: string) => {
+        setMasterIndustries(masterIndustries.filter((i) => i !== item));
+    };
+
+    const handleAddPresales = () => {
+        if (!newPresales.trim()) return;
+        if (masterPresales.includes(newPresales.trim())) return;
+        setMasterPresales([...masterPresales, newPresales.trim()]);
+        setNewPresales("");
+    };
+
+    const handleRemovePresales = (item: string) => {
+        setMasterPresales(masterPresales.filter((p) => p !== item));
+    };
+
+    const handleSaveMasterData = async () => {
+        setSavingMasterData(true);
+        try {
+            await updateMasterData({
+                industries: masterIndustries,
+                presales: masterPresales,
+            });
+            showToast("Master Data (Pre-Sales & Industry) berhasil disimpan!");
+        } catch (e) {
+            showToast("Gagal menyimpan Master Data.");
+        } finally {
+            setSavingMasterData(false);
+        }
+    };
 
     const handleSaveProfile = () => {
         if (!user) return;
@@ -465,6 +519,116 @@ export default function SettingsPage() {
                             </Card>
                         </div>
                     </div>
+                )}
+
+                {/* Master Data Management Tab (Superadmin Only) */}
+                {activeTab === "master_data" && user?.role === "superadmin" && (
+                    <Card className="p-6 bg-white border border-zinc-200 space-y-8">
+                        <div>
+                            <h3 className="text-lg font-semibold text-zinc-900 flex items-center gap-2">
+                                <Database className="w-5 h-5 text-zinc-700" /> Master Data Management
+                            </h3>
+                            <p className="text-xs text-zinc-500 mt-1">
+                                Kelola daftar opsi preset untuk tim **Pre-Sales** dan bidang **Industry**. Perubahan di sini akan langsung menjadi opsi pilihan pada form New Opportunity dan Edit Opportunity.
+                            </p>
+                        </div>
+
+                        {/* Pre-Sales Team Options */}
+                        <div className="space-y-4 border-t border-zinc-100 pt-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h4 className="text-sm font-semibold text-zinc-900">Nama Tim Pre-Sales (Predefined Options)</h4>
+                                    <p className="text-xs text-zinc-400 mt-0.5">Daftar anggota tim Pre-Sales Smartnet Magna Global.</p>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 pt-2">
+                                {masterPresales.map((name) => (
+                                    <span
+                                        key={name}
+                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 font-medium text-xs border border-purple-200"
+                                    >
+                                        <User className="w-3.5 h-3.5" />
+                                        {name}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemovePresales(name)}
+                                            className="hover:text-purple-900 transition-colors"
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+
+                            <div className="flex items-center gap-2 max-w-sm pt-2">
+                                <Input
+                                    placeholder="Tambah nama presales baru (e.g. Devi, Robi, Gerry)"
+                                    value={newPresales}
+                                    onChange={(e) => setNewPresales(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            e.preventDefault();
+                                            handleAddPresales();
+                                        }
+                                    }}
+                                />
+                                <Button type="button" size="sm" onClick={handleAddPresales} className="shrink-0 gap-1">
+                                    <Plus className="w-4 h-4" /> Add
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Industry Categories Options */}
+                        <div className="space-y-4 border-t border-zinc-100 pt-6">
+                            <div>
+                                <h4 className="text-sm font-semibold text-zinc-900">Kategori Industry (Predefined Options)</h4>
+                                <p className="text-xs text-zinc-400 mt-0.5">Daftar sektor industri klien.</p>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 pt-2">
+                                {masterIndustries.map((ind) => (
+                                    <span
+                                        key={ind}
+                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-medium text-xs border border-blue-200"
+                                    >
+                                        {ind}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveIndustry(ind)}
+                                            className="hover:text-blue-900 transition-colors"
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+
+                            <div className="flex items-center gap-2 max-w-sm pt-2">
+                                <Input
+                                    placeholder="Tambah industri baru (e.g. Automotive)"
+                                    value={newIndustry}
+                                    onChange={(e) => setNewIndustry(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            e.preventDefault();
+                                            handleAddIndustry();
+                                        }
+                                    }}
+                                />
+                                <Button type="button" size="sm" onClick={handleAddIndustry} className="shrink-0 gap-1">
+                                    <Plus className="w-4 h-4" /> Add
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-zinc-100 flex justify-end">
+                            <Button onClick={handleSaveMasterData} disabled={savingMasterData} className="gap-2">
+                                {savingMasterData ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                Simpan Master Data
+                            </Button>
+                        </div>
+                    </Card>
                 )}
 
                 {/* 4. User Management Tab */}

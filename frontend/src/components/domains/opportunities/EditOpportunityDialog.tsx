@@ -7,16 +7,8 @@ import { Input, Select, SuggestedInput } from "@/components/ui/Input";
 import { useUpdateOpportunity } from "@/hooks/use-opportunities";
 import type { Opportunity } from "@/types/opportunity";
 
-const INDUSTRY_SUGGESTIONS = [
-    "Finance & Banking",
-    "Insurance",
-    "Manufacturing",
-    "Healthcare",
-    "Telecommunications",
-    "Retail & E-commerce",
-    "Government",
-    "Technology & SaaS",
-];
+import { useEffect } from "react";
+import { getMasterIndustries, fetchMasterData } from "@/lib/master-data";
 
 interface EditOpportunityDialogProps {
     opportunity: Opportunity;
@@ -28,6 +20,11 @@ export function EditOpportunityDialog({
     onClose,
 }: EditOpportunityDialogProps) {
     const updateOpportunity = useUpdateOpportunity();
+    const [industriesList, setIndustriesList] = useState<string[]>([]);
+
+    useEffect(() => {
+        fetchMasterData().then((data) => setIndustriesList(data.industries));
+    }, []);
 
     // Initial datetime-local string format YYYY-MM-DDTHH:mm
     const initialSchedule = opportunity.meeting_schedule
@@ -136,7 +133,7 @@ export function EditOpportunityDialog({
                                 placeholder="e.g. Manufacturing, Finance"
                                 value={industry}
                                 onChange={setIndustry}
-                                suggestions={INDUSTRY_SUGGESTIONS}
+                                suggestions={industriesList.length > 0 ? industriesList : getMasterIndustries()}
                             />
                             <Select
                                 label="Target Solution"
