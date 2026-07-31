@@ -40,7 +40,6 @@ const tabs = [
     { id: "kyc", label: "KYC Report", icon: FileText },
     { id: "meetings", label: "Meetings", icon: Calendar },
     { id: "timeline", label: "Timeline", icon: GitCommit },
-    { id: "versions", label: "Versions", icon: Clock },
 ];
 
 const eventTypeIcons: Record<string, React.ReactNode> = {
@@ -369,23 +368,6 @@ export default function OpportunityDetailPage() {
                             <MeetingAccordion
                                 meetings={meetingsData?.items || []}
                             />
-                        </div>
-                    )}
-
-                    {activeTab === "versions" && (
-                        <div className="flex flex-col items-center justify-center py-24 text-zinc-500">
-                            <Clock className="w-12 h-12 mb-4 opacity-20" />
-                            <p>
-                                KYC version history will be available after AI
-                                KYC pipeline implementation.
-                            </p>
-                            <Button
-                                variant="secondary"
-                                className="mt-4"
-                                onClick={() => setActiveTab("overview")}
-                            >
-                                Switch to Overview
-                            </Button>
                         </div>
                     )}
                 </div>
