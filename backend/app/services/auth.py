@@ -19,10 +19,13 @@ def verify_google_token(token: str) -> dict | None:
             token, google_requests.Request(), settings.GOOGLE_CLIENT_ID
         )
         # Verify the domain is our Google Workspace domain
-        if idinfo.get("hd") != settings.GOOGLE_WORKSPACE_DOMAIN:
+        hd = idinfo.get("hd")
+        if hd != settings.GOOGLE_WORKSPACE_DOMAIN:
+            print(f"[AUTH] Domain mismatch: token hd='{hd}', expected='{settings.GOOGLE_WORKSPACE_DOMAIN}'")
             return None
         return idinfo
-    except (ValueError, JWTError):
+    except Exception as e:
+        print(f"[AUTH] Google token verification failed: {type(e).__name__}: {e}")
         return None
 
 
