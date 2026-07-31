@@ -22,6 +22,7 @@ security = HTTPBearer(auto_error=False)
 
 # Static dummy users for development
 STATIC_USERS = {
+    "superadmin": {"password": "P@ssw0rd", "role": "superadmin"},
     "admin": {"password": "P@ssw0rd", "role": "admin"},
     "lead_gen": {"password": "123456", "role": "lead_gen"},
     "managerial": {"password": "123456", "role": "managerial"},
