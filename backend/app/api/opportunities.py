@@ -426,3 +426,78 @@ Opportunity & KYC Context:
             yield f"\n[AI Error]: {str(e)}"
 
     return StreamingResponse(generate_response_chunks(), media_type="text/plain")
+
+
+@router.get("/search/global")
+async def global_search(
+    q: str = Query(..., min_length=1),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Global search for opportunities and meetings."""
+    from sqlalchemy import or_
+    from app.models.meeting import Meeting
+    
+    user_role = current_user.role
+    
+    # 1. Search Opportunities
+    opp_query = db.query(Opportunity)
+    if user_role == "lgo":
+        opp_query = opp_query.filter(Opportunity.created_by == current_user.id)
+    elif user_role == "engineer":
+        opp_query = opp_query.filter(
+            or_(
+                Opportunity.assigned_engineer_id == current_user.id,
+                Opportunity.created_by == current_user.id,
+            )
+        )
+        
+    opp_results = opp_query.filter(
+        or_(
+            Opportunity.company_name.ilike(f"%{q}%"),
+            Opportunity.industry.ilike(f"%{q}%"),
+            Opportunity.product.ilike(f"%{q}%"),
+            Opportunity.customer_needs.ilike(f"%{q}%"),
+        )
+    ).limit(5).all()
+    
+    # 2. Search Meetings
+    meet_query = db.query(Meeting).join(Meeting.opportunity)
+    if user_role == "lgo":
+        meet_query = meet_query.filter(Opportunity.created_by == current_user.id)
+    elif user_role == "engineer":
+        meet_query = meet_query.filter(
+            or_(
+                Opportunity.assigned_engineer_id == current_user.id,
+                Opportunity.created_by == current_user.id,
+            )
+        )
+        
+    meet_results = meet_query.filter(
+        or_(
+            Meeting.title.ilike(f"%{q}%"),
+            Meeting.notes.ilike(f"%{q}%"),
+        )
+    ).limit(5).all()
+    
+    return {
+        "opportunities": [
+            {
+                "id": str(opp.id),
+                "company_name": opp.company_name,
+                "product": opp.product,
+                "status": opp.status,
+            }
+            for opp in opp_results
+        ],
+        "meetings": [
+            {
+                "id": str(meet.id),
+                "title": meet.title,
+                "company_name": meet.opportunity.company_name,
+                "opportunity_id": str(meet.opportunity_id),
+                "date": meet.date.isoformat() if meet.date else None,
+            }
+            for meet in meet_results
+        ]
+    }
