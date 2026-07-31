@@ -21,18 +21,19 @@ import {
     Package,
     User,
     Sparkles,
+    ArrowUpDown,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
-import { useOpportunity } from "@/hooks/use-opportunities";
+import { useOpportunity, useUpdateOpportunity } from "@/hooks/use-opportunities";
 import { useMeetings } from "@/hooks/use-meetings";
 import { MeetingAccordion } from "@/components/domains/meetings/MeetingAccordion";
 import { CreateMeetingDialog } from "@/components/domains/meetings/CreateMeetingDialog";
 import { KYCReportTab } from "@/components/domains/kyc/KYCReportTab";
 import { OpportunityChatSidebar } from "@/components/domains/opportunities/OpportunityChatSidebar";
 import { formatDateTime, timeAgo } from "@/lib/utils";
-import type { OpportunityStatus } from "@/types/opportunity";
+import { ALL_STATUSES, type OpportunityStatus } from "@/types/opportunity";
 
 const tabs = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -56,6 +57,7 @@ export default function OpportunityDetailPage() {
     const [activeTab, setActiveTab] = useState("overview");
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [showCreateMeeting, setShowCreateMeeting] = useState(false);
+    const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
     const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
@@ -73,6 +75,7 @@ export default function OpportunityDetailPage() {
 
     const { data: opp, isLoading } = useOpportunity(id);
     const { data: meetingsData } = useMeetings(id);
+    const updateOpportunity = useUpdateOpportunity();
 
     if (isLoading) {
         return (
@@ -127,7 +130,34 @@ export default function OpportunityDetailPage() {
                                 <h1 className="text-3xl font-semibold text-zinc-900 tracking-tight">
                                     {opp.company_name}
                                 </h1>
-                                <StatusBadge status={opp.status as OpportunityStatus} />
+                                <div className="flex items-center gap-2">
+                                    <StatusBadge status={opp.status as OpportunityStatus} />
+                                    {canCreateEdit && (
+                                        <select
+                                            value={opp.status}
+                                            onChange={async (e) => {
+                                                const newStatus = e.target.value as OpportunityStatus;
+                                                try {
+                                                    await updateOpportunity.mutateAsync({
+                                                        id: opp.id,
+                                                        input: { status: newStatus },
+                                                    });
+                                                } catch (err) {
+                                                    console.error("Gagal memperbarui status", err);
+                                                }
+                                            }}
+                                            disabled={updateOpportunity.isPending}
+                                            className="h-8 rounded-md border border-zinc-300 bg-white px-2.5 text-xs font-medium text-zinc-700 shadow-sm outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 cursor-pointer disabled:opacity-50"
+                                            title="Ubah Status Opportunity"
+                                        >
+                                            {ALL_STATUSES.map((s) => (
+                                                <option key={s} value={s}>
+                                                    {s}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    )}
+                                </div>
                             </div>
                             <p className="text-zinc-500">
                                 {opp.id.slice(0, 8)} • Owned by{" "}
@@ -260,36 +290,55 @@ export default function OpportunityDetailPage() {
 
                     {activeTab === "timeline" && (
                         <div className="py-4 pl-4 pr-2">
+                            <div className="flex items-center justify-between mb-6 pb-3 border-b border-zinc-200">
+                                <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                                    Timeline Activity
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"))}
+                                    className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900 font-medium px-3 py-1.5 bg-white border border-zinc-200 hover:border-zinc-300 rounded-md shadow-sm transition-colors cursor-pointer"
+                                >
+                                    <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
+                                    <span>{sortOrder === "desc" ? "Terbaru di atas" : "Terlama di atas"}</span>
+                                </button>
+                            </div>
                             <div className="relative border-l border-zinc-200 space-y-8 pb-4">
                                 {opp.timeline_events && opp.timeline_events.length > 0 ? (
-                                    opp.timeline_events.map((event) => (
-                                        <div key={event.id} className="relative pl-8">
-                                            <div className="absolute -left-[17px] top-1 w-8 h-8 bg-white rounded-full border border-zinc-200 flex items-center justify-center shadow-sm">
-                                                {eventTypeIcons[event.event_type] || (
-                                                    <GitCommit className="w-4 h-4 text-zinc-500" />
-                                                )}
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span className="font-medium text-sm text-zinc-900">
-                                                        {event.actor_name}
-                                                    </span>
-                                                    <span className="text-zinc-400 text-sm">•</span>
-                                                    <span className="text-zinc-500 text-xs">
-                                                        {timeAgo(event.created_at)}
-                                                    </span>
+                                    [...opp.timeline_events]
+                                        .sort((a, b) => {
+                                            const timeA = new Date(a.created_at).getTime();
+                                            const timeB = new Date(b.created_at).getTime();
+                                            return sortOrder === "desc" ? timeB - timeA : timeA - timeB;
+                                        })
+                                        .map((event) => (
+                                            <div key={event.id} className="relative pl-8">
+                                                <div className="absolute -left-[17px] top-1 w-8 h-8 bg-white rounded-full border border-zinc-200 flex items-center justify-center shadow-sm">
+                                                    {eventTypeIcons[event.event_type] || (
+                                                        <GitCommit className="w-4 h-4 text-zinc-500" />
+                                                    )}
                                                 </div>
-                                                <p className="text-sm text-zinc-900 font-medium mb-1">
-                                                    {event.action}
-                                                </p>
-                                                {event.description && (
-                                                    <p className="text-sm text-zinc-600 bg-zinc-50 border border-zinc-100 p-3 rounded-md mt-2 inline-block shadow-sm">
-                                                        {event.description}
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="font-medium text-sm text-zinc-900">
+                                                            {event.actor_name}
+                                                        </span>
+                                                        <span className="text-zinc-400 text-sm">•</span>
+                                                        <span className="text-zinc-500 text-xs">
+                                                            {timeAgo(event.created_at)}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-zinc-900 font-medium mb-1">
+                                                        {event.action}
                                                     </p>
-                                                )}
+                                                    {event.description && (
+                                                        <p className="text-sm text-zinc-600 bg-zinc-50 border border-zinc-100 p-3 rounded-md mt-2 inline-block shadow-sm">
+                                                            {event.description}
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))
+                                        ))
                                 ) : (
                                     <p className="text-sm text-zinc-500 pl-8">
                                         No timeline events yet.

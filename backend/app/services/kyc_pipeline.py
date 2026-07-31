@@ -1,6 +1,7 @@
 """AI KYC Pipeline using LangGraph for orchestrated KYC report generation."""
 
 import asyncio
+import re
 import json
 import logging
 from datetime import datetime, timezone
@@ -51,6 +52,38 @@ class KYCState(TypedDict):
     error: Optional[str]
 
 
+# --- Helper for robust JSON parsing ---
+def _clean_and_parse_json(content: str) -> dict:
+    """Robustly clean and parse JSON output from LLM, fixing common formatting defects."""
+    if not content or not isinstance(content, str):
+        raise ValueError("Empty response content from AI model")
+
+    text = content.strip()
+
+    # 1. If wrapped in markdown code fence, extract inside block
+    fence_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text, re.IGNORECASE)
+    if fence_match:
+        text = fence_match.group(1).strip()
+
+    # 2. Extract substring between first '{' and last '}'
+    start_idx = text.find("{")
+    end_idx = text.rfind("}")
+    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+        text = text[start_idx : end_idx + 1]
+
+    # 3. Clean trailing commas inside arrays/objects (e.g. ", }", ", ]")
+    text = re.sub(r",\s*([\}\]])", r"\1", text)
+
+    # 4. Try parsing standard JSON
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        # 5. Fallback: escape raw unescaped newlines/tabs inside string values
+        fixed = re.sub(r'(?<!\\)\r?\n', r'\\n', text)
+        fixed = re.sub(r'(?<!\\)\t', r'\\t', fixed)
+        return json.loads(fixed)
+
+
 # --- LLM Setup ---
 def get_llm() -> ChatOpenAI:
     """Get the OpenAI Compatible LLM instance (DeepSeek via CosmosHub)."""
@@ -59,6 +92,7 @@ def get_llm() -> ChatOpenAI:
         temperature=0.3,
         api_key=settings.OPENAI_API_KEY,
         base_url=settings.OPENAI_API_BASE,
+        model_kwargs={"response_format": {"type": "json_object"}},
     )
 
 
@@ -240,16 +274,7 @@ Return ONLY valid JSON, no markdown formatting."""
 
     try:
         response = await llm.ainvoke(prompt)
-        content = response.content
-
-        # Clean markdown code blocks if present
-        if content.startswith("```"):
-            content = content.split("\n", 1)[1]
-            if content.endswith("```"):
-                content = content[:-3]
-            content = content.strip()
-
-        result = json.loads(content)
+        result = _clean_and_parse_json(response.content)
 
         return {
             "executive_summary": result.get("executive_summary", ""),

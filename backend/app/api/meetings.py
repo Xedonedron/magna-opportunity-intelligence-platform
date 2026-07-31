@@ -71,24 +71,32 @@ def create_meeting(
     )
     db.add(meeting)
 
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    meeting_dt = payload.date if payload.date.tzinfo else payload.date.replace(tzinfo=timezone.utc)
+    is_past = meeting_dt < now
+
+    action_label = "Meeting Logged" if is_past else "Meeting Scheduled"
+
     # Log timeline event
     timeline = TimelineEvent(
         opportunity_id=payload.opportunity_id,
         actor_name="System",
-        action="Meeting Scheduled",
-        description=f"Meeting '{payload.title}' scheduled for {payload.date.strftime('%b %d, %Y %I:%M %p')}",
+        action=action_label,
+        description=f"Meeting '{payload.title}' ({'held' if is_past else 'scheduled for'} {payload.date.strftime('%b %d, %Y %I:%M %p')})",
         event_type="meeting",
     )
     db.add(timeline)
 
     # Update opportunity status if still early stage
     if opp.status in ("New", "KYC Running", "Ready Meeting"):
-        opp.status = "Meeting Scheduled"
+        new_status = "Meeting Done" if is_past else "Meeting Scheduled"
+        opp.status = new_status
         status_timeline = TimelineEvent(
             opportunity_id=payload.opportunity_id,
             actor_name="System",
             action="Status Changed",
-            description="Status changed to Meeting Scheduled",
+            description=f"Status changed to {new_status}",
             event_type="status_change",
         )
         db.add(status_timeline)
