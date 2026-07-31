@@ -3,9 +3,17 @@
 import { useState } from "react";
 import { X, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { Input, SuggestedInput } from "@/components/ui/Input";
 import { useUpdateMeeting, useDeleteMeeting } from "@/hooks/use-meetings";
 import type { Meeting } from "@/types/meeting";
+
+const LOCATION_SUGGESTIONS = [
+    "Google Meet",
+    "Zoom",
+    "Microsoft Teams",
+    "Client Office (On-site)",
+    "SMG Office",
+];
 
 interface EditMeetingDialogProps {
     meeting: Meeting;
@@ -105,13 +113,12 @@ export function EditMeetingDialog({
                         required
                     />
 
-                    <Input
+                    <SuggestedInput
                         label="Location"
                         placeholder="e.g. Google Meet, Zoom, Office"
                         value={location}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            setLocation(e.target.value)
-                        }
+                        onChange={setLocation}
+                        suggestions={LOCATION_SUGGESTIONS}
                     />
 
                     <Input

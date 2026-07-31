@@ -139,7 +139,7 @@ export default function DashboardPage() {
                 <Card className="p-0">
                     <div className="px-5 py-4 border-b border-zinc-100">
                         <h2 className="text-sm font-semibold text-zinc-900">
-                            Engineer Performance
+                            Presales Performance
                         </h2>
                     </div>
                     <div className="divide-y divide-zinc-100">

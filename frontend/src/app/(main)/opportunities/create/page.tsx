@@ -16,8 +16,19 @@ import {
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Input, Textarea, Select } from "@/components/ui/Input";
+import { Input, Textarea, Select, SuggestedInput } from "@/components/ui/Input";
 import { useCreateOpportunity } from "@/hooks/use-opportunities";
+
+const INDUSTRY_SUGGESTIONS = [
+    "Finance & Banking",
+    "Insurance",
+    "Manufacturing",
+    "Healthcare",
+    "Telecommunications",
+    "Retail & E-commerce",
+    "Government",
+    "Technology & SaaS",
+];
 
 const formSchema = z.object({
     company_name: z.string().min(1, "Company name is required"),
@@ -66,6 +77,8 @@ export default function CreateOpportunityPage() {
     const {
         register,
         handleSubmit,
+        watch,
+        setValue,
         formState: { errors },
     } = useForm<FormData>({
         resolver: zodResolver(formSchema),
@@ -244,10 +257,12 @@ export default function CreateOpportunityPage() {
                             {errors.email && (
                                 <p className="text-xs text-red-500">{errors.email.message}</p>
                             )}
-                            <Input
+                            <SuggestedInput
                                 label="Industry"
                                 placeholder="e.g. Manufacturing, Finance, Healthcare"
-                                {...register("industry")}
+                                value={watch("industry") || ""}
+                                onChange={(val) => setValue("industry", val)}
+                                suggestions={INDUSTRY_SUGGESTIONS}
                             />
                         </div>
                     </div>

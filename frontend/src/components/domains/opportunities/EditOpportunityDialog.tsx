@@ -3,9 +3,20 @@
 import { useState } from "react";
 import { X, Save } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Input, Select } from "@/components/ui/Input";
+import { Input, Select, SuggestedInput } from "@/components/ui/Input";
 import { useUpdateOpportunity } from "@/hooks/use-opportunities";
 import type { Opportunity } from "@/types/opportunity";
+
+const INDUSTRY_SUGGESTIONS = [
+    "Finance & Banking",
+    "Insurance",
+    "Manufacturing",
+    "Healthcare",
+    "Telecommunications",
+    "Retail & E-commerce",
+    "Government",
+    "Technology & SaaS",
+];
 
 interface EditOpportunityDialogProps {
     opportunity: Opportunity;
@@ -119,14 +130,13 @@ export function EditOpportunityDialog({
                                 }
                             />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <Input
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <SuggestedInput
                                 label="Industry"
                                 placeholder="e.g. Manufacturing, Finance"
                                 value={industry}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                    setIndustry(e.target.value)
-                                }
+                                onChange={setIndustry}
+                                suggestions={INDUSTRY_SUGGESTIONS}
                             />
                             <Select
                                 label="Target Solution"

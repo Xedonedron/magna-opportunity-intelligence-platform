@@ -161,11 +161,16 @@ export default function OpportunityDetailPage() {
                                     )}
                                 </div>
                             </div>
-                            <p className="text-zinc-500">
-                                {opp.id.slice(0, 8)} • Owned by{" "}
-                                {opp.assigned_engineer?.full_name || "Unassigned"} • Created{" "}
-                                {formatDateTime(opp.created_at)}
-                            </p>
+                            <div className="flex flex-wrap items-center gap-2.5 text-xs text-zinc-500 mt-1.5">
+                                <span>ID: {opp.id.slice(0, 8)}</span>
+                                <span>•</span>
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-zinc-100 font-medium text-zinc-800 border border-zinc-200/80">
+                                    <User className="w-3.5 h-3.5 text-zinc-500" />
+                                    Pre-Sales: {opp.assigned_engineer?.full_name || "Unassigned"}
+                                </span>
+                                <span>•</span>
+                                <span>Created {formatDateTime(opp.created_at)}</span>
+                            </div>
                         </div>
                         <div className="flex gap-2">
                             {canCreateEdit && (
@@ -266,11 +271,6 @@ export default function OpportunityDetailPage() {
                                             icon={<Package className="w-4 h-4" />}
                                             label="Solution"
                                             value={opp.product}
-                                        />
-                                        <InfoRow
-                                            icon={<User className="w-4 h-4" />}
-                                            label="Engineer"
-                                            value={opp.assigned_engineer?.full_name}
                                         />
                                     </div>
                                 </Card>

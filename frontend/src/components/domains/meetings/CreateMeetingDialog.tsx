@@ -3,8 +3,16 @@
 import { useState } from "react";
 import { X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { Input, SuggestedInput } from "@/components/ui/Input";
 import { useCreateMeeting } from "@/hooks/use-meetings";
+
+const LOCATION_SUGGESTIONS = [
+    "Google Meet",
+    "Zoom",
+    "Microsoft Teams",
+    "Client Office (On-site)",
+    "SMG Office",
+];
 
 interface CreateMeetingDialogProps {
     opportunityId: string;
@@ -83,13 +91,12 @@ export function CreateMeetingDialog({
                         required
                     />
 
-                    <Input
+                    <SuggestedInput
                         label="Location"
                         placeholder="e.g. Google Meet, Zoom, Office"
                         value={location}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            setLocation(e.target.value)
-                        }
+                        onChange={setLocation}
+                        suggestions={LOCATION_SUGGESTIONS}
                     />
 
                     <Input
