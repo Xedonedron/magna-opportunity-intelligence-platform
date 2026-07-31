@@ -12,7 +12,6 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [googleClientId, setGoogleClientId] = useState<string>("");
-    const [loginMode, setLoginMode] = useState<"username" | "google">("username");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
@@ -31,7 +30,7 @@ export default function LoginPage() {
     }, [router]);
 
     useEffect(() => {
-        if (!googleClientId || loginMode !== "google") return;
+        if (!googleClientId) return;
 
         const handleCredentialResponse = async (response: { credential: string }) => {
             setIsLoading(true);
@@ -81,7 +80,7 @@ export default function LoginPage() {
         } else {
             initGoogleAuth();
         }
-    }, [googleClientId, loginMode, router]);
+    }, [googleClientId, router]);
 
     const handleUsernameLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -122,76 +121,61 @@ export default function LoginPage() {
                     </div>
                 )}
 
-                {/* Mode Toggle */}
-                <div className="flex mb-6 bg-zinc-100 rounded-lg p-1">
+                <form onSubmit={handleUsernameLogin} className="space-y-4">
+                    <div>
+                        <label htmlFor="username" className="block text-sm font-medium text-zinc-700 mb-1">
+                            Username
+                        </label>
+                        <input
+                            id="username"
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            disabled={isLoading}
+                            className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-zinc-500 focus:border-zinc-500 outline-none transition-colors disabled:bg-zinc-100 disabled:cursor-not-allowed"
+                            placeholder="Enter username"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="password" className="block text-sm font-medium text-zinc-700 mb-1">
+                            Password
+                        </label>
+                        <input
+                            id="password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            disabled={isLoading}
+                            className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-zinc-500 focus:border-zinc-500 outline-none transition-colors disabled:bg-zinc-100 disabled:cursor-not-allowed"
+                            placeholder="Enter password"
+                            required
+                        />
+                    </div>
                     <button
-                        type="button"
-                        onClick={() => setLoginMode("username")}
-                        className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${loginMode === "username"
-                                ? "bg-white text-zinc-900 shadow"
-                                : "text-zinc-600 hover:text-zinc-900"
-                            }`}
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full py-3 px-4 bg-zinc-900 text-white rounded-lg font-medium hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 disabled:bg-zinc-700 disabled:cursor-not-allowed"
                     >
-                        Username / Password
+                        {isLoading && (
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        )}
+                        <span>{isLoading ? "Logging in..." : "Login"}</span>
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => setLoginMode("google")}
-                        className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${loginMode === "google"
-                                ? "bg-white text-zinc-900 shadow"
-                                : "text-zinc-600 hover:text-zinc-900"
-                            }`}
-                    >
-                        Google
-                    </button>
+                </form>
+
+                <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-zinc-200" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-white px-2 text-zinc-500 font-medium">atau</span>
+                    </div>
                 </div>
 
-                {isLoading ? (
-                    <div className="flex justify-center my-6">
-                        <div className="w-8 h-8 border-4 border-zinc-300 border-t-zinc-600 rounded-full animate-spin" />
-                    </div>
-                ) : loginMode === "username" ? (
-                    <form onSubmit={handleUsernameLogin} className="space-y-4">
-                        <div>
-                            <label htmlFor="username" className="block text-sm font-medium text-zinc-700 mb-1">
-                                Username
-                            </label>
-                            <input
-                                id="username"
-                                type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-zinc-500 focus:border-zinc-500 outline-none transition-colors"
-                                placeholder="Enter username"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-zinc-700 mb-1">
-                                Password
-                            </label>
-                            <input
-                                id="password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-zinc-500 focus:border-zinc-500 outline-none transition-colors"
-                                placeholder="Enter password"
-                                required
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            className="w-full py-3 px-4 bg-zinc-900 text-white rounded-lg font-medium hover:bg-zinc-800 transition-colors"
-                        >
-                            Login
-                        </button>
-                    </form>
-                ) : (
-                    <div className="flex justify-center w-full my-4">
-                        <div id="google-signin-btn"></div>
-                    </div>
-                )}
+                <div className="flex justify-center w-full min-h-[44px]">
+                    <div id="google-signin-btn"></div>
+                </div>
 
                 <p className="mt-6 text-center text-sm text-zinc-500">
                     Dengan login, Anda menyetujui{" "}
