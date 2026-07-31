@@ -43,6 +43,21 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
     const [showConfirmRegenerate, setShowConfirmRegenerate] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
+    const [user, setUser] = useState<any>(null);
+
+    useEffect(() => {
+        const stored = localStorage.getItem("moip_user");
+        if (stored) {
+            try {
+                setUser(JSON.parse(stored));
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    }, []);
+
+    const canEdit = user ? user.capabilities?.split(",").map((c: string) => c.trim()).includes("create_edit") : false;
+    const canGenerate = user ? user.capabilities?.split(",").map((c: string) => c.trim()).includes("generate_kyc") : false;
 
     // Determine which report to display
     const report = selectedReportId
@@ -152,14 +167,16 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                     The AI KYC report will be generated automatically. You can also trigger it
                     manually.
                 </p>
-                <Button onClick={handleRegenerateClick} disabled={regenerate.isPending}>
-                    {regenerate.isPending ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                        <Zap className="w-4 h-4 mr-2" />
-                    )}
-                    Generate KYC Report
-                </Button>
+                {canGenerate && (
+                    <Button onClick={handleRegenerateClick} disabled={regenerate.isPending}>
+                        {regenerate.isPending ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                            <Zap className="w-4 h-4 mr-2" />
+                        )}
+                        Generate KYC Report
+                    </Button>
+                )}
             </Card>
         );
     }
@@ -272,14 +289,16 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                 <p className="text-zinc-500 mb-2 max-w-md mx-auto">
                     {report.error_message || "An unexpected error occurred during KYC generation."}
                 </p>
-                <Button
-                    variant="secondary"
-                    className="mt-4"
-                    onClick={handleRegenerateClick}
-                    disabled={regenerate.isPending}
-                >
-                    <RefreshCw className="w-4 h-4 mr-2" /> Retry
-                </Button>
+                {canGenerate && (
+                    <Button
+                        variant="secondary"
+                        className="mt-4"
+                        onClick={handleRegenerateClick}
+                        disabled={regenerate.isPending}
+                    >
+                        <RefreshCw className="w-4 h-4 mr-2" /> Retry
+                    </Button>
+                )}
             </Card>
         );
     }
@@ -356,29 +375,33 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                     </span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button
-                        variant="secondary"
-                        size="sm"
-                        className="gap-2"
-                        onClick={handleEnterEditMode}
-                    >
-                        <Edit3 className="w-3.5 h-3.5" />
-                        Edit
-                    </Button>
-                    <Button
-                        variant="secondary"
-                        size="sm"
-                        className="gap-2"
-                        onClick={handleRegenerateClick}
-                        disabled={regenerate.isPending}
-                    >
-                        {regenerate.isPending ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                            <RefreshCw className="w-3.5 h-3.5" />
-                        )}
-                        Regenerate
-                    </Button>
+                    {canEdit && (
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            className="gap-2"
+                            onClick={handleEnterEditMode}
+                        >
+                            <Edit3 className="w-3.5 h-3.5" />
+                            Edit
+                        </Button>
+                    )}
+                    {canGenerate && (
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            className="gap-2"
+                            onClick={handleRegenerateClick}
+                            disabled={regenerate.isPending}
+                        >
+                            {regenerate.isPending ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                                <RefreshCw className="w-3.5 h-3.5" />
+                            )}
+                            Regenerate
+                        </Button>
+                    )}
                 </div>
             </div>
 

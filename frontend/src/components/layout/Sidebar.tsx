@@ -39,6 +39,28 @@ export function Sidebar() {
                 console.error("Failed to parse moip_user", e);
             }
         }
+
+        // Sync with backend on mount
+        async function syncProfile() {
+            const token = localStorage.getItem("moip_token");
+            if (!token) return;
+            try {
+                const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                const res = await fetch(`${baseUrl}/api/auth/me`, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+                if (res.ok) {
+                    const latestUser = await res.json();
+                    localStorage.setItem("moip_user", JSON.stringify(latestUser));
+                    setUser(latestUser);
+                }
+            } catch (err) {
+                console.error("Failed to sync profile", err);
+            }
+        }
+        syncProfile();
     }, []);
 
     return (

@@ -50,22 +50,36 @@ def get_or_create_user(db: Session, google_info: dict) -> User:
     email = google_info.get("email")
     user = db.query(User).filter(User.email == email).first()
 
+    is_super = email in ["nixon.hutahaean@magnaglobal.id", "robi.firmansyah@magnaglobal.id"]
+
     if user:
         # Update last login and avatar
         user.last_login = datetime.now(timezone.utc)
         user.avatar_url = google_info.get("picture", user.avatar_url)
+        # Auto-promote superadmin if they exist but role/capabilities are not set
+        if is_super and user.role != "superadmin":
+            user.role = "superadmin"
+            user.capabilities = "view,create_edit,delete,generate_kyc,user_management"
         db.commit()
         db.refresh(user)
         return user
 
     # Create new user
+    role = "superadmin" if is_super else "viewer"
+    capabilities = (
+        "view,create_edit,delete,generate_kyc,user_management"
+        if is_super
+        else "view"
+    )
+
     new_user = User(
         id=uuid.uuid4(),
         email=email,
         full_name=google_info.get("name", email.split("@")[0]),
         avatar_url=google_info.get("picture"),
         google_id=google_info.get("sub"),
-        role="engineer",  # Default role
+        role=role,
+        capabilities=capabilities,
         is_active=True,
         last_login=datetime.now(timezone.utc),
     )

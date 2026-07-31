@@ -13,6 +13,10 @@ import {
     Cloud,
     HelpCircle,
     Info,
+    Users,
+    Loader2,
+    AlertCircle,
+    Save,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -27,11 +31,11 @@ const tabs = [
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState("profile");
-    
+
     // Profile State
     const [user, setUser] = useState<{ full_name: string; email: string; role: string } | null>(null);
     const [fullName, setFullName] = useState("");
-    
+
     // AI Settings State
     const [aiModel, setAiModel] = useState("nemotron-3-super");
     const [temperature, setTemperature] = useState(0.3);
@@ -42,6 +46,14 @@ export default function SettingsPage() {
     const [metrics, setMetrics] = useState<any>(null);
     const [logs, setLogs] = useState<any[]>([]);
     const [loadingOps, setLoadingOps] = useState(false);
+
+    // User Management State
+    const [userList, setUserList] = useState<any[]>([]);
+    const [loadingUsers, setLoadingUsers] = useState(false);
+    const [userListError, setUserListError] = useState<string | null>(null);
+    const [editingUserId, setEditingUserId] = useState<string | null>(null);
+    const [editDraft, setEditDraft] = useState<{ role: string; capabilities: string; is_active: boolean } | null>(null);
+    const [savingUserId, setSavingUserId] = useState<string | null>(null);
 
     // Save alerts
     const [saveSuccess, setSaveSuccess] = useState(false);
@@ -54,6 +66,7 @@ export default function SettingsPage() {
         { id: "catalog", label: "Magna Solutions Catalog", icon: BookOpen },
     ];
     if (user?.role === "superadmin") {
+        activeTabs.push({ id: "users", label: "User Management", icon: Users });
         activeTabs.push({ id: "operations", label: "System Operations", icon: Shield });
     }
 
@@ -89,9 +102,9 @@ export default function SettingsPage() {
         const updatedUser = { ...user, full_name: fullName };
         localStorage.setItem("moip_user", JSON.stringify(updatedUser));
         setUser(updatedUser);
-        
+
         showToast("Profil berhasil diperbarui!");
-        
+
         // Trigger page reload after brief delay so sidebar updates dynamically
         setTimeout(() => {
             window.location.reload();
@@ -122,7 +135,7 @@ export default function SettingsPage() {
                 try {
                     const metricsRes = await api.get("/api/admin/metrics");
                     setMetrics(metricsRes.data);
-                    
+
                     const logsRes = await api.get("/api/admin/logs?limit=30");
                     setLogs(logsRes.data.items);
                 } catch (e) {
@@ -133,7 +146,84 @@ export default function SettingsPage() {
             }
             fetchAdminData();
         }
+
+        if (activeTab === "users" && user?.role === "superadmin") {
+            async function fetchUsers() {
+                setLoadingUsers(true);
+                setUserListError(null);
+                try {
+                    const res = await api.get("/api/admin/users");
+                    setUserList(res.data);
+                } catch (e: any) {
+                    setUserListError("Gagal memuat daftar pengguna.");
+                } finally {
+                    setLoadingUsers(false);
+                }
+            }
+            fetchUsers();
+        }
     }, [activeTab, user]);
+
+    const ROLE_OPTIONS = ["viewer", "engineer", "sales", "presales", "lgo", "manager", "superadmin"];
+
+    const ROLE_DEFAULTS: Record<string, string> = {
+        viewer: "view",
+        engineer: "view,generate_kyc",
+        sales: "view,create_edit,delete,generate_kyc",
+        presales: "view,create_edit,delete,generate_kyc",
+        lgo: "view,create_edit,delete,generate_kyc",
+        manager: "view,create_edit,delete,generate_kyc",
+        superadmin: "view,create_edit,delete,generate_kyc,user_management",
+    };
+
+    const ALL_CAPS = ["view", "create_edit", "delete", "generate_kyc", "user_management"];
+    const CAP_LABELS: Record<string, string> = {
+        view: "View",
+        create_edit: "Create & Edit",
+        delete: "Delete",
+        generate_kyc: "Generate KYC",
+        user_management: "User Management",
+    };
+
+    const startEditing = (u: any) => {
+        setEditingUserId(u.id);
+        setEditDraft({ role: u.role, capabilities: u.capabilities || "view", is_active: u.is_active });
+    };
+
+    const cancelEditing = () => {
+        setEditingUserId(null);
+        setEditDraft(null);
+    };
+
+    const toggleCap = (cap: string) => {
+        if (!editDraft) return;
+        const caps = editDraft.capabilities.split(",").map((c) => c.trim()).filter(Boolean);
+        const next = caps.includes(cap) ? caps.filter((c) => c !== cap) : [...caps, cap];
+        setEditDraft({ ...editDraft, capabilities: next.join(",") });
+    };
+
+    const handleRoleChange = (role: string) => {
+        if (!editDraft) return;
+        setEditDraft({ ...editDraft, role, capabilities: ROLE_DEFAULTS[role] || "view" });
+    };
+
+    const handleSaveUser = async (userId: string) => {
+        if (!editDraft) return;
+        setSavingUserId(userId);
+        try {
+            await api.patch(`/api/admin/users/${userId}`, editDraft);
+            setUserList((prev) =>
+                prev.map((u) => (u.id === userId ? { ...u, ...editDraft } : u))
+            );
+            cancelEditing();
+            showToast("Akses pengguna berhasil diperbarui!");
+        } catch (e: any) {
+            const msg = e?.response?.data?.detail || "Gagal menyimpan perubahan.";
+            showToast(msg);
+        } finally {
+            setSavingUserId(null);
+        }
+    };
 
     return (
         <div className="p-8 max-w-4xl mx-auto space-y-8">
@@ -153,11 +243,10 @@ export default function SettingsPage() {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`pb-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-all ${
-                            activeTab === tab.id
+                        className={`pb-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-all ${activeTab === tab.id
                                 ? "border-zinc-900 text-zinc-900"
                                 : "border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300"
-                        }`}
+                            }`}
                     >
                         <tab.icon className="w-4 h-4" />
                         {tab.label}
@@ -237,7 +326,6 @@ export default function SettingsPage() {
                                 >
                                     <option value="nemotron-3-super">Nemotron-3 Super (Default - CosmosHub)</option>
                                     <option value="deepseek-3.2">DeepSeek 3.2 (Optimasi Analisis Bisnis)</option>
-                                    <option value="gpt-4o">OpenAI GPT-4o (Intelektualitas Tinggi)</option>
                                 </select>
                             </div>
 
@@ -379,7 +467,165 @@ export default function SettingsPage() {
                     </div>
                 )}
 
-                {/* 4. Admin Operations Tab */}
+                {/* 4. User Management Tab */}
+                {activeTab === "users" && user?.role === "superadmin" && (
+                    <div className="space-y-5">
+                        <div className="border-b border-zinc-100 pb-4">
+                            <h3 className="text-base font-semibold text-zinc-900 flex items-center gap-2"><Users className="w-5 h-5" /> User Access Control & Management</h3>
+                            <p className="text-xs text-zinc-500 mt-1">Kelola role dan kapabilitas setiap pengguna yang terdaftar di sistem. Pengguna tidak dapat melihat pengaturan kapabilitas mereka sendiri.</p>
+                        </div>
+
+                        {loadingUsers && (
+                            <div className="flex items-center justify-center py-16">
+                                <Loader2 className="w-7 h-7 animate-spin text-zinc-300" />
+                            </div>
+                        )}
+                        {userListError && (
+                            <div className="flex items-center gap-2 text-red-600 bg-red-50 border border-red-200 rounded-lg p-3 text-sm">
+                                <AlertCircle className="w-4 h-4 shrink-0" /> {userListError}
+                            </div>
+                        )}
+                        {!loadingUsers && !userListError && (
+                            <div className="space-y-3">
+                                {userList.map((u) => {
+                                    const isEditing = editingUserId === u.id;
+                                    const isSelf = u.email === user?.email;
+                                    const draft = isEditing ? editDraft! : null;
+                                    const caps = isEditing
+                                        ? (draft!.capabilities || "").split(",").map((c) => c.trim()).filter(Boolean)
+                                        : (u.capabilities || "").split(",").map((c: string) => c.trim()).filter(Boolean);
+
+                                    return (
+                                        <Card key={u.id} className={`p-4 border ${isEditing ? "border-zinc-900 bg-white shadow-md" : "border-zinc-200 bg-white"}  transition-all`}>
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <div className="w-9 h-9 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center shrink-0">
+                                                        <User className="w-4 h-4 text-zinc-500" />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-sm font-semibold text-zinc-900 truncate">{u.full_name}</p>
+                                                        <p className="text-xs text-zinc-400 truncate">{u.email}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    {!isEditing ? (
+                                                        <>
+                                                            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${
+                                                                u.role === "superadmin" ? "bg-violet-50 text-violet-700 border-violet-200" :
+                                                                u.role === "manager" ? "bg-blue-50 text-blue-700 border-blue-200" :
+                                                                "bg-zinc-100 text-zinc-600 border-zinc-200"
+                                                            }`}>{u.role}</span>
+                                                            {!isSelf && (
+                                                                <Button size="sm" variant="secondary" className="text-xs" onClick={() => startEditing(u)}>Edit Access</Button>
+                                                            )}
+                                                            {isSelf && <span className="text-[10px] text-zinc-400 italic">You</span>}
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Button size="sm" variant="secondary" onClick={cancelEditing} className="text-xs">Cancel</Button>
+                                                            <Button
+                                                                size="sm"
+                                                                className="text-xs gap-1.5"
+                                                                onClick={() => handleSaveUser(u.id)}
+                                                                disabled={savingUserId === u.id}
+                                                            >
+                                                                {savingUserId === u.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                                                                Save
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {isEditing && draft && (
+                                                <div className="mt-4 pt-4 border-t border-zinc-100 space-y-4">
+                                                    {/* Role Selector */}
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Role (tampilan sistem)</label>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {ROLE_OPTIONS.map((r) => (
+                                                                <button
+                                                                    key={r}
+                                                                    onClick={() => handleRoleChange(r)}
+                                                                    className={`text-xs px-3 py-1 rounded-full border font-semibold uppercase transition-all ${
+                                                                        draft.role === r
+                                                                            ? "bg-zinc-900 text-white border-zinc-900"
+                                                                            : "bg-white text-zinc-600 border-zinc-300 hover:border-zinc-600"
+                                                                    }`}
+                                                                >
+                                                                    {r}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Capabilities Toggles */}
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Kapabilitas (tidak terlihat oleh pengguna)</label>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {ALL_CAPS.map((cap) => {
+                                                                const active = caps.includes(cap);
+                                                                return (
+                                                                    <button
+                                                                        key={cap}
+                                                                        onClick={() => toggleCap(cap)}
+                                                                        className={`text-xs px-3 py-1 rounded-full border font-medium transition-all flex items-center gap-1.5 ${
+                                                                            active
+                                                                                ? "bg-emerald-600 text-white border-emerald-600"
+                                                                                : "bg-white text-zinc-400 border-zinc-200 hover:border-zinc-400"
+                                                                        }`}
+                                                                    >
+                                                                        {active && <CheckCircle2 className="w-3 h-3" />}
+                                                                        {CAP_LABELS[cap]}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Active Toggle */}
+                                                    <div className="flex items-center gap-3">
+                                                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Status Akun</label>
+                                                        <button
+                                                            onClick={() => setEditDraft({ ...draft, is_active: !draft.is_active })}
+                                                            className={`relative w-10 h-5 rounded-full transition-colors ${
+                                                                draft.is_active ? "bg-emerald-500" : "bg-zinc-300"
+                                                            }`}
+                                                        >
+                                                            <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                                                                draft.is_active ? "translate-x-5" : ""
+                                                            }`} />
+                                                        </button>
+                                                        <span className="text-xs text-zinc-500">{draft.is_active ? "Aktif" : "Nonaktif"}</span>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Readonly capability summary */}
+                                            {!isEditing && (
+                                                <div className="mt-3 flex flex-wrap gap-1.5">
+                                                    {caps.map((c: string) => (
+                                                        <span key={c} className="text-[10px] bg-zinc-100 text-zinc-500 px-2 py-0.5 rounded-full font-medium border border-zinc-200">
+                                                            {CAP_LABELS[c] || c}
+                                                        </span>
+                                                    ))}
+                                                    {!u.is_active && (
+                                                        <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium border border-red-200">Nonaktif</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </Card>
+                                    );
+                                })}
+                                {userList.length === 0 && (
+                                    <p className="text-sm text-zinc-400 text-center py-8">Belum ada pengguna terdaftar.</p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* 5. Admin Operations Tab */}
                 {activeTab === "operations" && user?.role === "superadmin" && (
                     <div className="space-y-6">
                         {loadingOps ? (

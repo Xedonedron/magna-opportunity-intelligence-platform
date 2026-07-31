@@ -14,12 +14,10 @@ interface DashboardMetricsProps {
 export function DashboardMetrics({
     totalOpportunities,
     meetingsToday,
-    kycRunning,
     needFollowUp,
-    wonRate,
     activeCount,
     userRole,
-}: DashboardMetricsProps) {
+}: Omit<DashboardMetricsProps, "wonRate" | "kycRunning">) {
     const metrics = [
         {
             label: "Total Opportunities",
@@ -38,22 +36,10 @@ export function DashboardMetrics({
             description: "Excludes won/lost",
         },
         {
-            label: "Won Rate",
-            value: `${(wonRate || 0).toFixed(1)}%`,
-            icon: Award,
-            description: "Won / (Won + Lost)",
-        },
-        {
             label: "Meetings Today",
             value: meetingsToday,
             icon: Calendar,
             description: "Scheduled today",
-        },
-        {
-            label: "KYC Running",
-            value: kycRunning,
-            icon: Loader2,
-            description: "In progress",
         },
         {
             label: "Need Follow Up",
@@ -64,7 +50,7 @@ export function DashboardMetrics({
     ];
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {metrics.map((metric, i) => (
                 <Card key={i} className="p-4 shadow-sm hover:shadow transition-shadow">
                     <div className="flex items-center justify-between">

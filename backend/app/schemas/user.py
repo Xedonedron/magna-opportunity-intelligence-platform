@@ -6,7 +6,7 @@ from pydantic import BaseModel, EmailStr
 class UserBase(BaseModel):
     email: EmailStr
     full_name: str
-    role: str = "engineer"
+    role: str = "viewer"
 
 
 class UserCreate(UserBase):
@@ -18,6 +18,7 @@ class UserResponse(UserBase):
     id: uuid.UUID
     avatar_url: str | None = None
     is_active: bool
+    capabilities: str | None = None
     created_at: datetime
     last_login: datetime | None = None
 
@@ -29,3 +30,4 @@ class UserUpdate(BaseModel):
     full_name: str | None = None
     role: str | None = None
     avatar_url: str | None = None
+    capabilities: str | None = None

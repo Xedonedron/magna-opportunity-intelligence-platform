@@ -10,21 +10,21 @@ import {
 import { Card } from "@/components/ui/Card";
 import type { ProductCount } from "@/types/dashboard";
 
-interface ProductDistributionChartProps {
+interface SolutionDistributionChartProps {
     data: ProductCount[];
 }
 
 const COLORS = ["#4285F4", "#AB47BC", "#0F9D58", "#F4B400", "#FF7043", "#00ACC1", "#78909C"];
 
-export function ProductDistributionChart({ data }: ProductDistributionChartProps) {
+export function SolutionDistributionChart({ data }: SolutionDistributionChartProps) {
     if (!data || data.length === 0) {
         return (
             <Card className="p-5">
                 <h3 className="text-sm font-semibold text-zinc-900 mb-4">
-                    Product Distribution
+                    Solution Distribution
                 </h3>
                 <div className="h-64 flex items-center justify-center text-zinc-400 text-sm">
-                    No product data available
+                    No solution data available
                 </div>
             </Card>
         );
@@ -39,7 +39,7 @@ export function ProductDistributionChart({ data }: ProductDistributionChartProps
     return (
         <Card className="p-5 shadow-sm border border-zinc-200">
             <h3 className="text-sm font-semibold text-zinc-900 mb-4">
-                Product Distribution
+                Solution Distribution
             </h3>
             <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">

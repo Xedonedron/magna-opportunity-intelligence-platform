@@ -16,7 +16,7 @@ from app.schemas.kyc import (
     KYCReportUpdate,
     KYCRegenerateRequest,
 )
-from app.api.auth import get_current_user
+from app.api.auth import get_current_user, require_capability
 from app.tasks import run_kyc_pipeline_task
 
 router = APIRouter(prefix="/api/opportunities/{opportunity_id}/kyc", tags=["kyc"])
@@ -97,7 +97,7 @@ async def regenerate_kyc_report(
     opportunity_id: uuid.UUID,
     data: KYCRegenerateRequest | None = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_capability("generate_kyc")),
 ):
     """Trigger KYC regeneration for an opportunity.
 
@@ -153,7 +153,7 @@ async def update_kyc_report(
     report_id: uuid.UUID,
     data: KYCReportUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_capability("create_edit")),
 ):
     """Edit a KYC report (engineer edits).
 

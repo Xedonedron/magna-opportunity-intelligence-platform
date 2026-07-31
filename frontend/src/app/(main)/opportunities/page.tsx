@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Search, ChevronRight, ChevronLeft, Trash2 } from "lucide-react";
@@ -17,6 +17,21 @@ export default function OpportunitiesPage() {
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("");
+    const [user, setUser] = useState<any>(null);
+
+    useEffect(() => {
+        const stored = localStorage.getItem("moip_user");
+        if (stored) {
+            try {
+                setUser(JSON.parse(stored));
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    }, []);
+
+    const canCreate = user ? user.capabilities?.split(",").map((c: string) => c.trim()).includes("create_edit") : false;
+    const canDelete = user ? user.capabilities?.split(",").map((c: string) => c.trim()).includes("delete") : false;
 
     const deleteMutation = useDeleteOpportunity();
 
@@ -50,11 +65,13 @@ export default function OpportunitiesPage() {
                         Manage and track your active sales pipeline.
                     </p>
                 </div>
-                <Link href="/opportunities/create">
-                    <Button className="gap-2">
-                        <Plus className="w-4 h-4" /> New Opportunity
-                    </Button>
-                </Link>
+                {canCreate && (
+                    <Link href="/opportunities/create">
+                        <Button className="gap-2">
+                            <Plus className="w-4 h-4" /> New Opportunity
+                        </Button>
+                    </Link>
+                )}
             </div>
 
             <Card className="flex flex-col">
@@ -163,14 +180,16 @@ export default function OpportunitiesPage() {
                                             {timeAgo(opp.updated_at)}
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-700 hover:bg-red-50 transition-all"
-                                                onClick={(e) => handleDelete(e, opp.id, opp.company_name)}
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
+                                            {canDelete && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-700 hover:bg-red-50 transition-all"
+                                                    onClick={(e) => handleDelete(e, opp.id, opp.company_name)}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -51,12 +51,25 @@ const eventTypeIcons: Record<string, React.ReactNode> = {
 };
 
 export default function OpportunityDetailPage() {
-    const params = useParams();
+    const { id } = useParams() as { id: string };
     const router = useRouter();
-    const id = params.id as string;
     const [activeTab, setActiveTab] = useState("overview");
-    const [showCreateMeeting, setShowCreateMeeting] = useState(false);
     const [isChatOpen, setIsChatOpen] = useState(false);
+    const [showCreateMeeting, setShowCreateMeeting] = useState(false);
+    const [user, setUser] = useState<any>(null);
+
+    useEffect(() => {
+        const stored = localStorage.getItem("moip_user");
+        if (stored) {
+            try {
+                setUser(JSON.parse(stored));
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    }, []);
+
+    const canCreateEdit = user ? user.capabilities?.split(",").map((c: string) => c.trim()).includes("create_edit") : false;
 
     const { data: opp, isLoading } = useOpportunity(id);
     const { data: meetingsData } = useMeetings(id);
@@ -128,14 +141,16 @@ export default function OpportunityDetailPage() {
                                 className="gap-2 border-zinc-300"
                                 onClick={() => setIsChatOpen(!isChatOpen)}
                             >
-                                <Sparkles className="w-4 h-4 text-zinc-900" /> Brainstorming AI
+                                <Sparkles className="w-4 h-4 text-zinc-900" /> Chat with AI
                             </Button>
-                            <Button
-                                className="gap-2"
-                                onClick={() => setShowCreateMeeting(true)}
-                            >
-                                <Plus className="w-4 h-4" /> Log Meeting
-                            </Button>
+                            {canCreateEdit && (
+                                <Button
+                                    className="gap-2"
+                                    onClick={() => setShowCreateMeeting(true)}
+                                >
+                                    <Plus className="w-4 h-4" /> Log Meeting
+                                </Button>
+                            )}
                         </div>
                     </div>
 
@@ -196,7 +211,7 @@ export default function OpportunityDetailPage() {
                                         />
                                         <InfoRow
                                             icon={<Package className="w-4 h-4" />}
-                                            label="Product"
+                                            label="Solution"
                                             value={opp.product}
                                         />
                                         <InfoRow
@@ -292,14 +307,15 @@ export default function OpportunityDetailPage() {
                                 <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider">
                                     Meeting History
                                 </h3>
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    className="gap-2"
-                                    onClick={() => setShowCreateMeeting(true)}
-                                >
-                                    <Plus className="w-3.5 h-3.5" /> Add Meeting
-                                </Button>
+                                {canCreateEdit && (
+                                    <Button
+                                        size="sm"
+                                        className="gap-1.5"
+                                        onClick={() => setShowCreateMeeting(true)}
+                                    >
+                                        <Plus className="w-3.5 h-3.5" /> Add Meeting
+                                    </Button>
+                                )}
                             </div>
                             <MeetingAccordion
                                 meetings={meetingsData?.items || []}

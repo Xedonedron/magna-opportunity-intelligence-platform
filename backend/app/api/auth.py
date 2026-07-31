@@ -132,12 +132,24 @@ async def username_login(request: UsernameLoginRequest, db: Session = Depends(ge
     user = db.query(User).filter(User.email == email).first()
 
     if not user:
+        # Determine capabilities based on role
+        role_name = static_user["role"]
+        if role_name in ("admin", "superadmin"):
+            caps = "view,create_edit,delete,generate_kyc,user_management"
+        elif role_name in ("manager", "lgo", "sales", "presales"):
+            caps = "view,create_edit,delete,generate_kyc"
+        elif role_name == "engineer":
+            caps = "view,generate_kyc"
+        else:
+            caps = "view"
+
         # Create new user
         user = User(
             id=uuid.uuid4(),
             email=email,
             full_name=request.username.replace("_", " ").title(),
-            role=static_user["role"],
+            role=role_name,
+            capabilities=caps,
             is_active=True,
             last_login=datetime.now(timezone.utc),
         )
@@ -162,3 +174,16 @@ async def username_login(request: UsernameLoginRequest, db: Session = Depends(ge
 async def get_me(current_user: User = Depends(get_current_user)):
     """Get current user profile."""
     return current_user
+
+
+def require_capability(capability: str):
+    """Dependency helper to require a specific capability string on the current user."""
+    def dependency(current_user: User = Depends(get_current_user)):
+        caps = [c.strip() for c in (current_user.capabilities or "").split(",")]
+        if capability not in caps:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Anda tidak memiliki izin '{capability}' untuk melakukan aksi ini."
+            )
+        return current_user
+    return dependency

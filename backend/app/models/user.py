@@ -16,7 +16,8 @@ class User(Base):
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     role: Mapped[str] = mapped_column(String(50), default="engineer", nullable=False)
-    # Roles: admin, lgo, engineer, manager
+    # Roles: admin, lgo, engineer, manager, superadmin, viewer
+    capabilities: Mapped[str] = mapped_column(String(255), default="view", nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     google_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     created_at: Mapped[datetime] = mapped_column(

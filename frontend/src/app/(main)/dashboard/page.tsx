@@ -8,7 +8,7 @@ import { DashboardMetrics } from "@/components/dashboard/DashboardMetrics";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { StatusChart } from "@/components/dashboard/StatusChart";
 import { TrendChart } from "@/components/dashboard/TrendChart";
-import { ProductDistributionChart } from "@/components/dashboard/ProductDistributionChart";
+import { SolutionDistributionChart } from "@/components/dashboard/SolutionDistributionChart";
 import { IndustryDistributionChart } from "@/components/dashboard/IndustryDistributionChart";
 import { getDashboardMetrics, type DashboardFilters as Filters } from "@/lib/api/dashboard";
 import type { DashboardMetrics as Metrics } from "@/types/dashboard";
@@ -113,9 +113,7 @@ export default function DashboardPage() {
             <DashboardMetrics
                 totalOpportunities={metrics.total_opportunities}
                 meetingsToday={metrics.meetings_today}
-                kycRunning={metrics.kyc_running}
                 needFollowUp={metrics.need_follow_up}
-                wonRate={metrics.won_rate}
                 activeCount={metrics.active_count}
                 userRole={metrics.user_role}
             />
@@ -132,7 +130,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ProductDistributionChart data={metrics.by_product} />
+                <SolutionDistributionChart data={metrics.by_product} />
                 <IndustryDistributionChart data={metrics.by_industry} />
             </div>
 

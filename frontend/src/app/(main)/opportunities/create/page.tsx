@@ -25,7 +25,7 @@ const formSchema = z.object({
     email: z.string().email("Invalid email").optional().or(z.literal("")),
     phone: z.string().optional(),
     industry: z.string().optional(),
-    product: z.string().min(1, "Target Product Line is required"),
+    product: z.string().min(1, "Target Solution is required"),
     customer_needs: z.string().min(1, "Customer needs is required"),
     additional_notes: z.string().optional(),
     meeting_schedule: z.string().min(1, "Initial Meeting Date is required"),
@@ -269,8 +269,8 @@ export default function CreateOpportunityPage() {
                                     Click anywhere outside the calendar pop-up to confirm your selection.
                                 </p>
                             </div>
-                            <Select label="Target Product Line" required {...register("product")}>
-                                <option value="">Select product...</option>
+                            <Select label="Target Solution" required {...register("product")}>
+                                <option value="">Select solution...</option>
                                 <option value="Cloud Infrastructure">
                                     Cloud Infrastructure
                                 </option>
@@ -320,7 +320,7 @@ export default function CreateOpportunityPage() {
 
                     <div className="mt-8 pt-6 border-t border-zinc-100 flex justify-end">
                         <Button type="submit" className="gap-2">
-                            <Zap className="w-4 h-4" /> Run AI Intelligence
+                            Create Opportunity
                         </Button>
                     </div>
                 </Card>

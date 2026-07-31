@@ -6,6 +6,8 @@ from sqlalchemy import func
 from app.core.database import get_db
 from app.models.meeting import Meeting
 from app.models.opportunity import Opportunity, TimelineEvent
+from app.models.user import User
+from app.api.auth import get_current_user, require_capability
 from app.schemas.meeting import (
     MeetingCreate,
     MeetingUpdate,
@@ -23,6 +25,7 @@ def list_meetings(
     skip: int = 0,
     limit: int = 50,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     query = db.query(Meeting)
     if opportunity_id:
@@ -33,7 +36,11 @@ def list_meetings(
 
 
 @router.get("/{meeting_id}", response_model=MeetingResponse)
-def get_meeting(meeting_id: uuid.UUID, db: Session = Depends(get_db)):
+def get_meeting(
+    meeting_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
@@ -41,7 +48,11 @@ def get_meeting(meeting_id: uuid.UUID, db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=MeetingResponse, status_code=status.HTTP_201_CREATED)
-def create_meeting(payload: MeetingCreate, db: Session = Depends(get_db)):
+def create_meeting(
+    payload: MeetingCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_capability("create_edit")),
+):
     # Verify opportunity exists
     opp = db.query(Opportunity).filter(Opportunity.id == payload.opportunity_id).first()
     if not opp:
@@ -99,6 +110,7 @@ def update_meeting(
     meeting_id: uuid.UUID,
     payload: MeetingUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_capability("create_edit")),
 ):
     meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
     if not meeting:
@@ -124,7 +136,11 @@ def update_meeting(
 
 
 @router.delete("/{meeting_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_meeting(meeting_id: uuid.UUID, db: Session = Depends(get_db)):
+def delete_meeting(
+    meeting_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_capability("delete")),
+):
     meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")

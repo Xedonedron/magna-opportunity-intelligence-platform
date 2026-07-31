@@ -225,7 +225,7 @@ export function OpportunityChatSidebar({
 
     return (
         <div
-            className={`border-l border-zinc-200 bg-zinc-50 flex flex-col h-screen shrink-0 transition-all duration-300 relative ${
+            className={`border-l border-zinc-200 bg-zinc-50 flex flex-col h-full shrink-0 transition-all duration-300 relative ${
                 isWide ? "w-[650px]" : "w-[400px]"
             }`}
         >
@@ -236,7 +236,7 @@ export function OpportunityChatSidebar({
                         <Sparkles className="w-4 h-4 animate-pulse" />
                     </div>
                     <div className="min-w-0">
-                        <h3 className="text-sm font-semibold text-zinc-900 truncate">Brainstorming AI</h3>
+                        <h3 className="text-sm font-semibold text-zinc-900 truncate">Chat with AI</h3>
                         <p className="text-[10px] text-zinc-500 font-medium truncate">Magna Pre-sales Assistant</p>
                     </div>
                 </div>
@@ -340,14 +340,14 @@ export function OpportunityChatSidebar({
                 {messages.length <= 1 && !isLoadingHistory && (
                     <div className="space-y-1.5">
                         <p className="text-[9px] font-semibold text-zinc-400 uppercase tracking-wider">
-                            Rekomendasi Brainstorming:
+                            Rekomendasi pertanyaan:
                         </p>
                         <div className="flex flex-col gap-1.5 max-h-[140px] overflow-y-auto pr-1">
                             {SUGGESTIONS.map((sug, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => handleSendMessage(sug)}
-                                    className="text-xs text-left text-zinc-600 hover:text-zinc-950 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200/60 p-2 rounded-md transition-colors truncate"
+                                    className="text-xs text-left text-zinc-600 hover:text-zinc-950 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200/60 p-2 py-2 px-3 rounded-md transition-colors whitespace-normal break-words h-auto"
                                 >
                                     {sug}
                                 </button>

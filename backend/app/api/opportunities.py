@@ -15,7 +15,7 @@ from app.schemas.opportunity import (
     OpportunityDetailResponse,
     OpportunityListResponse,
 )
-from app.api.auth import get_current_user
+from app.api.auth import get_current_user, require_capability
 from app.tasks import (
     send_opportunity_created_notification,
     send_status_changed_notification,
@@ -93,7 +93,7 @@ async def list_opportunities(
 async def create_opportunity(
     data: OpportunityCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_capability("create_edit")),
 ):
     """Create a new opportunity. Auto-logs timeline event."""
     opportunity = Opportunity(
@@ -167,7 +167,7 @@ async def update_opportunity(
     opportunity_id: uuid.UUID,
     data: OpportunityUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_capability("create_edit")),
 ):
     """Update opportunity fields. Auto-logs timeline for status changes and updates."""
     opportunity = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
@@ -227,7 +227,7 @@ async def update_opportunity(
 async def delete_opportunity(
     opportunity_id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_capability("delete")),
 ):
     """Delete an opportunity and all related timeline events."""
     opportunity = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()

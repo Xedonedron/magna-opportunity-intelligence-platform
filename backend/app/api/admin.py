@@ -79,3 +79,73 @@ def get_system_metrics(
         "kyc_status_breakdown": kyc_status_breakdown,
         "user_roles_breakdown": user_roles_breakdown
     }
+
+
+from pydantic import BaseModel
+
+class UserUpdatePayload(BaseModel):
+    role: str
+    capabilities: str
+    is_active: bool | None = None
+
+
+@router.get("/users")
+def list_users(
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_superadmin)
+):
+    """Retrieve all users in the system (Super Admin only)."""
+    users = db.query(User).order_by(User.created_at.desc()).all()
+    return [
+        {
+            "id": str(u.id),
+            "email": u.email,
+            "full_name": u.full_name,
+            "role": u.role,
+            "is_active": u.is_active,
+            "capabilities": u.capabilities,
+            "created_at": u.created_at.isoformat() if u.created_at else None,
+            "last_login": u.last_login.isoformat() if u.last_login else None,
+        }
+        for u in users
+    ]
+
+
+@router.patch("/users/{user_id}")
+def update_user_access(
+    user_id: uuid.UUID,
+    payload: UserUpdatePayload,
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_superadmin)
+):
+    """Update role, capabilities, and active status for a user (Super Admin only)."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Prevent lockouts: superadmin cannot demote or deactivate themselves
+    if user.id == _admin.id:
+        if payload.role != "superadmin" or (payload.is_active is not None and not payload.is_active):
+            raise HTTPException(
+                status_code=400,
+                detail="Superadmin tidak dapat mengubah role atau menonaktifkan akun sendiri untuk mencegah lockout."
+            )
+
+    user.role = payload.role
+    user.capabilities = payload.capabilities
+    if payload.is_active is not None:
+        user.is_active = payload.is_active
+        
+    db.commit()
+    db.refresh(user)
+    return {
+        "status": "success",
+        "user": {
+            "id": str(user.id),
+            "email": user.email,
+            "role": user.role,
+            "capabilities": user.capabilities,
+            "is_active": user.is_active
+        }
+    }
+
