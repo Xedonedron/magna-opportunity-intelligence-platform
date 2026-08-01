@@ -177,6 +177,26 @@ class TestOpportunityCreate:
         assert data["status"] == "New"
         assert "id" in data
 
+    def test_create_opportunity_with_revenue_and_agenda(
+        self, client: TestClient, auth_headers: dict[str, str]
+    ):
+        """Should create opportunity with potential_revenue and estimated_agenda_date."""
+        response = client.post(
+            "/api/opportunities",
+            headers=auth_headers,
+            json={
+                "company_name": "Revenue Test PT",
+                "customer_needs": "Enterprise Cloud Setup",
+                "potential_revenue": 500000000.0,
+                "estimated_agenda_date": "2026-10-15T10:00:00Z",
+            },
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert data["company_name"] == "Revenue Test PT"
+        assert data["potential_revenue"] == 500000000.0
+        assert data["estimated_agenda_date"] is not None
+
     def test_create_opportunity_validation_error(
         self, client: TestClient, auth_headers: dict[str, str]
     ):

@@ -201,6 +201,7 @@ class SystemSettingsPayload(BaseModel):
     temperature: float = 0.0
     search_depth: str = "advanced"
     max_results: int = 5
+    hide_financial_numbers: Optional[bool] = False
     gemini_api_key: Optional[str] = None
     openai_api_key: Optional[str] = None
     openai_api_base: Optional[str] = None
@@ -241,6 +242,7 @@ def get_system_settings_api(
         "temperature": float(kv.get("temperature", 0.0)),
         "search_depth": kv.get("search_depth", "advanced"),
         "max_results": int(kv.get("max_results", 5)),
+        "hide_financial_numbers": kv.get("hide_financial_numbers", "false").lower() == "true",
         "has_gemini_key": bool(gemini_key),
         "masked_gemini_key": mask_key(gemini_key),
         "has_openai_key": bool(openai_key),
@@ -265,6 +267,9 @@ def update_system_settings_api(
         "search_depth": payload.search_depth,
         "max_results": str(payload.max_results),
     }
+
+    if payload.hide_financial_numbers is not None:
+        updates["hide_financial_numbers"] = "true" if payload.hide_financial_numbers else "false"
 
     if payload.gemini_api_key is not None and not payload.gemini_api_key.startswith("****"):
         updates["gemini_api_key"] = payload.gemini_api_key.strip()

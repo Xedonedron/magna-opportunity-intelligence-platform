@@ -29,6 +29,8 @@ class OpportunityCreate(BaseModel):
     product: str | None = Field(None, max_length=255)
     customer_needs: str = Field(..., min_length=1)
     additional_notes: str | None = None
+    potential_revenue: float | None = None
+    estimated_agenda_date: datetime | None = None
     meeting_schedule: datetime | None = None
     assigned_engineer_id: uuid.UUID | None = None
 
@@ -42,6 +44,8 @@ class OpportunityUpdate(BaseModel):
     product: str | None = Field(None, max_length=255)
     customer_needs: str | None = Field(None, min_length=1)
     additional_notes: str | None = None
+    potential_revenue: float | None = None
+    estimated_agenda_date: datetime | None = None
     status: str | None = Field(None, max_length=50)
     meeting_schedule: datetime | None = None
     assigned_engineer_id: uuid.UUID | None = None
@@ -66,6 +70,8 @@ class OpportunityResponse(BaseModel):
     product: str | None
     customer_needs: str
     additional_notes: str | None
+    potential_revenue: float | None = None
+    estimated_agenda_date: datetime | None = None
     status: str
     meeting_schedule: datetime | None
     assigned_engineer_id: uuid.UUID | None

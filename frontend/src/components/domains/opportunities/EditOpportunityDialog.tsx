@@ -30,6 +30,9 @@ export function EditOpportunityDialog({
     const initialSchedule = opportunity.meeting_schedule
         ? new Date(opportunity.meeting_schedule).toISOString().slice(0, 16)
         : "";
+    const initialAgendaDate = opportunity.estimated_agenda_date
+        ? new Date(opportunity.estimated_agenda_date).toISOString().slice(0, 16)
+        : "";
 
     const [companyName, setCompanyName] = useState(opportunity.company_name || "");
     const [website, setWebsite] = useState(opportunity.website || "");
@@ -40,6 +43,10 @@ export function EditOpportunityDialog({
     const [customerNeeds, setCustomerNeeds] = useState(opportunity.customer_needs || "");
     const [additionalNotes, setAdditionalNotes] = useState(opportunity.additional_notes || "");
     const [meetingSchedule, setMeetingSchedule] = useState(initialSchedule);
+    const [potentialRevenue, setPotentialRevenue] = useState<string>(
+        opportunity.potential_revenue ? String(opportunity.potential_revenue) : ""
+    );
+    const [estimatedAgendaDate, setEstimatedAgendaDate] = useState<string>(initialAgendaDate);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -55,6 +62,10 @@ export function EditOpportunityDialog({
                     product: product || null,
                     customer_needs: customerNeeds,
                     additional_notes: additionalNotes || null,
+                    potential_revenue: potentialRevenue ? parseFloat(potentialRevenue) : null,
+                    estimated_agenda_date: estimatedAgendaDate
+                        ? new Date(estimatedAgendaDate).toISOString()
+                        : null,
                     meeting_schedule: meetingSchedule
                         ? new Date(meetingSchedule).toISOString()
                         : null,
@@ -151,6 +162,32 @@ export function EditOpportunityDialog({
                                 <option value="Cybersecurity Suite">Cybersecurity Suite</option>
                                 <option value="Network Solutions">Network Solutions</option>
                             </Select>
+                        </div>
+                    </div>
+
+                    {/* Potential Revenue & Agenda Schedule */}
+                    <div className="space-y-4 pt-4 border-t border-zinc-100">
+                        <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                            Financial Potential & Agenda Schedule
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Input
+                                label="Potential Revenue / Deal Value (IDR)"
+                                type="number"
+                                placeholder="e.g. 250000000"
+                                value={potentialRevenue}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                    setPotentialRevenue(e.target.value)
+                                }
+                            />
+                            <Input
+                                label="Estimasi Tanggal Agenda"
+                                type="datetime-local"
+                                value={estimatedAgendaDate}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                    setEstimatedAgendaDate(e.target.value)
+                                }
+                            />
                         </div>
                     </div>
 

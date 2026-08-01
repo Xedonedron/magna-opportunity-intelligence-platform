@@ -39,6 +39,8 @@ export interface Opportunity {
     product: string | null;
     customer_needs: string;
     additional_notes: string | null;
+    potential_revenue: number | null;
+    estimated_agenda_date: string | null;
     status: OpportunityStatus;
     meeting_schedule: string | null;
     assigned_engineer_id: string | null;
@@ -69,6 +71,8 @@ export interface OpportunityCreateInput {
     product?: string | null;
     customer_needs: string;
     additional_notes?: string | null;
+    potential_revenue?: number | null;
+    estimated_agenda_date?: string | null;
     meeting_schedule?: string | null;
     assigned_engineer_id?: string | null;
 }
@@ -82,6 +86,8 @@ export interface OpportunityUpdateInput {
     product?: string | null;
     customer_needs?: string;
     additional_notes?: string | null;
+    potential_revenue?: number | null;
+    estimated_agenda_date?: string | null;
     status?: OpportunityStatus;
     meeting_schedule?: string | null;
     assigned_engineer_id?: string | null;

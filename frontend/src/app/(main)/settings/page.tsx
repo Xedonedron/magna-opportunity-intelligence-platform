@@ -46,6 +46,7 @@ export default function SettingsPage() {
     const [temperature, setTemperature] = useState(0.0);
     const [searchDepth, setSearchDepth] = useState("advanced");
     const [maxResults, setMaxResults] = useState(5);
+    const [hideFinancialNumbers, setHideFinancialNumbers] = useState(false);
     const [geminiApiKey, setGeminiApiKey] = useState("");
     const [openaiApiKey, setOpenaiApiKey] = useState("");
     const [maskedGeminiKey, setMaskedGeminiKey] = useState("");
@@ -102,6 +103,7 @@ export default function SettingsPage() {
                 setTemperature(data.temperature ?? 0.0);
                 setSearchDepth(data.search_depth || "advanced");
                 setMaxResults(data.max_results ?? 5);
+                setHideFinancialNumbers(Boolean(data.hide_financial_numbers));
                 setMaskedGeminiKey(data.masked_gemini_key || "");
                 setMaskedOpenaiKey(data.masked_openai_key || "");
             }
@@ -205,6 +207,7 @@ export default function SettingsPage() {
                 temperature,
                 search_depth: searchDepth,
                 max_results: maxResults,
+                hide_financial_numbers: hideFinancialNumbers,
                 gemini_api_key: geminiApiKey.trim() || undefined,
                 openai_api_key: openaiApiKey.trim() || undefined,
             });
@@ -218,7 +221,7 @@ export default function SettingsPage() {
             };
             localStorage.setItem("moip_ai_settings", JSON.stringify(aiSettings));
 
-            showToast("Pengaturan AI Pipeline & Provider berhasil disimpan ke server!");
+            showToast("Pengaturan AI Pipeline & Sistem berhasil disimpan!");
             setGeminiApiKey("");
             setOpenaiApiKey("");
             fetchServerSettings();
@@ -677,6 +680,31 @@ export default function SettingsPage() {
                                             <option value={10}>10 Hasil (Lengkap)</option>
                                         </select>
                                     </div>
+                                </div>
+                            </div>
+
+                            {/* Financial Privacy Settings */}
+                            <div className="border-t border-zinc-100 pt-6 space-y-4">
+                                <h4 className="text-sm font-semibold text-zinc-900 flex items-center gap-1.5">
+                                    <Shield className="w-4 h-4 text-zinc-700" /> Privasi & Tampilan Finansial (Financial Privacy)
+                                </h4>
+                                <div className="flex items-center justify-between p-4 border border-zinc-200 rounded-lg bg-zinc-50/50">
+                                    <div className="pr-4">
+                                        <h5 className="text-sm font-medium text-zinc-900">Sembunyikan Nilai Potensi (Hide Financial Numbers)</h5>
+                                        <p className="text-xs text-zinc-500 mt-0.5">
+                                            Jika diaktifkan, angka Potential Revenue di Overview dan Tabel Opportunities akan disamarkan menjadi •••••••• untuk seluruh pengguna.
+                                        </p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                                        <input
+                                            type="checkbox"
+                                            disabled={!isSuperAdmin}
+                                            checked={hideFinancialNumbers}
+                                            onChange={(e) => setHideFinancialNumbers(e.target.checked)}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-zinc-900"></div>
+                                    </label>
                                 </div>
                             </div>
                         </div>

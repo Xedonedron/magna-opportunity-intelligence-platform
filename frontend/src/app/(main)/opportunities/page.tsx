@@ -8,7 +8,8 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { useOpportunities, useDeleteOpportunity } from "@/hooks/use-opportunities";
-import { timeAgo } from "@/lib/utils";
+import { timeAgo, formatCurrency } from "@/lib/utils";
+import { api } from "@/lib/api";
 import { ALL_STATUSES } from "@/types/opportunity";
 import type { OpportunityStatus } from "@/types/opportunity";
 
@@ -18,6 +19,7 @@ export default function OpportunitiesPage() {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("");
     const [user, setUser] = useState<any>(null);
+    const [hideFinancialNumbers, setHideFinancialNumbers] = useState(false);
 
     useEffect(() => {
         const stored = localStorage.getItem("moip_user");
@@ -28,6 +30,9 @@ export default function OpportunitiesPage() {
                 console.error(e);
             }
         }
+        api.get("/api/admin/settings")
+            .then((res) => setHideFinancialNumbers(Boolean(res.data?.hide_financial_numbers)))
+            .catch((e) => console.error("Failed to load settings", e));
     }, []);
 
     const canCreate = user ? user.capabilities?.split(",").map((c: string) => c.trim()).includes("create_edit") : false;
@@ -117,6 +122,8 @@ export default function OpportunitiesPage() {
                                 <th className="px-6 py-3 font-medium">Company</th>
                                 <th className="px-6 py-3 font-medium">Status</th>
                                 <th className="px-6 py-3 font-medium">Industry</th>
+                                <th className="px-6 py-3 font-medium">Potential Value</th>
+                                <th className="px-6 py-3 font-medium">Est. Agenda</th>
                                 <th className="px-6 py-3 font-medium">Engineer</th>
                                 <th className="px-6 py-3 font-medium">Next Meeting</th>
                                 <th className="px-6 py-3 font-medium">Last Update</th>
@@ -127,7 +134,7 @@ export default function OpportunitiesPage() {
                             {isLoading ? (
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <tr key={i}>
-                                        <td colSpan={7} className="px-6 py-4">
+                                        <td colSpan={9} className="px-6 py-4">
                                             <div className="h-4 bg-zinc-100 rounded animate-pulse" />
                                         </td>
                                     </tr>
@@ -159,6 +166,18 @@ export default function OpportunitiesPage() {
                                         </td>
                                         <td className="px-6 py-4 text-zinc-600">
                                             {opp.industry || "—"}
+                                        </td>
+                                        <td className="px-6 py-4 font-semibold text-zinc-900">
+                                            {formatCurrency(opp.potential_revenue, hideFinancialNumbers)}
+                                        </td>
+                                        <td className="px-6 py-4 text-zinc-600">
+                                            {opp.estimated_agenda_date
+                                                ? new Date(opp.estimated_agenda_date).toLocaleDateString("en-US", {
+                                                    month: "short",
+                                                    day: "numeric",
+                                                    year: "numeric",
+                                                })
+                                                : "—"}
                                         </td>
                                         <td className="px-6 py-4 text-zinc-600">
                                             {opp.assigned_engineer?.full_name || "Unassigned"}
@@ -195,7 +214,7 @@ export default function OpportunitiesPage() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-12 text-center text-zinc-500">
+                                    <td colSpan={9} className="px-6 py-12 text-center text-zinc-500">
                                         No opportunities found. Create your first opportunity to get
                                         started.
                                     </td>

@@ -106,6 +106,8 @@ async def create_opportunity(
         product=data.product,
         customer_needs=data.customer_needs,
         additional_notes=data.additional_notes,
+        potential_revenue=data.potential_revenue,
+        estimated_agenda_date=data.estimated_agenda_date,
         meeting_schedule=data.meeting_schedule,
         assigned_engineer_id=data.assigned_engineer_id,
         created_by=current_user.id,

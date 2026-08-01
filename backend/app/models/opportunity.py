@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from sqlalchemy import String, DateTime, Text, ForeignKey, func
+from sqlalchemy import String, DateTime, Text, ForeignKey, Numeric, Float, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
@@ -23,6 +23,10 @@ class Opportunity(Base):
     product: Mapped[str | None] = mapped_column(String(255), nullable=True)
     customer_needs: Mapped[str] = mapped_column(Text, nullable=False)
     additional_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    potential_revenue: Mapped[float | None] = mapped_column(Numeric(15, 2), nullable=True)
+    estimated_agenda_date: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     status: Mapped[str] = mapped_column(String(50), default="New", nullable=False)
     # Status: New, KYC Running, Ready Meeting, Meeting Scheduled, Meeting Done,
     #         Need Proposal, Negotiation, PO, Won, Lost, On Hold

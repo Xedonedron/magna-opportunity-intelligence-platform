@@ -32,6 +32,8 @@ const formSchema = z.object({
     product: z.string().min(1, "Target Solution is required"),
     customer_needs: z.string().min(1, "Customer needs is required"),
     additional_notes: z.string().optional(),
+    potential_revenue: z.string().optional(),
+    estimated_agenda_date: z.string().optional(),
     meeting_schedule: z.string().min(1, "Initial Meeting Date is required"),
 });
 
@@ -94,6 +96,8 @@ export default function CreateOpportunityPage() {
             product: "",
             customer_needs: "",
             additional_notes: "",
+            potential_revenue: "",
+            estimated_agenda_date: "",
             meeting_schedule: defaultDateStr,
         },
     });
@@ -112,6 +116,10 @@ export default function CreateOpportunityPage() {
                 product: data.product || null,
                 customer_needs: data.customer_needs,
                 additional_notes: data.additional_notes || null,
+                potential_revenue: data.potential_revenue ? parseFloat(data.potential_revenue) : null,
+                estimated_agenda_date: data.estimated_agenda_date
+                    ? new Date(data.estimated_agenda_date).toISOString()
+                    : null,
                 meeting_schedule: data.meeting_schedule
                     ? new Date(data.meeting_schedule).toISOString()
                     : null,
@@ -266,6 +274,26 @@ export default function CreateOpportunityPage() {
                                 value={watch("industry") || ""}
                                 onChange={(val) => setValue("industry", val)}
                                 suggestions={industriesList.length > 0 ? industriesList : getMasterIndustries()}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Financial Potential & Schedule Section */}
+                    <div className="space-y-6 mt-8 pt-6 border-t border-zinc-100">
+                        <h2 className="text-lg font-medium text-zinc-900 border-b border-zinc-100 pb-4">
+                            Financial Potential & Agenda Schedule
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Input
+                                label="Potential Revenue / Deal Value (IDR)"
+                                type="number"
+                                placeholder="e.g. 250000000"
+                                {...register("potential_revenue")}
+                            />
+                            <Input
+                                label="Estimasi Tanggal Agenda"
+                                type="datetime-local"
+                                {...register("estimated_agenda_date")}
                             />
                         </div>
                     </div>

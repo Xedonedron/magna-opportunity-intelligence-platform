@@ -36,3 +36,16 @@ export function timeAgo(date: string | Date): string {
     if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
     return `${days} day${days > 1 ? "s" : ""} ago`;
 }
+
+export function formatCurrency(
+    amount: number | null | undefined,
+    hideNumbers: boolean = false
+): string {
+    if (amount === null || amount === undefined) return "—";
+    if (hideNumbers) return "••••••••";
+    return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0,
+    }).format(amount);
+}

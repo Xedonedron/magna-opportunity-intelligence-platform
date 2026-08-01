@@ -23,6 +23,8 @@ import {
     Sparkles,
     ArrowUpDown,
     Edit3,
+    Coins,
+    CalendarClock,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -34,7 +36,8 @@ import { CreateMeetingDialog } from "@/components/domains/meetings/CreateMeeting
 import { EditOpportunityDialog } from "@/components/domains/opportunities/EditOpportunityDialog";
 import { KYCReportTab } from "@/components/domains/kyc/KYCReportTab";
 import { OpportunityChatSidebar } from "@/components/domains/opportunities/OpportunityChatSidebar";
-import { formatDateTime, timeAgo } from "@/lib/utils";
+import { formatDateTime, timeAgo, formatCurrency } from "@/lib/utils";
+import { api } from "@/lib/api";
 import { ALL_STATUSES, type OpportunityStatus } from "@/types/opportunity";
 
 const tabs = [
@@ -61,6 +64,7 @@ export default function OpportunityDetailPage() {
     const [showEditOpportunity, setShowEditOpportunity] = useState(false);
     const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
     const [user, setUser] = useState<any>(null);
+    const [hideFinancialNumbers, setHideFinancialNumbers] = useState(false);
 
     useEffect(() => {
         const stored = localStorage.getItem("moip_user");
@@ -71,6 +75,9 @@ export default function OpportunityDetailPage() {
                 console.error(e);
             }
         }
+        api.get("/api/admin/settings")
+            .then((res) => setHideFinancialNumbers(Boolean(res.data?.hide_financial_numbers)))
+            .catch((e) => console.error("Failed to load settings", e));
     }, []);
 
     const canCreateEdit = user ? user.capabilities?.split(",").map((c: string) => c.trim()).includes("create_edit") : false;
@@ -223,6 +230,41 @@ export default function OpportunityDetailPage() {
                 <div className="max-w-[1200px] mx-auto">
                     {activeTab === "overview" && (
                         <div className="space-y-6">
+                            {/* Key Opportunity Metrics (Potential Revenue & Agenda Date) */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <Card className="p-5 border-emerald-200/80 bg-gradient-to-br from-emerald-50/50 to-white shadow-sm">
+                                    <div className="flex items-center gap-3.5">
+                                        <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center border border-emerald-200/60 shrink-0">
+                                            <Coins className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">
+                                                Potential Revenue / Deal Value
+                                            </span>
+                                            <span className="text-xl font-bold text-zinc-900 mt-0.5 block tracking-tight">
+                                                {formatCurrency(opp.potential_revenue, hideFinancialNumbers)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </Card>
+
+                                <Card className="p-5 border-blue-200/80 bg-gradient-to-br from-blue-50/50 to-white shadow-sm">
+                                    <div className="flex items-center gap-3.5">
+                                        <div className="w-11 h-11 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center border border-blue-200/60 shrink-0">
+                                            <CalendarClock className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">
+                                                Estimasi Tanggal Agenda
+                                            </span>
+                                            <span className="text-base font-bold text-zinc-900 mt-0.5 block tracking-tight">
+                                                {opp.estimated_agenda_date ? formatDateTime(opp.estimated_agenda_date) : "Belum diagendakan"}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </Card>
+                            </div>
+
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 <Card className="p-6">
                                     <div className="flex items-center justify-between mb-4">
