@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { api } from "@/lib/api";
+import { api, getClientBaseUrl } from "@/lib/api";
 
 interface Message {
     id?: string;
@@ -166,7 +166,7 @@ export function OpportunityChatSidebar({
         }
 
         try {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            const baseUrl = getClientBaseUrl();
             const response = await fetch(`${baseUrl}/api/opportunities/${opportunityId}/chat`, {
                 method: "POST",
                 headers: {

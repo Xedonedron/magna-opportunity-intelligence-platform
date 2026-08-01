@@ -6,9 +6,18 @@ import type {
     MeetingUpdatePayload,
 } from "@/types/meeting";
 
-const API_BASE_URL = typeof window !== 'undefined'
-    ? (process.env.NEXT_PUBLIC_API_URL || "")
-    : (process.env.INTERNAL_API_URL || "http://localhost:8000");
+export const getClientBaseUrl = () => {
+    if (typeof window !== "undefined") {
+        if (process.env.NEXT_PUBLIC_API_URL) {
+            return process.env.NEXT_PUBLIC_API_URL;
+        }
+        const { protocol, hostname } = window.location;
+        return `${protocol}//${hostname}:8009`;
+    }
+    return process.env.INTERNAL_API_URL || "http://backend:8000";
+};
+
+const API_BASE_URL = getClientBaseUrl();
 
 export const api = axios.create({
     baseURL: API_BASE_URL,

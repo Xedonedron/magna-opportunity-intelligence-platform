@@ -12,6 +12,7 @@ import {
     LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
 
 interface NavItem {
     name: string;
@@ -53,16 +54,10 @@ export function Sidebar() {
             const token = localStorage.getItem("moip_token");
             if (!token) return;
             try {
-                const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-                const res = await fetch(`${baseUrl}/api/auth/me`, {
-                    headers: {
-                        "Authorization": `Bearer ${token}`
-                    }
-                });
-                if (res.ok) {
-                    const latestUser = await res.json();
-                    localStorage.setItem("moip_user", JSON.stringify(latestUser));
-                    setUser(latestUser);
+                const { data } = await api.get("/api/auth/me");
+                if (data) {
+                    localStorage.setItem("moip_user", JSON.stringify(data));
+                    setUser(data);
                 }
             } catch (err) {
                 console.error("Failed to sync profile", err);
