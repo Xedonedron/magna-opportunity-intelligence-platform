@@ -182,8 +182,18 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
     }
 
     if (report.status === "running") {
-        const percent = report.progress_percent || 15;
         const currentStep = report.progress_step || "received";
+        
+        // Map current step to aligned percentage
+        const stepProgressMap: Record<string, number> = {
+            received: 20,
+            fetching_web: 45,
+            fetching_industry: 70,
+            analyzing: 88,
+            completed: 100,
+        };
+
+        const percent = report.progress_percent || stepProgressMap[currentStep] || 20;
         
         const steps = [
             { key: "received", label: "Penerimaan Data", desc: "Data input diterima dan divalidasi oleh sistem." },
@@ -201,6 +211,17 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
             if (currentIndex === targetIndex) return "active";
             return "pending";
         };
+
+        // Calculate timeline line height to match active step
+        const stepIndexMap: Record<string, number> = {
+            received: 0,
+            fetching_web: 1,
+            fetching_industry: 2,
+            analyzing: 3,
+            completed: 4,
+        };
+        const currentStepIdx = stepIndexMap[currentStep] ?? 0;
+        const timelineLineHeight = Math.min(100, Math.max(10, ((currentStepIdx + 0.5) / steps.length) * 100));
 
         return (
             <Card className="p-8 max-w-2xl mx-auto border border-zinc-200 shadow-sm bg-white mt-4">
@@ -225,13 +246,20 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                     <div className="w-full bg-zinc-100 h-2 rounded-full overflow-hidden">
                         <div 
                             className="bg-zinc-900 h-full transition-all duration-500 ease-out rounded-full"
-                            style={{ width: `${percent}%` }}
+                            style={{ width: `${Math.min(100, Math.max(5, percent))}%` }}
                         />
                     </div>
                 </div>
 
                 {/* Vertical Timeline Steps */}
-                <div className="space-y-6 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-0.5 before:bg-zinc-100">
+                <div className="space-y-6 relative">
+                    {/* Background grey vertical connector line */}
+                    <div className="absolute left-[15px] top-3 bottom-3 w-0.5 bg-zinc-100" />
+                    {/* Active green/dark vertical connector line synced with progress */}
+                    <div 
+                        className="absolute left-[15px] top-3 w-0.5 bg-zinc-900 transition-all duration-500 ease-out" 
+                        style={{ height: `${timelineLineHeight}%` }}
+                    />
                     {steps.map((step) => {
                         const state = getStepState(step.key, currentStep);
                         return (
