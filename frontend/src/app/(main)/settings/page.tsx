@@ -41,10 +41,18 @@ export default function SettingsPage() {
     const [fullName, setFullName] = useState("");
 
     // AI Settings State
-    const [aiModel, setAiModel] = useState("nemotron-3-super");
-    const [temperature, setTemperature] = useState(0.3);
+    const [llmProvider, setLlmProvider] = useState("google");
+    const [aiModel, setAiModel] = useState("gemma-4-26b-a4b-it");
+    const [temperature, setTemperature] = useState(0.0);
     const [searchDepth, setSearchDepth] = useState("advanced");
     const [maxResults, setMaxResults] = useState(5);
+    const [geminiApiKey, setGeminiApiKey] = useState("");
+    const [openaiApiKey, setOpenaiApiKey] = useState("");
+    const [maskedGeminiKey, setMaskedGeminiKey] = useState("");
+    const [maskedOpenaiKey, setMaskedOpenaiKey] = useState("");
+    const [savingAiSettings, setSavingAiSettings] = useState(false);
+    const [testingConnection, setTestingConnection] = useState(false);
+    const [testResult, setTestResult] = useState<{ status: string; message: string } | null>(null);
 
     // Operations State
     const [metrics, setMetrics] = useState<any>(null);
@@ -70,19 +78,39 @@ export default function SettingsPage() {
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [saveMessage, setSaveMessage] = useState("");
 
+    const isSuperAdmin = user?.role === "superadmin";
+
     // Dynamic Tabs list
     const activeTabs = [
         { id: "profile", label: "User Profile", icon: User },
-        { id: "ai", label: "AI & Pipeline", icon: BrainCircuit },
         { id: "catalog", label: "Magna Solutions Catalog", icon: BookOpen },
     ];
-    if (user?.role === "superadmin") {
+    if (isSuperAdmin) {
+        activeTabs.push({ id: "ai", label: "AI & Pipeline", icon: BrainCircuit });
         activeTabs.push({ id: "master_data", label: "Master Data (Presales & Industry)", icon: Database });
         activeTabs.push({ id: "users", label: "User Management", icon: Users });
         activeTabs.push({ id: "operations", label: "System Operations", icon: Shield });
     }
 
-    // Load from localStorage on mount
+    const fetchServerSettings = async () => {
+        try {
+            const res = await api.get("/api/admin/settings");
+            const data = res.data;
+            if (data) {
+                setLlmProvider(data.llm_provider || "google");
+                setAiModel(data.ai_model || "gemma-4-26b-a4b-it");
+                setTemperature(data.temperature ?? 0.0);
+                setSearchDepth(data.search_depth || "advanced");
+                setMaxResults(data.max_results ?? 5);
+                setMaskedGeminiKey(data.masked_gemini_key || "");
+                setMaskedOpenaiKey(data.masked_openai_key || "");
+            }
+        } catch (e) {
+            console.error("Failed to load settings from server, falling back to localStorage", e);
+        }
+    };
+
+    // Load from localStorage & server on mount
     useEffect(() => {
         const storedUser = localStorage.getItem("moip_user");
         if (storedUser) {
@@ -99,14 +127,17 @@ export default function SettingsPage() {
         if (storedAi) {
             try {
                 const parsed = JSON.parse(storedAi);
-                setAiModel(parsed.model || "nemotron-3-super");
-                setTemperature(parsed.temperature ?? 0.3);
+                setLlmProvider(parsed.provider || "google");
+                setAiModel(parsed.model || "gemma-4-26b-a4b-it");
+                setTemperature(parsed.temperature ?? 0.0);
                 setSearchDepth(parsed.search_depth || "advanced");
                 setMaxResults(parsed.max_results ?? 5);
             } catch (e) {
                 console.error("Failed to parse moip_ai_settings", e);
             }
         }
+
+        fetchServerSettings();
 
         fetchMasterData().then((data) => {
             setMasterIndustries(data.industries);
@@ -165,15 +196,60 @@ export default function SettingsPage() {
         }, 800);
     };
 
-    const handleSaveAISettings = () => {
-        const aiSettings = {
-            model: aiModel,
-            temperature,
-            search_depth: searchDepth,
-            max_results: maxResults,
-        };
-        localStorage.setItem("moip_ai_settings", JSON.stringify(aiSettings));
-        showToast("Pengaturan AI Pipeline berhasil disimpan!");
+    const handleSaveAISettings = async () => {
+        setSavingAiSettings(true);
+        try {
+            await api.patch("/api/admin/settings", {
+                llm_provider: llmProvider,
+                ai_model: aiModel,
+                temperature,
+                search_depth: searchDepth,
+                max_results: maxResults,
+                gemini_api_key: geminiApiKey.trim() || undefined,
+                openai_api_key: openaiApiKey.trim() || undefined,
+            });
+
+            const aiSettings = {
+                provider: llmProvider,
+                model: aiModel,
+                temperature,
+                search_depth: searchDepth,
+                max_results: maxResults,
+            };
+            localStorage.setItem("moip_ai_settings", JSON.stringify(aiSettings));
+
+            showToast("Pengaturan AI Pipeline & Provider berhasil disimpan ke server!");
+            setGeminiApiKey("");
+            setOpenaiApiKey("");
+            fetchServerSettings();
+        } catch (e: any) {
+            console.error("Gagal menyimpan ke server", e);
+            const msg = e?.response?.data?.detail || "Gagal menyimpan ke server.";
+            showToast(msg);
+        } finally {
+            setSavingAiSettings(false);
+        }
+    };
+
+    const handleTestConnection = async () => {
+        setTestingConnection(true);
+        setTestResult(null);
+        try {
+            const currentKey = llmProvider === "google" ? geminiApiKey : openaiApiKey;
+            const res = await api.post("/api/admin/settings/test-connection", {
+                provider: llmProvider,
+                model: aiModel,
+                api_key: currentKey.trim() || undefined,
+            });
+            setTestResult(res.data);
+        } catch (e: any) {
+            setTestResult({
+                status: "error",
+                message: e?.response?.data?.detail || "Gagal menguji koneksi ke LLM Provider.",
+            });
+        } finally {
+            setTestingConnection(false);
+        }
     };
 
     const showToast = (message: string) => {
@@ -298,8 +374,8 @@ export default function SettingsPage() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`pb-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-all ${activeTab === tab.id
-                                ? "border-zinc-900 text-zinc-900"
-                                : "border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300"
+                            ? "border-zinc-900 text-zinc-900"
+                            : "border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300"
                             }`}
                     >
                         <tab.icon className="w-4 h-4" />
@@ -358,28 +434,98 @@ export default function SettingsPage() {
                 )}
 
                 {/* 2. AI Settings Tab */}
-                {activeTab === "ai" && (
+                {activeTab === "ai" && isSuperAdmin && (
                     <Card className="p-6 bg-white border border-zinc-200 space-y-6">
                         <div>
-                            <h3 className="text-lg font-semibold text-zinc-900">Konfigurasi AI Pipeline</h3>
+                            <h3 className="text-lg font-semibold text-zinc-900">Konfigurasi AI Pipeline & Multi-Provider LLM</h3>
                             <p className="text-xs text-zinc-500 mt-0.5">
-                                Atur parameter komputasi LLM dan integrasi pencarian Tavily untuk KYC.
+                                Pilih provider kecerdasan buatan (Google AI Studio vs OpenAI Compatible), atur API Key, dan tentukan model inference pendukung KYC.
                             </p>
                         </div>
 
-                        <div className="space-y-6 max-w-lg">
+                        <div className="space-y-6 max-w-xl">
+                            {/* LLM Provider Selector */}
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider flex items-center gap-1">
+                                    Aktif LLM Provider <HelpCircle className="w-3.5 h-3.5 text-zinc-400" />
+                                </label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        disabled={!isSuperAdmin}
+                                        onClick={() => {
+                                            if (!isSuperAdmin) return;
+                                            setLlmProvider("google");
+                                            setAiModel("gemma-4-26b-a4b-it");
+                                        }}
+                                        className={`p-3.5 rounded-lg border text-left transition-all flex flex-col justify-between ${!isSuperAdmin ? "opacity-80 cursor-not-allowed " : ""
+                                            }${llmProvider === "google"
+                                                ? "border-emerald-600 bg-emerald-50/60 ring-1 ring-emerald-600"
+                                                : "border-zinc-200 bg-white hover:border-zinc-300"
+                                            }`}
+                                    >
+                                        <div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm font-semibold text-zinc-900">Google AI Studio</span>
+                                                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Recommended</span>
+                                            </div>
+                                            <p className="text-xs text-zinc-500 mt-1">
+                                                Gemma 4 & Gemini models via Google GenAI SDK. Manage your own billing.
+                                            </p>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        disabled={!isSuperAdmin}
+                                        onClick={() => {
+                                            if (!isSuperAdmin) return;
+                                            setLlmProvider("openai");
+                                            setAiModel("deepseek-3.2");
+                                        }}
+                                        className={`p-3.5 rounded-lg border text-left transition-all flex flex-col justify-between ${!isSuperAdmin ? "opacity-80 cursor-not-allowed " : ""
+                                            }${llmProvider === "openai"
+                                                ? "border-zinc-900 bg-zinc-50 ring-1 ring-zinc-900"
+                                                : "border-zinc-200 bg-white hover:border-zinc-300"
+                                            }`}
+                                    >
+                                        <div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm font-semibold text-zinc-900">OpenAI Compatible</span>
+                                                <span className="text-[10px] bg-zinc-100 text-zinc-700 font-bold px-2 py-0.5 rounded-full">CosmosHub</span>
+                                            </div>
+                                            <p className="text-xs text-zinc-500 mt-1">
+                                                DeepSeek 3.2 & Nemotron-3 Super via OpenAI API endpoints.
+                                            </p>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
                             {/* Model Select */}
                             <div className="space-y-2">
                                 <label className="text-xs font-semibold text-zinc-700 uppercase flex items-center gap-1">
-                                    Model LLM Utama <HelpCircle className="w-3.5 h-3.5 text-zinc-400" />
+                                    Model LLM Utama
                                 </label>
                                 <select
+                                    disabled={!isSuperAdmin}
                                     value={aiModel}
                                     onChange={(e) => setAiModel(e.target.value)}
-                                    className="w-full h-10 px-3 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-950 bg-white"
+                                    className={`w-full h-10 px-3 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-950 bg-white ${!isSuperAdmin ? "bg-zinc-50 cursor-not-allowed text-zinc-600" : ""
+                                        }`}
                                 >
-                                    <option value="nemotron-3-super">Nemotron-3 Super (Default - CosmosHub)</option>
-                                    <option value="deepseek-3.2">DeepSeek 3.2 (Optimasi Analisis Bisnis)</option>
+                                    {llmProvider === "google" ? (
+                                        <>
+                                            <option value="gemma-4-26b-a4b-it">Gemma 4 26B (Default - Google AI Studio)</option>
+                                            <option value="gemini-3.6-flash">Gemini 3.6 Flash (Fast & Analytical)</option>
+                                            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Context)</option>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <option value="deepseek-3.2">DeepSeek 3.2 (Optimasi Analisis Bisnis)</option>
+                                            <option value="nemotron-3-super">Nemotron-3 Super (CosmosHub)</option>
+                                        </>
+                                    )}
                                 </select>
                             </div>
 
@@ -393,14 +539,107 @@ export default function SettingsPage() {
                                     min="0"
                                     max="1"
                                     step="0.1"
+                                    disabled={!isSuperAdmin}
                                     value={temperature}
                                     onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                                    className="w-full accent-zinc-900 cursor-pointer h-1.5 bg-zinc-100 rounded-lg appearance-none"
+                                    className={`w-full accent-zinc-900 h-1.5 bg-zinc-100 rounded-lg appearance-none ${!isSuperAdmin ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                                        }`}
                                 />
                                 <div className="flex justify-between text-[10px] text-zinc-400">
                                     <span>Presisi / Logis (0.0)</span>
                                     <span>Kreatif / Bebas (1.0)</span>
                                 </div>
+                            </div>
+
+                            {/* API Keys Configuration */}
+                            <div className="border-t border-zinc-100 pt-6 space-y-4">
+                                <h4 className="text-sm font-semibold text-zinc-900 flex items-center gap-1.5">
+                                    <Shield className="w-4 h-4 text-zinc-700" /> Kunci API & Akses Provider
+                                </h4>
+
+                                {llmProvider === "google" && (
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between items-center">
+                                            <label className="text-xs font-semibold text-zinc-700 uppercase">Google AI Studio API Key</label>
+                                            {maskedGeminiKey && (
+                                                <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                                    Aktif: {maskedGeminiKey}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <Input
+                                            type="password"
+                                            disabled={!isSuperAdmin}
+                                            placeholder={
+                                                !isSuperAdmin
+                                                    ? "Dikonfigurasi oleh Superadmin"
+                                                    : maskedGeminiKey
+                                                        ? "Kosongkan jika tidak ingin mengubah API Key"
+                                                        : "Masukkan Google AI Studio API Key (AIzaSy...)"
+                                            }
+                                            value={geminiApiKey}
+                                            onChange={(e) => setGeminiApiKey(e.target.value)}
+                                            className={!isSuperAdmin ? "bg-zinc-50 cursor-not-allowed" : ""}
+                                        />
+                                        <p className="text-[11px] text-zinc-500">
+                                            Dapatkan API Key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-blue-600 underline">Google AI Studio</a> untuk mengelola billing & kuota secara mandiri.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {llmProvider === "openai" && (
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between items-center">
+                                            <label className="text-xs font-semibold text-zinc-700 uppercase">OpenAI / CosmosHub API Key</label>
+                                            {maskedOpenaiKey && (
+                                                <span className="text-[10px] font-mono text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200">
+                                                    Aktif: {maskedOpenaiKey}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <Input
+                                            type="password"
+                                            disabled={!isSuperAdmin}
+                                            placeholder={
+                                                !isSuperAdmin
+                                                    ? "Dikonfigurasi oleh Superadmin"
+                                                    : maskedOpenaiKey
+                                                        ? "Kosongkan jika tidak ingin mengubah API Key"
+                                                        : "Masukkan API Key (sk-...)"
+                                            }
+                                            value={openaiApiKey}
+                                            onChange={(e) => setOpenaiApiKey(e.target.value)}
+                                            className={!isSuperAdmin ? "bg-zinc-50 cursor-not-allowed" : ""}
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Test Connection */}
+                                {isSuperAdmin && (
+                                    <div className="pt-2 flex items-center justify-between gap-4">
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={handleTestConnection}
+                                            disabled={testingConnection}
+                                            className="text-xs gap-1.5"
+                                        >
+                                            {testingConnection ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <BrainCircuit className="w-3.5 h-3.5" />}
+                                            Test Koneksi Model
+                                        </Button>
+
+                                        {testResult && (
+                                            <div className={`text-xs px-3 py-1.5 rounded-md flex items-center gap-1.5 max-w-xs ${testResult.status === "success"
+                                                    ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                                    : "bg-red-50 text-red-800 border border-red-200"
+                                                }`}>
+                                                {testResult.status === "success" ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 shrink-0" />}
+                                                <span className="truncate">{testResult.message}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Tavily Search Settings */}
@@ -413,9 +652,11 @@ export default function SettingsPage() {
                                     <div className="space-y-2">
                                         <label className="text-xs font-semibold text-zinc-700 uppercase">Kedalaman Pencarian</label>
                                         <select
+                                            disabled={!isSuperAdmin}
                                             value={searchDepth}
                                             onChange={(e) => setSearchDepth(e.target.value)}
-                                            className="w-full h-10 px-3 rounded-md border border-zinc-300 text-sm bg-white"
+                                            className={`w-full h-10 px-3 rounded-md border border-zinc-300 text-sm bg-white ${!isSuperAdmin ? "bg-zinc-50 cursor-not-allowed text-zinc-600" : ""
+                                                }`}
                                         >
                                             <option value="advanced">Advanced (Terstruktur & Analitik)</option>
                                             <option value="basic">Basic (Cepat & Ringkas)</option>
@@ -425,9 +666,11 @@ export default function SettingsPage() {
                                     <div className="space-y-2">
                                         <label className="text-xs font-semibold text-zinc-700 uppercase">Max Hasil (1 - 10)</label>
                                         <select
+                                            disabled={!isSuperAdmin}
                                             value={maxResults}
                                             onChange={(e) => setMaxResults(parseInt(e.target.value))}
-                                            className="w-full h-10 px-3 rounded-md border border-zinc-300 text-sm bg-white"
+                                            className={`w-full h-10 px-3 rounded-md border border-zinc-300 text-sm bg-white ${!isSuperAdmin ? "bg-zinc-50 cursor-not-allowed text-zinc-600" : ""
+                                                }`}
                                         >
                                             <option value={3}>3 Hasil</option>
                                             <option value={5}>5 Hasil (Optimal)</option>
@@ -438,9 +681,14 @@ export default function SettingsPage() {
                             </div>
                         </div>
 
-                        <div className="pt-4 border-t border-zinc-100 flex justify-end">
-                            <Button onClick={handleSaveAISettings}>Simpan Pengaturan AI</Button>
-                        </div>
+                        {isSuperAdmin && (
+                            <div className="pt-4 border-t border-zinc-100 flex justify-end">
+                                <Button onClick={handleSaveAISettings} disabled={savingAiSettings} className="gap-2">
+                                    {savingAiSettings ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                    Simpan Pengaturan AI
+                                </Button>
+                            </div>
+                        )}
                     </Card>
                 )}
 
@@ -452,7 +700,7 @@ export default function SettingsPage() {
                             <div className="text-xs text-zinc-600 leading-relaxed">
                                 <p className="font-semibold text-zinc-800">Katalog Solusi Pre-Sales Smartnet Magna Global</p>
                                 <p className="mt-0.5">
-                                    Daftar solusi berikut adalah referensi resmi yang digunakan oleh AI KYC Pipeline saat merumuskan rekomendasi produk pada modul **KYC Report**. Penyuntingan katalog ini dapat dilakukan oleh Administrator di sistem utama.
+                                    Daftar solusi berikut adalah referensi resmi yang digunakan oleh AI KYC Pipeline saat merumuskan rekomendasi produk pada modul KYC Report. Penyuntingan katalog ini dapat dilakukan oleh Administrator di sistem utama.
                                 </p>
                             </div>
                         </div>
@@ -674,11 +922,10 @@ export default function SettingsPage() {
                                                 <div className="flex items-center gap-2 shrink-0">
                                                     {!isEditing ? (
                                                         <>
-                                                            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${
-                                                                u.role === "superadmin" ? "bg-violet-50 text-violet-700 border-violet-200" :
-                                                                u.role === "manager" ? "bg-blue-50 text-blue-700 border-blue-200" :
-                                                                "bg-zinc-100 text-zinc-600 border-zinc-200"
-                                                            }`}>{u.role}</span>
+                                                            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${u.role === "superadmin" ? "bg-violet-50 text-violet-700 border-violet-200" :
+                                                                    u.role === "manager" ? "bg-blue-50 text-blue-700 border-blue-200" :
+                                                                        "bg-zinc-100 text-zinc-600 border-zinc-200"
+                                                                }`}>{u.role}</span>
                                                             {!isSelf && (
                                                                 <Button size="sm" variant="secondary" className="text-xs" onClick={() => startEditing(u)}>Edit Access</Button>
                                                             )}
@@ -711,11 +958,10 @@ export default function SettingsPage() {
                                                                 <button
                                                                     key={r}
                                                                     onClick={() => handleRoleChange(r)}
-                                                                    className={`text-xs px-3 py-1 rounded-full border font-semibold uppercase transition-all ${
-                                                                        draft.role === r
+                                                                    className={`text-xs px-3 py-1 rounded-full border font-semibold uppercase transition-all ${draft.role === r
                                                                             ? "bg-zinc-900 text-white border-zinc-900"
                                                                             : "bg-white text-zinc-600 border-zinc-300 hover:border-zinc-600"
-                                                                    }`}
+                                                                        }`}
                                                                 >
                                                                     {r}
                                                                 </button>
@@ -733,11 +979,10 @@ export default function SettingsPage() {
                                                                     <button
                                                                         key={cap}
                                                                         onClick={() => toggleCap(cap)}
-                                                                        className={`text-xs px-3 py-1 rounded-full border font-medium transition-all flex items-center gap-1.5 ${
-                                                                            active
+                                                                        className={`text-xs px-3 py-1 rounded-full border font-medium transition-all flex items-center gap-1.5 ${active
                                                                                 ? "bg-emerald-600 text-white border-emerald-600"
                                                                                 : "bg-white text-zinc-400 border-zinc-200 hover:border-zinc-400"
-                                                                        }`}
+                                                                            }`}
                                                                     >
                                                                         {active && <CheckCircle2 className="w-3 h-3" />}
                                                                         {CAP_LABELS[cap]}
@@ -752,13 +997,11 @@ export default function SettingsPage() {
                                                         <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Status Akun</label>
                                                         <button
                                                             onClick={() => setEditDraft({ ...draft, is_active: !draft.is_active })}
-                                                            className={`relative w-10 h-5 rounded-full transition-colors ${
-                                                                draft.is_active ? "bg-emerald-500" : "bg-zinc-300"
-                                                            }`}
+                                                            className={`relative w-10 h-5 rounded-full transition-colors ${draft.is_active ? "bg-emerald-500" : "bg-zinc-300"
+                                                                }`}
                                                         >
-                                                            <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                                                                draft.is_active ? "translate-x-5" : ""
-                                                            }`} />
+                                                            <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${draft.is_active ? "translate-x-5" : ""
+                                                                }`} />
                                                         </button>
                                                         <span className="text-xs text-zinc-500">{draft.is_active ? "Aktif" : "Nonaktif"}</span>
                                                     </div>

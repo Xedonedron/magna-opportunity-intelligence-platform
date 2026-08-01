@@ -143,10 +143,12 @@ export function EditOpportunityDialog({
                                 }
                             >
                                 <option value="">Select solution...</option>
-                                <option value="Cloud Infrastructure">Cloud Infrastructure</option>
-                                <option value="Cybersecurity Suite">Cybersecurity Suite</option>
                                 <option value="Data Analytics Platform">Data Analytics Platform</option>
                                 <option value="AI/ML Solutions">AI/ML Solutions</option>
+                                <option value="Google Workspace (GWS)">Google Workspace (GWS)</option>
+                                <option value="Google Maps Platform (GMaps)">Google Maps Platform (GMaps)</option>
+                                <option value="Cloud Infrastructure (GCP)">Cloud Infrastructure (GCP)</option>
+                                <option value="Cybersecurity Suite">Cybersecurity Suite</option>
                                 <option value="Network Solutions">Network Solutions</option>
                             </Select>
                         </div>
