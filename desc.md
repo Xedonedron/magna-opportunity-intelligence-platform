@@ -77,16 +77,21 @@ Gemma is integrated into MOIP's intelligent pipeline via Google AI Studio / Vert
 
 ```
 [ Next.js 15 Frontend ]  <--->  [ FastAPI Backend (Cloud Run) ]
-  (Cloud Run / Port 8080)            |
-                                     +---> [ PostgreSQL / Cloud SQL ]
-                                     +---> [ Redis Task Queue ]
-                                     +---> [ Celery KYC Worker ]
-                                     |        |
-                                     |        +---> [ ChromaDB Vector RAG ]
-                                     |        +---> [ Tavily Web Search ]
-                                     +---> [ Google Gemma 4 MaaS / Gemini API ]
-                                     +---> [ Gmail / Google Calendar ]
+  (Cloud Run: moip-frontend)        (Cloud Run: moip-backend)
+                                           |
+                                           +---> [ Cloud SQL PostgreSQL: moip-db ]
+                                           +---> [ Redis Task Queue ]
+                                           +---> [ Celery KYC Worker ]
+                                           |        |
+                                           |        +---> [ ChromaDB Vector RAG ]
+                                           |        +---> [ Tavily Web Search ]
+                                           +---> [ Google Gemma 4 MaaS / Gemini API ]
+                                           +---> [ Gmail / Google Calendar ]
 ```
+
+* **Live Deployed Frontend URL:** [https://moip-frontend-1030572383460.asia-southeast2.run.app](https://moip-frontend-1030572383460.asia-southeast2.run.app)
+* **Live Deployed Backend API:** [https://moip-backend-1030572383460.asia-southeast2.run.app](https://moip-backend-1030572383460.asia-southeast2.run.app)
+* **Live API Health Check:** [https://moip-backend-1030572383460.asia-southeast2.run.app/api/health](https://moip-backend-1030572383460.asia-southeast2.run.app/api/health)
 
 * **Frontend:** Next.js 15 (App Router), TypeScript, Tailwind CSS, Lucide Icons, Recharts.
 * **Backend API:** FastAPI (Python 3.12), SQLAlchemy, Alembic, Pydantic v2.

@@ -12,6 +12,15 @@ An enterprise presales intelligence and opportunity management platform built fo
 
 ---
 
+## 🌐 Live Deployed Application
+
+* 🚀 **Frontend Web Application:** [https://moip-frontend-1030572383460.asia-southeast2.run.app](https://moip-frontend-1030572383460.asia-southeast2.run.app)
+* ⚡ **Backend REST API:** [https://moip-backend-1030572383460.asia-southeast2.run.app](https://moip-backend-1030572383460.asia-southeast2.run.app)
+* 💚 **API Health Status:** [https://moip-backend-1030572383460.asia-southeast2.run.app/api/health](https://moip-backend-1030572383460.asia-southeast2.run.app/api/health)
+* 📖 **Interactive API Docs (Swagger):** [https://moip-backend-1030572383460.asia-southeast2.run.app/docs](https://moip-backend-1030572383460.asia-southeast2.run.app/docs)
+
+---
+
 ## 🌟 Key Features
 
 * 🤖 **Automated AI KYC Research Engine:** Generates comprehensive company intelligence in < 5 minutes by crawling official websites, news, and LinkedIn data.
