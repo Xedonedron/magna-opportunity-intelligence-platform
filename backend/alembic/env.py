@@ -15,9 +15,11 @@ from app.models import User, Opportunity, TimelineEvent  # noqa: F401
 
 config = context.config
 
-# Override sqlalchemy.url with DATABASE_URL from environment if available
-if database_url := os.getenv("DATABASE_URL"):
-    config.set_main_option("sqlalchemy.url", database_url)
+from app.core.config import settings
+
+# Override sqlalchemy.url with DATABASE_URL from settings
+database_url = os.getenv("DATABASE_URL") or settings.DATABASE_URL
+config.set_main_option("sqlalchemy.url", database_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

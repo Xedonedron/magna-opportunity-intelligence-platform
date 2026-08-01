@@ -421,23 +421,22 @@ Opportunity & KYC Context:
 
     from fastapi.responses import StreamingResponse
     from app.core.database import SessionLocal
+    from app.core.llm import get_chat_llm
 
     async def generate_response_chunks():
         try:
-            model_name = payload.model or settings.OPENAI_MODEL
-            temp = payload.temperature if payload.temperature is not None else 0.3
-            
-            llm = ChatOpenAI(
-                model=model_name,
-                temperature=temp,
-                api_key=settings.OPENAI_API_KEY,
-                base_url=settings.OPENAI_API_BASE,
+            llm = get_chat_llm(
+                model_name=payload.model,
+                temperature=payload.temperature,
                 streaming=True,
+                db=db,
             )
             
             full_content = ""
             async for chunk in llm.astream(api_messages):
                 content_chunk = chunk.content
+                if isinstance(content_chunk, list):
+                    content_chunk = "".join([c.get("text", "") if isinstance(c, dict) else str(c) for c in content_chunk])
                 if content_chunk:
                     full_content += content_chunk
                     yield content_chunk

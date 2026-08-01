@@ -38,6 +38,14 @@ class Settings(BaseSettings):
     # Google Calendar
     GOOGLE_CALENDAR_ENABLED: bool = False
 
+    # LLM Provider Configuration
+    LLM_PROVIDER: str = "openai"  # "openai" or "google"
+
+    # Google AI Studio / Gemini & Gemma Settings
+    GEMINI_API_KEY: str = ""
+    GOOGLE_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemma-4-26b-a4b-it"
+
     # OpenAI Compatible API (CosmosHub/DeepSeek)
     OPENAI_API_BASE: str = "https://api.cosmoshub.tech/v1"
     OPENAI_API_KEY: str = ""
@@ -50,6 +58,11 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"
+
+    @property
+    def active_gemini_api_key(self) -> str:
+        return self.GEMINI_API_KEY or self.GOOGLE_API_KEY
 
 
 @lru_cache()

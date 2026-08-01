@@ -1,3 +1,5 @@
+from typing import Optional
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -190,5 +192,137 @@ def update_master_data(
     MASTER_DATA["industries"] = [i.strip() for i in payload.industries if i.strip()]
     MASTER_DATA["presales"] = [p.strip() for p in payload.presales if p.strip()]
     return {"status": "success", "master_data": MASTER_DATA}
+
+
+# System & AI Settings Configuration
+class SystemSettingsPayload(BaseModel):
+    llm_provider: str  # "google" | "openai"
+    ai_model: str
+    temperature: float = 0.0
+    search_depth: str = "advanced"
+    max_results: int = 5
+    gemini_api_key: Optional[str] = None
+    openai_api_key: Optional[str] = None
+    openai_api_base: Optional[str] = None
+
+
+class TestConnectionPayload(BaseModel):
+    provider: str
+    model: Optional[str] = None
+    api_key: Optional[str] = None
+
+
+def mask_key(key: Optional[str]) -> str:
+    if not key:
+        return ""
+    if len(key) <= 8:
+        return "****"
+    return f"{key[:4]}...{key[-4:]}"
+
+
+@router.get("/settings")
+def get_system_settings_api(
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user)
+):
+    """Get system and AI pipeline configuration settings."""
+    from app.models.system_setting import SystemSetting
+    from app.core.config import settings
+
+    settings_rows = db.query(SystemSetting).all()
+    kv = {s.key: s.value for s in settings_rows if s.value is not None}
+
+    gemini_key = kv.get("gemini_api_key") or settings.active_gemini_api_key
+    openai_key = kv.get("openai_api_key") or settings.OPENAI_API_KEY
+
+    return {
+        "llm_provider": kv.get("llm_provider") or settings.LLM_PROVIDER,
+        "ai_model": kv.get("ai_model") or settings.OPENAI_MODEL,
+        "temperature": float(kv.get("temperature", 0.0)),
+        "search_depth": kv.get("search_depth", "advanced"),
+        "max_results": int(kv.get("max_results", 5)),
+        "has_gemini_key": bool(gemini_key),
+        "masked_gemini_key": mask_key(gemini_key),
+        "has_openai_key": bool(openai_key),
+        "masked_openai_key": mask_key(openai_key),
+        "openai_api_base": kv.get("openai_api_base") or settings.OPENAI_API_BASE,
+    }
+
+
+@router.patch("/settings")
+def update_system_settings_api(
+    payload: SystemSettingsPayload,
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_superadmin)
+):
+    """Update AI system configuration and API keys (Superadmin only)."""
+    from app.models.system_setting import SystemSetting
+
+    updates = {
+        "llm_provider": payload.llm_provider,
+        "ai_model": payload.ai_model,
+        "temperature": str(payload.temperature),
+        "search_depth": payload.search_depth,
+        "max_results": str(payload.max_results),
+    }
+
+    if payload.gemini_api_key is not None and not payload.gemini_api_key.startswith("****"):
+        updates["gemini_api_key"] = payload.gemini_api_key.strip()
+
+    if payload.openai_api_key is not None and not payload.openai_api_key.startswith("****"):
+        updates["openai_api_key"] = payload.openai_api_key.strip()
+
+    if payload.openai_api_base is not None:
+        updates["openai_api_base"] = payload.openai_api_base.strip()
+
+    for k, v in updates.items():
+        row = db.query(SystemSetting).filter(SystemSetting.key == k).first()
+        if not row:
+            row = SystemSetting(key=k, value=v)
+            db.add(row)
+        else:
+            row.value = v
+
+    db.commit()
+    return {"status": "success", "message": "System AI settings updated successfully."}
+
+
+@router.post("/settings/test-connection")
+async def test_llm_connection(
+    payload: TestConnectionPayload,
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_superadmin)
+):
+    """Test LLM connectivity and API key validity."""
+    from app.core.llm import get_chat_llm
+    from langchain_core.messages import HumanMessage
+
+    try:
+        raw_key = payload.api_key
+        if raw_key and (raw_key.startswith("****") or "..." in raw_key):
+            raw_key = None  # fallback to saved key in DB/settings
+
+        llm = get_chat_llm(
+            provider=payload.provider,
+            model_name=payload.model,
+            api_key=raw_key,
+            temperature=0.0,
+            db=db
+        )
+        response = await llm.ainvoke([HumanMessage(content="Say 'OK'")])
+        content = response.content
+        if isinstance(content, list):
+            content = "".join([c.get("text", "") if isinstance(c, dict) else str(c) for c in content])
+
+        return {
+            "status": "success",
+            "message": f"Connection successful! Provider '{payload.provider}' responded: '{content.strip()}'",
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Connection failed: {str(e)}",
+        }
+
 
 
