@@ -11,7 +11,10 @@ export default function LoginPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [googleClientId, setGoogleClientId] = useState<string>("");
+    const [googleClientId, setGoogleClientId] = useState<string>(
+        process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+        "800933197735-9grufhka8flbpje3iqgaiudplbp2pqot.apps.googleusercontent.com"
+    );
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
@@ -25,12 +28,19 @@ export default function LoginPage() {
         // Fetch Google Client ID from server at runtime
         fetch("/api/config")
             .then((res) => res.json())
-            .then((data) => setGoogleClientId(data.googleClientId))
+            .then((data) => {
+                if (data?.googleClientId) {
+                    setGoogleClientId(data.googleClientId);
+                }
+            })
             .catch(() => { });
     }, [router]);
 
     useEffect(() => {
-        if (!googleClientId) return;
+        const activeClientId =
+            googleClientId ||
+            process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+            "800933197735-9grufhka8flbpje3iqgaiudplbp2pqot.apps.googleusercontent.com";
 
         const handleCredentialResponse = async (response: { credential: string }) => {
             setIsLoading(true);
@@ -41,7 +51,7 @@ export default function LoginPage() {
                     credential: response.credential,
                 });
 
-                // Store token using data.access_token instead of data.token
+                // Store token using data.access_token
                 localStorage.setItem("moip_token", data.access_token);
                 localStorage.setItem("moip_user", JSON.stringify(data.user));
 
@@ -53,14 +63,17 @@ export default function LoginPage() {
             }
         };
 
-        const initGoogleAuth = () => {
+        const renderGoogleButton = () => {
+            if (typeof window.google === "undefined" || !window.google.accounts) return;
+
             window.google.accounts.id.initialize({
-                client_id: googleClientId,
+                client_id: activeClientId,
                 callback: handleCredentialResponse,
             });
 
             const buttonContainer = document.getElementById("google-signin-btn");
             if (buttonContainer) {
+                buttonContainer.innerHTML = "";
                 window.google.accounts.id.renderButton(buttonContainer, {
                     theme: "outline",
                     size: "large",
@@ -70,16 +83,25 @@ export default function LoginPage() {
         };
 
         if (typeof window.google === "undefined") {
-            const script = document.createElement("script");
-            script.src = "https://accounts.google.com/gsi/client";
-            script.async = true;
-            script.defer = true;
-            script.onload = initGoogleAuth;
-            script.onerror = () => setError("Gagal memuat Google SDK. Silakan refresh halaman.");
-            document.head.appendChild(script);
+            const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+            if (!existingScript) {
+                const script = document.createElement("script");
+                script.src = "https://accounts.google.com/gsi/client";
+                script.async = true;
+                script.defer = true;
+                script.onload = renderGoogleButton;
+                script.onerror = () => setError("Gagal memuat Google SDK. Silakan refresh halaman.");
+                document.head.appendChild(script);
+            } else {
+                existingScript.addEventListener("load", renderGoogleButton);
+            }
         } else {
-            initGoogleAuth();
+            renderGoogleButton();
         }
+
+        // Retry rendering button after DOM settles
+        const timer = setTimeout(renderGoogleButton, 300);
+        return () => clearTimeout(timer);
     }, [googleClientId, router]);
 
     const handleUsernameLogin = async (e: React.FormEvent) => {
