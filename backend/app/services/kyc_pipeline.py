@@ -15,6 +15,7 @@ from app.core.config import settings
 from app.core.llm import get_chat_llm
 from app.services.web_search_service import web_search_service
 from app.services.web_crawler_service import web_crawler_service
+from app.services.link_verifier import link_verifier_service
 
 logger = logging.getLogger(__name__)
 
@@ -128,6 +129,16 @@ async def research_node(state: KYCState, config: Optional[RunnableConfig] = None
         website=state.get("website"),
     )
 
+    # Pre-verify live availability of search result links
+    if search_results.get("company_info"):
+        search_results["company_info"] = await link_verifier_service.filter_and_verify_sources(
+            search_results["company_info"], timeout=3.0
+        )
+    if search_results.get("news"):
+        search_results["news"] = await link_verifier_service.filter_and_verify_sources(
+            search_results["news"], timeout=3.0
+        )
+
     # Crawl website if available
     website_content = None
     if state.get("website"):
@@ -138,10 +149,13 @@ async def research_node(state: KYCState, config: Optional[RunnableConfig] = None
     # Industry use cases search
     industry_use_cases = []
     if state.get("industry"):
-        industry_use_cases = web_search_service.search_industry_use_cases(
+        raw_use_cases = web_search_service.search_industry_use_cases(
             industry=state["industry"],
             customer_needs=state["customer_needs"],
             product=state.get("product"),
+        )
+        industry_use_cases = await link_verifier_service.filter_and_verify_sources(
+            raw_use_cases, timeout=3.0
         )
 
     return {
@@ -230,6 +244,8 @@ Generate a comprehensive KYC report in JSON format with the following structure.
 
 CRITICAL ALIGNMENT INSTRUCTION: The entire generated report (including executive_summary, customer_need_summary, use_cases, recommended_questions, potential_pain_points, and meeting_objectives) MUST be strictly aligned with the "Customer Needs" and "Target Product" sections above. Adapt the industry research context (like general manufacturing use cases) to solve the customer's *actual* specified needs (e.g., if they ask for visualization/dashboards/reporting, do NOT focus use cases on predictive maintenance, IoT sensors, or hardware utilization just because they are in the Manufacturing industry; instead, focus on analytics dashboards, KPI reporting, and data migration for manufacturing).
 
+CRITICAL LINK INSTRUCTION: For the "references" array, you MUST ONLY include real URLs explicitly provided in the Research Data section above. DO NOT invent, construct, or guess any URL.
+
 IMPORTANT: When generating use_cases, reference the Industry Use Cases Reference and Smartnet Magna Solutions Catalog sections above. Use actual Smartnet Magna solutions from the catalog in the "smartnet_solutions" field of each use case.
 
 {{
@@ -273,6 +289,14 @@ Return ONLY valid JSON, no markdown formatting."""
         response = await llm.ainvoke(prompt)
         result = _clean_and_parse_json(response.content)
 
+        # Sanitize references via live LinkVerifier Engine
+        raw_references = result.get("references", [])
+        verified_references = await link_verifier_service.sanitize_references_and_sources(
+            references=raw_references,
+            search_results=state.get("search_results"),
+            timeout=3.0,
+        )
+
         return {
             "executive_summary": result.get("executive_summary", ""),
             "company_overview": result.get("company_overview", {}),
@@ -285,7 +309,7 @@ Return ONLY valid JSON, no markdown formatting."""
             "meeting_objectives": result.get("meeting_objectives", []),
             "recommended_questions": result.get("recommended_questions", []),
             "preparation_checklist": result.get("preparation_checklist", []),
-            "references": result.get("references", []),
+            "references": verified_references,
         }
 
     except json.JSONDecodeError as e:
