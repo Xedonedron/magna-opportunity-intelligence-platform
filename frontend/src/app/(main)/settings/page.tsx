@@ -41,7 +41,7 @@ export default function SettingsPage() {
     const [fullName, setFullName] = useState("");
 
     // AI Settings State
-    const [aiModel, setAiModel] = useState("nemotron-3-super");
+    const [aiModel, setAiModel] = useState("gemma-4-26b-a4b-it");
     const [temperature, setTemperature] = useState(0.3);
     const [searchDepth, setSearchDepth] = useState("advanced");
     const [maxResults, setMaxResults] = useState(5);
@@ -99,7 +99,7 @@ export default function SettingsPage() {
         if (storedAi) {
             try {
                 const parsed = JSON.parse(storedAi);
-                setAiModel(parsed.model || "nemotron-3-super");
+                setAiModel(parsed.model || "gemma-4-26b-a4b-it");
                 setTemperature(parsed.temperature ?? 0.3);
                 setSearchDepth(parsed.search_depth || "advanced");
                 setMaxResults(parsed.max_results ?? 5);
@@ -378,8 +378,8 @@ export default function SettingsPage() {
                                     onChange={(e) => setAiModel(e.target.value)}
                                     className="w-full h-10 px-3 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-950 bg-white"
                                 >
-                                    <option value="nemotron-3-super">Nemotron-3 Super (Default - CosmosHub)</option>
-                                    <option value="deepseek-3.2">DeepSeek 3.2 (Optimasi Analisis Bisnis)</option>
+                                    <option value="gemma-4-26b-a4b-it">Gemma 4 26B (Default - Google AI Studio)</option>
+                                    <option value="gemini-3.6-flash">Gemini 3.6 Flash (Google AI Studio)</option>
                                 </select>
                             </div>
 

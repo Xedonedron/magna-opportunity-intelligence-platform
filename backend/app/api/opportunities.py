@@ -277,8 +277,9 @@ async def delete_opportunity(
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timedelta, timezone
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from app.core.config import settings
+from app.core.llm import get_chat_llm
 from app.models.kyc_report import KYCReport
 from app.models.opportunity import OpportunityChatMessage
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
@@ -424,20 +425,16 @@ Opportunity & KYC Context:
 
     async def generate_response_chunks():
         try:
-            model_name = payload.model or settings.OPENAI_MODEL
-            temp = payload.temperature if payload.temperature is not None else 0.3
-            
-            llm = ChatOpenAI(
-                model=model_name,
-                temperature=temp,
-                api_key=settings.OPENAI_API_KEY,
-                base_url=settings.OPENAI_API_BASE,
-                streaming=True,
+            llm = get_chat_llm(
+                model_name=payload.model,
+                temperature=payload.temperature,
             )
             
             full_content = ""
             async for chunk in llm.astream(api_messages):
                 content_chunk = chunk.content
+                if isinstance(content_chunk, list):
+                    content_chunk = "".join([c.get("text", "") if isinstance(c, dict) else str(c) for c in content_chunk])
                 if content_chunk:
                     full_content += content_chunk
                     yield content_chunk

@@ -15,16 +15,16 @@
 
 ### Backend
 - **Framework**: FastAPI (Python 3.11+)
-- **Database**: PostgreSQL 16 + SQLAlchemy ORM + Alembic migrations
+- **Database**: PostgreSQL 16 + SQLAlchemy ORM (UUID Primary Keys) + Alembic migrations
 - **Task Queue**: Celery + Redis for background jobs
 - **AI Orchestration**: LangGraph + LangChain
 - **Vector Store**: pgvector / ChromaDB for RAG
 
 ### External Services
-- **LLM**: Google Gemini 2.5 Pro
+- **LLM**: Google AI Studio (Gemini 3.6 Flash / Gemma 4 via langchain-google-genai)
 - **Web Search**: Tavily API / Google Search API
 - **Crawling**: Firecrawl / Crawl4AI
-- **Authentication**: Google OAuth 2.0 (Workspace)
+- **Authentication**: Google OAuth 2.0 (Workspace) + Dev Username/Password Login
 - **Email/Calendar**: Gmail API, Google Calendar API
 
 ---
@@ -35,6 +35,7 @@
 | Method | Path | Description | Auth Required |
 |--------|------|-------------|---------------|
 | POST | `/google` | Google OAuth login | No |
+| POST | `/login` | Dev username/password login | No |
 | GET | `/me` | Get current user profile | Yes |
 
 ### Opportunities (`/api/opportunities`)
@@ -42,16 +43,19 @@
 |--------|------|-------------|---------------|
 | GET | `/` | List opportunities (paginated) | Yes |
 | POST | `/` | Create opportunity | Yes |
+| GET | `/search/global` | Global search across opportunities | Yes |
 | GET | `/{opportunity_id}` | Get opportunity detail | Yes |
 | PATCH | `/{opportunity_id}` | Update opportunity | Yes |
 | DELETE | `/{opportunity_id}` | Delete opportunity | Yes |
+| GET | `/{opportunity_id}/chat` | Get RAG chat history for opportunity | Yes |
+| POST | `/{opportunity_id}/chat` | Send message / RAG chat streaming | Yes |
 
 **Query Parameters (GET /):**
 - `page` (int): Page number, default 1
-- `page_size` (int): Items per page, default 10
-- `search` (str): Search by company name
+- `page_size` (int): Items per page, default 20
+- `search` (str): Search by company name or customer needs
 - `status` (str): Filter by status
-- `engineer_id` (int): Filter by assigned engineer
+- `engineer_id` (UUID): Filter by assigned engineer
 
 ### KYC Reports (`/api/opportunities/{opportunity_id}/kyc`)
 | Method | Path | Description | Auth Required |
@@ -62,21 +66,32 @@
 | POST | `/regenerate` | Trigger KYC regeneration | Yes |
 | PATCH | `/{report_id}` | Edit KYC report | Yes |
 
-### Meetings (`/api/opportunities/{opportunity_id}/meetings`)
+### Meetings (`/api/meetings`)
 | Method | Path | Description | Auth Required |
 |--------|------|-------------|---------------|
-| GET | `/` | List meetings | Yes |
+| GET | `/` | List meetings (optional filter `opportunity_id`) | Yes |
 | POST | `/` | Create meeting | Yes |
 | GET | `/{meeting_id}` | Get meeting detail | Yes |
-| PATCH | `/{meeting_id}` | Update meeting | Yes |
+| PUT | `/{meeting_id}` | Update meeting | Yes |
 | DELETE | `/{meeting_id}` | Delete meeting | Yes |
 
 ### Notifications (`/api/notifications`)
 | Method | Path | Description | Auth Required |
 |--------|------|-------------|---------------|
-| GET | `/` | List notifications | Yes |
-| PATCH | `/{notification_id}/read` | Mark as read | Yes |
-| PATCH | `/read-all` | Mark all as read | Yes |
+| GET | `/` | List notifications (paginated) | Yes |
+| GET | `/unread-count` | Get unread notifications count | Yes |
+| PATCH | `/{notification_id}` | Mark read status (`{ "is_read": bool }`) | Yes |
+| POST | `/mark-all-read` | Mark all notifications as read | Yes |
+
+### Admin (`/api/admin`)
+| Method | Path | Description | Auth Required |
+|--------|------|-------------|---------------|
+| GET | `/metrics` | Admin system metrics | Yes (Admin) |
+| GET | `/logs` | System audit logs | Yes (Admin) |
+| GET | `/users` | List all users | Yes (Admin) |
+| PATCH | `/users/{user_id}` | Update user role and capabilities | Yes (Admin) |
+| GET | `/master-data` | Get master data options | Yes (Admin) |
+| POST | `/master-data` | Update master data options | Yes (Admin) |
 
 ### Dashboard (`/api/dashboard`)
 | Method | Path | Description | Auth Required |
@@ -89,47 +104,58 @@
 
 ## Database Models
 
-### Users
+### Users (`users`)
 | Field | Type | Description |
 |-------|------|-------------|
-| id | Integer | Primary key |
-| email | String | Unique email |
-| name | String | Full name |
-| role | Enum | admin, lgo, engineer, manager |
-| google_id | String | Google OAuth ID |
-| avatar_url | String | Profile picture URL |
+| id | UUID | Primary key |
+| email | String(255) | Unique email |
+| full_name | String(255) | Full name |
+| avatar_url | String(500) | Profile picture URL |
+| role | String(50) | superadmin, admin, lead_gen, managerial, engineer, presales, viewer |
+| capabilities | String(255) | Comma-separated permissions (e.g. view,create_edit,delete,generate_kyc,user_management) |
+| is_active | Boolean | Active status |
+| google_id | String(255) | Google OAuth ID |
 | created_at | DateTime | Creation timestamp |
+| updated_at | DateTime | Last update timestamp |
+| last_login | DateTime | Last login timestamp |
 
-### Opportunities
+### Opportunities (`opportunities`)
 | Field | Type | Description |
 |-------|------|-------------|
-| id | Integer | Primary key |
-| company_name | String | Company name |
-| website | String | Company website |
-| status | Enum | 11 statuses (see below) |
-| assigned_engineer_id | Integer | FK to Users |
-| notes | Text | Additional notes |
+| id | UUID | Primary key |
+| company_name | String(255) | Company name |
+| website | String(500) | Company website |
+| email | String(255) | Contact email |
+| phone | String(50) | Contact phone number |
+| industry | String(255) | Industry sector |
+| product | String(255) | Product/solution target |
+| customer_needs | Text | Detailed customer pain points / needs |
+| additional_notes | Text | Additional notes |
+| status | String(50) | Status (11 values below, default "New") |
+| meeting_schedule | DateTime | Scheduled meeting timestamp |
+| assigned_engineer_id | UUID | FK to Users |
+| created_by | UUID | FK to Users (creator) |
 | created_at | DateTime | Creation timestamp |
 | updated_at | DateTime | Last update timestamp |
 
-**Status Values:**
-1. `new` - New opportunity
-2. `kyc_running` - KYC research in progress
-3. `kyc_completed` - KYC research done
-4. `ready_meeting` - Ready for meeting
-5. `meeting_scheduled` - Meeting scheduled
-6. `meeting_completed` - Meeting completed
-7. `won` - Deal won
-8. `lost` - Deal lost
-9. `on_hold` - On hold
-10. `cancelled` - Cancelled
-11. `reopened` - Reopened
+**Status Values (Title Case):**
+1. `New` - New opportunity created
+2. `KYC Running` - KYC AI research in progress
+3. `Ready Meeting` - Ready for scheduling meeting
+4. `Meeting Scheduled` - Meeting scheduled
+5. `Meeting Done` - Meeting completed
+6. `Need Proposal` - Proposal requested
+7. `Negotiation` - Commercial negotiation
+8. `PO` - Purchase Order received
+9. `Won` - Deal won
+10. `Lost` - Deal lost
+11. `On Hold` - On hold
 
-### KYC Reports
+### KYC Reports (`kyc_reports`)
 | Field | Type | Description |
 |-------|------|-------------|
-| id | Integer | Primary key |
-| opportunity_id | Integer | FK to Opportunities |
+| id | UUID | Primary key |
+| opportunity_id | UUID | FK to Opportunities |
 | version | Integer | Version number |
 | executive_summary | JSONB | Executive summary data |
 | company_overview | JSONB | Company overview data |
@@ -141,50 +167,60 @@
 | raw_content | Text | Full raw AI output |
 | created_at | DateTime | Creation timestamp |
 
-### Meetings
+### Meetings (`meetings`)
 | Field | Type | Description |
 |-------|------|-------------|
-| id | Integer | Primary key |
-| opportunity_id | Integer | FK to Opportunities |
-| title | String | Meeting title |
+| id | UUID | Primary key |
+| opportunity_id | UUID | FK to Opportunities |
+| title | String(255) | Meeting title |
 | scheduled_at | DateTime | Meeting time |
 | agenda | Text | Meeting agenda |
 | notes | Text | Meeting notes |
 | action_items | JSON | List of action items |
 | participants | JSON | List of participants |
-| status | Enum | scheduled, completed, cancelled |
+| status | String(50) | scheduled, completed, cancelled |
 
-### Notifications
+### Notifications (`notifications`)
 | Field | Type | Description |
 |-------|------|-------------|
-| id | Integer | Primary key |
-| user_id | Integer | FK to Users |
-| type | String | Notification type |
-| title | String | Notification title |
+| id | UUID | Primary key |
+| user_id | UUID | FK to Users |
+| opportunity_id | UUID | FK to Opportunities (optional) |
+| type | String(50) | Notification type |
+| title | String(255) | Notification title |
 | message | Text | Notification message |
 | is_read | Boolean | Read status |
-| metadata | JSON | Additional data |
 | created_at | DateTime | Creation timestamp |
 
-### Timeline Events
+### Timeline Events (`timeline_events`)
 | Field | Type | Description |
 |-------|------|-------------|
-| id | Integer | Primary key |
-| opportunity_id | Integer | FK to Opportunities |
-| actor_id | Integer | FK to Users |
-| action | String | Action description |
-| event_type | String | Event type |
-| metadata | JSON | Additional data |
+| id | UUID | Primary key |
+| opportunity_id | UUID | FK to Opportunities |
+| actor_id | UUID | FK to Users |
+| actor_name | String(255) | Actor display name |
+| action | String(255) | Action title |
+| description | Text | Event detailed description |
+| event_type | String(50) | create, update, meeting, system, status_change |
 | created_at | DateTime | Creation timestamp |
 
-### Audit Logs
+### Opportunity Chat Messages (`opportunity_chat_messages`)
 | Field | Type | Description |
 |-------|------|-------------|
-| id | Integer | Primary key |
-| entity_type | String | Entity type |
-| entity_id | Integer | Entity ID |
-| user_id | Integer | FK to Users |
-| action | String | Action type |
+| id | UUID | Primary key |
+| opportunity_id | UUID | FK to Opportunities |
+| role | String(50) | user, assistant |
+| content | Text | Chat message content |
+| created_at | DateTime | Creation timestamp |
+
+### Audit Logs (`audit_logs`)
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| entity_type | String(50) | Entity type |
+| entity_id | UUID | Entity ID |
+| user_id | UUID | FK to Users |
+| action | String(50) | Action type |
 | old_value | JSONB | Previous value |
 | new_value | JSONB | New value |
 | created_at | DateTime | Creation timestamp |
@@ -195,7 +231,7 @@
 
 ### KYC Pipeline Service (`backend/app/services/kyc_pipeline.py`)
 **Functions:**
-- `generate_kyc_report(opportunity_id: int)` - Main entry point for KYC generation
+- `generate_kyc_report(opportunity_id: UUID)` - Main entry point for KYC generation
 - `crawl_company_website(url: str)` - Crawl company website for data
 - `extract_company_info(content: str)` - Extract structured info from crawled content
 - `generate_executive_summary(data: dict)` - Generate executive summary via LLM
@@ -203,12 +239,13 @@
 
 ### Audit Service (`backend/app/services/audit_service.py`)
 **Functions:**
-- `log_change(entity_type: str, entity_id: int, user_id: int, action: str, old_value: dict, new_value: dict)` - Log entity changes
+- `log_change(entity_type: str, entity_id: UUID, user_id: UUID, action: str, old_value: dict, new_value: dict)` - Log entity changes
 
-### Notification Service
+### Notification Task / Helper
 **Functions:**
-- `create_notification(user_id: int, type: str, title: str, message: str, metadata: dict)` - Create notification
-- `notify_engineer_assignment(opportunity_id: int, engineer_id: int)` - Notify engineer of new assignment
+- `send_opportunity_created_notification` - Notify team of new opportunity
+- `send_status_changed_notification` - Notify assigned engineer on status changes
+- `run_kyc_pipeline_task` - Celery task for running KYC research pipeline
 
 ---
 
@@ -218,15 +255,18 @@
 - `OpportunityCreate` - Create opportunity request
 - `OpportunityUpdate` - Update opportunity request
 - `KYCReportUpdate` - Edit KYC report request
-- `MeetingCreate` - Create meeting request
-- `MeetingUpdate` - Update meeting request
+- `MeetingCreatePayload` - Create meeting request
+- `MeetingUpdatePayload` - Update meeting request
+- `UsernameLoginRequest` - Dev login request (`username`, `password`)
+- `GoogleLoginRequest` - Google OAuth request (`credential`)
 
 ### Response Schemas
 - `UserResponse` - User data response
-- `OpportunityResponse` - Opportunity with timeline
+- `OpportunityResponse` - Opportunity basic response
+- `OpportunityDetailResponse` - Opportunity with timeline, meetings, kyc, chat
 - `OpportunityListResponse` - Paginated opportunity list
 - `KYCReportResponse` - KYC report with all sections
-- `MeetingResponse` - Meeting detail response
+- `MeetingListResponse` - List of meetings
 - `DashboardMetrics` - Dashboard KPIs
 - `StatusChartResponse` - Status distribution for charts
 - `TrendResponse` - Time series data for trend charts
@@ -238,20 +278,28 @@
 ### App Routes (`frontend/src/app/`)
 | Path | Component | Description |
 |------|-----------|-------------|
-| `/` | `page.tsx` | Landing/login page |
+| `/` | `page.tsx` | Landing / Home redirect |
+| `/login` | `login/page.tsx` | Login page (Google & Dev Auth) |
 | `/dashboard` | `(main)/dashboard/page.tsx` | Dashboard view |
 | `/notifications` | `(main)/notifications/page.tsx` | Notifications list |
 | `/opportunities` | `(main)/opportunities/page.tsx` | Opportunities list |
-| `/opportunities/[id]` | `(main)/opportunities/[id]/page.tsx` | Opportunity detail |
+| `/opportunities/[id]` | `(main)/opportunities/[id]/page.tsx` | Opportunity detail (with KYC, Meetings, Chat) |
 | `/opportunities/create` | `(main)/opportunities/create/page.tsx` | Create opportunity |
+| `/meetings` | `(main)/meetings/page.tsx` | Meetings list & management |
+| `/settings` | `(main)/settings/page.tsx` | Settings & Admin user/master data management |
 
 ### Components by Domain
 
 **Dashboard (`components/dashboard/`):**
 - `DashboardFilters.tsx` - Filter controls
 - `DashboardMetrics.tsx` - KPI cards
-- `StatusChart.tsx` - Pie chart for status distribution
-- `TrendChart.tsx` - Line chart for trends
+- `StatusChart.tsx` - Status distribution chart
+- `TrendChart.tsx` - Opportunity trend line chart
+
+**Opportunities (`components/domains/opportunities/`):**
+- `OpportunityChatSidebar.tsx` - AI RAG Chat assistant sidebar for opportunity
+- `OpportunityDetailHeader.tsx` - Header info & action buttons
+- `OpportunityTimeline.tsx` - Activity log timeline
 
 **KYC (`components/domains/kyc/`):**
 - `KYCReportTab.tsx` - Main KYC display component
@@ -262,10 +310,11 @@
 **Meetings (`components/domains/meetings/`):**
 - `MeetingAccordion.tsx` - Meeting list with expandable details
 - `CreateMeetingDialog.tsx` - Meeting creation modal
+- `EditMeetingDialog.tsx` - Meeting edit modal
 
 **Layout (`components/layout/`):**
-- `Sidebar.tsx` - Navigation sidebar
-- `TopNav.tsx` - Top navigation bar
+- `Sidebar.tsx` - Navigation sidebar with role capabilities
+- `TopNav.tsx` - Top navigation bar with global search & notifications badge
 
 **Shared (`components/shared/`):**
 - `StatusBadge.tsx` - Status badge component
@@ -274,43 +323,15 @@
 
 ---
 
-## Frontend API Client (`frontend/src/lib/api.ts`)
+## Frontend API Client & State (`frontend/src/`)
 
-### API Functions
-```typescript
-// Authentication
-loginWithGoogle(idToken: string): Promise<UserResponse>
-getCurrentUser(): Promise<UserResponse>
-
-// Opportunities
-getOpportunities(params: OpportunityQuery): Promise<OpportunityListResponse>
-getOpportunity(id: number): Promise<OpportunityResponse>
-createOpportunity(data: OpportunityCreate): Promise<OpportunityResponse>
-updateOpportunity(id: number, data: OpportunityUpdate): Promise<OpportunityResponse>
-deleteOpportunity(id: number): Promise<void>
-
-// KYC Reports
-getKYCReport(opportunityId: number): Promise<KYCReportResponse>
-getKYCVersions(opportunityId: number): Promise<KYCReport[]>
-regenerateKYC(opportunityId: number): Promise<KYCReportResponse>
-updateKYCReport(opportunityId: number, reportId: number, data: KYCReportUpdate): Promise<KYCReportResponse>
-
-// Meetings
-getMeetings(opportunityId: number): Promise<MeetingResponse[]>
-createMeeting(opportunityId: number, data: MeetingCreate): Promise<MeetingResponse>
-updateMeeting(opportunityId: number, meetingId: number, data: MeetingUpdate): Promise<MeetingResponse>
-deleteMeeting(opportunityId: number, meetingId: number): Promise<void>
-
-// Notifications
-getNotifications(): Promise<Notification[]>
-markAsRead(notificationId: number): Promise<void>
-markAllAsRead(): Promise<void>
-
-// Dashboard
-getDashboardMetrics(params: DashboardQuery): Promise<DashboardMetrics>
-getStatusChart(): Promise<StatusChartResponse>
-getTrend(params: TrendQuery): Promise<TrendResponse>
-```
+### Modular API & Hooks
+- `src/lib/api.ts` - Axios instance (`api`) with Bearer Token interceptor & `meetingApi`
+- `src/lib/api/dashboard.ts` - Dashboard metrics API helper (`getDashboardMetrics`)
+- `src/lib/master-data.ts` - Admin master data API client
+- `src/hooks/use-opportunities.ts` - React Query hooks (`useOpportunities`, `useOpportunity`, `useCreateOpportunity`, `useUpdateOpportunity`, `useDeleteOpportunity`)
+- `src/hooks/use-kyc.ts` - React Query hooks (`useKYCReport`, `useKYCVersions`, `useRegenerateKYC`, `useUpdateKYCReport`)
+- `src/hooks/use-notifications.ts` - React Query hooks (`useNotifications`, `useUnreadNotificationsCount`, `useMarkNotificationAsRead`, `useMarkAllNotificationsAsRead`)
 
 ### Error Handling
 - `handleApiError(error: unknown): string` - Standardized error message extraction
@@ -323,12 +344,11 @@ getTrend(params: TrendQuery): Promise<TrendResponse>
 ### Core Types
 ```typescript
 // User roles
-type UserRole = 'admin' | 'lgo' | 'engineer' | 'manager'
+type UserRole = 'superadmin' | 'admin' | 'lead_gen' | 'managerial' | 'engineer' | 'presales' | 'viewer'
 
-// Opportunity status
-type OpportunityStatus = 'new' | 'kyc_running' | 'kyc_completed' | 'ready_meeting' | 
-  'meeting_scheduled' | 'meeting_completed' | 'won' | 'lost' | 'on_hold' | 
-  'cancelled' | 'reopened'
+// Opportunity status (Title Case)
+type OpportunityStatus = 'New' | 'KYC Running' | 'Ready Meeting' | 'Meeting Scheduled' | 
+  'Meeting Done' | 'Need Proposal' | 'Negotiation' | 'PO' | 'Won' | 'Lost' | 'On Hold'
 
 // Meeting status
 type MeetingStatus = 'scheduled' | 'completed' | 'cancelled'
@@ -339,17 +359,17 @@ type MeetingStatus = 'scheduled' | 'completed' | 'cancelled'
 ## Background Tasks (Celery)
 
 ### KYC Generation Task
-- **Task Name**: `generate_kyc_task`
-- **Trigger**: POST `/api/opportunities/{id}/kyc/regenerate`
+- **Task Name**: `run_kyc_pipeline_task`
+- **Trigger**: POST `/api/opportunities/{id}/kyc/regenerate` or status change to `KYC Running`
 - **Process**:
-  1. Update opportunity status to `kyc_running`
-  2. Crawl company website + LinkedIn + News
+  1. Update opportunity status to `KYC Running`
+  2. Crawl company website + Google Search
   3. Extract structured data
   4. Generate sections via LLM
   5. Query RAG for Smartnet Magna solutions
   6. Compile final report
-  7. Update opportunity status to `kyc_completed`
-  8. Create notification for assigned engineer
+  7. Update opportunity status to `Ready Meeting` (or `KYC Completed`)
+  8. Create notification for assigned engineer / creator
 
 ---
 
@@ -358,232 +378,38 @@ type MeetingStatus = 'scheduled' | 'completed' | 'cancelled'
 ### docker-compose.yml
 | Service | Image | Port | Purpose |
 |---------|-------|------|---------|
-| postgres | postgres:16-alpine | 5432 | Primary database |
+| postgres | postgres:16-alpine | 5432 | Primary database (pgvector enabled) |
 | redis | redis:7-alpine | 6379 | Celery broker |
 | backend | Python 3.11 | 8000 | FastAPI app |
 | celery | Python 3.11 | - | Background worker |
 | frontend | Node 20 | 3001:3000 | Next.js app |
-
-### Environment Variables
-**Backend (.env):**
-- `DATABASE_URL` - PostgreSQL connection
-- `REDIS_URL` - Redis connection
-- `GOOGLE_CLIENT_ID` - OAuth client ID
-- `GOOGLE_CLIENT_SECRET` - OAuth secret
-- `GEMINI_API_KEY` - LLM API key
-- `TAVILY_API_KEY` - Web search API
-
-**Frontend (.env.local):**
-- `NEXT_PUBLIC_API_URL` - Backend API URL
-- `NEXT_PUBLIC_GOOGLE_CLIENT_ID` - OAuth client ID
 
 ---
 
 ## Key Files Reference
 
 ### Backend Entry Points
-- `backend/app/main.py` - FastAPI app initialization, middleware setup
+- `backend/app/main.py` - FastAPI app initialization, middleware setup, CORS, router inclusions
 - `backend/app/core/config.py` - Configuration management
-- `backend/app/core/exceptions.py` - Custom exception classes
-- `backend/app/core/error_handler.py` - Global error handling
+- `backend/app/core/database.py` - DB Session & Base model setup
+- `backend/app/tasks.py` - Celery background tasks definition
 
 ### Frontend Entry Points
-- `frontend/src/app/layout.tsx` - Root layout with providers
-- `frontend/src/lib/api.ts` - Base API client setup
-- `frontend/src/lib/query-provider.tsx` - TanStack Query setup
-
-### Database
-- `backend/alembic/versions/661fc11f0974_initial_schema.py` - Initial migration
+- `frontend/src/app/layout.tsx` - Root layout with QueryClientProvider
+- `frontend/src/lib/api.ts` - Axios interceptor setup & meeting API
+- `frontend/src/app/login/page.tsx` - Login page component
 
 ---
 
 ## Authentication Flow
 
-1. User clicks "Login with Google" on frontend
-2. Frontend obtains Google ID token via OAuth
-3. Frontend sends ID token to `POST /api/auth/google`
-4. Backend verifies token with Google
-5. Backend creates/updates user record
-6. Backend generates JWT session token
-7. Frontend stores token and redirects to dashboard
-8. Subsequent requests include `Authorization: Bearer {token}` header
+1. User opens app and navigates to `/login`
+2. User logs in via Google Workspace OAuth or Dev Username/Password (e.g. `superadmin`, `admin`, `engineer`)
+3. Backend verifies credentials (`POST /api/auth/google` or `POST /api/auth/login`)
+4. Backend generates JWT session token
+5. Frontend stores token in `localStorage.setItem("moip_token", token)` and redirects to `/opportunities` or `/dashboard`
+6. Subsequent requests include `Authorization: Bearer {token}` header via Axios interceptor
 
 ---
 
-## KYC Report Structure
-
-Each KYC report contains these JSONB sections:
-
-### executive_summary
-```json
-{
-  "overview": "string",
-  "key_insights": ["string"],
-  "recommendation": "string"
-}
-```
-
-### company_overview
-```json
-{
-  "name": "string",
-  "industry": "string",
-  "size": "string",
-  "location": "string",
-  "founded": "string",
-  "website": "string",
-  "description": "string"
-}
-```
-
-### industry_analysis
-```json
-{
-  "market_size": "string",
-  "trends": ["string"],
-  "challenges": ["string"],
-  "opportunities": ["string"]
-}
-```
-
-### pain_points
-```json
-[
-  {
-    "title": "string",
-    "description": "string",
-    "impact": "string"
-  }
-]
-```
-
-### use_cases
-```json
-[
-  {
-    "title": "string",
-    "description": "string",
-    "smartnet_solution": "string",
-    "benefits": ["string"]
-  }
-]
-```
-
-### meeting_objectives
-```json
-[
-  {
-    "objective": "string",
-    "talking_points": ["string"]
-  }
-]
-```
-
-### preparation_checklist
-```json
-[
-  {
-    "item": "string",
-    "completed": false
-  }
-]
-```
-
----
-
-## Testing
-
-### Backend Tests (`backend/tests/`)
-- `test_auth.py` - Authentication tests
-- `test_opportunities.py` - Opportunity CRUD tests
-- `conftest.py` - Pytest fixtures
-
-### Running Tests
-```bash
-cd backend
-pytest
-```
-
----
-
-## Quick Commands
-
-### Development
-```bash
-# Start all services
-docker-compose up -d
-
-# Backend logs
-docker-compose logs -f backend
-
-# Frontend logs
-docker-compose logs -f frontend
-
-# Rebuild containers
-docker-compose up -d --build
-```
-
-### Database
-```bash
-# Run migrations
-docker-compose exec backend alembic upgrade head
-
-# Create new migration
-docker-compose exec backend alembic revision --autogenerate -m "description"
-```
-
-### Backend
-```bash
-# Install dependencies
-cd backend && pip install -r requirements.txt
-
-# Run dev server locally
-uvicorn app.main:app --reload
-```
-
-### Frontend
-```bash
-# Install dependencies
-cd frontend && npm install
-
-# Run dev server locally
-npm run dev
-```
-
----
-
-## Dependencies
-
-### Backend (requirements.txt)
-- fastapi
-- uvicorn[standard]
-- sqlalchemy
-- alembic
-- psycopg2-binary
-- redis
-- celery
-- python-jose[cryptography]
-- google-auth
-- google-auth-oauthlib
-- langchain
-- langgraph
-- langchain-google-genai
-- tavily-python
-- firecrawl-py
-
-### Frontend (package.json)
-- next
-- react
-- react-dom
-- @tanstack/react-query
-- react-hook-form
-- @hookform/resolvers
-- zod
-- recharts
-- tailwindcss
-- @radix-ui/* (shadcn/ui components)
-- lucide-react
-
----
-
-*Last updated: 2026-07-28*
+*Last updated: 2026-08-01*

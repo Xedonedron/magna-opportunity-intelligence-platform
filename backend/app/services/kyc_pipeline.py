@@ -7,11 +7,12 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Callable, Optional, TypedDict
 
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph, END
 
 from app.core.config import settings
+from app.core.llm import get_chat_llm
 from app.services.web_search_service import web_search_service
 from app.services.web_crawler_service import web_crawler_service
 
@@ -53,8 +54,10 @@ class KYCState(TypedDict):
 
 
 # --- Helper for robust JSON parsing ---
-def _clean_and_parse_json(content: str) -> dict:
+def _clean_and_parse_json(content: Any) -> dict:
     """Robustly clean and parse JSON output from LLM, fixing common formatting defects."""
+    if isinstance(content, list):
+        content = "".join([c.get("text", "") if isinstance(c, dict) else str(c) for c in content])
     if not content or not isinstance(content, str):
         raise ValueError("Empty response content from AI model")
 
@@ -85,15 +88,9 @@ def _clean_and_parse_json(content: str) -> dict:
 
 
 # --- LLM Setup ---
-def get_llm() -> ChatOpenAI:
-    """Get the OpenAI Compatible LLM instance (DeepSeek via CosmosHub)."""
-    return ChatOpenAI(
-        model=settings.OPENAI_MODEL,
-        temperature=0.3,
-        api_key=settings.OPENAI_API_KEY,
-        base_url=settings.OPENAI_API_BASE,
-        model_kwargs={"response_format": {"type": "json_object"}},
-    )
+def get_llm() -> ChatGoogleGenerativeAI:
+    """Get the Google AI Studio LLM instance."""
+    return get_chat_llm(temperature=0.3)
 
 
 async def _update_progress(config: Optional[RunnableConfig], step: str, percent: int):
@@ -334,9 +331,9 @@ async def run_kyc_pipeline(
     """
     logger.info(f"[KYC Pipeline] Starting KYC for: {company_name}")
 
-    if not settings.OPENAI_API_KEY:
+    if not settings.active_gemini_api_key:
         return {
-            "error": "OPENAI_API_KEY not configured",
+            "error": "GEMINI_API_KEY / GOOGLE_API_KEY not configured",
             "status": "failed",
         }
 

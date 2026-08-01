@@ -18,8 +18,8 @@ COPY . .
 # Create data directory for chromadb
 RUN mkdir -p /app/data
 
-# Expose port
-EXPOSE 8000
+# Expose port (Cloud Run defaults to 8080)
+EXPOSE 8080
 
 # Run migration and start server
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
