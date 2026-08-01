@@ -168,7 +168,10 @@ export default function OpportunitiesPage() {
                                             {opp.industry || "—"}
                                         </td>
                                         <td className="px-6 py-4 font-semibold text-zinc-900">
-                                            {formatCurrency(opp.potential_revenue, hideFinancialNumbers)}
+                                            {formatCurrency(
+                                                opp.potential_revenue,
+                                                hideFinancialNumbers || user?.role === "engineer" || user?.role === "viewer"
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 text-zinc-600">
                                             {opp.estimated_agenda_date

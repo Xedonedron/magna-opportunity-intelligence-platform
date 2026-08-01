@@ -242,7 +242,10 @@ export default function OpportunityDetailPage() {
                                                 Potential Revenue / Deal Value
                                             </span>
                                             <span className="text-xl font-bold text-zinc-900 mt-0.5 block tracking-tight">
-                                                {formatCurrency(opp.potential_revenue, hideFinancialNumbers)}
+                                                {formatCurrency(
+                                                    opp.potential_revenue,
+                                                    hideFinancialNumbers || user?.role === "engineer" || user?.role === "viewer"
+                                                )}
                                             </span>
                                         </div>
                                     </div>
