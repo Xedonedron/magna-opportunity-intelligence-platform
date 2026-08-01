@@ -74,7 +74,7 @@ export default function DashboardPage() {
 
     if (loading) {
         return (
-            <div className="p-8 max-w-7xl mx-auto">
+            <div className="p-4 sm:p-8 max-w-7xl mx-auto">
                 <div className="animate-pulse space-y-8">
                     <div className="h-8 bg-zinc-200 rounded w-1/3" />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -89,7 +89,7 @@ export default function DashboardPage() {
 
     if (error || !metrics) {
         return (
-            <div className="p-8 max-w-7xl mx-auto">
+            <div className="p-4 sm:p-8 max-w-7xl mx-auto">
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
                     {error || "Unable to load dashboard"}
                 </div>
@@ -98,7 +98,7 @@ export default function DashboardPage() {
     }
 
     return (
-        <div className="p-8 max-w-7xl mx-auto space-y-8">
+        <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 sm:space-y-8">
             <div>
                 <h1 className="text-2xl font-semibold text-zinc-900">
                     {getGreeting()}

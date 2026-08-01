@@ -123,20 +123,19 @@ export default function OpportunityDetailPage() {
         <div className="flex h-full bg-zinc-50 overflow-hidden w-full">
             {/* Left Content Area */}
             <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
-                {/* Header */}
-                <div className="bg-white border-b border-zinc-200 px-8 pt-8 pb-0 shrink-0">
-                <div className="max-w-[1200px] mx-auto">
-                    <button
-                        onClick={() => router.push("/opportunities")}
-                        className="text-sm text-zinc-500 hover:text-zinc-900 flex items-center gap-1 mb-4"
-                    >
-                        <ChevronRight className="w-4 h-4 rotate-180" /> Opportunities
-                    </button>
-
-                    <div className="flex items-start justify-between mb-8">
+                {/* Opportunity Header */}
+                <div className="bg-white border-b border-zinc-200 p-4 sm:p-8 pb-0">
+                    <div className="max-w-[1200px] mx-auto space-y-6">
+                        <button
+                            onClick={() => router.push("/opportunities")}
+                            className="text-sm text-zinc-500 hover:text-zinc-900 flex items-center gap-1 mb-2"
+                        >
+                            <ChevronRight className="w-4 h-4 rotate-180" /> Opportunities
+                        </button>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <h1 className="text-3xl font-semibold text-zinc-900 tracking-tight">
+                            <div className="flex flex-wrap items-center gap-3">
+                                <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 tracking-tight">
                                     {opp.company_name}
                                 </h1>
                                 <div className="flex items-center gap-2">
@@ -168,37 +167,37 @@ export default function OpportunityDetailPage() {
                                     )}
                                 </div>
                             </div>
-                            <div className="flex flex-wrap items-center gap-2.5 text-xs text-zinc-500 mt-1.5">
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 mt-1.5">
                                 <span>ID: {opp.id.slice(0, 8)}</span>
-                                <span>•</span>
+                                <span className="hidden sm:inline">•</span>
                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-zinc-100 font-medium text-zinc-800 border border-zinc-200/80">
                                     <User className="w-3.5 h-3.5 text-zinc-500" />
                                     Pre-Sales: {opp.assigned_engineer?.full_name || "Unassigned"}
                                 </span>
-                                <span>•</span>
+                                <span className="hidden sm:inline">•</span>
                                 <span>Created {formatDateTime(opp.created_at)}</span>
                             </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full md:w-auto">
                             {canCreateEdit && (
                                 <Button
                                     variant="secondary"
-                                    className="gap-2 border-zinc-300 text-zinc-700"
+                                    className="flex-1 sm:flex-initial gap-2 border-zinc-300 text-zinc-700 text-xs sm:text-sm"
                                     onClick={() => setShowEditOpportunity(true)}
                                 >
-                                    <Edit3 className="w-4 h-4" /> Edit Opportunity
+                                    <Edit3 className="w-4 h-4" /> Edit
                                 </Button>
                             )}
                             <Button
                                 variant="secondary"
-                                className="gap-2 border-zinc-300"
+                                className="flex-1 sm:flex-initial gap-2 border-zinc-300 text-xs sm:text-sm"
                                 onClick={() => setIsChatOpen(!isChatOpen)}
                             >
-                                <Sparkles className="w-4 h-4 text-zinc-900" /> Chat with AI
+                                <Sparkles className="w-4 h-4 text-zinc-900" /> AI Chat
                             </Button>
                             {canCreateEdit && (
                                 <Button
-                                    className="gap-2"
+                                    className="flex-1 sm:flex-initial gap-2 text-xs sm:text-sm"
                                     onClick={() => setShowCreateMeeting(true)}
                                 >
                                     <Plus className="w-4 h-4" /> Log Meeting
@@ -208,13 +207,13 @@ export default function OpportunityDetailPage() {
                     </div>
 
                     {/* Tabs */}
-                    <div className="flex gap-6 border-b border-zinc-200 translate-y-px">
+                    <div className="flex gap-4 sm:gap-6 border-b border-zinc-200 translate-y-px overflow-x-auto scrollbar-none whitespace-nowrap pb-0.5">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`pb-4 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${activeTab === tab.id
-                                    ? "border-zinc-900 text-zinc-900"
+                                className={`pb-3 sm:pb-4 text-xs sm:text-sm font-medium flex items-center gap-2 border-b-2 transition-colors shrink-0 ${activeTab === tab.id
+                                    ? "border-zinc-900 text-zinc-900 font-semibold"
                                     : "border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300"
                                     }`}
                             >
@@ -226,7 +225,7 @@ export default function OpportunityDetailPage() {
             </div>
 
             {/* Tab Content */}
-            <div className="flex-1 overflow-y-auto p-8">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8">
                 <div className="max-w-[1200px] mx-auto">
                     {activeTab === "overview" && (
                         <div className="space-y-6">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, FolderOpen, Calendar, X } from "lucide-react";
+import { Search, FolderOpen, Calendar, X, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { NotificationDropdown } from "@/components/domains/notifications/NotificationDropdown";
 import { api } from "@/lib/api";
@@ -11,11 +11,12 @@ interface SearchResult {
     meetings: Array<{ id: string; title: string; company_name: string; opportunity_id: string; date: string }>;
 }
 
-export function TopNav() {
+export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) {
     const router = useRouter();
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<SearchResult | null>(null);
     const [isOpen, setIsOpen] = useState(false);
+    const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -29,6 +30,7 @@ export function TopNav() {
             }
             if (e.key === "Escape") {
                 setIsOpen(false);
+                setIsMobileSearchOpen(false);
             }
         };
         window.addEventListener("keydown", handleKeyDown);
@@ -75,12 +77,23 @@ export function TopNav() {
     const handleNavigate = (path: string) => {
         router.push(path);
         setIsOpen(false);
+        setIsMobileSearchOpen(false);
         setQuery("");
     };
 
     return (
-        <header className="h-14 border-b border-zinc-200 bg-white flex items-center justify-between px-6 sticky top-0 z-20">
+        <header className="h-14 border-b border-zinc-200 bg-white flex items-center justify-between px-4 sm:px-6 sticky top-0 z-20">
+            {/* Hamburger button for mobile */}
+            <button
+                onClick={onOpenMobileMenu}
+                className="p-2 -ml-1 mr-2 text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 rounded-md md:hidden"
+                aria-label="Open Mobile Menu"
+            >
+                <Menu className="w-5 h-5" />
+            </button>
+
             <div className="flex items-center flex-1 relative" ref={containerRef}>
+                {/* Desktop Search Bar */}
                 <div className="relative w-96 hidden md:block">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-400" />
                     <input
@@ -105,9 +118,44 @@ export function TopNav() {
                     )}
                 </div>
 
+                {/* Mobile Search Toggle Icon */}
+                <button
+                    onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+                    className="p-2 text-zinc-600 hover:text-zinc-950 md:hidden"
+                    aria-label="Toggle Search"
+                >
+                    <Search className="w-5 h-5" />
+                </button>
+
+                {/* Mobile Expandable Search Bar */}
+                {isMobileSearchOpen && (
+                    <div className="absolute left-0 right-0 top-0 bottom-0 bg-white flex items-center z-30 md:hidden">
+                        <div className="relative w-full">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-400" />
+                            <input
+                                autoFocus
+                                type="text"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="Cari peluang atau rapat..."
+                                className="h-9 w-full rounded-md border border-zinc-200 bg-zinc-50 pl-9 pr-8 text-xs outline-none"
+                            />
+                            <button
+                                onClick={() => {
+                                    setIsMobileSearchOpen(false);
+                                    setQuery("");
+                                }}
+                                className="absolute right-2.5 top-2.5 text-zinc-400 hover:text-zinc-600"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Dropdown Results */}
                 {isOpen && results && (
-                    <div className="absolute top-11 left-0 w-96 bg-white border border-zinc-200 rounded-lg shadow-lg max-h-[380px] overflow-y-auto z-50 p-2 space-y-3">
+                    <div className="absolute top-11 left-0 w-full sm:w-96 bg-white border border-zinc-200 rounded-lg shadow-lg max-h-[380px] overflow-y-auto z-50 p-2 space-y-3">
                         {/* Opportunities section */}
                         <div>
                             <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-2 py-1 flex items-center gap-1">
@@ -166,7 +214,7 @@ export function TopNav() {
                     </div>
                 )}
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
                 <NotificationDropdown />
             </div>
         </header>

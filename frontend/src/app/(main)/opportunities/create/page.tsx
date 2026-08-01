@@ -214,7 +214,7 @@ export default function CreateOpportunityPage() {
     }
 
     return (
-        <div className="p-8 max-w-3xl mx-auto space-y-8">
+        <div className="p-4 sm:p-8 max-w-3xl mx-auto space-y-6 sm:space-y-8">
             <div>
                 <Link
                     href="/opportunities"
@@ -229,7 +229,7 @@ export default function CreateOpportunityPage() {
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)}>
-                <Card className="p-6">
+                <Card className="p-4 sm:p-6">
                     {/* Company Information Section */}
                     <div className="space-y-6">
                         <h2 className="text-lg font-medium text-zinc-900 border-b border-zinc-100 pb-4">
@@ -252,7 +252,7 @@ export default function CreateOpportunityPage() {
                                 placeholder="e.g. https://acme.com"
                                 {...register("website")}
                             />
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <Input
                                     label="Contact Email"
                                     placeholder="john@acme.com"

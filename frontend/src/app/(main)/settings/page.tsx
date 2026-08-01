@@ -359,19 +359,19 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="p-8 max-w-4xl mx-auto space-y-8">
+        <div className="p-4 sm:p-8 max-w-4xl mx-auto space-y-6 sm:space-y-8">
             {/* Header */}
             <div className="border-b border-zinc-200 pb-6">
-                <h1 className="text-3xl font-semibold text-zinc-900 tracking-tight flex items-center gap-2">
-                    <Settings className="w-8 h-8 text-zinc-800" /> Settings
+                <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-900 tracking-tight flex items-center gap-2">
+                    <Settings className="w-7 h-7 sm:w-8 sm:h-8 text-zinc-800" /> Settings
                 </h1>
-                <p className="text-zinc-500 text-sm mt-1">
+                <p className="text-zinc-500 text-xs sm:text-sm mt-1">
                     Konfigurasi profil Anda dan atur parameter kecerdasan buatan (AI) pendukung KYC.
                 </p>
             </div>
 
             {/* Tabs Navigation */}
-            <div className="flex border-b border-zinc-200 gap-4">
+            <div className="flex border-b border-zinc-200 gap-2 sm:gap-4 overflow-x-auto scrollbar-none whitespace-nowrap pb-0.5">
                 {activeTabs.map((tab) => (
                     <button
                         key={tab.id}

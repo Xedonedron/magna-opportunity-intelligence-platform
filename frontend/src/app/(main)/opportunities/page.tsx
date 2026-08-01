@@ -114,8 +114,67 @@ export default function OpportunitiesPage() {
                     </div>
                 </div>
 
-                {/* Table */}
-                <div className="overflow-x-auto">
+                {/* Mobile Card List View (visible on < md) */}
+                <div className="block md:hidden space-y-3 p-4">
+                    {isLoading ? (
+                        Array.from({ length: 3 }).map((_, i) => (
+                            <div key={i} className="p-4 border border-zinc-200 rounded-xl bg-white space-y-3 animate-pulse">
+                                <div className="h-5 bg-zinc-200 rounded w-1/2" />
+                                <div className="h-4 bg-zinc-100 rounded w-1/3" />
+                            </div>
+                        ))
+                    ) : data && data.items.length > 0 ? (
+                        data.items.map((opp) => (
+                            <div
+                                key={opp.id}
+                                onClick={() => router.push(`/opportunities/${opp.id}`)}
+                                className="p-4 border border-zinc-200/90 rounded-xl bg-white shadow-sm space-y-3 active:bg-zinc-50 transition-colors"
+                            >
+                                <div className="flex items-start justify-between gap-2">
+                                    <div>
+                                        <h4 className="font-bold text-zinc-900 text-sm">{opp.company_name}</h4>
+                                        <p className="text-xs text-zinc-500 mt-0.5">{opp.industry || "General Industry"}</p>
+                                    </div>
+                                    <StatusBadge status={opp.status as OpportunityStatus} />
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-xs py-2.5 border-y border-zinc-100">
+                                    <div>
+                                        <span className="text-zinc-400 block text-[10px] uppercase font-semibold tracking-wider">Potential Value</span>
+                                        <span className="font-bold text-zinc-900 mt-0.5 block">
+                                            {formatCurrency(
+                                                opp.potential_revenue,
+                                                hideFinancialNumbers || user?.role === "engineer" || user?.role === "viewer"
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span className="text-zinc-400 block text-[10px] uppercase font-semibold tracking-wider">Est. Agenda</span>
+                                        <span className="text-zinc-800 font-medium mt-0.5 block">
+                                            {opp.estimated_agenda_date
+                                                ? new Date(opp.estimated_agenda_date).toLocaleDateString("id-ID", {
+                                                    month: "short",
+                                                    day: "numeric",
+                                                    year: "numeric",
+                                                })
+                                                : "—"}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between text-xs text-zinc-500">
+                                    <span className="truncate max-w-[180px]">Eng: {opp.assigned_engineer?.full_name || "Unassigned"}</span>
+                                    <span className="text-zinc-900 font-semibold flex items-center gap-1 shrink-0">Detail &rarr;</span>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="p-8 text-center text-xs text-zinc-500 bg-white rounded-xl border border-zinc-200">
+                            No opportunities found.
+                        </div>
+                    )}
+                </div>
+
+                {/* Desktop Table (visible on >= md) */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-sm text-left">
                         <thead className="text-xs text-zinc-500 uppercase bg-zinc-50 border-b border-zinc-200">
                             <tr>

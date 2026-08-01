@@ -225,8 +225,8 @@ export function OpportunityChatSidebar({
 
     return (
         <div
-            className={`border-l border-zinc-200 bg-zinc-50 flex flex-col h-full shrink-0 transition-all duration-300 relative ${
-                isWide ? "w-[650px]" : "w-[400px]"
+            className={`fixed inset-0 z-50 w-full h-full bg-zinc-50 flex flex-col sm:relative sm:inset-auto sm:z-auto sm:border-l sm:border-zinc-200 transition-all duration-300 ${
+                isWide ? "sm:w-[650px]" : "sm:w-[400px]"
             }`}
         >
             {/* Header */}
