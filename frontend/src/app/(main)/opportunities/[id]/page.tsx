@@ -346,20 +346,6 @@ export default function OpportunityDetailPage() {
                                     )}
                                 </Card>
                             </div>
-
-                            {opp.meeting_schedule && (
-                                <Card className="p-6">
-                                    <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider mb-4">
-                                        Next Meeting
-                                    </h3>
-                                    <div className="flex items-center gap-3">
-                                        <Calendar className="w-5 h-5 text-zinc-400" />
-                                        <span className="text-sm text-zinc-700">
-                                            {formatDateTime(opp.meeting_schedule)}
-                                        </span>
-                                    </div>
-                                </Card>
-                            )}
                         </div>
                     )}
 
