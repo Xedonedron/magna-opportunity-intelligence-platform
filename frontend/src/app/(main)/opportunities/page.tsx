@@ -259,7 +259,6 @@ export default function OpportunitiesPage() {
                                         <th className="px-6 py-3 font-medium">Potential Value</th>
                                         <th className="px-6 py-3 font-medium">Est. Agenda</th>
                                         <th className="px-6 py-3 font-medium">Engineer</th>
-                                        <th className="px-6 py-3 font-medium">Next Meeting</th>
                                         <th className="px-6 py-3 font-medium">Last Update</th>
                                         <th className="px-6 py-3 font-medium text-right">Actions</th>
                                     </tr>
@@ -268,7 +267,7 @@ export default function OpportunitiesPage() {
                                     {isLoading ? (
                                         Array.from({ length: 5 }).map((_, i) => (
                                             <tr key={i}>
-                                                <td colSpan={9} className="px-6 py-4">
+                                                <td colSpan={8} className="px-6 py-4">
                                                     <div className="h-4 bg-zinc-100 rounded animate-pulse" />
                                                 </td>
                                             </tr>
@@ -318,19 +317,6 @@ export default function OpportunitiesPage() {
                                                 </td>
                                                 <td className="px-6 py-4 text-zinc-600">
                                                     {opp.assigned_engineer?.full_name || "Unassigned"}
-                                                </td>
-                                                <td className="px-6 py-4 text-zinc-600">
-                                                    {opp.meeting_schedule
-                                                        ? new Date(opp.meeting_schedule).toLocaleDateString(
-                                                            "en-US",
-                                                            {
-                                                                month: "short",
-                                                                day: "numeric",
-                                                                hour: "numeric",
-                                                                minute: "2-digit",
-                                                            }
-                                                        )
-                                                        : "—"}
                                                 </td>
                                                 <td className="px-6 py-4 text-zinc-500 text-xs">
                                                     {timeAgo(opp.updated_at)}
