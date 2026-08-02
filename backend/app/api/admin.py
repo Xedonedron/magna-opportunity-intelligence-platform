@@ -166,7 +166,7 @@ MASTER_DATA = {
     ],
     "presales": [
         "Devi",
-        "Robi",
+        "Bayu",
         "Gerry",
     ],
 }
