@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input, SuggestedInput } from "@/components/ui/Input";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useUpdateMeeting, useDeleteMeeting } from "@/hooks/use-meetings";
 import type { Meeting } from "@/types/meeting";
 
@@ -65,12 +66,19 @@ export function EditMeetingDialog({
         );
     };
 
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
     const handleDelete = () => {
-        if (confirm(`Apakah Anda yakin ingin menghapus rapat "${meeting.title}"?`)) {
-            deleteMeeting.mutate(meeting.id, {
-                onSuccess: () => onClose(),
-            });
-        }
+        setShowDeleteConfirm(true);
+    };
+
+    const handleConfirmDelete = () => {
+        deleteMeeting.mutate(meeting.id, {
+            onSuccess: () => {
+                setShowDeleteConfirm(false);
+                onClose();
+            },
+        });
     };
 
     return (
@@ -190,6 +198,19 @@ export function EditMeetingDialog({
                     </div>
                 </form>
             </div>
+
+            {/* Custom Confirm Dialog for Delete Meeting */}
+            <ConfirmDialog
+                isOpen={showDeleteConfirm}
+                title="Hapus Rapat"
+                description={`Apakah Anda yakin ingin menghapus rapat "${meeting.title}"? Tindakan ini tidak dapat dibatalkan.`}
+                confirmText="Hapus"
+                cancelText="Batal"
+                variant="danger"
+                isLoading={deleteMeeting.isPending}
+                onConfirm={handleConfirmDelete}
+                onClose={() => setShowDeleteConfirm(false)}
+            />
         </div>
     );
 }

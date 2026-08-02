@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { KanbanBoard } from "@/components/domains/opportunities/KanbanBoard";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useOpportunities, useDeleteOpportunity } from "@/hooks/use-opportunities";
 import { timeAgo, formatCurrency } from "@/lib/utils";
 import { api } from "@/lib/api";
@@ -59,15 +60,20 @@ export default function OpportunitiesPage() {
         status: statusFilter || undefined,
     });
 
-    const handleDelete = async (e: React.MouseEvent | null, id: string, name: string) => {
+    const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+
+    const handleDelete = (e: React.MouseEvent | null, id: string, name: string) => {
         if (e) e.stopPropagation();
-        if (confirm(`Apakah Anda yakin ingin menghapus peluang untuk ${name}?`)) {
-            try {
-                await deleteMutation.mutateAsync(id);
-            } catch (err) {
-                console.error("Gagal menghapus peluang", err);
-                alert("Gagal menghapus peluang.");
-            }
+        setDeleteTarget({ id, name });
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+        try {
+            await deleteMutation.mutateAsync(deleteTarget.id);
+            setDeleteTarget(null);
+        } catch (err) {
+            console.error("Gagal menghapus peluang", err);
         }
     };
 
@@ -377,6 +383,19 @@ export default function OpportunitiesPage() {
                     </>
                 )}
             </Card>
+
+            {/* Custom Confirm Dialog for Delete Opportunity */}
+            <ConfirmDialog
+                isOpen={!!deleteTarget}
+                title="Hapus Opportunity"
+                description={`Apakah Anda yakin ingin menghapus peluang untuk "${deleteTarget?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+                confirmText="Hapus"
+                cancelText="Batal"
+                variant="danger"
+                isLoading={deleteMutation.isPending}
+                onConfirm={confirmDelete}
+                onClose={() => setDeleteTarget(null)}
+            />
         </div>
     );
 }
