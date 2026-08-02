@@ -191,21 +191,6 @@ export function EditOpportunityDialog({
                         </div>
                     </div>
 
-                    {/* Schedule */}
-                    <div className="space-y-4 pt-4 border-t border-zinc-100">
-                        <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                            Meeting Schedule
-                        </h3>
-                        <Input
-                            label="Next Meeting Date & Time"
-                            type="datetime-local"
-                            value={meetingSchedule}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                setMeetingSchedule(e.target.value)
-                            }
-                        />
-                    </div>
-
                     {/* Customer Needs & Context */}
                     <div className="space-y-4 pt-4 border-t border-zinc-100">
                         <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
