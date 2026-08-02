@@ -117,9 +117,9 @@ For evaluation and testing, MOIP supports **Development Plaintext Login** alongs
    ```bash
    docker-compose up -d
    ```
-   * Frontend: `http://localhost:3000`
-   * Backend API: `http://localhost:8000`
-   * Swagger Docs: `http://localhost:8000/docs`
+   * **Frontend Web App:** `http://localhost:3009`
+   * **Backend REST API:** `http://localhost:8009`
+   * **Interactive Swagger Docs:** `http://localhost:8009/docs`
 
 ---
 

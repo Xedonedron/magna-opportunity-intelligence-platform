@@ -203,3 +203,30 @@ curl -X GET http://localhost:8000/api/opportunities/OPPORTUNITY_ID/kyc \
   "completed_at": "2026-07-30T16:07:32Z"
 }
 ```
+
+---
+
+## 5. RAG Chat Assistant Query
+You can interact with the RAG Chat AI for any opportunity to ask targeted architecture, solution matching, or presales strategy questions:
+
+### Request
+```bash
+curl -X POST http://localhost:8000/api/opportunities/OPPORTUNITY_ID/chat \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{
+    "message": "Solusi Google Cloud dan Smartnet Magna apa yang paling cocok untuk kebutuhan PT Semen Baturaja?"
+  }'
+```
+
+---
+
+## 6. Trigger KYC Regeneration
+To trigger a new KYC analysis version (e.g., after updating customer needs or context):
+
+### Request
+```bash
+curl -X POST http://localhost:8000/api/opportunities/OPPORTUNITY_ID/kyc/regenerate \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+

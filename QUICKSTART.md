@@ -3,19 +3,33 @@
 ## Prerequisites
 
 - Docker Desktop (running)
-- Python 3.14+
+- Python 3.11+
 - Node.js 18+
-- Google Cloud Console project with OAuth 2.0 credentials
+- Google Cloud Console project with OAuth 2.0 credentials (Optional for Dev Plaintext Login)
+
+## Development Credentials (Plaintext Login)
+
+For evaluation and testing without Google OAuth setup, MOIP provides built-in Development Plaintext Login:
+
+| Username | Password | Role | Capabilities |
+| :--- | :--- | :--- | :--- |
+| `admin` | `P@ssw0rd` | Admin | Full Access + User Management |
+| `superadmin` | `P@ssw0rd` | Superadmin | Complete System Control |
+| `lead_gen` | `123456` | Lead Generation (LGO) | Create & Manage Opportunities |
+| `managerial` | `123456` | Manager | Dashboard Analytics & Revenue Monitoring |
+| `engineer` | `123456` | Presales Engineer | View/Edit KYC, Meetings & Status Workflow |
+
+---
 
 ## Initial Setup
 
-### 1. Google OAuth Configuration
+### 1. Google OAuth Configuration (Optional)
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create OAuth 2.0 Client ID (Web application)
 3. Add authorized redirect URIs:
-   - `http://localhost:3000/api/auth/callback`
-   - `http://localhost:8000/api/auth/google`
+   - `http://localhost:3000/api/auth/callback` or `http://localhost:3009/api/auth/callback`
+   - `http://localhost:8000/api/auth/google` or `http://localhost:8009/api/auth/google`
 4. Copy Client ID and Client Secret
 
 ### 2. Environment Variables
@@ -26,19 +40,20 @@ DATABASE_URL=postgresql://moip:moip_secret@localhost:5432/moip_db
 SECRET_KEY=your-secret-key-change-in-production
 GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-client-secret
-GOOGLE_WORKSPACE_DOMAIN=smartnet.co.id
+GOOGLE_WORKSPACE_DOMAIN=magnaglobal.id
 APP_NAME=Magna Opportunity Intelligence Platform
 APP_VERSION=0.1.0
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=http://localhost:3009
 
-# AI/KYC Pipeline (optional for full functionality)
-GOOGLE_API_KEY=your-google-ai-api-key
+# AI/KYC Pipeline & RAG
+GEMINI_API_KEY=your-google-ai-api-key
+GEMINI_MODEL=gemma-4-26b-a4b-it
 TAVILY_API_KEY=your-tavily-api-key
 ```
 
 **Frontend (`frontend/.env.local`):**
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8009
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 ```
 
@@ -48,9 +63,11 @@ For full KYC functionality, obtain:
 - **Google AI API Key**: [Google AI Studio](https://aistudio.google.com/)
 - **Tavily API Key**: [Tavily](https://tavily.com/)
 
+---
+
 ## Starting the Application
 
-### Option A: Docker (Recommended - All Services)
+### Option A: Docker Compose (Recommended - All Services)
 
 Single command starts everything:
 
@@ -59,13 +76,17 @@ docker-compose up -d
 ```
 
 This starts:
-- PostgreSQL (port 5432)
-- Redis (port 6379)
-- Backend API (port 8000)
-- Frontend (port 3000)
-- Celery Worker (KYC Pipeline)
+- **PostgreSQL** (host port `5435`, container port `5432`)
+- **Redis** (port `6379`)
+- **Backend API** (host port `8009`, container port `8000`)
+- **Frontend UI** (host port `3009`, container port `3000`)
+- **Celery Worker** (KYC Background Pipeline)
 
-**Access:** http://localhost:3000
+**Access URLs:**
+- **Frontend App:** http://localhost:3009
+- **Backend API:** http://localhost:8009
+- **Swagger Docs:** http://localhost:8009/docs
+
 
 **View logs:**
 ```bash
