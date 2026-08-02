@@ -260,7 +260,9 @@ export default function OpportunityDetailPage() {
                                                 Estimasi Tanggal Agenda
                                             </span>
                                             <span className="text-base font-bold text-zinc-900 mt-0.5 block tracking-tight">
-                                                {opp.estimated_agenda_date ? formatDateTime(opp.estimated_agenda_date) : "Belum diagendakan"}
+                                                {opp.estimated_agenda_date || opp.meeting_schedule
+                                                    ? formatDateTime(opp.estimated_agenda_date || opp.meeting_schedule)
+                                                    : "Belum diagendakan"}
                                             </span>
                                         </div>
                                     </div>
