@@ -104,9 +104,7 @@ export default function DashboardPage() {
                     {getGreeting()}
                 </h1>
                 <p className="text-zinc-500 text-sm mt-1">
-                    {metrics.filtered_by_user
-                        ? `Showing data for your role: ${getRoleLabel(metrics.user_role)}`
-                        : "Here is what's happening with your pipeline today."}
+                    Here is what&apos;s happening with your pipeline today.
                 </p>
             </div>
 

@@ -23,11 +23,7 @@ export function DashboardMetrics({
             label: "Total Opportunities",
             value: totalOpportunities,
             icon: TrendingUp,
-            description: userRole === "lgo"
-                ? "Created by you"
-                : userRole === "engineer"
-                    ? "Assigned to you"
-                    : "All opportunities",
+            description: "All opportunities",
         },
         {
             label: "Active Pipelines",
