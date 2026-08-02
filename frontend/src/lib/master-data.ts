@@ -13,7 +13,7 @@ export const DEFAULT_INDUSTRIES = [
 
 export const DEFAULT_PRESALES = [
     "Devi",
-    "Robi",
+    "Bayu",
     "Gerry",
 ];
 
