@@ -839,7 +839,7 @@ export default function SettingsPage() {
 
                             <div className="flex items-center gap-2 max-w-sm pt-2">
                                 <Input
-                                    placeholder="Tambah nama presales baru (e.g. Devi, Robi, Gerry)"
+                                    placeholder="Tambah nama presales baru (e.g. Devi, Bayu, Gerry)"
                                     value={newPresales}
                                     onChange={(e) => setNewPresales(e.target.value)}
                                     onKeyDown={(e) => {
