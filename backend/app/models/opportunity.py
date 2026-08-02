@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from sqlalchemy import String, DateTime, Text, ForeignKey, Numeric, Float, func
+from sqlalchemy import String, DateTime, Text, ForeignKey, Numeric, Float, func, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
@@ -20,6 +20,7 @@ class Opportunity(Base):
     website: Mapped[str | None] = mapped_column(String(500), nullable=True)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    contacts: Mapped[list[dict] | None] = mapped_column(JSON, nullable=True, default=list)
     industry: Mapped[str | None] = mapped_column(String(255), nullable=True)
     product: Mapped[str | None] = mapped_column(String(255), nullable=True)
     customer_needs: Mapped[str] = mapped_column(Text, nullable=False)
