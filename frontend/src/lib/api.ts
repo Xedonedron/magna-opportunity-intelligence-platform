@@ -11,17 +11,23 @@ export const getClientBaseUrl = () => {
         const envUrl = process.env.NEXT_PUBLIC_API_URL;
         const { protocol, hostname } = window.location;
 
-        // If explicitly set and not generic localhost fallback on a real domain
-        if (envUrl && envUrl !== "http://localhost:8009") {
-            return envUrl;
-        }
-
         // On localhost/127.0.0.1 development
         if (hostname === "localhost" || hostname === "127.0.0.1") {
             return envUrl || `${protocol}//${hostname}:8009`;
         }
 
-        // In production VM/Domain deployment (e.g. moip.cloudwithmagna.com),
+        // On production domain (e.g. moip.cloudwithmagna.com):
+        // If envUrl is explicitly set and is a custom external domain (not internal backend port :8009/:8000/localhost)
+        if (
+            envUrl &&
+            !envUrl.includes(":8009") &&
+            !envUrl.includes(":8000") &&
+            !envUrl.includes("localhost")
+        ) {
+            return envUrl.replace(/\/$/, "");
+        }
+
+        // Standard production VM/Domain deployment (e.g. moip.cloudwithmagna.com)
         // Nginx proxies /api on the same origin (HTTPS port 443)
         return `${protocol}//${hostname}`;
     }
