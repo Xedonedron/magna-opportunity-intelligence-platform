@@ -57,15 +57,7 @@ async def get_dashboard_metrics(
     if user_role == "lgo":
         query = query.filter(Opportunity.created_by == current_user.id)
         filtered_by_user = True
-    elif user_role == "engineer":
-        query = query.filter(
-            or_(
-                Opportunity.assigned_engineer_id == current_user.id,
-                Opportunity.created_by == current_user.id,
-            )
-        )
-        filtered_by_user = True
-    # admin/manager see all
+    # engineer, presales, admin, manager, superadmin see all dashboard metrics
     
     # Apply optional filters
     if status:
@@ -102,13 +94,6 @@ async def get_dashboard_metrics(
     )
     if user_role == "lgo":
         status_query = status_query.filter(Opportunity.created_by == current_user.id)
-    elif user_role == "engineer":
-        status_query = status_query.filter(
-            or_(
-                Opportunity.assigned_engineer_id == current_user.id,
-                Opportunity.created_by == current_user.id,
-            )
-        )
     if status:
         status_query = status_query.filter(Opportunity.status == status)
     if engineer_id and user_role in ["admin", "superadmin", "manager"]:
@@ -161,13 +146,6 @@ async def get_dashboard_metrics(
     kyc_query = db.query(Opportunity)
     if user_role == "lgo":
         kyc_query = kyc_query.filter(Opportunity.created_by == current_user.id)
-    elif user_role == "engineer":
-        kyc_query = kyc_query.filter(
-            or_(
-                Opportunity.assigned_engineer_id == current_user.id,
-                Opportunity.created_by == current_user.id,
-            )
-        )
     
     kyc_running = kyc_query.filter(
         Opportunity.status.in_(KYC_RUNNING_STATUSES)
@@ -176,13 +154,6 @@ async def get_dashboard_metrics(
     need_follow_up = db.query(Opportunity)
     if user_role == "lgo":
         need_follow_up = need_follow_up.filter(Opportunity.created_by == current_user.id)
-    elif user_role == "engineer":
-        need_follow_up = need_follow_up.filter(
-            or_(
-                Opportunity.assigned_engineer_id == current_user.id,
-                Opportunity.created_by == current_user.id,
-            )
-        )
     need_follow_up = need_follow_up.filter(
         Opportunity.status.in_(FOLLOW_UP_STATUSES)
     ).count()
@@ -194,26 +165,12 @@ async def get_dashboard_metrics(
     )
     if user_role == "lgo":
         meetings_query = meetings_query.filter(Opportunity.created_by == current_user.id)
-    elif user_role == "engineer":
-        meetings_query = meetings_query.filter(
-            or_(
-                Opportunity.assigned_engineer_id == current_user.id,
-                Opportunity.created_by == current_user.id,
-            )
-        )
     meetings_today = meetings_query.count()
     
     # Recent opportunities
     recent_query = db.query(Opportunity)
     if user_role == "lgo":
         recent_query = recent_query.filter(Opportunity.created_by == current_user.id)
-    elif user_role == "engineer":
-        recent_query = recent_query.filter(
-            or_(
-                Opportunity.assigned_engineer_id == current_user.id,
-                Opportunity.created_by == current_user.id,
-            )
-        )
     recent_results = (
         recent_query
         .order_by(Opportunity.created_at.desc())
@@ -240,13 +197,6 @@ async def get_dashboard_metrics(
     )
     if user_role == "lgo":
         upcoming_query = upcoming_query.filter(Opportunity.created_by == current_user.id)
-    elif user_role == "engineer":
-        upcoming_query = upcoming_query.filter(
-            or_(
-                Opportunity.assigned_engineer_id == current_user.id,
-                Opportunity.created_by == current_user.id,
-            )
-        )
     upcoming_results = (
         upcoming_query
         .order_by(Opportunity.meeting_schedule)
@@ -289,25 +239,6 @@ async def get_dashboard_metrics(
             new_count = new_count.filter(Opportunity.created_by == current_user.id)
             won_count = won_count.filter(Opportunity.created_by == current_user.id)
             lost_count = lost_count.filter(Opportunity.created_by == current_user.id)
-        elif user_role == "engineer":
-            new_count = new_count.filter(
-                or_(
-                    Opportunity.assigned_engineer_id == current_user.id,
-                    Opportunity.created_by == current_user.id,
-                )
-            )
-            won_count = won_count.filter(
-                or_(
-                    Opportunity.assigned_engineer_id == current_user.id,
-                    Opportunity.created_by == current_user.id,
-                )
-            )
-            lost_count = lost_count.filter(
-                or_(
-                    Opportunity.assigned_engineer_id == current_user.id,
-                    Opportunity.created_by == current_user.id,
-                )
-            )
         
         trend_data.append(TrendData(
             date=day.isoformat(),
@@ -333,13 +264,6 @@ async def get_dashboard_metrics(
     )
     if user_role == "lgo":
         product_query = product_query.filter(Opportunity.created_by == current_user.id)
-    elif user_role == "engineer":
-        product_query = product_query.filter(
-            or_(
-                Opportunity.assigned_engineer_id == current_user.id,
-                Opportunity.created_by == current_user.id,
-            )
-        )
     if status:
         product_query = product_query.filter(Opportunity.status == status)
     if engineer_id and user_role in ["admin", "superadmin", "manager"]:
@@ -362,13 +286,6 @@ async def get_dashboard_metrics(
     )
     if user_role == "lgo":
         industry_query = industry_query.filter(Opportunity.created_by == current_user.id)
-    elif user_role == "engineer":
-        industry_query = industry_query.filter(
-            or_(
-                Opportunity.assigned_engineer_id == current_user.id,
-                Opportunity.created_by == current_user.id,
-            )
-        )
     if status:
         industry_query = industry_query.filter(Opportunity.status == status)
     if engineer_id and user_role in ["admin", "superadmin", "manager"]:
