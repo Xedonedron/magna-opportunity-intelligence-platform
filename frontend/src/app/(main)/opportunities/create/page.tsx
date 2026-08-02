@@ -98,7 +98,6 @@ export default function CreateOpportunityPage() {
             additional_notes: "",
             potential_revenue: "",
             estimated_agenda_date: "",
-            meeting_schedule: defaultDateStr,
         },
     });
 
@@ -107,6 +106,10 @@ export default function CreateOpportunityPage() {
         setPipelineState(1);
 
         try {
+            const agendaDateIso = data.estimated_agenda_date
+                ? new Date(data.estimated_agenda_date).toISOString()
+                : null;
+
             const payload = {
                 company_name: data.company_name,
                 website: data.website || null,
@@ -117,12 +120,8 @@ export default function CreateOpportunityPage() {
                 customer_needs: data.customer_needs,
                 additional_notes: data.additional_notes || null,
                 potential_revenue: data.potential_revenue ? parseFloat(data.potential_revenue) : null,
-                estimated_agenda_date: data.estimated_agenda_date
-                    ? new Date(data.estimated_agenda_date).toISOString()
-                    : null,
-                meeting_schedule: data.meeting_schedule
-                    ? new Date(data.meeting_schedule).toISOString()
-                    : null,
+                estimated_agenda_date: agendaDateIso,
+                meeting_schedule: agendaDateIso,
             };
 
             const result = await createOpportunity.mutateAsync(payload);
@@ -281,7 +280,7 @@ export default function CreateOpportunityPage() {
                     {/* Financial Potential & Schedule Section */}
                     <div className="space-y-6 mt-8 pt-6 border-t border-zinc-100">
                         <h2 className="text-lg font-medium text-zinc-900 border-b border-zinc-100 pb-4">
-                            Financial Potential & Agenda Schedule
+                            Financial Potential & Meeting Schedule
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <Input
@@ -290,42 +289,34 @@ export default function CreateOpportunityPage() {
                                 placeholder="e.g. 250000000"
                                 {...register("potential_revenue")}
                             />
-                            <Input
-                                label="Estimasi Tanggal Agenda"
-                                type="datetime-local"
-                                {...register("estimated_agenda_date")}
-                            />
+                            <div className="space-y-1">
+                                <Input
+                                    label="Estimasi Tanggal Agenda / Initial Meeting"
+                                    type="datetime-local"
+                                    {...register("estimated_agenda_date")}
+                                />
+                                <p className="text-xs text-zinc-500">
+                                    Pilih tanggal rapat perdana / agenda go-live (opsional jika belum pasti).
+                                </p>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Meeting & Product Section */}
+                    {/* Target Solution Section */}
                     <div className="space-y-6 mt-8 pt-6 border-t border-zinc-100">
                         <h2 className="text-lg font-medium text-zinc-900 border-b border-zinc-100 pb-4">
-                            Meeting & Product
+                            Target Solution
                         </h2>
-                        <div className="space-y-4">
-                            <div className="space-y-1">
-                                <Input
-                                    label="Initial Meeting Date"
-                                    type="datetime-local"
-                                    required
-                                    {...register("meeting_schedule")}
-                                />
-                                <p className="text-xs text-zinc-500">
-                                    Click anywhere outside the calendar pop-up to confirm your selection.
-                                </p>
-                            </div>
-                            <Select label="Target Solution" required {...register("product")}>
-                                <option value="">Select solution...</option>
-                                <option value="Data Analytics Platform">Data Analytics Platform</option>
-                                <option value="AI/ML Solutions">AI/ML Solutions</option>
-                                <option value="Google Workspace (GWS)">Google Workspace (GWS)</option>
-                                <option value="Google Maps Platform (GMaps)">Google Maps Platform (GMaps)</option>
-                                <option value="Cloud Infrastructure (GCP)">Cloud Infrastructure (GCP)</option>
-                                <option value="Cybersecurity Suite">Cybersecurity Suite</option>
-                                <option value="Network Solutions">Network Solutions</option>
-                            </Select>
-                        </div>
+                        <Select label="Target Solution" required {...register("product")}>
+                            <option value="">Select solution...</option>
+                            <option value="Data Analytics Platform">Data Analytics Platform</option>
+                            <option value="AI/ML Solutions">AI/ML Solutions</option>
+                            <option value="Google Workspace (GWS)">Google Workspace (GWS)</option>
+                            <option value="Google Maps Platform (GMaps)">Google Maps Platform (GMaps)</option>
+                            <option value="Cloud Infrastructure (GCP)">Cloud Infrastructure (GCP)</option>
+                            <option value="Cybersecurity Suite">Cybersecurity Suite</option>
+                            <option value="Network Solutions">Network Solutions</option>
+                        </Select>
                     </div>
 
                     {/* Context & Needs Section */}
