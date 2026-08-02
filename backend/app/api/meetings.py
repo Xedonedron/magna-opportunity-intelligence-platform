@@ -110,9 +110,19 @@ def create_meeting(
     )
     db.add(timeline)
 
-    # Update opportunity status if still early stage
-    if opp.status in ("New", "KYC Running", "Ready Meeting"):
-        new_status = "Meeting Done" if is_past else "Meeting Scheduled"
+    # Always update opportunity meeting_schedule
+    opp.meeting_schedule = payload.date
+
+    # Smart status transition
+    should_update_status = False
+    if is_past and opp.status in ("New", "KYC Running", "Ready Meeting", "Meeting Scheduled"):
+        new_status = "Meeting Done"
+        should_update_status = True
+    elif not is_past and opp.status in ("New", "KYC Running", "Ready Meeting", "Meeting Done"):
+        new_status = "Meeting Scheduled"
+        should_update_status = True
+
+    if should_update_status:
         opp.status = new_status
         status_timeline = TimelineEvent(
             opportunity_id=payload.opportunity_id,

@@ -118,6 +118,11 @@ async def create_opportunity(
 
     # Automatically create initial Meeting record if meeting_schedule is provided
     if data.meeting_schedule:
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        m_dt = data.meeting_schedule if data.meeting_schedule.tzinfo else data.meeting_schedule.replace(tzinfo=timezone.utc)
+        opportunity.status = "Meeting Scheduled" if m_dt > now else "Meeting Done"
+
         initial_meeting = Meeting(
             opportunity_id=opportunity.id,
             title=f"Initial Discovery Call - {data.company_name}",
