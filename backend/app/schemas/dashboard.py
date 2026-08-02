@@ -65,6 +65,7 @@ class UpcomingMeeting(BaseModel):
 class DashboardMetrics(BaseModel):
     """Dashboard metrics response."""
     total_opportunities: int
+    total_potential_revenue: float = 0.0
     by_status: list[StatusCount]
     by_engineer: list[EngineerCount]
     meetings_today: int

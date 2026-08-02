@@ -110,6 +110,7 @@ export default function DashboardPage() {
 
             <DashboardMetrics
                 totalOpportunities={metrics.total_opportunities}
+                totalPotentialRevenue={metrics.total_potential_revenue}
                 meetingsToday={metrics.meetings_today}
                 needFollowUp={metrics.need_follow_up}
                 activeCount={metrics.active_count}

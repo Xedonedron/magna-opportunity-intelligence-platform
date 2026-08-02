@@ -45,6 +45,7 @@ export interface IndustryCount {
 
 export interface DashboardMetrics {
     total_opportunities: number;
+    total_potential_revenue?: number;
     by_status: StatusCount[];
     by_engineer: EngineerCount[];
     meetings_today: number;

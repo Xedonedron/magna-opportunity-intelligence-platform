@@ -72,8 +72,15 @@ async def get_dashboard_metrics(
     if date_to:
         query = query.filter(Opportunity.created_at < date_to + timedelta(days=1))
     
-    # Total count
+    # Total count and total potential revenue
     total_opportunities = query.count()
+    revenue_sum = (
+        db.query(sa_func.coalesce(sa_func.sum(Opportunity.potential_revenue), 0))
+        .filter(query.whereclause) if query.whereclause is not None else db.query(
+            sa_func.coalesce(sa_func.sum(Opportunity.potential_revenue), 0)
+        )
+    ).scalar() or 0
+    total_potential_revenue = float(revenue_sum)
     
     # By status
     status_counts = (
@@ -303,6 +310,7 @@ async def get_dashboard_metrics(
     
     return DashboardMetrics(
         total_opportunities=total_opportunities,
+        total_potential_revenue=total_potential_revenue,
         by_status=by_status,
         by_engineer=by_engineer,
         meetings_today=meetings_today,
