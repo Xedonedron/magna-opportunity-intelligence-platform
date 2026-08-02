@@ -429,7 +429,7 @@ export default function OpportunityDetailPage() {
                                         className="gap-1.5"
                                         onClick={() => setShowCreateMeeting(true)}
                                     >
-                                        <Plus className="w-3.5 h-3.5" /> Add Meeting
+                                        <Plus className="w-3.5 h-3.5" /> Log Meeting
                                     </Button>
                                 )}
                             </div>
