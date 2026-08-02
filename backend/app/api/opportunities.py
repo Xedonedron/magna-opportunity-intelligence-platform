@@ -99,6 +99,7 @@ async def create_opportunity(
     """Create a new opportunity. Auto-logs timeline event."""
     opportunity = Opportunity(
         company_name=data.company_name,
+        contact_name=data.contact_name,
         website=data.website,
         email=data.email,
         phone=data.phone,
@@ -541,4 +542,199 @@ async def global_search(
             }
             for meet in meet_results
         ]
+    }
+
+
+# --- Bulk Lead Import Helpers & Endpoint ---
+import csv
+import io
+import re
+from datetime import datetime, timezone
+from fastapi import UploadFile, File
+
+HEADER_MAPPINGS = {
+    "company_name": ["company_name", "company", "perusahaan", "nama_perusahaan", "nama perusahaan", "client", "nama client"],
+    "contact_name": ["contact_name", "contact_person", "contact", "pic", "nama_pic", "nama pic", "nama_kontak", "nama kontak", "penanggung_jawab"],
+    "email": ["email", "email_address", "surel", "email_kontak", "email pic"],
+    "phone": ["phone", "phone_number", "no_hp", "no_telp", "no hp", "whatsapp", "wa", "telepon"],
+    "website": ["website", "url", "domain", "site"],
+    "industry": ["industry", "industri", "sektor"],
+    "product": ["product", "solution", "solusi", "produk", "target_solution"],
+    "potential_revenue": ["potential_revenue", "revenue", "deal_value", "nilai_deal", "nilai_proyek", "value", "potensi"],
+    "estimated_agenda_date": ["estimated_agenda_date", "agenda_date", "tanggal_agenda", "meeting_date", "jadwal", "tanggal"],
+    "customer_needs": ["customer_needs", "needs", "kebutuhan", "notes", "catatan", "deskripsi"],
+}
+
+
+def _clean_phone(phone_str: str | None) -> str | None:
+    if not phone_str:
+        return None
+    cleaned = re.sub(r"[^\d+]", "", str(phone_str).strip())
+    if cleaned.startswith("08"):
+        cleaned = "+628" + cleaned[2:]
+    elif cleaned.startswith("628"):
+        cleaned = "+" + cleaned
+    return cleaned if cleaned else None
+
+
+def _map_row_to_opportunity_dict(row: dict[str, str]) -> dict:
+    normalized_row = {re.sub(r"\s+", " ", str(k).strip().lower()): str(v).strip() for k, v in row.items() if k and v is not None}
+    
+    mapped = {}
+    for target_field, aliases in HEADER_MAPPINGS.items():
+        for alias in aliases:
+            if alias in normalized_row and normalized_row[alias]:
+                mapped[target_field] = normalized_row[alias]
+                break
+
+    company_name = mapped.get("company_name") or "Imported Prospect"
+    contact_name = mapped.get("contact_name") or None
+    email = mapped.get("email") or None
+    phone = _clean_phone(mapped.get("phone"))
+    website = mapped.get("website") or None
+    industry = mapped.get("industry") or None
+    product = mapped.get("product") or None
+    customer_needs = mapped.get("customer_needs") or "Lead diimpor dari file spreadsheet/CSV."
+    
+    potential_revenue = None
+    if mapped.get("potential_revenue"):
+        try:
+            rev_str = re.sub(r"[^\d.]", "", mapped["potential_revenue"].replace(",", "."))
+            potential_revenue = float(rev_str)
+        except Exception:
+            pass
+
+    agenda_date = None
+    if mapped.get("estimated_agenda_date"):
+        try:
+            from dateutil.parser import parse as parse_date
+            parsed = parse_date(mapped["estimated_agenda_date"])
+            if not parsed.tzinfo:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            agenda_date = parsed
+        except Exception:
+            pass
+
+    return {
+        "company_name": company_name,
+        "contact_name": contact_name,
+        "email": email,
+        "phone": phone,
+        "website": website,
+        "industry": industry,
+        "product": product,
+        "customer_needs": customer_needs,
+        "potential_revenue": potential_revenue,
+        "estimated_agenda_date": agenda_date,
+        "meeting_schedule": agenda_date,
+    }
+
+
+@router.post("/import", status_code=status.HTTP_201_CREATED)
+async def import_opportunities(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_capability("create_edit")),
+):
+    """Bulk import opportunities from CSV or Excel file."""
+    filename = file.filename or "leads.csv"
+    contents = await file.read()
+    
+    rows = []
+    if filename.endswith(".csv") or filename.endswith(".txt"):
+        try:
+            text = contents.decode("utf-8-sig", errors="ignore")
+            reader = csv.DictReader(io.StringIO(text))
+            rows = [dict(r) for r in reader]
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Gagal membaca file CSV: {str(e)}")
+    elif filename.endswith(".xlsx") or filename.endswith(".xls"):
+        try:
+            import pandas as pd
+            df = pd.read_excel(io.BytesIO(contents))
+            df = df.fillna("")
+            rows = df.to_dict(orient="records")
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Gagal membaca file Excel: {str(e)}")
+    else:
+        raise HTTPException(status_code=400, detail="Format file tidak didukung. Harap unggah file .csv atau .xlsx.")
+
+    if not rows:
+        raise HTTPException(status_code=400, detail="File yang diunggah kosong atau tidak memiliki baris data.")
+
+    created_items = []
+    errors = []
+
+    for idx, row in enumerate(rows, start=1):
+        try:
+            mapped_data = _map_row_to_opportunity_dict(row)
+            if not mapped_data.get("company_name"):
+                continue
+
+            agenda_date = mapped_data["estimated_agenda_date"]
+            now = datetime.now(timezone.utc)
+            opp_status = "New"
+            if agenda_date:
+                m_dt = agenda_date if agenda_date.tzinfo else agenda_date.replace(tzinfo=timezone.utc)
+                opp_status = "Meeting Scheduled" if m_dt > now else "Meeting Done"
+
+            opportunity = Opportunity(
+                company_name=mapped_data["company_name"],
+                contact_name=mapped_data["contact_name"],
+                website=mapped_data["website"],
+                email=mapped_data["email"],
+                phone=mapped_data["phone"],
+                industry=mapped_data["industry"],
+                product=mapped_data["product"],
+                customer_needs=mapped_data["customer_needs"],
+                potential_revenue=mapped_data["potential_revenue"],
+                estimated_agenda_date=agenda_date,
+                meeting_schedule=agenda_date,
+                created_by=current_user.id,
+                status=opp_status,
+            )
+            db.add(opportunity)
+            db.flush()
+
+            if agenda_date:
+                initial_meeting = Meeting(
+                    opportunity_id=opportunity.id,
+                    title=f"Initial Discovery Call - {opportunity.company_name}",
+                    date=agenda_date,
+                    location="Online / Google Meet",
+                    notes=f"Initial meeting imported for {opportunity.company_name} ({opportunity.product or 'Pre-sales'}).",
+                    created_by=current_user.id,
+                )
+                db.add(initial_meeting)
+
+            _log_timeline(
+                db,
+                opportunity.id,
+                current_user,
+                "Opportunity Imported",
+                f"Diimpor dari file {filename}",
+                event_type="create",
+            )
+
+            try:
+                run_kyc_pipeline_task.delay(str(opportunity.id), source_type="automatic")
+            except Exception:
+                pass
+
+            created_items.append({
+                "id": str(opportunity.id),
+                "company_name": opportunity.company_name,
+                "contact_name": opportunity.contact_name,
+                "status": opportunity.status,
+            })
+        except Exception as err:
+            errors.append(f"Baris {idx}: {str(err)}")
+
+    db.commit()
+
+    return {
+        "imported_count": len(created_items),
+        "failed_count": len(errors),
+        "errors": errors,
+        "imported": created_items,
     }

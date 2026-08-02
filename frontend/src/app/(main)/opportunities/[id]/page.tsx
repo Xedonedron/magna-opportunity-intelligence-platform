@@ -294,6 +294,11 @@ export default function OpportunityDetailPage() {
                                             value={opp.company_name}
                                         />
                                         <InfoRow
+                                            icon={<User className="w-4 h-4" />}
+                                            label="Contact PIC"
+                                            value={opp.contact_name}
+                                        />
+                                        <InfoRow
                                             icon={<Globe className="w-4 h-4" />}
                                             label="Website"
                                             value={opp.website}

@@ -76,3 +76,28 @@ export function useDeleteOpportunity() {
         },
     });
 }
+
+export interface ImportResult {
+    imported_count: number;
+    failed_count: number;
+    errors: string[];
+    imported: { id: string; company_name: string; contact_name?: string; status: string }[];
+}
+
+export function useImportOpportunities() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (file: File) => {
+            const formData = new FormData();
+            formData.append("file", file);
+            const { data } = await api.post<ImportResult>("/api/opportunities/import", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            return data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["opportunities"] });
+            queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        },
+    });
+}

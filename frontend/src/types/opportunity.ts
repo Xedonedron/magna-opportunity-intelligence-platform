@@ -32,6 +32,7 @@ export interface TimelineEvent {
 export interface Opportunity {
     id: string;
     company_name: string;
+    contact_name: string | null;
     website: string | null;
     email: string | null;
     phone: string | null;
@@ -64,6 +65,7 @@ export interface OpportunityListResponse {
 
 export interface OpportunityCreateInput {
     company_name: string;
+    contact_name?: string | null;
     website?: string | null;
     email?: string | null;
     phone?: string | null;

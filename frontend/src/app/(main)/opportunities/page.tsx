@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Search, ChevronRight, ChevronLeft, Trash2, LayoutGrid, List } from "lucide-react";
+import { Plus, Search, ChevronRight, ChevronLeft, Trash2, LayoutGrid, List, Upload } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -89,11 +89,18 @@ export default function OpportunitiesPage() {
                     </p>
                 </div>
                 {canCreate && (
-                    <Link href="/opportunities/create">
-                        <Button className="gap-2">
-                            <Plus className="w-4 h-4" /> New Opportunity
-                        </Button>
-                    </Link>
+                    <div className="flex items-center gap-2">
+                        <Link href="/opportunities/import">
+                            <Button variant="secondary" className="gap-2 border-zinc-200">
+                                <Upload className="w-4 h-4 text-zinc-700" /> Import Leads
+                            </Button>
+                        </Link>
+                        <Link href="/opportunities/create">
+                            <Button className="gap-2">
+                                <Plus className="w-4 h-4" /> New Opportunity
+                            </Button>
+                        </Link>
+                    </div>
                 )}
             </div>
 
