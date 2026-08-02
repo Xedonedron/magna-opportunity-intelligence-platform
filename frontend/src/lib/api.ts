@@ -8,11 +8,22 @@ import type {
 
 export const getClientBaseUrl = () => {
     if (typeof window !== "undefined") {
-        if (process.env.NEXT_PUBLIC_API_URL) {
-            return process.env.NEXT_PUBLIC_API_URL;
-        }
+        const envUrl = process.env.NEXT_PUBLIC_API_URL;
         const { protocol, hostname } = window.location;
-        return `${protocol}//${hostname}:8009`;
+
+        // If explicitly set and not generic localhost fallback on a real domain
+        if (envUrl && envUrl !== "http://localhost:8009") {
+            return envUrl;
+        }
+
+        // On localhost/127.0.0.1 development
+        if (hostname === "localhost" || hostname === "127.0.0.1") {
+            return envUrl || `${protocol}//${hostname}:8009`;
+        }
+
+        // In production VM/Domain deployment (e.g. moip.cloudwithmagna.com),
+        // Nginx proxies /api on the same origin (HTTPS port 443)
+        return `${protocol}//${hostname}`;
     }
     return process.env.INTERNAL_API_URL || "http://backend:8000";
 };

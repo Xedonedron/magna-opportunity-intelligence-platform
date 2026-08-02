@@ -95,11 +95,14 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     container_name: moip_frontend
     ports:
       - "3009:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8009
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
       INTERNAL_API_URL: http://backend:8000
       NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     depends_on:
