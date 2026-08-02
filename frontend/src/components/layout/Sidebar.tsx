@@ -46,7 +46,7 @@ export function Sidebar() {
             try {
                 setUser(JSON.parse(storedUser));
             } catch (e) {
-                console.error("Failed to parse moip_user", e);
+                localStorage.removeItem("moip_user");
             }
         }
 

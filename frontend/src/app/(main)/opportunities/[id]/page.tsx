@@ -72,7 +72,7 @@ export default function OpportunityDetailPage() {
             try {
                 setUser(JSON.parse(stored));
             } catch (e) {
-                console.error(e);
+                localStorage.removeItem("moip_user");
             }
         }
         api.get("/api/admin/settings")

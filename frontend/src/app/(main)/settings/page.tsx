@@ -121,7 +121,7 @@ export default function SettingsPage() {
                 setUser(parsed);
                 setFullName(parsed.full_name || "");
             } catch (e) {
-                console.error("Failed to parse moip_user", e);
+                localStorage.removeItem("moip_user");
             }
         }
 

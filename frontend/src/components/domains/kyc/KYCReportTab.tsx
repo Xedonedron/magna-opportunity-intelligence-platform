@@ -51,7 +51,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
             try {
                 setUser(JSON.parse(stored));
             } catch (e) {
-                console.error(e);
+                localStorage.removeItem("moip_user");
             }
         }
     }, []);

@@ -29,7 +29,7 @@ export default function OpportunitiesPage() {
             try {
                 setUser(JSON.parse(storedUser));
             } catch (e) {
-                console.error(e);
+                localStorage.removeItem("moip_user");
             }
         }
         const storedView = localStorage.getItem("moip_opportunities_view");
