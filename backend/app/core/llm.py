@@ -74,7 +74,7 @@ def get_chat_llm(
         mn_lower = active_model.lower()
         if "gemini" in mn_lower or "gemma" in mn_lower:
             selected_provider = "google"
-        elif "deepseek" in mn_lower or "nemotron" in mn_lower or "gpt" in mn_lower:
+        elif "deepseek" in mn_lower or "glm" in mn_lower or "gpt" in mn_lower:
             selected_provider = "openai"
 
     if "google" in selected_provider or "gemini" in selected_provider or "gemma" in selected_provider:
@@ -111,10 +111,11 @@ def get_chat_llm(
         )
 
     else:
-        # OpenAI Compatible (CosmosHub / DeepSeek)
-        final_model = active_model or settings.OPENAI_MODEL or "deepseek-3.2"
+        # OpenAI Compatible (CosmosHub / DeepSeek / GLM / Nemotron)
+        final_model = active_model or settings.OPENAI_MODEL or "glm-5"
         final_key = api_key or db_openai_key or settings.OPENAI_API_KEY
-        final_base = api_base or db_openai_base or settings.OPENAI_API_BASE
+        # Only use db_openai_base if it's not empty, otherwise fall back to settings
+        final_base = api_base or (db_openai_base if db_openai_base and db_openai_base.strip() else None) or settings.OPENAI_API_BASE
 
         if not final_key:
             logger.warning("[LLM Factory] Active OpenAI API Key is missing!")

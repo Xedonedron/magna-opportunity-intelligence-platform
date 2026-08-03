@@ -484,7 +484,7 @@ export default function SettingsPage() {
                                         onClick={() => {
                                             if (!isSuperAdmin) return;
                                             setLlmProvider("openai");
-                                            setAiModel("deepseek-3.2");
+                                            setAiModel("glm-5");
                                         }}
                                         className={`p-3.5 rounded-lg border text-left transition-all flex flex-col justify-between ${!isSuperAdmin ? "opacity-80 cursor-not-allowed " : ""
                                             }${llmProvider === "openai"
@@ -498,7 +498,7 @@ export default function SettingsPage() {
                                                 <span className="text-[10px] bg-zinc-100 text-zinc-700 font-bold px-2 py-0.5 rounded-full">CosmosHub</span>
                                             </div>
                                             <p className="text-xs text-zinc-500 mt-1">
-                                                DeepSeek 3.2 & Nemotron-3 Super via OpenAI API endpoints.
+                                                GLM-5, DeepSeek 3.2, Minimax & Nemotron via CosmosHub API.
                                             </p>
                                         </div>
                                     </button>
@@ -525,8 +525,10 @@ export default function SettingsPage() {
                                         </>
                                     ) : (
                                         <>
+                                            <option value="glm-5">GLM-5 (Default - CosmosHub)</option>
                                             <option value="deepseek-3.2">DeepSeek 3.2 (Optimasi Analisis Bisnis)</option>
-                                            <option value="nemotron-3-super">Nemotron-3 Super (CosmosHub)</option>
+                                            <option value="minimax-m2.5">Minimax M2.5 (CosmosHub)</option>
+                                            <option value="nemotron">Nemotron (CosmosHub)</option>
                                         </>
                                     )}
                                 </select>
@@ -634,8 +636,8 @@ export default function SettingsPage() {
 
                                         {testResult && (
                                             <div className={`text-xs px-3 py-1.5 rounded-md flex items-center gap-1.5 max-w-xs ${testResult.status === "success"
-                                                    ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                                                    : "bg-red-50 text-red-800 border border-red-200"
+                                                ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                                : "bg-red-50 text-red-800 border border-red-200"
                                                 }`}>
                                                 {testResult.status === "success" ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 shrink-0" />}
                                                 <span className="truncate">{testResult.message}</span>
@@ -951,8 +953,8 @@ export default function SettingsPage() {
                                                     {!isEditing ? (
                                                         <>
                                                             <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${u.role === "superadmin" ? "bg-violet-50 text-violet-700 border-violet-200" :
-                                                                    u.role === "manager" ? "bg-blue-50 text-blue-700 border-blue-200" :
-                                                                        "bg-zinc-100 text-zinc-600 border-zinc-200"
+                                                                u.role === "manager" ? "bg-blue-50 text-blue-700 border-blue-200" :
+                                                                    "bg-zinc-100 text-zinc-600 border-zinc-200"
                                                                 }`}>{u.role}</span>
                                                             {!isSelf && (
                                                                 <Button size="sm" variant="secondary" className="text-xs" onClick={() => startEditing(u)}>Edit Access</Button>
@@ -987,8 +989,8 @@ export default function SettingsPage() {
                                                                     key={r}
                                                                     onClick={() => handleRoleChange(r)}
                                                                     className={`text-xs px-3 py-1 rounded-full border font-semibold uppercase transition-all ${draft.role === r
-                                                                            ? "bg-zinc-900 text-white border-zinc-900"
-                                                                            : "bg-white text-zinc-600 border-zinc-300 hover:border-zinc-600"
+                                                                        ? "bg-zinc-900 text-white border-zinc-900"
+                                                                        : "bg-white text-zinc-600 border-zinc-300 hover:border-zinc-600"
                                                                         }`}
                                                                 >
                                                                     {r}
@@ -1008,8 +1010,8 @@ export default function SettingsPage() {
                                                                         key={cap}
                                                                         onClick={() => toggleCap(cap)}
                                                                         className={`text-xs px-3 py-1 rounded-full border font-medium transition-all flex items-center gap-1.5 ${active
-                                                                                ? "bg-emerald-600 text-white border-emerald-600"
-                                                                                : "bg-white text-zinc-400 border-zinc-200 hover:border-zinc-400"
+                                                                            ? "bg-emerald-600 text-white border-emerald-600"
+                                                                            : "bg-white text-zinc-400 border-zinc-200 hover:border-zinc-400"
                                                                             }`}
                                                                     >
                                                                         {active && <CheckCircle2 className="w-3 h-3" />}
