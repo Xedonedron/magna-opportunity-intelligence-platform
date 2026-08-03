@@ -21,6 +21,60 @@ docker compose exec -T backend alembic upgrade head
 
 ---
 
+## 📌 1.1 Error 500: Kolom JSON `contacts` Tidak Ada di Database
+
+### 🔍 Gejala
+Error 500 pada endpoint `/api/dashboard/metrics` dengan pesan error di log backend:
+```
+psycopg2.errors.UndefinedColumn: column opportunities.contacts does not exist
+```
+
+### 🚨 Penyebab Utama
+Model SQLAlchemy `Opportunity` memiliki field `contacts` (tipe JSON), tetapi migration untuk kolom tersebut belum dibuat atau belum dijalankan di database VM. Hal ini menyebabkan SQLAlchemy mencoba query kolom yang tidak ada di tabel `opportunities`.
+
+**Catatan Penting:** Masalah ini dapat terjadi jika:
+1. Developer menambahkan field baru di model tanpa membuat migration
+2. Migration sudah dibuat tetapi `down_revision` salah (tidak terhubung ke migration sebelumnya)
+3. Container Docker menggunakan code lama setelah pull dari repo (perlu rebuild)
+
+### 🛠️ Solusi & Cara Penanganan
+
+#### Langkah 1: Cek Backend Log untuk Identifikasi Kolom yang Hilang
+```bash
+docker compose logs --tail=100 backend 2>&1 | grep -i "undefinedcolumn\|does not exist"
+```
+
+#### Langkah 2: Verifikasi Status Migration
+```bash
+docker compose exec -T backend alembic current
+docker compose exec -T backend alembic history --verbose | head -30
+```
+
+#### Langkah 3: Jika Migration Baru Tidak Terdeteksi
+Jika migration baru sudah dibuat tetapi tidak muncul di `alembic history`, kemungkinan:
+- Container menggunakan code lama → **rebuild container**:
+  ```bash
+  docker compose build --no-cache backend && docker compose up -d backend
+  ```
+- `down_revision` salah → perbaiki file migration agar `down_revision` mengarah ke revision terakhir yang aktif
+
+#### Langkah 4: Jalankan Migration
+```bash
+docker compose exec -T backend alembic upgrade head
+```
+
+#### Langkah 5: Verifikasi Kolom Sudah Ada
+```bash
+docker compose exec -T postgres psql -U moip -d moip_db -c "\d opportunities"
+```
+
+### 💡 Pencegahan
+- Selalu buat migration setelah menambah field baru di model SQLAlchemy
+- Pastikan `down_revision` di migration baru mengarah ke revision yang benar (head saat ini)
+- Setelah pull code dari repo, selalu rebuild container jika ada perubahan di folder `alembic/versions/`
+
+---
+
 ## 🌐 2. Error CORS & Network Error di VM (`Status Code: (null)`)
 
 ### 🔍 Gejala

@@ -34,7 +34,7 @@ const formSchema = z.object({
     additional_notes: z.string().optional(),
     potential_revenue: z.string().optional(),
     estimated_agenda_date: z.string().optional(),
-    meeting_schedule: z.string().min(1, "Initial Meeting Date is required"),
+    meeting_schedule: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
