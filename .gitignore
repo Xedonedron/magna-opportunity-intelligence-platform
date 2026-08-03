@@ -14,3 +14,4 @@ backend/data/
 chromadb/
 *.sqlite3
 *.db
+clone/
