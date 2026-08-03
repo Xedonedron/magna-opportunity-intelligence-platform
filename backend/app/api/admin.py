@@ -237,6 +237,14 @@ def get_system_settings_api(
     gemini_key = kv.get("gemini_api_key") or settings.active_gemini_api_key
     openai_key = kv.get("openai_api_key") or settings.OPENAI_API_KEY
 
+    # Auto-seed system_settings table if keys exist in environment but missing in DB
+    if not kv.get("gemini_api_key") and settings.active_gemini_api_key:
+        db.merge(SystemSetting(key="gemini_api_key", value=settings.active_gemini_api_key))
+        db.commit()
+    if not kv.get("openai_api_key") and settings.OPENAI_API_KEY:
+        db.merge(SystemSetting(key="openai_api_key", value=settings.OPENAI_API_KEY))
+        db.commit()
+
     return {
         "llm_provider": kv.get("llm_provider") or settings.LLM_PROVIDER,
         "ai_model": kv.get("ai_model") or settings.OPENAI_MODEL,

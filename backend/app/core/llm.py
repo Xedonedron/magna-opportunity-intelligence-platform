@@ -46,9 +46,18 @@ def has_active_llm_key(db: Optional[Session] = None) -> bool:
     """
     Check if any active LLM API Key (OpenAI or Gemini) is configured in DB or environment settings.
     """
+    def _is_valid(val: Optional[str]) -> bool:
+        return bool(val and val.strip() and not val.strip().startswith("****"))
+
     db_gemini = get_db_setting(db, "gemini_api_key")
     db_openai = get_db_setting(db, "openai_api_key")
-    return bool(db_gemini or db_openai or settings.OPENAI_API_KEY or settings.active_gemini_api_key)
+
+    return (
+        _is_valid(db_gemini)
+        or _is_valid(db_openai)
+        or _is_valid(settings.OPENAI_API_KEY)
+        or _is_valid(settings.active_gemini_api_key)
+    )
 
 
 def get_chat_llm(
