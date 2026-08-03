@@ -114,8 +114,15 @@ def get_chat_llm(
         # OpenAI Compatible (CosmosHub / DeepSeek / GLM / Nemotron)
         final_model = active_model or settings.OPENAI_MODEL or "glm-5"
         final_key = api_key or db_openai_key or settings.OPENAI_API_KEY
-        # Only use db_openai_base if it's not empty, otherwise fall back to settings
-        final_base = api_base or (db_openai_base if db_openai_base and db_openai_base.strip() else None) or settings.OPENAI_API_BASE
+        def _clean_str(val: Optional[str]) -> Optional[str]:
+            return val.strip() if val and val.strip() else None
+
+        final_base = (
+            _clean_str(api_base)
+            or _clean_str(db_openai_base)
+            or _clean_str(settings.OPENAI_API_BASE)
+            or "https://api.cosmoshub.tech/v1"
+        )
 
         if not final_key:
             logger.warning("[LLM Factory] Active OpenAI API Key is missing!")

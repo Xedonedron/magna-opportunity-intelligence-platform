@@ -49,6 +49,7 @@ export default function SettingsPage() {
     const [hideFinancialNumbers, setHideFinancialNumbers] = useState(false);
     const [geminiApiKey, setGeminiApiKey] = useState("");
     const [openaiApiKey, setOpenaiApiKey] = useState("");
+    const [openaiApiBase, setOpenaiApiBase] = useState("https://api.cosmoshub.tech/v1");
     const [maskedGeminiKey, setMaskedGeminiKey] = useState("");
     const [maskedOpenaiKey, setMaskedOpenaiKey] = useState("");
     const [savingAiSettings, setSavingAiSettings] = useState(false);
@@ -106,6 +107,7 @@ export default function SettingsPage() {
                 setHideFinancialNumbers(Boolean(data.hide_financial_numbers));
                 setMaskedGeminiKey(data.masked_gemini_key || "");
                 setMaskedOpenaiKey(data.masked_openai_key || "");
+                setOpenaiApiBase(data.openai_api_base || "https://api.cosmoshub.tech/v1");
             }
         } catch (e) {
             console.error("Failed to load settings from server, falling back to localStorage", e);
@@ -210,6 +212,7 @@ export default function SettingsPage() {
                 hide_financial_numbers: hideFinancialNumbers,
                 gemini_api_key: geminiApiKey.trim() || undefined,
                 openai_api_key: openaiApiKey.trim() || undefined,
+                openai_api_base: openaiApiBase.trim() || undefined,
             });
 
             const aiSettings = {
@@ -243,6 +246,7 @@ export default function SettingsPage() {
                 provider: llmProvider,
                 model: aiModel,
                 api_key: currentKey.trim() || undefined,
+                api_base: llmProvider === "openai" ? (openaiApiBase.trim() || undefined) : undefined,
             });
             setTestResult(res.data);
         } catch (e: any) {
@@ -525,10 +529,10 @@ export default function SettingsPage() {
                                         </>
                                     ) : (
                                         <>
-                                            <option value="glm-5">GLM-5 (Default - CosmosHub)</option>
-                                            <option value="deepseek-3.2">DeepSeek 3.2 (Optimasi Analisis Bisnis)</option>
-                                            <option value="minimax-m2.5">Minimax M2.5 (CosmosHub)</option>
-                                            <option value="nemotron">Nemotron (CosmosHub)</option>
+                                            <option value="glm-5">GLM-5</option>
+                                            <option value="deepseek-3.2">DeepSeek 3.2</option>
+                                            <option value="minimax-m2.5">Minimax M2.5</option>
+                                            <option value="nemotron">Nemotron</option>
                                         </>
                                     )}
                                 </select>
@@ -593,29 +597,46 @@ export default function SettingsPage() {
                                 )}
 
                                 {llmProvider === "openai" && (
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between items-center">
-                                            <label className="text-xs font-semibold text-zinc-700 uppercase">OpenAI / CosmosHub API Key</label>
-                                            {maskedOpenaiKey && (
-                                                <span className="text-[10px] font-mono text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200">
-                                                    Aktif: {maskedOpenaiKey}
-                                                </span>
-                                            )}
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <label className="text-xs font-semibold text-zinc-700 uppercase">OpenAI / CosmosHub API Key</label>
+                                                {maskedOpenaiKey && (
+                                                    <span className="text-[10px] font-mono text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200">
+                                                        Aktif: {maskedOpenaiKey}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <Input
+                                                type="password"
+                                                disabled={!isSuperAdmin}
+                                                placeholder={
+                                                    !isSuperAdmin
+                                                        ? "Dikonfigurasi oleh Superadmin"
+                                                        : maskedOpenaiKey
+                                                            ? "Kosongkan jika tidak ingin mengubah API Key"
+                                                            : "Masukkan API Key (sk-...)"
+                                                }
+                                                value={openaiApiKey}
+                                                onChange={(e) => setOpenaiApiKey(e.target.value)}
+                                                className={!isSuperAdmin ? "bg-zinc-50 cursor-not-allowed" : ""}
+                                            />
                                         </div>
-                                        <Input
-                                            type="password"
-                                            disabled={!isSuperAdmin}
-                                            placeholder={
-                                                !isSuperAdmin
-                                                    ? "Dikonfigurasi oleh Superadmin"
-                                                    : maskedOpenaiKey
-                                                        ? "Kosongkan jika tidak ingin mengubah API Key"
-                                                        : "Masukkan API Key (sk-...)"
-                                            }
-                                            value={openaiApiKey}
-                                            onChange={(e) => setOpenaiApiKey(e.target.value)}
-                                            className={!isSuperAdmin ? "bg-zinc-50 cursor-not-allowed" : ""}
-                                        />
+
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-semibold text-zinc-700 uppercase">OpenAI Compatible Base URL (Endpoint)</label>
+                                            <Input
+                                                type="text"
+                                                disabled={!isSuperAdmin}
+                                                placeholder="https://api.cosmoshub.tech/v1"
+                                                value={openaiApiBase}
+                                                onChange={(e) => setOpenaiApiBase(e.target.value)}
+                                                className={!isSuperAdmin ? "bg-zinc-50 cursor-not-allowed" : ""}
+                                            />
+                                            <p className="text-[11px] text-zinc-500">
+                                                Default endpoint untuk CosmosHub: <code className="font-mono text-zinc-700">https://api.cosmoshub.tech/v1</code>
+                                            </p>
+                                        </div>
                                     </div>
                                 )}
 

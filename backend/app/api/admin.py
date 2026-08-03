@@ -211,6 +211,7 @@ class TestConnectionPayload(BaseModel):
     provider: str
     model: Optional[str] = None
     api_key: Optional[str] = None
+    api_base: Optional[str] = None
 
 
 def mask_key(key: Optional[str]) -> str:
@@ -311,6 +312,7 @@ async def test_llm_connection(
             provider=payload.provider,
             model_name=payload.model,
             api_key=raw_key,
+            api_base=payload.api_base,
             temperature=0.0,
             db=db
         )
