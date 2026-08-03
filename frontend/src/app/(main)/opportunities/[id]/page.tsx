@@ -30,6 +30,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { useOpportunity, useUpdateOpportunity } from "@/hooks/use-opportunities";
+import { useUsers } from "@/hooks/use-users";
 import { useMeetings } from "@/hooks/use-meetings";
 import { MeetingAccordion } from "@/components/domains/meetings/MeetingAccordion";
 import { CreateMeetingDialog } from "@/components/domains/meetings/CreateMeetingDialog";
@@ -84,6 +85,7 @@ export default function OpportunityDetailPage() {
 
     const { data: opp, isLoading } = useOpportunity(id);
     const { data: meetingsData } = useMeetings(id);
+    const { data: usersList } = useUsers();
     const updateOpportunity = useUpdateOpportunity();
 
     if (isLoading) {
@@ -172,7 +174,35 @@ export default function OpportunityDetailPage() {
                                 <span className="hidden sm:inline">•</span>
                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-zinc-100 font-medium text-zinc-800 border border-zinc-200/80">
                                     <User className="w-3.5 h-3.5 text-zinc-500" />
-                                    Pre-Sales: {opp.assigned_engineer?.full_name || "Unassigned"}
+                                    <span>Pre-Sales:</span>
+                                    {canCreateEdit ? (
+                                        <select
+                                            value={opp.assigned_engineer_id || ""}
+                                            onChange={async (e) => {
+                                                const newEngId = e.target.value || null;
+                                                try {
+                                                    await updateOpportunity.mutateAsync({
+                                                        id: opp.id,
+                                                        input: { assigned_engineer_id: newEngId },
+                                                    });
+                                                } catch (err) {
+                                                    console.error("Gagal memperbarui Pre-Sales", err);
+                                                }
+                                            }}
+                                            disabled={updateOpportunity.isPending}
+                                            className="bg-transparent text-xs font-semibold text-zinc-900 border-none outline-none cursor-pointer focus:ring-0"
+                                            title="Ubah Assignment Pre-Sales"
+                                        >
+                                            <option value="">Unassigned</option>
+                                            {usersList?.map((u) => (
+                                                <option key={u.id} value={u.id}>
+                                                    {u.full_name} ({u.role})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <span>{opp.assigned_engineer?.full_name || "Unassigned"}</span>
+                                    )}
                                 </span>
                                 <span className="hidden sm:inline">•</span>
                                 <span>Created {formatDateTime(opp.created_at)}</span>

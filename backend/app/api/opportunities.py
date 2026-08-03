@@ -197,6 +197,7 @@ async def update_opportunity(
 
     update_data = data.model_dump(exclude_unset=True)
     old_status = opportunity.status
+    old_engineer_id = opportunity.assigned_engineer_id
 
     # Validate status
     if "status" in update_data and update_data["status"] not in VALID_STATUSES:
@@ -230,6 +231,40 @@ async def update_opportunity(
             )
             db.add(new_meeting)
 
+    # Log engineer / pre-sales assignment change
+    engineer_changed = "assigned_engineer_id" in update_data and update_data["assigned_engineer_id"] != old_engineer_id
+    if engineer_changed:
+        new_eng_id = update_data["assigned_engineer_id"]
+        if new_eng_id:
+            new_engineer = db.query(User).filter(User.id == new_eng_id).first()
+            eng_name = new_engineer.full_name if new_engineer else "User"
+            _log_timeline(
+                db,
+                opportunity.id,
+                current_user,
+                "Pre-Sales Assigned",
+                f"Assigned Pre-Sales to {eng_name}.",
+                event_type="update",
+            )
+            # Create notification for assigned user
+            notification = Notification(
+                user_id=new_eng_id,
+                opportunity_id=opportunity.id,
+                type="opportunity_assigned",
+                title="Opportunity Assigned",
+                message=f"You have been assigned to pre-sales opportunity '{opportunity.company_name}'.",
+            )
+            db.add(notification)
+        else:
+            _log_timeline(
+                db,
+                opportunity.id,
+                current_user,
+                "Pre-Sales Unassigned",
+                "Removed Pre-Sales assignment.",
+                event_type="update",
+            )
+
     # Log status change separately
     if "status" in update_data and update_data["status"] != old_status:
         _log_timeline(
@@ -240,7 +275,7 @@ async def update_opportunity(
             f"Status changed from '{old_status}' to '{update_data['status']}'.",
             event_type="status_change",
         )
-    elif update_data:
+    elif update_data and not engineer_changed:
         changed_fields = list(update_data.keys())
         _log_timeline(
             db,

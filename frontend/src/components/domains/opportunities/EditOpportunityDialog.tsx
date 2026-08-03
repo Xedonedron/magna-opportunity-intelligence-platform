@@ -5,6 +5,7 @@ import { X, Save } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, SuggestedInput } from "@/components/ui/Input";
 import { useUpdateOpportunity } from "@/hooks/use-opportunities";
+import { useUsers } from "@/hooks/use-users";
 import type { Opportunity } from "@/types/opportunity";
 
 import { useEffect } from "react";
@@ -20,6 +21,7 @@ export function EditOpportunityDialog({
     onClose,
 }: EditOpportunityDialogProps) {
     const updateOpportunity = useUpdateOpportunity();
+    const { data: usersList } = useUsers();
     const [industriesList, setIndustriesList] = useState<string[]>([]);
 
     useEffect(() => {
@@ -40,6 +42,7 @@ export function EditOpportunityDialog({
     const [phone, setPhone] = useState(opportunity.phone || "");
     const [industry, setIndustry] = useState(opportunity.industry || "");
     const [product, setProduct] = useState(opportunity.product || "");
+    const [assignedEngineerId, setAssignedEngineerId] = useState(opportunity.assigned_engineer_id || "");
     const [customerNeeds, setCustomerNeeds] = useState(opportunity.customer_needs || "");
     const [additionalNotes, setAdditionalNotes] = useState(opportunity.additional_notes || "");
     const [meetingSchedule, setMeetingSchedule] = useState(initialSchedule);
@@ -60,6 +63,7 @@ export function EditOpportunityDialog({
                     phone: phone || null,
                     industry: industry || null,
                     product: product || null,
+                    assigned_engineer_id: assignedEngineerId || null,
                     customer_needs: customerNeeds,
                     additional_notes: additionalNotes || null,
                     potential_revenue: potentialRevenue ? parseFloat(potentialRevenue) : null,
@@ -161,6 +165,22 @@ export function EditOpportunityDialog({
                                 <option value="Cloud Infrastructure (GCP)">Cloud Infrastructure (GCP)</option>
                                 <option value="Cybersecurity Suite">Cybersecurity Suite</option>
                                 <option value="Network Solutions">Network Solutions</option>
+                            </Select>
+                        </div>
+                        <div className="space-y-1">
+                            <Select
+                                label="Assigned Pre-Sales / Engineer"
+                                value={assignedEngineerId}
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                                    setAssignedEngineerId(e.target.value)
+                                }
+                            >
+                                <option value="">Unassigned (Belum ditugaskan)</option>
+                                {usersList?.map((user) => (
+                                    <option key={user.id} value={user.id}>
+                                        {user.full_name} ({user.email}) - {user.role}
+                                    </option>
+                                ))}
                             </Select>
                         </div>
                     </div>

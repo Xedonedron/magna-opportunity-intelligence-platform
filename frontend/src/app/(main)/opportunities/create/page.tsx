@@ -18,6 +18,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Select, SuggestedInput } from "@/components/ui/Input";
 import { useCreateOpportunity } from "@/hooks/use-opportunities";
+import { useUsers } from "@/hooks/use-users";
 
 import { getMasterIndustries, getMasterPresales, fetchMasterData } from "@/lib/master-data";
 
@@ -30,6 +31,7 @@ const formSchema = z.object({
     phone: z.string().optional(),
     industry: z.string().optional(),
     product: z.string().min(1, "Target Solution is required"),
+    assigned_engineer_id: z.string().optional(),
     customer_needs: z.string().min(1, "Customer needs is required"),
     additional_notes: z.string().optional(),
     potential_revenue: z.string().optional(),
@@ -68,6 +70,7 @@ export default function CreateOpportunityPage() {
     const defaultDateStr = new Date(defaultDate.getTime() - defaultDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
     const createOpportunity = useCreateOpportunity();
+    const { data: usersList } = useUsers();
 
     const [industriesList, setIndustriesList] = useState<string[]>([]);
     const [presalesList, setPresalesList] = useState<string[]>([]);
@@ -94,6 +97,7 @@ export default function CreateOpportunityPage() {
             phone: "",
             industry: "",
             product: "",
+            assigned_engineer_id: "",
             customer_needs: "",
             additional_notes: "",
             potential_revenue: "",
@@ -117,6 +121,7 @@ export default function CreateOpportunityPage() {
                 phone: data.phone || null,
                 industry: data.industry || null,
                 product: data.product || null,
+                assigned_engineer_id: data.assigned_engineer_id || null,
                 customer_needs: data.customer_needs,
                 additional_notes: data.additional_notes || null,
                 potential_revenue: data.potential_revenue ? parseFloat(data.potential_revenue) : null,
@@ -302,21 +307,32 @@ export default function CreateOpportunityPage() {
                         </div>
                     </div>
 
-                    {/* Target Solution Section */}
+                    {/* Target Solution & Assignment Section */}
                     <div className="space-y-6 mt-8 pt-6 border-t border-zinc-100">
                         <h2 className="text-lg font-medium text-zinc-900 border-b border-zinc-100 pb-4">
-                            Target Solution
+                            Target Solution & Assignment
                         </h2>
-                        <Select label="Target Solution" required {...register("product")}>
-                            <option value="">Select solution...</option>
-                            <option value="Data Analytics Platform">Data Analytics Platform</option>
-                            <option value="AI/ML Solutions">AI/ML Solutions</option>
-                            <option value="Google Workspace (GWS)">Google Workspace (GWS)</option>
-                            <option value="Google Maps Platform (GMaps)">Google Maps Platform (GMaps)</option>
-                            <option value="Cloud Infrastructure (GCP)">Cloud Infrastructure (GCP)</option>
-                            <option value="Cybersecurity Suite">Cybersecurity Suite</option>
-                            <option value="Network Solutions">Network Solutions</option>
-                        </Select>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Select label="Target Solution" required {...register("product")}>
+                                <option value="">Select solution...</option>
+                                <option value="Data Analytics Platform">Data Analytics Platform</option>
+                                <option value="AI/ML Solutions">AI/ML Solutions</option>
+                                <option value="Google Workspace (GWS)">Google Workspace (GWS)</option>
+                                <option value="Google Maps Platform (GMaps)">Google Maps Platform (GMaps)</option>
+                                <option value="Cloud Infrastructure (GCP)">Cloud Infrastructure (GCP)</option>
+                                <option value="Cybersecurity Suite">Cybersecurity Suite</option>
+                                <option value="Network Solutions">Network Solutions</option>
+                            </Select>
+
+                            <Select label="Assigned Pre-Sales / Engineer" {...register("assigned_engineer_id")}>
+                                <option value="">Unassigned (Belum ditugaskan)</option>
+                                {usersList?.map((user) => (
+                                    <option key={user.id} value={user.id}>
+                                        {user.full_name} ({user.email}) - {user.role}
+                                    </option>
+                                ))}
+                            </Select>
+                        </div>
                     </div>
 
                     {/* Context & Needs Section */}

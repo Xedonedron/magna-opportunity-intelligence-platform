@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.core.error_handler import ErrorHandlerMiddleware
 from app.api.auth import router as auth_router
+from app.api.users import router as users_router
 from app.api.opportunities import router as opportunities_router
 from app.api.meetings import router as meetings_router
 from app.api.notifications import router as notifications_router
@@ -43,6 +44,7 @@ app.add_middleware(ErrorHandlerMiddleware)
 
 # Routers
 app.include_router(auth_router)
+app.include_router(users_router)
 app.include_router(opportunities_router)
 app.include_router(meetings_router)
 app.include_router(notifications_router)
