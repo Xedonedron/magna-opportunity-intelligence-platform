@@ -12,7 +12,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph, END
 
 from app.core.config import settings
-from app.core.llm import get_chat_llm
+from app.core.llm import get_chat_llm, has_active_llm_key
 from app.services.web_search_service import web_search_service
 from app.services.web_crawler_service import web_crawler_service
 from app.services.link_verifier import link_verifier_service
@@ -355,7 +355,7 @@ async def run_kyc_pipeline(
     """
     logger.info(f"[KYC Pipeline] Starting KYC for: {company_name}")
 
-    if not settings.OPENAI_API_KEY and not settings.active_gemini_api_key:
+    if not has_active_llm_key():
         return {
             "error": "No LLM API Key (OPENAI_API_KEY or GEMINI_API_KEY) configured",
             "status": "failed",

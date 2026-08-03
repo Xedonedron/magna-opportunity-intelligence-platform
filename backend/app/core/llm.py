@@ -42,6 +42,15 @@ def get_genai_client(api_key: Optional[str] = None, db: Optional[Session] = None
     return genai.Client(api_key=active_key or None)
 
 
+def has_active_llm_key(db: Optional[Session] = None) -> bool:
+    """
+    Check if any active LLM API Key (OpenAI or Gemini) is configured in DB or environment settings.
+    """
+    db_gemini = get_db_setting(db, "gemini_api_key")
+    db_openai = get_db_setting(db, "openai_api_key")
+    return bool(db_gemini or db_openai or settings.OPENAI_API_KEY or settings.active_gemini_api_key)
+
+
 def get_chat_llm(
     provider: Optional[str] = None,
     model_name: Optional[str] = None,
