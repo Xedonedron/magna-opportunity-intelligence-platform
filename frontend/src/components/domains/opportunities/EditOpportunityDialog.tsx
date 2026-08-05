@@ -9,7 +9,7 @@ import { useUsers } from "@/hooks/use-users";
 import type { Opportunity } from "@/types/opportunity";
 
 import { useEffect } from "react";
-import { getMasterIndustries, fetchMasterData } from "@/lib/master-data";
+import { getMasterIndustries, getMasterPresales, fetchMasterData } from "@/lib/master-data";
 
 interface EditOpportunityDialogProps {
     opportunity: Opportunity;
@@ -23,9 +23,13 @@ export function EditOpportunityDialog({
     const updateOpportunity = useUpdateOpportunity();
     const { data: usersList } = useUsers();
     const [industriesList, setIndustriesList] = useState<string[]>([]);
+    const [presalesList, setPresalesList] = useState<string[]>([]);
 
     useEffect(() => {
-        fetchMasterData().then((data) => setIndustriesList(data.industries));
+        fetchMasterData().then((data) => {
+            setIndustriesList(data.industries);
+            setPresalesList(data.presales);
+        });
     }, []);
 
     // Initial datetime-local string format YYYY-MM-DDTHH:mm
@@ -50,6 +54,14 @@ export function EditOpportunityDialog({
         opportunity.potential_revenue ? String(opportunity.potential_revenue) : ""
     );
     const [estimatedAgendaDate, setEstimatedAgendaDate] = useState<string>(initialAgendaDate);
+
+    const activePresales = presalesList.length > 0 ? presalesList : getMasterPresales();
+    const filteredUsers = usersList?.filter((user) =>
+        user.id === assignedEngineerId ||
+        activePresales.some((name) =>
+            user.full_name.toLowerCase().includes(name.trim().toLowerCase())
+        )
+    ) || [];
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -176,7 +188,7 @@ export function EditOpportunityDialog({
                                 }
                             >
                                 <option value="">Unassigned (Belum ditugaskan)</option>
-                                {usersList?.map((user) => (
+                                {filteredUsers.map((user) => (
                                     <option key={user.id} value={user.id}>
                                         {user.full_name} ({user.email}) - {user.role}
                                     </option>

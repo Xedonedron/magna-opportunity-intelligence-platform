@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { useOpportunity, useUpdateOpportunity } from "@/hooks/use-opportunities";
 import { useUsers } from "@/hooks/use-users";
+import { getMasterPresales, fetchMasterData } from "@/lib/master-data";
 import { useMeetings } from "@/hooks/use-meetings";
 import { MeetingAccordion } from "@/components/domains/meetings/MeetingAccordion";
 import { CreateMeetingDialog } from "@/components/domains/meetings/CreateMeetingDialog";
@@ -66,6 +67,7 @@ export default function OpportunityDetailPage() {
     const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
     const [user, setUser] = useState<any>(null);
     const [hideFinancialNumbers, setHideFinancialNumbers] = useState(false);
+    const [presalesList, setPresalesList] = useState<string[]>([]);
 
     useEffect(() => {
         const stored = localStorage.getItem("moip_user");
@@ -79,6 +81,10 @@ export default function OpportunityDetailPage() {
         api.get("/api/admin/settings")
             .then((res) => setHideFinancialNumbers(Boolean(res.data?.hide_financial_numbers)))
             .catch((e) => console.error("Failed to load settings", e));
+
+        fetchMasterData()
+            .then((data) => setPresalesList(data.presales))
+            .catch((e) => console.error("Failed to fetch master data", e));
     }, []);
 
     const canCreateEdit = user ? user.capabilities?.split(",").map((c: string) => c.trim()).includes("create_edit") : false;
@@ -87,6 +93,14 @@ export default function OpportunityDetailPage() {
     const { data: meetingsData } = useMeetings(id);
     const { data: usersList } = useUsers();
     const updateOpportunity = useUpdateOpportunity();
+
+    const activePresales = presalesList.length > 0 ? presalesList : getMasterPresales();
+    const filteredUsers = usersList?.filter((u) =>
+        (opp && u.id === opp.assigned_engineer_id) ||
+        activePresales.some((name) =>
+            u.full_name.toLowerCase().includes(name.trim().toLowerCase())
+        )
+    ) || [];
 
     if (isLoading) {
         return (
@@ -194,7 +208,7 @@ export default function OpportunityDetailPage() {
                                             title="Ubah Assignment Pre-Sales"
                                         >
                                             <option value="">Unassigned</option>
-                                            {usersList?.map((u) => (
+                                            {filteredUsers.map((u) => (
                                                 <option key={u.id} value={u.id}>
                                                     {u.full_name} ({u.role})
                                                 </option>

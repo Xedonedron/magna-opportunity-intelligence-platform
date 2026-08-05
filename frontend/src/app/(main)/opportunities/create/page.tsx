@@ -82,6 +82,13 @@ export default function CreateOpportunityPage() {
         });
     }, []);
 
+    const activePresales = presalesList.length > 0 ? presalesList : getMasterPresales();
+    const filteredUsers = usersList?.filter((user) =>
+        activePresales.some((name) =>
+            user.full_name.toLowerCase().includes(name.trim().toLowerCase())
+        )
+    ) || [];
+
     const {
         register,
         handleSubmit,
@@ -326,7 +333,7 @@ export default function CreateOpportunityPage() {
 
                             <Select label="Assigned Pre-Sales / Engineer" {...register("assigned_engineer_id")}>
                                 <option value="">Unassigned (Belum ditugaskan)</option>
-                                {usersList?.map((user) => (
+                                {filteredUsers.map((user) => (
                                     <option key={user.id} value={user.id}>
                                         {user.full_name} ({user.email}) - {user.role}
                                     </option>

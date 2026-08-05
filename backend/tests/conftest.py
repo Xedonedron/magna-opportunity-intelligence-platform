@@ -94,6 +94,7 @@ def test_user(db: Session) -> User:
         email="test@smartnet.co.id",
         full_name="Test User",
         role="engineer",
+        capabilities="view,create_edit,delete,generate_kyc",
         is_active=True,
         google_id="test_google_id_123",
     )
@@ -111,6 +112,7 @@ def admin_user(db: Session) -> User:
         email="admin@smartnet.co.id",
         full_name="Admin User",
         role="admin",
+        capabilities="view,create_edit,delete,generate_kyc,user_management",
         is_active=True,
         google_id="admin_google_id_123",
     )
@@ -128,6 +130,7 @@ def lgo_user(db: Session) -> User:
         email="lgo@smartnet.co.id",
         full_name="LGO User",
         role="lgo",
+        capabilities="view,create_edit,delete,generate_kyc",
         is_active=True,
         google_id="lgo_google_id_123",
     )
