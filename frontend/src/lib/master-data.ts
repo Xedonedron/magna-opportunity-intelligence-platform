@@ -32,6 +32,14 @@ export const DEFAULT_PRESALES = [
     "Gerry",
 ];
 
+export const DEFAULT_DOCUMENT_LABELS = [
+    "MoM",
+    "Compro",
+    "Solution Brief",
+    "Assessment List",
+    "Technical Proposal",
+];
+
 export function getMasterIndustries(): string[] {
     if (typeof window === "undefined") return DEFAULT_INDUSTRIES;
     const stored = localStorage.getItem("moip_master_industries");
@@ -60,20 +68,38 @@ export function getMasterPresales(): string[] {
     return DEFAULT_PRESALES;
 }
 
-export async function fetchMasterData(): Promise<{ industries: string[]; presales: string[] }> {
+export function getMasterDocumentLabels(): string[] {
+    if (typeof window === "undefined") return DEFAULT_DOCUMENT_LABELS;
+    const stored = localStorage.getItem("moip_master_document_labels");
+    if (stored) {
+        try {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch (e) {
+            console.error("Failed to parse moip_master_document_labels", e);
+        }
+    }
+    return DEFAULT_DOCUMENT_LABELS;
+}
+
+export async function fetchMasterData(): Promise<{ industries: string[]; presales: string[]; document_labels: string[] }> {
     try {
         const res = await api.get("/api/admin/master-data");
         if (res.data) {
-            const { industries, presales } = res.data;
+            const { industries, presales, document_labels } = res.data;
             if (Array.isArray(industries) && typeof window !== "undefined") {
                 localStorage.setItem("moip_master_industries", JSON.stringify(industries));
             }
             if (Array.isArray(presales) && typeof window !== "undefined") {
                 localStorage.setItem("moip_master_presales", JSON.stringify(presales));
             }
+            if (Array.isArray(document_labels) && typeof window !== "undefined") {
+                localStorage.setItem("moip_master_document_labels", JSON.stringify(document_labels));
+            }
             return {
                 industries: industries || DEFAULT_INDUSTRIES,
                 presales: presales || DEFAULT_PRESALES,
+                document_labels: document_labels || DEFAULT_DOCUMENT_LABELS,
             };
         }
     } catch (e) {
@@ -83,6 +109,7 @@ export async function fetchMasterData(): Promise<{ industries: string[]; presale
     return {
         industries: getMasterIndustries(),
         presales: getMasterPresales(),
+        document_labels: getMasterDocumentLabels(),
     };
 }
 

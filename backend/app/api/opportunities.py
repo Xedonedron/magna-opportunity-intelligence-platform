@@ -7,7 +7,7 @@ from sqlalchemy import func as sa_func
 
 from app.core.database import get_db
 from app.models.user import User
-from app.models.opportunity import Opportunity, TimelineEvent
+from app.models.opportunity import Opportunity, TimelineEvent, OpportunityDocument
 from app.models.meeting import Meeting
 from app.schemas.opportunity import (
     OpportunityCreate,
@@ -15,6 +15,10 @@ from app.schemas.opportunity import (
     OpportunityResponse,
     OpportunityDetailResponse,
     OpportunityListResponse,
+    OpportunityDocumentCreate,
+    OpportunityDocumentUpdate,
+    OpportunityDocumentResponse,
+    OpportunityDocumentListResponse,
 )
 from app.api.auth import get_current_user, require_capability
 from app.tasks import (
@@ -773,3 +777,160 @@ async def import_opportunities(
         "errors": errors,
         "imported": created_items,
     }
+
+
+# --- Opportunity Documents Endpoints ---
+from sqlalchemy import or_ as sql_or
+
+
+@router.get("/{opportunity_id}/documents", response_model=OpportunityDocumentListResponse)
+async def list_opportunity_documents(
+    opportunity_id: uuid.UUID,
+    label: str | None = Query(None),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """List all documents for an opportunity with optional label filter."""
+    opp = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+
+    query = db.query(OpportunityDocument).filter(OpportunityDocument.opportunity_id == opportunity_id)
+
+    # Filter by label if provided
+    if label:
+        query = query.filter(OpportunityDocument.labels.contains([label]))
+
+    # Sort by created_at
+    order_column = OpportunityDocument.created_at.desc() if sort_order == "desc" else OpportunityDocument.created_at.asc()
+    query = query.order_by(order_column)
+
+    documents = query.all()
+
+    return OpportunityDocumentListResponse(
+        items=[OpportunityDocumentResponse.model_validate(doc) for doc in documents],
+        total=len(documents),
+    )
+
+
+@router.post("/{opportunity_id}/documents", response_model=OpportunityDocumentResponse, status_code=status.HTTP_201_CREATED)
+async def create_opportunity_document(
+    opportunity_id: uuid.UUID,
+    data: OpportunityDocumentCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Add a new document to an opportunity."""
+    opp = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+
+    document = OpportunityDocument(
+        opportunity_id=opportunity_id,
+        title=data.title,
+        url=data.url,
+        description=data.description,
+        labels=data.labels or [],
+        uploaded_by=current_user.id,
+    )
+    db.add(document)
+
+    # Log timeline
+    _log_timeline(
+        db,
+        opportunity_id,
+        current_user,
+        "Document Added",
+        f"Document '{data.title}' was added.",
+        event_type="update",
+    )
+
+    db.commit()
+    db.refresh(document)
+
+    return document
+
+
+@router.patch("/{opportunity_id}/documents/{document_id}", response_model=OpportunityDocumentResponse)
+async def update_opportunity_document(
+    opportunity_id: uuid.UUID,
+    document_id: uuid.UUID,
+    data: OpportunityDocumentUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Update a document's details."""
+    opp = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+
+    document = (
+        db.query(OpportunityDocument)
+        .filter(
+            OpportunityDocument.id == document_id,
+            OpportunityDocument.opportunity_id == opportunity_id,
+        )
+        .first()
+    )
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    update_data = data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(document, field, value)
+
+    # Log timeline
+    _log_timeline(
+        db,
+        opportunity_id,
+        current_user,
+        "Document Updated",
+        f"Document '{document.title}' was updated.",
+        event_type="update",
+    )
+
+    db.commit()
+    db.refresh(document)
+
+    return document
+
+
+@router.delete("/{opportunity_id}/documents/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_opportunity_document(
+    opportunity_id: uuid.UUID,
+    document_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Delete a document from an opportunity."""
+    opp = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+
+    document = (
+        db.query(OpportunityDocument)
+        .filter(
+            OpportunityDocument.id == document_id,
+            OpportunityDocument.opportunity_id == opportunity_id,
+        )
+        .first()
+    )
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    doc_title = document.title
+
+    db.delete(document)
+
+    # Log timeline
+    _log_timeline(
+        db,
+        opportunity_id,
+        current_user,
+        "Document Deleted",
+        f"Document '{doc_title}' was removed.",
+        event_type="update",
+    )
+
+    db.commit()

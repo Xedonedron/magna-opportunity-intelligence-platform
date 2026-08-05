@@ -67,6 +67,9 @@ class Opportunity(Base):
     chat_messages: Mapped[list["OpportunityChatMessage"]] = relationship(
         back_populates="opportunity", cascade="all, delete-orphan", lazy="selectin"
     )
+    documents: Mapped[list["OpportunityDocument"]] = relationship(
+        back_populates="opportunity", cascade="all, delete-orphan", lazy="selectin"
+    )
 
     def __repr__(self) -> str:
         return f"<Opportunity {self.company_name} ({self.status})>"
@@ -120,3 +123,34 @@ class OpportunityChatMessage(Base):
 
     def __repr__(self) -> str:
         return f"<OpportunityChatMessage {self.role} to {self.opportunity_id}>"
+
+
+class OpportunityDocument(Base):
+    __tablename__ = "opportunity_documents"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    opportunity_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("opportunities.id", ondelete="CASCADE"), nullable=False
+    )
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    url: Mapped[str] = mapped_column(String(2000), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    labels: Mapped[list[str] | None] = mapped_column(JSON, nullable=True, default=list)
+    uploaded_by: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    # Relationships
+    opportunity: Mapped["Opportunity"] = relationship(back_populates="documents")
+    uploader: Mapped["User"] = relationship("User", foreign_keys=[uploaded_by], lazy="joined")
+
+    def __repr__(self) -> str:
+        return f"<OpportunityDocument {self.title}>"

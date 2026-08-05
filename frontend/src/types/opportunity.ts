@@ -55,6 +55,40 @@ export interface OpportunityDetail extends Opportunity {
     timeline_events: TimelineEvent[];
 }
 
+
+// --- Opportunity Document ---
+export interface OpportunityDocument {
+    id: string;
+    opportunity_id: string;
+    title: string;
+    url: string;
+    description: string | null;
+    labels: string[] | null;
+    uploaded_by: string;
+    uploader: UserBrief;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface OpportunityDocumentListResponse {
+    items: OpportunityDocument[];
+    total: number;
+}
+
+export interface OpportunityDocumentCreateInput {
+    title: string;
+    url: string;
+    description?: string | null;
+    labels?: string[] | null;
+}
+
+export interface OpportunityDocumentUpdateInput {
+    title?: string;
+    url?: string;
+    description?: string | null;
+    labels?: string[] | null;
+}
+
 export interface OpportunityListResponse {
     items: Opportunity[];
     total: number;

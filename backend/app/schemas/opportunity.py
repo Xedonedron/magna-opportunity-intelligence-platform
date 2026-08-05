@@ -90,6 +90,41 @@ class OpportunityDetailResponse(OpportunityResponse):
     timeline_events: list[TimelineEventResponse] = []
 
 
+# --- Opportunity Document ---
+class OpportunityDocumentCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=500)
+    url: str = Field(..., min_length=1, max_length=2000)
+    description: str | None = Field(None, max_length=2000)
+    labels: list[str] | None = None
+
+
+class OpportunityDocumentUpdate(BaseModel):
+    title: str | None = Field(None, min_length=1, max_length=500)
+    url: str | None = Field(None, min_length=1, max_length=2000)
+    description: str | None = Field(None, max_length=2000)
+    labels: list[str] | None = None
+
+
+class OpportunityDocumentResponse(BaseModel):
+    id: uuid.UUID
+    opportunity_id: uuid.UUID
+    title: str
+    url: str
+    description: str | None
+    labels: list[str] | None
+    uploaded_by: uuid.UUID
+    uploader: UserBrief
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class OpportunityDocumentListResponse(BaseModel):
+    items: list[OpportunityDocumentResponse]
+    total: int
+
+
 class OpportunityListResponse(BaseModel):
     items: list[OpportunityResponse]
     total: int

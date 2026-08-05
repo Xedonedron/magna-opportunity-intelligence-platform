@@ -184,17 +184,25 @@ MASTER_DATA = {
         "Bayu",
         "Gerry",
     ],
+    "document_labels": [
+        "MoM",
+        "Compro",
+        "Solution Brief",
+        "Assessment List",
+        "Technical Proposal",
+    ],
 }
 
 
 class MasterDataPayload(BaseModel):
     industries: list[str]
     presales: list[str]
+    document_labels: list[str] | None = None
 
 
 @router.get("/master-data")
 def get_master_data():
-    """Retrieve master data options (Industries & Pre-Sales)."""
+    """Retrieve master data options (Industries, Pre-Sales & Document Labels)."""
     return MASTER_DATA
 
 
@@ -206,6 +214,8 @@ def update_master_data(
     """Update master data options (Super Admin only)."""
     MASTER_DATA["industries"] = [i.strip() for i in payload.industries if i.strip()]
     MASTER_DATA["presales"] = [p.strip() for p in payload.presales if p.strip()]
+    if payload.document_labels is not None:
+        MASTER_DATA["document_labels"] = [l.strip() for l in payload.document_labels if l.strip()]
     return {"status": "success", "master_data": MASTER_DATA}
 
 

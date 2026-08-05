@@ -8,6 +8,10 @@ import type {
     OpportunityListResponse,
     OpportunityCreateInput,
     OpportunityUpdateInput,
+    OpportunityDocument,
+    OpportunityDocumentListResponse,
+    OpportunityDocumentCreateInput,
+    OpportunityDocumentUpdateInput,
 } from "@/types/opportunity";
 
 export function useOpportunities(params?: {
@@ -98,6 +102,90 @@ export function useImportOpportunities() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["opportunities"] });
             queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        },
+    });
+}
+
+
+// --- Opportunity Documents Hooks ---
+export function useOpportunityDocuments(
+    opportunityId: string,
+    params?: { label?: string; sort_order?: "asc" | "desc" }
+) {
+    return useQuery({
+        queryKey: ["opportunity-documents", opportunityId, params],
+        queryFn: async () => {
+            const { data } = await api.get<OpportunityDocumentListResponse>(
+                `/api/opportunities/${opportunityId}/documents`,
+                { params }
+            );
+            return data;
+        },
+        enabled: !!opportunityId,
+    });
+}
+
+export function useCreateOpportunityDocument() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({
+            opportunityId,
+            input,
+        }: {
+            opportunityId: string;
+            input: OpportunityDocumentCreateInput;
+        }) => {
+            const { data } = await api.post<OpportunityDocument>(
+                `/api/opportunities/${opportunityId}/documents`,
+                input
+            );
+            return data;
+        },
+        onSuccess: (_, { opportunityId }) => {
+            queryClient.invalidateQueries({ queryKey: ["opportunity-documents", opportunityId] });
+            queryClient.invalidateQueries({ queryKey: ["opportunity", opportunityId] });
+        },
+    });
+}
+
+export function useUpdateOpportunityDocument() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({
+            opportunityId,
+            documentId,
+            input,
+        }: {
+            opportunityId: string;
+            documentId: string;
+            input: OpportunityDocumentUpdateInput;
+        }) => {
+            const { data } = await api.patch<OpportunityDocument>(
+                `/api/opportunities/${opportunityId}/documents/${documentId}`,
+                input
+            );
+            return data;
+        },
+        onSuccess: (_, { opportunityId }) => {
+            queryClient.invalidateQueries({ queryKey: ["opportunity-documents", opportunityId] });
+        },
+    });
+}
+
+export function useDeleteOpportunityDocument() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({
+            opportunityId,
+            documentId,
+        }: {
+            opportunityId: string;
+            documentId: string;
+        }) => {
+            await api.delete(`/api/opportunities/${opportunityId}/documents/${documentId}`);
+        },
+        onSuccess: (_, { opportunityId }) => {
+            queryClient.invalidateQueries({ queryKey: ["opportunity-documents", opportunityId] });
         },
     });
 }
