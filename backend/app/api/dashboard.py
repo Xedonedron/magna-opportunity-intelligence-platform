@@ -186,7 +186,7 @@ async def get_dashboard_metrics(
             id=str(opp.id),
             company_name=opp.company_name,
             status=opp.status or "Unknown",
-            engineer_name=opp.assigned_engineer.full_name if opp.assigned_engineer else None,
+            engineer_name=opp.assigned_engineer,
             created_at=opp.created_at.isoformat() if opp.created_at else "",
         )
         for opp in recent_results
@@ -270,8 +270,8 @@ async def get_dashboard_metrics(
         product_query = product_query.filter(Opportunity.created_by == current_user.id)
     if status:
         product_query = product_query.filter(Opportunity.status == status)
-    if engineer_id and user_role in ["admin", "superadmin", "manager"]:
-        product_query = product_query.filter(Opportunity.assigned_engineer_id == engineer_id)
+    if engineer_name and user_role in ["admin", "superadmin", "manager"]:
+        product_query = product_query.filter(Opportunity.assigned_engineer == engineer_name)
     if date_from:
         product_query = product_query.filter(Opportunity.created_at >= date_from)
     if date_to:
@@ -292,8 +292,8 @@ async def get_dashboard_metrics(
         industry_query = industry_query.filter(Opportunity.created_by == current_user.id)
     if status:
         industry_query = industry_query.filter(Opportunity.status == status)
-    if engineer_id and user_role in ["admin", "superadmin", "manager"]:
-        industry_query = industry_query.filter(Opportunity.assigned_engineer_id == engineer_id)
+    if engineer_name and user_role in ["admin", "superadmin", "manager"]:
+        industry_query = industry_query.filter(Opportunity.assigned_engineer == engineer_name)
     if date_from:
         industry_query = industry_query.filter(Opportunity.created_at >= date_from)
     if date_to:
