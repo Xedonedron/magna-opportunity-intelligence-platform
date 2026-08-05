@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Plus, Check } from "lucide-react";
+import { X, Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
     useCreateOpportunityDocument,
@@ -26,8 +26,7 @@ export function AddDocumentDialog({
     const [title, setTitle] = useState(initialDocument?.title || "");
     const [url, setUrl] = useState(initialDocument?.url || "");
     const [description, setDescription] = useState(initialDocument?.description || "");
-    const [selectedLabels, setSelectedLabels] = useState<string[]>(initialDocument?.labels || []);
-    const [customLabel, setCustomLabel] = useState("");
+    const [selectedLabel, setSelectedLabel] = useState<string | null>(initialDocument?.labels?.[0] || null);
     const [showLabelDropdown, setShowLabelDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -53,7 +52,7 @@ export function AddDocumentDialog({
             title: title.trim(),
             url: url.trim(),
             description: description.trim() || null,
-            labels: selectedLabels.length > 0 ? selectedLabels : null,
+            labels: selectedLabel ? [selectedLabel] : null,
         };
 
         try {
@@ -75,23 +74,14 @@ export function AddDocumentDialog({
         }
     };
 
-    const toggleLabel = (label: string) => {
-        setSelectedLabels((prev) =>
-            prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
-        );
+    const selectLabel = (label: string) => {
+        setSelectedLabel(label);
+        setShowLabelDropdown(false);
     };
 
-    const addCustomLabel = () => {
-        const trimmed = customLabel.trim();
-        if (trimmed && !selectedLabels.includes(trimmed)) {
-            setSelectedLabels((prev) => [...prev, trimmed]);
-        }
-        setCustomLabel("");
+    const clearLabel = () => {
+        setSelectedLabel(null);
     };
-
-    const filteredLabels = documentLabels.filter(
-        (label) => label.toLowerCase().includes(customLabel.toLowerCase())
-    );
 
     const isLoading = createDocument.isPending || updateDocument.isPending;
 
@@ -164,86 +154,64 @@ export function AddDocumentDialog({
                         />
                     </div>
 
-                    {/* Labels */}
+                    {/* Label - Single Select Dropdown */}
                     <div ref={dropdownRef} className="relative">
                         <label className="block text-sm font-medium text-zinc-700 mb-1.5">
-                            Labels
+                            Label
                         </label>
 
-                        {/* Selected Labels */}
-                        {selectedLabels.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mb-2">
-                                {selectedLabels.map((label) => (
-                                    <span
-                                        key={label}
-                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700 border border-zinc-200"
+                        {/* Dropdown Trigger */}
+                        <button
+                            type="button"
+                            onClick={() => setShowLabelDropdown(!showLabelDropdown)}
+                            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 text-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 outline-none transition-colors text-left flex items-center justify-between bg-white hover:bg-zinc-50"
+                        >
+                            <span className={selectedLabel ? "text-zinc-900" : "text-zinc-400"}>
+                                {selectedLabel || "Select a label..."}
+                            </span>
+                            <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${showLabelDropdown ? "rotate-180" : ""}`} />
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {showLabelDropdown && (
+                            <div className="absolute z-10 mt-1 w-full bg-white border border-zinc-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                {/* Clear selection option */}
+                                {selectedLabel && (
+                                    <button
+                                        type="button"
+                                        onClick={clearLabel}
+                                        className="w-full px-3.5 py-2.5 text-left text-sm flex items-center justify-between hover:bg-zinc-50 transition-colors text-zinc-500 border-b border-zinc-100"
                                     >
-                                        {label}
+                                        <span>Clear selection</span>
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                )}
+
+                                {documentLabels.map((label) => {
+                                    const isSelected = selectedLabel === label;
+                                    return (
                                         <button
+                                            key={label}
                                             type="button"
-                                            onClick={() => toggleLabel(label)}
-                                            className="hover:text-red-500 transition-colors"
+                                            onClick={() => selectLabel(label)}
+                                            className={`w-full px-3.5 py-2.5 text-left text-sm flex items-center justify-between transition-colors ${isSelected
+                                                    ? "bg-zinc-100 text-zinc-900 font-medium"
+                                                    : "hover:bg-zinc-50"
+                                                }`}
                                         >
-                                            <X className="w-3 h-3" />
+                                            <span>{label}</span>
+                                            {isSelected && <Check className="w-4 h-4 text-green-600" />}
                                         </button>
-                                    </span>
-                                ))}
+                                    );
+                                })}
+
+                                {documentLabels.length === 0 && (
+                                    <p className="px-3.5 py-2.5 text-sm text-zinc-500">
+                                        No labels available
+                                    </p>
+                                )}
                             </div>
                         )}
-
-                        {/* Label Input with Dropdown */}
-                        <div className="relative">
-                            <input
-                                type="text"
-                                value={customLabel}
-                                onChange={(e) => {
-                                    setCustomLabel(e.target.value);
-                                    setShowLabelDropdown(true);
-                                }}
-                                onFocus={() => setShowLabelDropdown(true)}
-                                placeholder="Type to search or add label..."
-                                className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 text-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 outline-none transition-colors"
-                            />
-
-                            {/* Dropdown */}
-                            {showLabelDropdown && (
-                                <div className="absolute z-10 mt-1 w-full bg-white border border-zinc-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                    {filteredLabels.map((label) => {
-                                        const isSelected = selectedLabels.includes(label);
-                                        return (
-                                            <button
-                                                key={label}
-                                                type="button"
-                                                onClick={() => toggleLabel(label)}
-                                                className={`w-full px-3.5 py-2 text-left text-sm flex items-center justify-between hover:bg-zinc-50 transition-colors ${isSelected ? "bg-zinc-50" : ""
-                                                    }`}
-                                            >
-                                                <span>{label}</span>
-                                                {isSelected && <Check className="w-4 h-4 text-green-600" />}
-                                            </button>
-                                        );
-                                    })}
-
-                                    {/* Add custom label option */}
-                                    {customLabel.trim() && !documentLabels.includes(customLabel.trim()) && (
-                                        <button
-                                            type="button"
-                                            onClick={addCustomLabel}
-                                            className="w-full px-3.5 py-2 text-left text-sm flex items-center gap-2 hover:bg-zinc-50 transition-colors text-blue-600 border-t border-zinc-100"
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                            <span>Add "{customLabel.trim()}"</span>
-                                        </button>
-                                    )}
-
-                                    {filteredLabels.length === 0 && !customLabel.trim() && (
-                                        <p className="px-3.5 py-2 text-sm text-zinc-500">
-                                            No labels available
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-                        </div>
                     </div>
 
                     {/* Actions */}
