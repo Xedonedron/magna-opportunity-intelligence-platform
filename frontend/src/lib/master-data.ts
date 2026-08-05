@@ -9,6 +9,21 @@ export const DEFAULT_INDUSTRIES = [
     "Retail & E-commerce",
     "Government",
     "Technology & SaaS",
+    "Oil & Gas",
+    "Energy & Utilities",
+    "Mining & Metals",
+    "Agriculture & Agribusiness",
+    "Construction & Real Estate",
+    "Transportation & Logistics",
+    "Education & EdTech",
+    "Media & Entertainment",
+    "Hospitality & Tourism",
+    "Automotive",
+    "Pharmaceuticals & Biotech",
+    "Professional Services",
+    "Food & Beverage",
+    "Defense & Aerospace",
+    "Non-Profit / NGO",
 ];
 
 export const DEFAULT_PRESALES = [
