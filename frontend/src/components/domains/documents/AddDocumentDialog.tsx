@@ -94,7 +94,7 @@ export function AddDocumentDialog({
             />
 
             {/* Dialog */}
-            <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden">
+            <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200">
                     <h2 className="text-lg font-semibold text-zinc-900">
@@ -195,8 +195,8 @@ export function AddDocumentDialog({
                                             type="button"
                                             onClick={() => selectLabel(label)}
                                             className={`w-full px-3.5 py-2.5 text-left text-sm flex items-center justify-between transition-colors ${isSelected
-                                                    ? "bg-zinc-100 text-zinc-900 font-medium"
-                                                    : "hover:bg-zinc-50"
+                                                ? "bg-zinc-100 text-zinc-900 font-medium"
+                                                : "hover:bg-zinc-50"
                                                 }`}
                                         >
                                             <span>{label}</span>
