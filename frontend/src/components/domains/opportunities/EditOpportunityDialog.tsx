@@ -5,7 +5,6 @@ import { X, Save } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, SuggestedInput } from "@/components/ui/Input";
 import { useUpdateOpportunity } from "@/hooks/use-opportunities";
-import { useUsers } from "@/hooks/use-users";
 import type { Opportunity } from "@/types/opportunity";
 
 import { useEffect } from "react";
@@ -21,7 +20,6 @@ export function EditOpportunityDialog({
     onClose,
 }: EditOpportunityDialogProps) {
     const updateOpportunity = useUpdateOpportunity();
-    const { data: usersList } = useUsers();
     const [industriesList, setIndustriesList] = useState<string[]>([]);
     const [presalesList, setPresalesList] = useState<string[]>([]);
 
@@ -46,7 +44,7 @@ export function EditOpportunityDialog({
     const [phone, setPhone] = useState(opportunity.phone || "");
     const [industry, setIndustry] = useState(opportunity.industry || "");
     const [product, setProduct] = useState(opportunity.product || "");
-    const [assignedEngineerId, setAssignedEngineerId] = useState(opportunity.assigned_engineer_id || "");
+    const [assignedEngineer, setAssignedEngineer] = useState(opportunity.assigned_engineer || "");
     const [customerNeeds, setCustomerNeeds] = useState(opportunity.customer_needs || "");
     const [additionalNotes, setAdditionalNotes] = useState(opportunity.additional_notes || "");
     const [meetingSchedule, setMeetingSchedule] = useState(initialSchedule);
@@ -56,12 +54,6 @@ export function EditOpportunityDialog({
     const [estimatedAgendaDate, setEstimatedAgendaDate] = useState<string>(initialAgendaDate);
 
     const activePresales = presalesList.length > 0 ? presalesList : getMasterPresales();
-    const filteredUsers = usersList?.filter((user) =>
-        user.id === assignedEngineerId ||
-        activePresales.some((name) =>
-            user.full_name.toLowerCase().includes(name.trim().toLowerCase())
-        )
-    ) || [];
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -75,7 +67,7 @@ export function EditOpportunityDialog({
                     phone: phone || null,
                     industry: industry || null,
                     product: product || null,
-                    assigned_engineer_id: assignedEngineerId || null,
+                    assigned_engineer: assignedEngineer || null,
                     customer_needs: customerNeeds,
                     additional_notes: additionalNotes || null,
                     potential_revenue: potentialRevenue ? parseFloat(potentialRevenue) : null,
@@ -182,15 +174,15 @@ export function EditOpportunityDialog({
                         <div className="space-y-1">
                             <Select
                                 label="Assigned Pre-Sales / Engineer"
-                                value={assignedEngineerId}
+                                value={assignedEngineer}
                                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                                    setAssignedEngineerId(e.target.value)
+                                    setAssignedEngineer(e.target.value)
                                 }
                             >
                                 <option value="">Unassigned (Belum ditugaskan)</option>
-                                {filteredUsers.map((user) => (
-                                    <option key={user.id} value={user.id}>
-                                        {user.full_name} ({user.email}) - {user.role}
+                                {activePresales.map((name) => (
+                                    <option key={name} value={name}>
+                                        {name}
                                     </option>
                                 ))}
                             </Select>

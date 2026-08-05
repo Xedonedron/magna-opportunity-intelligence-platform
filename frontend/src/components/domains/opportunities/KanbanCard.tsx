@@ -121,10 +121,10 @@ export function KanbanCard({
                     <div className="flex items-center justify-between pt-2 border-t border-zinc-100 text-[11px] text-zinc-500">
                         <div className="flex items-center gap-1.5 min-w-0">
                             <div className="w-5 h-5 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center font-bold text-[10px] text-zinc-600 shrink-0">
-                                {opportunity.assigned_engineer?.full_name?.charAt(0) || "U"}
+                                {opportunity.assigned_engineer?.charAt(0) || "U"}
                             </div>
                             <span className="truncate">
-                                {opportunity.assigned_engineer?.full_name || "Unassigned"}
+                                {opportunity.assigned_engineer || "Unassigned"}
                             </span>
                         </div>
                     </div>

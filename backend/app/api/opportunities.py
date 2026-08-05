@@ -58,7 +58,7 @@ async def list_opportunities(
     page_size: int = Query(20, ge=1, le=100),
     search: str | None = Query(None),
     status_filter: str | None = Query(None, alias="status"),
-    engineer_id: uuid.UUID | None = Query(None),
+    assigned_engineer: str | None = Query(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -71,8 +71,8 @@ async def list_opportunities(
         )
     if status_filter:
         query = query.filter(Opportunity.status == status_filter)
-    if engineer_id:
-        query = query.filter(Opportunity.assigned_engineer_id == engineer_id)
+    if assigned_engineer:
+        query = query.filter(Opportunity.assigned_engineer == assigned_engineer)
 
     total = query.count()
     items = (
@@ -110,7 +110,7 @@ async def create_opportunity(
         potential_revenue=data.potential_revenue,
         estimated_agenda_date=data.estimated_agenda_date,
         meeting_schedule=data.meeting_schedule,
-        assigned_engineer_id=data.assigned_engineer_id,
+        assigned_engineer=data.assigned_engineer,
         created_by=current_user.id,
         status="New",
     )
@@ -197,7 +197,7 @@ async def update_opportunity(
 
     update_data = data.model_dump(exclude_unset=True)
     old_status = opportunity.status
-    old_engineer_id = opportunity.assigned_engineer_id
+    old_engineer = opportunity.assigned_engineer
 
     # Validate status
     if "status" in update_data and update_data["status"] not in VALID_STATUSES:
@@ -232,29 +232,29 @@ async def update_opportunity(
             db.add(new_meeting)
 
     # Log engineer / pre-sales assignment change
-    engineer_changed = "assigned_engineer_id" in update_data and update_data["assigned_engineer_id"] != old_engineer_id
+    engineer_changed = "assigned_engineer" in update_data and update_data["assigned_engineer"] != old_engineer
     if engineer_changed:
-        new_eng_id = update_data["assigned_engineer_id"]
-        if new_eng_id:
-            new_engineer = db.query(User).filter(User.id == new_eng_id).first()
-            eng_name = new_engineer.full_name if new_engineer else "User"
+        new_eng = update_data["assigned_engineer"]
+        if new_eng:
             _log_timeline(
                 db,
                 opportunity.id,
                 current_user,
                 "Pre-Sales Assigned",
-                f"Assigned Pre-Sales to {eng_name}.",
+                f"Assigned Pre-Sales to {new_eng}.",
                 event_type="update",
             )
-            # Create notification for assigned user
-            notification = Notification(
-                user_id=new_eng_id,
-                opportunity_id=opportunity.id,
-                type="opportunity_assigned",
-                title="Opportunity Assigned",
-                message=f"You have been assigned to pre-sales opportunity '{opportunity.company_name}'.",
-            )
-            db.add(notification)
+            # Create notification for assigned user if they exist
+            new_engineer = db.query(User).filter(User.full_name.ilike(f"%{new_eng}%")).first()
+            if new_engineer:
+                notification = Notification(
+                    user_id=new_engineer.id,
+                    opportunity_id=opportunity.id,
+                    type="opportunity_assigned",
+                    title="Opportunity Assigned",
+                    message=f"You have been assigned to pre-sales opportunity '{opportunity.company_name}'.",
+                )
+                db.add(notification)
         else:
             _log_timeline(
                 db,
@@ -524,7 +524,7 @@ async def global_search(
     elif user_role == "engineer":
         opp_query = opp_query.filter(
             or_(
-                Opportunity.assigned_engineer_id == current_user.id,
+                Opportunity.assigned_engineer.ilike(f"%{current_user.full_name}%"),
                 Opportunity.created_by == current_user.id,
             )
         )
@@ -545,7 +545,7 @@ async def global_search(
     elif user_role == "engineer":
         meet_query = meet_query.filter(
             or_(
-                Opportunity.assigned_engineer_id == current_user.id,
+                Opportunity.assigned_engineer.ilike(f"%{current_user.full_name}%"),
                 Opportunity.created_by == current_user.id,
             )
         )

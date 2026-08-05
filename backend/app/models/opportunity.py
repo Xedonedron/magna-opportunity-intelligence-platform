@@ -35,8 +35,8 @@ class Opportunity(Base):
     meeting_schedule: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    assigned_engineer_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
+    assigned_engineer: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
     )
     created_by: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
@@ -49,9 +49,6 @@ class Opportunity(Base):
     )
 
     # Relationships
-    assigned_engineer: Mapped["User | None"] = relationship(
-        "User", foreign_keys=[assigned_engineer_id], lazy="joined"
-    )
     creator: Mapped["User"] = relationship(
         "User", foreign_keys=[created_by], lazy="joined"
     )

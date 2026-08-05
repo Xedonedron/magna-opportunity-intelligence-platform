@@ -33,7 +33,7 @@ class OpportunityCreate(BaseModel):
     potential_revenue: float | None = None
     estimated_agenda_date: datetime | None = None
     meeting_schedule: datetime | None = None
-    assigned_engineer_id: uuid.UUID | None = None
+    assigned_engineer: str | None = None
 
 
 class OpportunityUpdate(BaseModel):
@@ -50,7 +50,7 @@ class OpportunityUpdate(BaseModel):
     estimated_agenda_date: datetime | None = None
     status: str | None = Field(None, max_length=50)
     meeting_schedule: datetime | None = None
-    assigned_engineer_id: uuid.UUID | None = None
+    assigned_engineer: str | None = None
 
 
 class UserBrief(BaseModel):
@@ -77,8 +77,7 @@ class OpportunityResponse(BaseModel):
     estimated_agenda_date: datetime | None = None
     status: str
     meeting_schedule: datetime | None
-    assigned_engineer_id: uuid.UUID | None
-    assigned_engineer: UserBrief | None
+    assigned_engineer: str | None
     created_by: uuid.UUID
     creator: UserBrief
     created_at: datetime

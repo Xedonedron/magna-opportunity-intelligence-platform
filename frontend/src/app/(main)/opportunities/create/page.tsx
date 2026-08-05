@@ -18,7 +18,6 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Select, SuggestedInput } from "@/components/ui/Input";
 import { useCreateOpportunity } from "@/hooks/use-opportunities";
-import { useUsers } from "@/hooks/use-users";
 
 import { getMasterIndustries, getMasterPresales, fetchMasterData } from "@/lib/master-data";
 
@@ -31,7 +30,7 @@ const formSchema = z.object({
     phone: z.string().optional(),
     industry: z.string().optional(),
     product: z.string().min(1, "Target Solution is required"),
-    assigned_engineer_id: z.string().optional(),
+    assigned_engineer: z.string().optional(),
     customer_needs: z.string().min(1, "Customer needs is required"),
     additional_notes: z.string().optional(),
     potential_revenue: z.string().optional(),
@@ -70,7 +69,6 @@ export default function CreateOpportunityPage() {
     const defaultDateStr = new Date(defaultDate.getTime() - defaultDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
     const createOpportunity = useCreateOpportunity();
-    const { data: usersList } = useUsers();
 
     const [industriesList, setIndustriesList] = useState<string[]>([]);
     const [presalesList, setPresalesList] = useState<string[]>([]);
@@ -83,11 +81,6 @@ export default function CreateOpportunityPage() {
     }, []);
 
     const activePresales = presalesList.length > 0 ? presalesList : getMasterPresales();
-    const filteredUsers = usersList?.filter((user) =>
-        activePresales.some((name) =>
-            user.full_name.toLowerCase().includes(name.trim().toLowerCase())
-        )
-    ) || [];
 
     const {
         register,
@@ -104,7 +97,7 @@ export default function CreateOpportunityPage() {
             phone: "",
             industry: "",
             product: "",
-            assigned_engineer_id: "",
+            assigned_engineer: "",
             customer_needs: "",
             additional_notes: "",
             potential_revenue: "",
@@ -128,7 +121,7 @@ export default function CreateOpportunityPage() {
                 phone: data.phone || null,
                 industry: data.industry || null,
                 product: data.product || null,
-                assigned_engineer_id: data.assigned_engineer_id || null,
+                assigned_engineer: data.assigned_engineer || null,
                 customer_needs: data.customer_needs,
                 additional_notes: data.additional_notes || null,
                 potential_revenue: data.potential_revenue ? parseFloat(data.potential_revenue) : null,
@@ -331,11 +324,11 @@ export default function CreateOpportunityPage() {
                                 <option value="Network Solutions">Network Solutions</option>
                             </Select>
 
-                            <Select label="Assigned Pre-Sales / Engineer" {...register("assigned_engineer_id")}>
+                            <Select label="Assigned Pre-Sales / Engineer" {...register("assigned_engineer")}>
                                 <option value="">Unassigned (Belum ditugaskan)</option>
-                                {filteredUsers.map((user) => (
-                                    <option key={user.id} value={user.id}>
-                                        {user.full_name} ({user.email}) - {user.role}
+                                {activePresales.map((name) => (
+                                    <option key={name} value={name}>
+                                        {name}
                                     </option>
                                 ))}
                             </Select>

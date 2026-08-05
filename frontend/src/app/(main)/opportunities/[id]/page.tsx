@@ -30,7 +30,6 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { useOpportunity, useUpdateOpportunity } from "@/hooks/use-opportunities";
-import { useUsers } from "@/hooks/use-users";
 import { getMasterPresales, fetchMasterData } from "@/lib/master-data";
 import { useMeetings } from "@/hooks/use-meetings";
 import { MeetingAccordion } from "@/components/domains/meetings/MeetingAccordion";
@@ -91,16 +90,9 @@ export default function OpportunityDetailPage() {
 
     const { data: opp, isLoading } = useOpportunity(id);
     const { data: meetingsData } = useMeetings(id);
-    const { data: usersList } = useUsers();
     const updateOpportunity = useUpdateOpportunity();
 
     const activePresales = presalesList.length > 0 ? presalesList : getMasterPresales();
-    const filteredUsers = usersList?.filter((u) =>
-        (opp && u.id === opp.assigned_engineer_id) ||
-        activePresales.some((name) =>
-            u.full_name.toLowerCase().includes(name.trim().toLowerCase())
-        )
-    ) || [];
 
     if (isLoading) {
         return (
@@ -191,13 +183,13 @@ export default function OpportunityDetailPage() {
                                     <span>Pre-Sales:</span>
                                     {canCreateEdit ? (
                                         <select
-                                            value={opp.assigned_engineer_id || ""}
+                                            value={opp.assigned_engineer || ""}
                                             onChange={async (e) => {
-                                                const newEngId = e.target.value || null;
+                                                const newEng = e.target.value || null;
                                                 try {
                                                     await updateOpportunity.mutateAsync({
                                                         id: opp.id,
-                                                        input: { assigned_engineer_id: newEngId },
+                                                        input: { assigned_engineer: newEng },
                                                     });
                                                 } catch (err) {
                                                     console.error("Gagal memperbarui Pre-Sales", err);
@@ -208,14 +200,14 @@ export default function OpportunityDetailPage() {
                                             title="Ubah Assignment Pre-Sales"
                                         >
                                             <option value="">Unassigned</option>
-                                            {filteredUsers.map((u) => (
-                                                <option key={u.id} value={u.id}>
-                                                    {u.full_name} ({u.role})
+                                            {activePresales.map((name) => (
+                                                <option key={name} value={name}>
+                                                    {name}
                                                 </option>
                                             ))}
                                         </select>
                                     ) : (
-                                        <span>{opp.assigned_engineer?.full_name || "Unassigned"}</span>
+                                        <span>{opp.assigned_engineer || "Unassigned"}</span>
                                     )}
                                 </span>
                                 <span className="hidden sm:inline">•</span>

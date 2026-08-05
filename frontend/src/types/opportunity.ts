@@ -44,8 +44,7 @@ export interface Opportunity {
     estimated_agenda_date: string | null;
     status: OpportunityStatus;
     meeting_schedule: string | null;
-    assigned_engineer_id: string | null;
-    assigned_engineer: UserBrief | null;
+    assigned_engineer: string | null;
     created_by: string;
     creator: UserBrief;
     created_at: string;
@@ -76,7 +75,7 @@ export interface OpportunityCreateInput {
     potential_revenue?: number | null;
     estimated_agenda_date?: string | null;
     meeting_schedule?: string | null;
-    assigned_engineer_id?: string | null;
+    assigned_engineer?: string | null;
 }
 
 export interface OpportunityUpdateInput {
@@ -92,7 +91,7 @@ export interface OpportunityUpdateInput {
     estimated_agenda_date?: string | null;
     status?: OpportunityStatus;
     meeting_schedule?: string | null;
-    assigned_engineer_id?: string | null;
+    assigned_engineer?: string | null;
 }
 
 export const STATUS_STYLES: Record<OpportunityStatus, string> = {

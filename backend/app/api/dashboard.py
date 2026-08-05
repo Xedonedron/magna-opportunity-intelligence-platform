@@ -33,7 +33,7 @@ FOLLOW_UP_STATUSES = ["Need Follow Up", "Meeting Done", "Need Proposal"]
 @router.get("/metrics", response_model=DashboardMetrics)
 async def get_dashboard_metrics(
     status: Optional[str] = Query(None),
-    engineer_id: Optional[uuid.UUID] = Query(None),
+    engineer_name: Optional[str] = Query(None),
     date_from: Optional[date] = Query(None),
     date_to: Optional[date] = Query(None),
     db: Session = Depends(get_db),
@@ -63,8 +63,8 @@ async def get_dashboard_metrics(
     if status:
         query = query.filter(Opportunity.status == status)
     
-    if engineer_id and user_role in ["admin", "superadmin", "manager"]:
-        query = query.filter(Opportunity.assigned_engineer_id == engineer_id)
+    if engineer_name and user_role in ["admin", "superadmin", "manager"]:
+        query = query.filter(Opportunity.assigned_engineer == engineer_name)
     
     if date_from:
         query = query.filter(Opportunity.created_at >= date_from)
@@ -103,8 +103,8 @@ async def get_dashboard_metrics(
         status_query = status_query.filter(Opportunity.created_by == current_user.id)
     if status:
         status_query = status_query.filter(Opportunity.status == status)
-    if engineer_id and user_role in ["admin", "superadmin", "manager"]:
-        status_query = status_query.filter(Opportunity.assigned_engineer_id == engineer_id)
+    if engineer_name and user_role in ["admin", "superadmin", "manager"]:
+        status_query = status_query.filter(Opportunity.assigned_engineer == engineer_name)
     if date_from:
         status_query = status_query.filter(Opportunity.created_at >= date_from)
     if date_to:
@@ -120,16 +120,13 @@ async def get_dashboard_metrics(
     by_engineer = []
     if user_role in ["admin", "superadmin", "manager"]:
         engineer_query = db.query(
-            Opportunity.assigned_engineer_id,
-            User.full_name,
+            Opportunity.assigned_engineer,
             sa_func.count(Opportunity.id).label("count")
-        ).outerjoin(
-            User, User.id == Opportunity.assigned_engineer_id
         )
         if status:
             engineer_query = engineer_query.filter(Opportunity.status == status)
-        if engineer_id:
-            engineer_query = engineer_query.filter(Opportunity.assigned_engineer_id == engineer_id)
+        if engineer_name:
+            engineer_query = engineer_query.filter(Opportunity.assigned_engineer == engineer_name)
         if date_from:
             engineer_query = engineer_query.filter(Opportunity.created_at >= date_from)
         if date_to:
@@ -137,16 +134,16 @@ async def get_dashboard_metrics(
         
         engineer_results = (
             engineer_query
-            .group_by(Opportunity.assigned_engineer_id, User.full_name)
+            .group_by(Opportunity.assigned_engineer)
             .all()
         )
         by_engineer = [
             EngineerCount(
-                engineer_id=str(eid) if eid else "unassigned",
+                engineer_id=name or "unassigned",
                 engineer_name=name or "Unassigned",
                 count=c
             )
-            for eid, name, c in engineer_results
+            for name, c in engineer_results
         ]
     
     # Specific counts

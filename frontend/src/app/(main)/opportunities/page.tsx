@@ -236,7 +236,7 @@ export default function OpportunitiesPage() {
                                             </div>
                                         </div>
                                         <div className="flex items-center justify-between text-xs text-zinc-500">
-                                            <span className="truncate max-w-[180px]">Eng: {opp.assigned_engineer?.full_name || "Unassigned"}</span>
+                                            <span className="truncate max-w-[180px]">Eng: {opp.assigned_engineer || "Unassigned"}</span>
                                             <span className="text-zinc-900 font-semibold flex items-center gap-1 shrink-0">Detail &rarr;</span>
                                         </div>
                                     </div>
@@ -316,7 +316,7 @@ export default function OpportunitiesPage() {
                                                         : "—"}
                                                 </td>
                                                 <td className="px-6 py-4 text-zinc-600">
-                                                    {opp.assigned_engineer?.full_name || "Unassigned"}
+                                                    {opp.assigned_engineer || "Unassigned"}
                                                 </td>
                                                 <td className="px-6 py-4 text-zinc-500 text-xs">
                                                     {timeAgo(opp.updated_at)}
