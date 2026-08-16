@@ -488,14 +488,18 @@ Opportunity & KYC Context:
                     full_content += content_chunk
                     yield content_chunk
 
-            # Save assistant message to DB after stream finishes
+            # Save assistant message to DB after stream finishes (with dead-link verification)
             if full_content.strip():
+                from app.services.link_verifier import link_verifier_service
+                cleaned_msg, _ = await link_verifier_service.verify_and_clean_text_links(
+                    full_content, timeout=2.5
+                )
                 db_session = SessionLocal()
                 try:
                     assistant_msg = OpportunityChatMessage(
                         opportunity_id=opportunity_id,
                         role="assistant",
-                        content=full_content
+                        content=cleaned_msg or full_content
                     )
                     db_session.add(assistant_msg)
                     db_session.commit()

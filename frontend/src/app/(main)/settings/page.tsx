@@ -44,6 +44,7 @@ export default function SettingsPage() {
     const [llmProvider, setLlmProvider] = useState("google");
     const [aiModel, setAiModel] = useState("gemma-4-26b-a4b-it");
     const [temperature, setTemperature] = useState(0.0);
+    const [searchProvider, setSearchProvider] = useState("auto");
     const [searchDepth, setSearchDepth] = useState("advanced");
     const [maxResults, setMaxResults] = useState(5);
     const [hideFinancialNumbers, setHideFinancialNumbers] = useState(false);
@@ -102,6 +103,7 @@ export default function SettingsPage() {
                 setLlmProvider(data.llm_provider || "google");
                 setAiModel(data.ai_model || "gemma-4-26b-a4b-it");
                 setTemperature(data.temperature ?? 0.0);
+                setSearchProvider(data.search_provider || "auto");
                 setSearchDepth(data.search_depth || "advanced");
                 setMaxResults(data.max_results ?? 5);
                 setHideFinancialNumbers(Boolean(data.hide_financial_numbers));
@@ -134,6 +136,7 @@ export default function SettingsPage() {
                 setLlmProvider(parsed.provider || "google");
                 setAiModel(parsed.model || "gemma-4-26b-a4b-it");
                 setTemperature(parsed.temperature ?? 0.0);
+                setSearchProvider(parsed.search_provider || "auto");
                 setSearchDepth(parsed.search_depth || "advanced");
                 setMaxResults(parsed.max_results ?? 5);
             } catch (e) {
@@ -207,6 +210,7 @@ export default function SettingsPage() {
                 llm_provider: llmProvider,
                 ai_model: aiModel,
                 temperature,
+                search_provider: searchProvider,
                 search_depth: searchDepth,
                 max_results: maxResults,
                 hide_financial_numbers: hideFinancialNumbers,
@@ -219,6 +223,7 @@ export default function SettingsPage() {
                 provider: llmProvider,
                 model: aiModel,
                 temperature,
+                search_provider: searchProvider,
                 search_depth: searchDepth,
                 max_results: maxResults,
             };
@@ -668,13 +673,28 @@ export default function SettingsPage() {
                                 )}
                             </div>
 
-                            {/* Tavily Search Settings */}
+                            {/* Web Search & Grounding Settings */}
                             <div className="border-t border-zinc-100 pt-6 space-y-4">
                                 <h4 className="text-sm font-semibold text-zinc-900 flex items-center gap-1.5">
-                                    <Database className="w-4 h-4 text-zinc-600" /> Pengaturan Pencarian Tavily
+                                    <Database className="w-4 h-4 text-zinc-600" /> Pengaturan Web Search & Grounding
                                 </h4>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-semibold text-zinc-700 uppercase">Search Engine / Provider</label>
+                                        <select
+                                            disabled={!isSuperAdmin}
+                                            value={searchProvider}
+                                            onChange={(e) => setSearchProvider(e.target.value)}
+                                            className={`w-full h-10 px-3 rounded-md border border-zinc-300 text-sm bg-white ${!isSuperAdmin ? "bg-zinc-50 cursor-not-allowed text-zinc-600" : ""
+                                                }`}
+                                        >
+                                            <option value="auto">Auto (Google Grounding / Tavily)</option>
+                                            <option value="google">Google Search Grounding (Gemini Native)</option>
+                                            <option value="tavily">Tavily Search API</option>
+                                        </select>
+                                    </div>
+
                                     <div className="space-y-2">
                                         <label className="text-xs font-semibold text-zinc-700 uppercase">Kedalaman Pencarian</label>
                                         <select

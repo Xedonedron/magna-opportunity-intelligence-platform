@@ -13,6 +13,7 @@ from app.api.dashboard import router as dashboard_router
 from app.api.admin import router as admin_router
 from app.api.linkedin import router as linkedin_router
 from app.api.personas import router as personas_router
+from app.api.ai_validation import router as ai_validation_router
 
 settings = get_settings()
 
@@ -53,6 +54,7 @@ app.include_router(dashboard_router)
 app.include_router(admin_router)
 app.include_router(linkedin_router)
 app.include_router(personas_router)
+app.include_router(ai_validation_router)
 
 
 @app.get("/api/health")

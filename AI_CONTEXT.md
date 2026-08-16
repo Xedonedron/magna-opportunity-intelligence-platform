@@ -90,6 +90,11 @@
 | PATCH | `/{notification_id}` | Mark read status (`{ "is_read": bool }`) | Yes |
 | POST | `/mark-all-read` | Mark all notifications as read | Yes |
 
+### AI Validation (`/api/ai`)
+| Method | Path | Description | Auth Required |
+|--------|------|-------------|---------------|
+| POST | `/validate` | Validate AI generated info, reasoning consistency & URL veracity | Yes |
+
 ### Admin (`/api/admin`)
 | Method | Path | Description | Auth Required |
 |--------|------|-------------|---------------|
@@ -99,6 +104,8 @@
 | PATCH | `/users/{user_id}` | Update user role and capabilities | Yes (Admin) |
 | GET | `/master-data` | Get master data options | Yes (Admin) |
 | POST | `/master-data` | Update master data options | Yes (Admin) |
+| GET | `/settings` | Get system settings (search provider, LLM models) | Yes (Admin) |
+| PUT | `/settings` | Update system settings | Yes (Admin) |
 
 ### Dashboard (`/api/dashboard`)
 | Method | Path | Description | Auth Required |

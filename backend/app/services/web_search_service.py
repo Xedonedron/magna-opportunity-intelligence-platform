@@ -1,24 +1,35 @@
-"""Web search service using Tavily API for KYC research."""
+"""Web search service supporting Tavily API and Google Search Grounding for KYC research."""
 
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 from tavily import TavilyClient
 
 from app.core.config import settings
+from app.core.llm import get_db_setting
+from app.services.google_grounding_service import google_grounding_service
 
 logger = logging.getLogger(__name__)
 
 
 class WebSearchService:
-    """Service for searching the web using Tavily API."""
+    """Service for searching the web using Tavily API or Google Search Grounding."""
 
     def __init__(self):
         self.client: Optional[TavilyClient] = None
         if settings.TAVILY_API_KEY:
             self.client = TavilyClient(api_key=settings.TAVILY_API_KEY)
 
-    def search_company(self, company_name: str, website: Optional[str] = None) -> dict:
+    def search_company(self, company_name: str, website: Optional[str] = None, db: Any = None) -> dict:
+        """Search for company information across multiple queries using active provider."""
+        provider = get_db_setting(db, "search_provider") or "tavily"
+        if provider == "google" or not self.client:
+            logger.info(f"[WebSearch] Using Google Search Grounding for '{company_name}'")
+            return google_grounding_service.search_company(company_name, website=website, db=db)
+
+        return self._search_company_tavily(company_name, website=website)
+
+    def _search_company_tavily(self, company_name: str, website: Optional[str] = None) -> dict:
         """Search for company information across multiple queries.
 
         Returns a dict with search results organized by category.
@@ -74,9 +85,16 @@ class WebSearchService:
         return results
 
     def search_industry_use_cases(
-        self, industry: str, customer_needs: str, product: Optional[str] = None
+        self, industry: str, customer_needs: str, product: Optional[str] = None, db: Any = None
     ) -> list:
-        """Search for industry-specific use cases and solutions aligned with customer needs."""
+        """Search for industry-specific use cases using active provider (Tavily / Google)."""
+        provider = get_db_setting(db, "search_provider") or "tavily"
+        if provider == "google" or not self.client:
+            logger.info(f"[WebSearch] Using Google Grounding for industry use cases: '{industry}'")
+            return google_grounding_service.search_industry_use_cases(
+                industry=industry, customer_needs=customer_needs, product=product, db=db
+            )
+
         if not self.client:
             return []
 

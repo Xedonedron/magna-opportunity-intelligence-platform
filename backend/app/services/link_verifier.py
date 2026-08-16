@@ -195,23 +195,53 @@ class LinkVerifierService:
 
         return valid_references
 
+    def extract_urls_from_text(self, text: str) -> list[str]:
+        """Extract all HTTP/HTTPS URLs from raw text/markdown."""
+        if not text:
+            return []
+        url_pattern = r"https?://[^\s<>\"'\)\]]+"
+        raw_matches = re.findall(url_pattern, text)
+        cleaned = []
+        for u in raw_matches:
+            # Clean trailing punctuation
+            u_clean = u.rstrip(".,;!?:")
+            if self.is_valid_url_format(u_clean):
+                cleaned.append(u_clean)
+        return list(set(cleaned))
+
+    async def verify_and_clean_text_links(self, text: str, timeout: float = 3.0) -> tuple[str, dict[str, bool]]:
+        """
+        Extract URLs from text, verify liveness concurrently, and clean out dead links.
+        Returns cleaned text and url verification status map.
+        """
+        urls = self.extract_urls_from_text(text)
+        if not urls:
+            return text, {}
+
+        status_map = await self.verify_urls_batch(urls, timeout=timeout)
+        valid_urls = {u for u, is_alive in status_map.items() if is_alive}
+
+        cleaned_text = self.strip_dead_markdown_links(text, valid_urls)
+        return cleaned_text, status_map
+
     def strip_dead_markdown_links(self, text: str, valid_urls: set[str]) -> str:
         """
-        Scan markdown text for '[Label](url)' patterns.
+        Scan markdown text for '[Label](url)' and raw URLs.
         If 'url' is not in valid_urls, convert '[Label](url)' -> 'Label' to remove broken links.
         """
-        if not text or "[" not in text or "](" not in text:
+        if not text:
             return text
 
-        def replace_match(match: re.Match) -> str:
+        def replace_md(match: re.Match) -> str:
             label = match.group(1)
             url = match.group(2).strip()
             if url in valid_urls:
                 return f"[{label}]({url})"
-            return label  # Remove broken hyperlink, keep text label
+            return label  # Drop dead URL, keep text
 
         pattern = r"\[([^\]]+)\]\((https?://[^\)]+)\)"
-        return re.sub(pattern, replace_match, text)
+        text = re.sub(pattern, replace_md, text)
+        return text
 
 
 # Global Singleton Instance
