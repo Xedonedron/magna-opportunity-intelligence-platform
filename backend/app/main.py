@@ -12,6 +12,7 @@ from app.api.kyc import router as kyc_router
 from app.api.dashboard import router as dashboard_router
 from app.api.admin import router as admin_router
 from app.api.linkedin import router as linkedin_router
+from app.api.personas import router as personas_router
 
 settings = get_settings()
 
@@ -33,7 +34,6 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -52,6 +52,7 @@ app.include_router(kyc_router)
 app.include_router(dashboard_router)
 app.include_router(admin_router)
 app.include_router(linkedin_router)
+app.include_router(personas_router)
 
 
 @app.get("/api/health")

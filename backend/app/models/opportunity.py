@@ -70,6 +70,12 @@ class Opportunity(Base):
     documents: Mapped[list["OpportunityDocument"]] = relationship(
         back_populates="opportunity", cascade="all, delete-orphan", lazy="selectin"
     )
+    personas: Mapped[list["OpportunityPersona"]] = relationship(
+        "OpportunityPersona",
+        back_populates="opportunity",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
 
     def __repr__(self) -> str:
         return f"<Opportunity {self.company_name} ({self.status})>"

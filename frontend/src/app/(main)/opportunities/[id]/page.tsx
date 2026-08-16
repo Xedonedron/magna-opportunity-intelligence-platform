@@ -26,6 +26,7 @@ import {
     Coins,
     CalendarClock,
     FolderKey,
+    Users as UsersIcon,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -38,6 +39,7 @@ import { CreateMeetingDialog } from "@/components/domains/meetings/CreateMeeting
 import { EditOpportunityDialog } from "@/components/domains/opportunities/EditOpportunityDialog";
 import { KYCReportTab } from "@/components/domains/kyc/KYCReportTab";
 import { ResourcesTab } from "@/components/domains/documents/ResourcesTab";
+import { TargetPersonaTab } from "@/components/domains/personas/TargetPersonaTab";
 import { OpportunityChatSidebar } from "@/components/domains/opportunities/OpportunityChatSidebar";
 import { formatDateTime, timeAgo, formatCurrency } from "@/lib/utils";
 import { api } from "@/lib/api";
@@ -46,6 +48,7 @@ import { ALL_STATUSES, type OpportunityStatus } from "@/types/opportunity";
 const tabs = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "kyc", label: "KYC Report", icon: FileText },
+    { id: "personas", label: "Target Persona", icon: UsersIcon },
     { id: "meetings", label: "Meetings", icon: Calendar },
     { id: "resources", label: "Resources", icon: FolderKey },
     { id: "timeline", label: "Timeline", icon: GitCommit },
@@ -449,6 +452,10 @@ export default function OpportunityDetailPage() {
                         )}
 
                         {activeTab === "kyc" && <KYCReportTab opportunityId={id} />}
+
+                        {activeTab === "personas" && (
+                            <TargetPersonaTab opportunityId={id} />
+                        )}
 
                         {activeTab === "meetings" && (
                             <div className="space-y-4">

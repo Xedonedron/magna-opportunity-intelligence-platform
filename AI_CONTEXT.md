@@ -57,6 +57,13 @@
 - `status` (str): Filter by status
 - `engineer_id` (UUID): Filter by assigned engineer
 
+### Target Persona Questions (`/api/opportunities/{opportunity_id}/personas`)
+| Method | Path | Description | Auth Required |
+|--------|------|-------------|---------------|
+| GET | `/` | List all saved personas for opportunity | Yes |
+| GET | `/{seniority}/{department}` | Get or generate persona questions | Yes |
+| POST | `/generate` | Force generate / regenerate persona questions | Yes |
+
 ### KYC Reports (`/api/opportunities/{opportunity_id}/kyc`)
 | Method | Path | Description | Auth Required |
 |--------|------|-------------|---------------|
@@ -412,4 +419,4 @@ type MeetingStatus = 'scheduled' | 'completed' | 'cancelled'
 
 ---
 
-*Last updated: 2026-08-01*
+*Last updated: 2026-08-01*

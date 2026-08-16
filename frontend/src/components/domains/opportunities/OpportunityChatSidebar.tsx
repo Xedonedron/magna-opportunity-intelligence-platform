@@ -37,28 +37,31 @@ const SUGGESTIONS = [
     "Tolong ringkas kelemahan dan peluang dari laporan KYC."
 ];
 
-// Helper to parse basic Markdown safely using Regex
+// Helper to parse basic Markdown safely using strict escaping
+function escapeHtml(str: string): string {
+    return str
+        .replace(/&/g, String.fromCharCode(38) + "amp;")
+        .replace(/</g, String.fromCharCode(38) + "lt;")
+        .replace(/>/g, String.fromCharCode(38) + "gt;")
+        .replace(/"/g, String.fromCharCode(38) + "quot;")
+        .replace(/'/g, String.fromCharCode(38) + "#039;");
+}
+
 function renderMarkdown(text: string) {
-    let html = text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+    // 1. Strict HTML Entity Encoding first
+    let escaped = escapeHtml(text);
 
-    // Headings
-    html = html.replace(/^### (.*$)/gim, '<h4 class="text-xs font-bold text-zinc-900 mt-3 mb-1.5">$1</h4>');
-    html = html.replace(/^## (.*$)/gim, '<h3 class="text-sm font-bold text-zinc-900 mt-4 mb-2">$1</h3>');
-    html = html.replace(/^# (.*$)/gim, '<h2 class="text-base font-bold text-zinc-900 mt-5 mb-2">$1</h2>');
+    // 2. Safe format tag substitution (no user-supplied tags allowed)
+    escaped = escaped.replace(/^### (.*$)/gim, '<h4 class="text-xs font-bold text-zinc-900 mt-3 mb-1.5">$1</h4>');
+    escaped = escaped.replace(/^## (.*$)/gim, '<h3 class="text-sm font-bold text-zinc-900 mt-4 mb-2">$1</h3>');
+    escaped = escaped.replace(/^# (.*$)/gim, '<h2 class="text-base font-bold text-zinc-900 mt-5 mb-2">$1</h2>');
 
-    // Bold (**text** or __text__)
-    html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-zinc-950">$1</strong>');
-    html = html.replace(/__(.*?)__/g, '<strong class="font-bold text-zinc-950">$1</strong>');
+    escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-zinc-950">$1</strong>');
+    escaped = escaped.replace(/__(.*?)__/g, '<strong class="font-bold text-zinc-950">$1</strong>');
+    escaped = escaped.replace(/\*(.*?)\*/g, '<em class="italic text-zinc-800">$1</em>');
+    escaped = escaped.replace(/_(.*?)_/g, '<em class="italic text-zinc-800">$1</em>');
 
-    // Italic (*text* or _text_)
-    html = html.replace(/\*(.*?)\*/g, '<em class="italic text-zinc-800">$1</em>');
-    html = html.replace(/_(.*?)_/g, '<em class="italic text-zinc-800">$1</em>');
-
-    // Lists (bullet points)
-    const lines = html.split("\n");
+    const lines = escaped.split("\n");
     let inList = false;
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
@@ -80,12 +83,9 @@ function renderMarkdown(text: string) {
     if (inList) {
         lines[lines.length - 1] = `${lines[lines.length - 1]}</ul>`;
     }
-    html = lines.join("\n");
+    escaped = lines.join("\n").replace(/\n/g, '<br />');
 
-    // Line breaks
-    html = html.replace(/\n/g, '<br />');
-
-    return <div dangerouslySetInnerHTML={{ __html: html }} />;
+    return <div dangerouslySetInnerHTML={{ __html: escaped }} />;
 }
 
 export function OpportunityChatSidebar({
@@ -144,7 +144,7 @@ export function OpportunityChatSidebar({
         if (!textToSend.trim() || isLoading) return;
 
         const userMsg: Message = { role: "user", content: textToSend };
-        
+
         // Append user message immediately locally
         setMessages((prev) => [...prev, userMsg]);
         setInput("");
@@ -225,9 +225,8 @@ export function OpportunityChatSidebar({
 
     return (
         <div
-            className={`fixed inset-0 z-50 w-full h-full bg-zinc-50 flex flex-col sm:relative sm:inset-auto sm:z-auto sm:border-l sm:border-zinc-200 transition-all duration-300 ${
-                isWide ? "sm:w-[650px]" : "sm:w-[400px]"
-            }`}
+            className={`fixed inset-0 z-50 w-full h-full bg-zinc-50 flex flex-col sm:relative sm:inset-auto sm:z-auto sm:border-l sm:border-zinc-200 transition-all duration-300 ${isWide ? "sm:w-[650px]" : "sm:w-[400px]"
+                }`}
         >
             {/* Header */}
             <div className="bg-white border-b border-zinc-200 px-4 py-3 flex items-center justify-between shrink-0 shadow-sm">
@@ -284,25 +283,22 @@ export function OpportunityChatSidebar({
                             return (
                                 <div
                                     key={index}
-                                    className={`flex gap-2.5 max-w-[90%] ${
-                                        isUser ? "ml-auto flex-row-reverse" : "mr-auto"
-                                    }`}
+                                    className={`flex gap-2.5 max-w-[90%] ${isUser ? "ml-auto flex-row-reverse" : "mr-auto"
+                                        }`}
                                 >
                                     <div
-                                        className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border shadow-sm text-xs ${
-                                            isUser
-                                                ? "bg-zinc-950 text-white border-zinc-950"
-                                                : "bg-zinc-100 text-zinc-800 border-zinc-200"
-                                        }`}
+                                        className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border shadow-sm text-xs ${isUser
+                                            ? "bg-zinc-950 text-white border-zinc-950"
+                                            : "bg-zinc-100 text-zinc-800 border-zinc-200"
+                                            }`}
                                     >
                                         {isUser ? <User className="w-3.5 h-3.5" /> : <Brain className="w-3.5 h-3.5" />}
                                     </div>
                                     <div
-                                        className={`p-3.5 rounded-xl text-sm leading-relaxed shadow-sm ${
-                                            isUser
-                                                ? "bg-zinc-950 text-white"
-                                                : "bg-white border border-zinc-200 text-zinc-800"
-                                        }`}
+                                        className={`p-3.5 rounded-xl text-sm leading-relaxed shadow-sm ${isUser
+                                            ? "bg-zinc-950 text-white"
+                                            : "bg-white border border-zinc-200 text-zinc-800"
+                                            }`}
                                     >
                                         {renderMarkdown(msg.content)}
                                     </div>

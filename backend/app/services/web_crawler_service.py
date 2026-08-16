@@ -1,6 +1,8 @@
 """Web crawling service for extracting content from company websites."""
 
+import ipaddress
 import logging
+import socket
 from typing import Optional
 from urllib.parse import urlparse
 
@@ -17,6 +19,28 @@ class WebCrawlerService:
         self.timeout = 15.0
         self.max_content_length = 10000
 
+    @staticmethod
+    def _is_safe_url(url: str) -> bool:
+        """Validate URL to prevent SSRF against internal network and cloud metadata endpoints."""
+        try:
+            parsed = urlparse(url)
+            if parsed.scheme not in ("http", "https"):
+                return False
+            hostname = parsed.hostname
+            if not hostname:
+                return False
+            
+            # Resolve IP
+            ip_str = socket.gethostbyname(hostname)
+            ip = ipaddress.ip_address(ip_str)
+
+            # Block private, loopback, link-local (169.254.169.254 GCP metadata), and multicast
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved:
+                return False
+            return True
+        except Exception:
+            return False
+
     async def crawl_website(self, url: str) -> Optional[dict]:
         """Crawl a website and extract key content.
 
@@ -28,6 +52,10 @@ class WebCrawlerService:
         # Ensure URL has scheme
         if not url.startswith(("http://", "https://")):
             url = f"https://{url}"
+
+        if not self._is_safe_url(url):
+            logger.warning(f"Blocked SSRF attempt or invalid target URL: {url}")
+            return None
 
         try:
             async with httpx.AsyncClient(

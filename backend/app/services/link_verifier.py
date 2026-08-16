@@ -27,6 +27,47 @@ class LinkVerifierService:
     """Service to verify HTTP/HTTPS URL availability in real time and sanitize AI-generated references."""
 
     @staticmethod
+    def _is_safe_url(url: str) -> bool:
+        """Validate URL to prevent SSRF against internal network and cloud metadata endpoints."""
+        try:
+            import ipaddress
+            import socket
+
+            parsed = urllib.parse.urlparse(url)
+            if parsed.scheme not in ("http", "https"):
+                return False
+
+            hostname = parsed.hostname
+            if not hostname:
+                return False
+
+            if hostname.lower() in ("localhost", "127.0.0.1", "0.0.0.0", "::1", "metadata.google.internal"):
+                return False
+
+            try:
+                ip = ipaddress.ip_address(hostname)
+                if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
+                    return False
+            except ValueError:
+                try:
+                    resolved_ip_str = socket.gethostbyname(hostname)
+                    resolved_ip = ipaddress.ip_address(resolved_ip_str)
+                    if (
+                        resolved_ip.is_private
+                        or resolved_ip.is_loopback
+                        or resolved_ip.is_link_local
+                        or resolved_ip.is_reserved
+                        or resolved_ip.is_multicast
+                    ):
+                        return False
+                except Exception:
+                    pass
+
+            return True
+        except Exception:
+            return False
+
+    @staticmethod
     def is_valid_url_format(url: str) -> bool:
         """Check if string is a syntactically valid HTTP/HTTPS URL."""
         if not url or not isinstance(url, str):
@@ -37,6 +78,10 @@ class LinkVerifierService:
     async def is_url_alive(self, url: str, timeout: float = 3.0) -> bool:
         """Ping a URL via HTTP HEAD/GET to verify if it is live and returns HTTP 2xx/3xx."""
         if not self.is_valid_url_format(url):
+            return False
+
+        if not self._is_safe_url(url):
+            logger.warning(f"[LinkVerifier] Blocked unsafe/internal target URL: {url}")
             return False
 
         target_url = url.strip()

@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: moip_secret
       POSTGRES_DB: moip_db
     ports:
-      - "5435:5432"
+      - "127.0.0.1:5435:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -20,7 +20,7 @@ services:
     image: redis:7-alpine
     container_name: moip_redis
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -43,13 +43,13 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_WORKSPACE_DOMAIN: ${GOOGLE_WORKSPACE_DOMAIN:-magnaglobal.id}
       LLM_PROVIDER: ${LLM_PROVIDER:-google}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-AQ.Ab8RN6KnafnyhTmSTWpteO0xMcRjWfJtSiT3VGXtW5Wjno_foA}
-      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-AQ.Ab8RN6KnafnyhTmSTWpteO0xMcRjWfJtSiT3VGXtW5Wjno_foA}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemma-4-26b-a4b-it}
       OPENAI_API_BASE: ${OPENAI_API_BASE:-https://api.cosmoshub.tech/v1}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-cos-RcE59YBM43d3eGWbRZbObk0UKgmPQ121UNHv0k8qwYE}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-glm-5}
-      TAVILY_API_KEY: ${TAVILY_API_KEY:-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}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3009}
       REDIS_URL: redis://redis:6379/0
     depends_on:
@@ -73,13 +73,13 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_WORKSPACE_DOMAIN: ${GOOGLE_WORKSPACE_DOMAIN:-magnaglobal.id}
       LLM_PROVIDER: ${LLM_PROVIDER:-google}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-AQ.Ab8RN6KnafnyhTmSTWpteO0xMcRjWfJtSiT3VGXtW5Wjno_foA}
-      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-AQ.Ab8RN6KnafnyhTmSTWpteO0xMcRjWfJtSiT3VGXtW5Wjno_foA}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemma-4-26b-a4b-it}
       OPENAI_API_BASE: ${OPENAI_API_BASE:-https://api.cosmoshub.tech/v1}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-cos-RcE59YBM43d3eGWbRZbObk0UKgmPQ121UNHv0k8qwYE}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-glm-5}
-      TAVILY_API_KEY: ${TAVILY_API_KEY:-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}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3009}
       REDIS_URL: redis://redis:6379/0
     depends_on:
