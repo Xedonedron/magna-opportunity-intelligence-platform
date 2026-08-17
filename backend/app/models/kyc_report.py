@@ -27,6 +27,7 @@ class KYCReport(Base):
     executive_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     company_overview: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     industry_analysis: Mapped[str | None] = mapped_column(Text, nullable=True)
+    competitor_analysis: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     business_model: Mapped[str | None] = mapped_column(Text, nullable=True)
     company_location: Mapped[str | None] = mapped_column(Text, nullable=True)
     customer_need_summary: Mapped[str | None] = mapped_column(Text, nullable=True)

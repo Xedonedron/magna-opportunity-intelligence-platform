@@ -174,6 +174,7 @@
 | executive_summary | JSONB | Executive summary data |
 | company_overview | JSONB | Company overview data |
 | industry_analysis | JSONB | Industry analysis data |
+| competitor_analysis | JSONB | Competitor analysis data |
 | pain_points | JSONB | Pain points data |
 | use_cases | JSONB | Use cases data |
 | meeting_objectives | JSONB | Meeting objectives |

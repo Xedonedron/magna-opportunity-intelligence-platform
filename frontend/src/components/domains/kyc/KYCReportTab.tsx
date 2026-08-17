@@ -6,6 +6,8 @@ import {
     MapPin,
     Briefcase,
     Target,
+    Users,
+    Swords,
     HelpCircle,
     ExternalLink,
     AlertTriangle,
@@ -535,6 +537,77 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                             </Card>
                         </div>
                     )}
+                </section>
+            )}
+
+            {/* Competitor Analysis */}
+            {report.competitor_analysis && report.competitor_analysis.length > 0 && (
+                <section>
+                    <SectionTitle>Competitor Analysis</SectionTitle>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {report.competitor_analysis.map((comp, idx) => (
+                            <Card key={idx} className="p-5 flex flex-col justify-between border-zinc-200">
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2 border-b border-zinc-100 pb-3">
+                                        <div className="w-8 h-8 rounded bg-zinc-100 flex items-center justify-center text-zinc-600">
+                                            <Swords className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-semibold text-zinc-900 leading-tight">
+                                                {comp.name}
+                                            </h4>
+                                            <span className="text-[11px] font-medium text-zinc-500">
+                                                {comp.market_position || "Competitor"}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {comp.strengths && comp.strengths.length > 0 && (
+                                        <div>
+                                            <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1">
+                                                Strengths
+                                            </span>
+                                            <ul className="space-y-1">
+                                                {comp.strengths.map((s, sIdx) => (
+                                                    <li key={sIdx} className="text-xs text-zinc-600 flex items-start gap-1.5">
+                                                        <span className="text-emerald-500 font-bold leading-none mt-0.5">•</span>
+                                                        <span>{s}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    {comp.weaknesses && comp.weaknesses.length > 0 && (
+                                        <div>
+                                            <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1">
+                                                Weaknesses / Gaps
+                                            </span>
+                                            <ul className="space-y-1">
+                                                {comp.weaknesses.map((w, wIdx) => (
+                                                    <li key={wIdx} className="text-xs text-zinc-600 flex items-start gap-1.5">
+                                                        <span className="text-rose-500 font-bold leading-none mt-0.5">•</span>
+                                                        <span>{w}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    {comp.differentiators && (
+                                        <div className="pt-2 border-t border-zinc-100">
+                                            <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider block mb-0.5">
+                                                Differentiator
+                                            </span>
+                                            <p className="text-xs text-zinc-700 italic">
+                                                {comp.differentiators}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
                 </section>
             )}
 

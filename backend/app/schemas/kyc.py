@@ -4,6 +4,14 @@ from uuid import UUID
 from typing import Optional, Any
 
 
+class CompetitorItem(BaseModel):
+    name: str
+    market_position: str
+    strengths: list[str] = []
+    weaknesses: list[str] = []
+    differentiators: str = ""
+
+
 class UseCaseItem(BaseModel):
     title: str
     description: str
@@ -23,6 +31,7 @@ class KYCReportResponse(BaseModel):
     executive_summary: Optional[str] = None
     company_overview: Optional[dict[str, Any]] = None
     industry_analysis: Optional[str] = None
+    competitor_analysis: Optional[list[dict[str, Any]]] = None
     business_model: Optional[str] = None
     company_location: Optional[str] = None
     customer_need_summary: Optional[str] = None
@@ -68,6 +77,7 @@ class KYCReportUpdate(BaseModel):
     executive_summary: Optional[str] = None
     company_overview: Optional[dict[str, Any]] = None
     industry_analysis: Optional[str] = None
+    competitor_analysis: Optional[list[dict[str, Any]]] = None
     business_model: Optional[str] = None
     company_location: Optional[str] = None
     customer_need_summary: Optional[str] = None

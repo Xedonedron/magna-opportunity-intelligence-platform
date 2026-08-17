@@ -7,6 +7,7 @@ import type {
     KYCUseCase,
     KYCReference,
     KYCCompanyOverview,
+    KYCCompetitor,
 } from "@/types/kyc";
 
 interface KYCEditFormProps {
@@ -122,6 +123,15 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
                         placeholder="Enter business model..."
                     />
                 </div>
+            </section>
+
+            {/* Competitor Analysis */}
+            <section>
+                <SectionLabel>Competitor Analysis</SectionLabel>
+                <CompetitorInput
+                    competitors={report.competitor_analysis || []}
+                    onChange={(competitors) => onChange("competitor_analysis", competitors)}
+                />
             </section>
 
             {/* Customer Need Summary & Pain Points */}
@@ -486,6 +496,121 @@ function UseCasesInput({
             >
                 <Plus className="w-4 h-4" />
                 Add Use Case
+            </button>
+        </div>
+    );
+}
+
+function CompetitorInput({
+    competitors,
+    onChange,
+}: {
+    competitors: KYCCompetitor[];
+    onChange: (competitors: KYCCompetitor[]) => void;
+}) {
+    const addCompetitor = () => {
+        onChange([
+            ...competitors,
+            {
+                name: "",
+                market_position: "",
+                strengths: [],
+                weaknesses: [],
+                differentiators: "",
+            },
+        ]);
+    };
+
+    const updateCompetitor = (index: number, field: keyof KYCCompetitor, value: unknown) => {
+        const updated = [...competitors];
+        updated[index] = { ...updated[index], [field]: value };
+        onChange(updated);
+    };
+
+    const removeCompetitor = (index: number) => {
+        onChange(competitors.filter((_, i) => i !== index));
+    };
+
+    return (
+        <div className="space-y-4">
+            {competitors.map((comp, index) => (
+                <div
+                    key={index}
+                    className="p-4 border border-zinc-200 rounded-lg space-y-3 bg-zinc-50/50"
+                >
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                            Competitor #{index + 1}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => removeCompetitor(index)}
+                            className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <TextInput
+                            label="Competitor Name"
+                            value={comp.name || ""}
+                            onChange={(v) => updateCompetitor(index, "name", v)}
+                            placeholder="e.g. Acme Corp"
+                        />
+                        <TextInput
+                            label="Market Position"
+                            value={comp.market_position || ""}
+                            onChange={(v) => updateCompetitor(index, "market_position", v)}
+                            placeholder="e.g. Market Leader / Regional Challenger"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">
+                                Strengths
+                            </label>
+                            <TagInput
+                                values={comp.strengths || []}
+                                onChange={(v) => updateCompetitor(index, "strengths", v)}
+                                placeholder="Add strength..."
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">
+                                Weaknesses / Gaps
+                            </label>
+                            <TagInput
+                                values={comp.weaknesses || []}
+                                onChange={(v) => updateCompetitor(index, "weaknesses", v)}
+                                placeholder="Add weakness..."
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">
+                            Differentiator
+                        </label>
+                        <input
+                            type="text"
+                            value={comp.differentiators || ""}
+                            onChange={(e) => updateCompetitor(index, "differentiators", e.target.value)}
+                            placeholder="Key differences compared to target company..."
+                            className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                        />
+                    </div>
+                </div>
+            ))}
+
+            <button
+                type="button"
+                onClick={addCompetitor}
+                className="w-full py-3 border-2 border-dashed border-zinc-200 rounded-lg text-sm text-zinc-500 hover:border-zinc-300 hover:text-zinc-600 transition-colors flex items-center justify-center gap-2"
+            >
+                <Plus className="w-4 h-4" />
+                Add Competitor
             </button>
         </div>
     );

@@ -303,6 +303,7 @@ def run_kyc_pipeline_task(opportunity_id: str, source_type: str = "automatic") -
             kyc_report.executive_summary = result.get("executive_summary")
             kyc_report.company_overview = result.get("company_overview")
             kyc_report.industry_analysis = result.get("industry_analysis")
+            kyc_report.competitor_analysis = result.get("competitor_analysis")
             kyc_report.business_model = result.get("business_model")
             kyc_report.company_location = result.get("company_location")
             kyc_report.customer_need_summary = result.get("customer_need_summary")

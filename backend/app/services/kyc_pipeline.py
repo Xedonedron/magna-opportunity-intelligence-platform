@@ -40,6 +40,7 @@ class KYCState(TypedDict):
     executive_summary: str
     company_overview: dict
     industry_analysis: str
+    competitor_analysis: list[dict]
     business_model: str
     company_location: str
     customer_need_summary: str
@@ -259,6 +260,15 @@ IMPORTANT: When generating use_cases, reference the Industry Use Cases Reference
         "key_products": ["list of main products/services"]
     }},
     "industry_analysis": "Analysis of the industry landscape, trends, and challenges",
+    "competitor_analysis": [
+        {{
+            "name": "Competitor company name",
+            "market_position": "Market leader / Challenger / Niche player etc.",
+            "strengths": ["Strength 1", "Strength 2"],
+            "weaknesses": ["Weakness 1", "Weakness 2"],
+            "differentiators": "How target company compares or differentiates against this competitor"
+        }}
+    ],
     "business_model": "How the company makes money and operates",
     "company_location": "Primary locations and operational footprint",
     "customer_need_summary": "Summary of what the customer needs based on the input and research",
@@ -301,6 +311,7 @@ Return ONLY valid JSON, no markdown formatting."""
             "executive_summary": result.get("executive_summary", ""),
             "company_overview": result.get("company_overview", {}),
             "industry_analysis": result.get("industry_analysis", ""),
+            "competitor_analysis": result.get("competitor_analysis", []),
             "business_model": result.get("business_model", ""),
             "company_location": result.get("company_location", ""),
             "customer_need_summary": result.get("customer_need_summary", ""),
@@ -374,6 +385,7 @@ async def run_kyc_pipeline(
         "executive_summary": "",
         "company_overview": {},
         "industry_analysis": "",
+        "competitor_analysis": [],
         "business_model": "",
         "company_location": "",
         "customer_need_summary": "",
@@ -399,6 +411,7 @@ async def run_kyc_pipeline(
             "executive_summary": result.get("executive_summary", ""),
             "company_overview": result.get("company_overview", {}),
             "industry_analysis": result.get("industry_analysis", ""),
+            "competitor_analysis": result.get("competitor_analysis", []),
             "business_model": result.get("business_model", ""),
             "company_location": result.get("company_location", ""),
             "customer_need_summary": result.get("customer_need_summary", ""),

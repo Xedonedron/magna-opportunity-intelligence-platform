@@ -28,6 +28,14 @@ export interface KYCCompanyOverview {
     key_products?: string[];
 }
 
+export interface KYCCompetitor {
+    name: string;
+    market_position: string;
+    strengths?: string[];
+    weaknesses?: string[];
+    differentiators?: string;
+}
+
 export interface KYCReport {
     id: string;
     opportunity_id: string;
@@ -39,6 +47,7 @@ export interface KYCReport {
     executive_summary?: string;
     company_overview?: KYCCompanyOverview;
     industry_analysis?: string;
+    competitor_analysis?: KYCCompetitor[];
     business_model?: string;
     company_location?: string;
     customer_need_summary?: string;
