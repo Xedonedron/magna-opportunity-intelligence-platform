@@ -13,7 +13,7 @@ from app.schemas.notification import (
     NotificationListResponse,
     NotificationUpdate,
 )
-from app.api.auth import get_current_user
+from app.core.security import get_current_user
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 

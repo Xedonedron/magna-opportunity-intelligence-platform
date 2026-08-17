@@ -7,6 +7,13 @@ import uuid
 
 from app.core.database import get_db
 from app.core.config import get_settings
+from app.core.security import (
+    get_current_user,
+    require_capability,
+    require_superadmin,
+    hash_password,
+    verify_password,
+)
 from app.models.user import User
 from app.schemas.user import UserResponse
 from app.services.auth import (
@@ -20,13 +27,28 @@ settings = get_settings()
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 security = HTTPBearer(auto_error=False)
 
-# Static dummy users for development
+# Hashed credentials for development evaluation
 STATIC_USERS = {
-    "superadmin": {"password": "P@ssw0rd", "role": "superadmin"},
-    "admin": {"password": "P@ssw0rd", "role": "admin"},
-    "lead_gen": {"password": "123456", "role": "lead_gen"},
-    "managerial": {"password": "123456", "role": "managerial"},
-    "engineer": {"password": "123456", "role": "engineer"},
+    "superadmin": {
+        "password_hash": "pbkdf2_sha256$100000$3b0b66c94601f687dd21f2da97593899$ce9f2e38c130e2f408f3bf8d2d3c13abb87dd92ea9b55642e273042955de72aa",
+        "role": "superadmin",
+    },
+    "admin": {
+        "password_hash": "pbkdf2_sha256$100000$3b0b66c94601f687dd21f2da97593899$ce9f2e38c130e2f408f3bf8d2d3c13abb87dd92ea9b55642e273042955de72aa",
+        "role": "admin",
+    },
+    "lead_gen": {
+        "password_hash": "pbkdf2_sha256$100000$bea55d9870ac91a916e9df7119a5e771$563f43020b68f3d4f0d25628b81fe8f29f3bb421abecdde0640210f7ddb15a46",
+        "role": "lead_gen",
+    },
+    "managerial": {
+        "password_hash": "pbkdf2_sha256$100000$bea55d9870ac91a916e9df7119a5e771$563f43020b68f3d4f0d25628b81fe8f29f3bb421abecdde0640210f7ddb15a46",
+        "role": "managerial",
+    },
+    "engineer": {
+        "password_hash": "pbkdf2_sha256$100000$bea55d9870ac91a916e9df7119a5e771$563f43020b68f3d4f0d25628b81fe8f29f3bb421abecdde0640210f7ddb15a46",
+        "role": "engineer",
+    },
 }
 
 
@@ -121,8 +143,8 @@ async def username_login(request: UsernameLoginRequest, db: Session = Depends(ge
 
     static_user = STATIC_USERS[request.username]
 
-    # Check password
-    if request.password != static_user["password"]:
+    # Verify password hash
+    if not verify_password(request.password, static_user["password_hash"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
@@ -137,7 +159,7 @@ async def username_login(request: UsernameLoginRequest, db: Session = Depends(ge
         role_name = static_user["role"]
         if role_name in ("admin", "superadmin"):
             caps = "view,create_edit,delete,generate_kyc,user_management"
-        elif role_name in ("manager", "lgo", "sales", "presales"):
+        elif role_name in ("manager", "lgo", "sales", "presales", "lead_gen", "managerial"):
             caps = "view,create_edit,delete,generate_kyc"
         elif role_name == "engineer":
             caps = "view,generate_kyc"
@@ -175,16 +197,3 @@ async def username_login(request: UsernameLoginRequest, db: Session = Depends(ge
 async def get_me(current_user: User = Depends(get_current_user)):
     """Get current user profile."""
     return current_user
-
-
-def require_capability(capability: str):
-    """Dependency helper to require a specific capability string on the current user."""
-    def dependency(current_user: User = Depends(get_current_user)):
-        caps = [c.strip() for c in (current_user.capabilities or "").split(",")]
-        if capability not in caps:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Anda tidak memiliki izin '{capability}' untuk melakukan aksi ini."
-            )
-        return current_user
-    return dependency

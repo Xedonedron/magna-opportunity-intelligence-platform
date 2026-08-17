@@ -16,7 +16,7 @@ from app.schemas.kyc import (
     KYCReportUpdate,
     KYCRegenerateRequest,
 )
-from app.api.auth import get_current_user, require_capability
+from app.core.security import get_current_user, require_capability
 from app.tasks import run_kyc_pipeline_task
 
 router = APIRouter(prefix="/api/opportunities/{opportunity_id}/kyc", tags=["kyc"])

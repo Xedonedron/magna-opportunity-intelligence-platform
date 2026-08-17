@@ -11,17 +11,9 @@ from app.models.audit_log import AuditLog
 from app.models.opportunity import Opportunity
 from app.models.meeting import Meeting
 from app.models.kyc_report import KYCReport
-from app.api.auth import get_current_user
+from app.core.security import get_current_user, require_superadmin
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
-
-def require_superadmin(current_user: User = Depends(get_current_user)):
-    if current_user.role != "superadmin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Hanya superadmin yang memiliki akses ke halaman operasional ini."
-        )
-    return current_user
 
 @router.get("/logs")
 def get_system_logs(
@@ -201,7 +193,7 @@ class MasterDataPayload(BaseModel):
 
 
 @router.get("/master-data")
-def get_master_data():
+def get_master_data(_user: User = Depends(get_current_user)):
     """Retrieve master data options (Industries, Pre-Sales & Document Labels)."""
     return MASTER_DATA
 

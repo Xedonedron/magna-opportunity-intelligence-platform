@@ -7,7 +7,7 @@ from app.core.database import get_db
 from app.models.meeting import Meeting
 from app.models.opportunity import Opportunity, TimelineEvent
 from app.models.user import User
-from app.api.auth import get_current_user, require_capability
+from app.core.security import get_current_user, require_capability
 from app.schemas.meeting import (
     MeetingCreate,
     MeetingUpdate,
@@ -90,6 +90,7 @@ def create_meeting(
         notes=payload.notes,
         action_items=payload.action_items,
         attachments=payload.attachments,
+        created_by=current_user.id,
     )
     db.add(meeting)
 
@@ -156,6 +157,9 @@ def update_meeting(
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
 
+    if meeting.created_by and meeting.created_by != current_user.id and current_user.role not in ("admin", "superadmin"):
+        raise HTTPException(status_code=403, detail="Forbidden: You can only edit meetings you created")
+
     update_data = payload.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(meeting, field, value)
@@ -163,7 +167,7 @@ def update_meeting(
     # Log timeline event
     timeline = TimelineEvent(
         opportunity_id=meeting.opportunity_id,
-        actor_name="System",
+        actor_name=current_user.full_name or "System",
         action="Meeting Updated",
         description=f"Meeting '{meeting.title}' was updated",
         event_type="meeting",
@@ -185,6 +189,9 @@ def delete_meeting(
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
 
+    if meeting.created_by and meeting.created_by != current_user.id and current_user.role not in ("admin", "superadmin"):
+        raise HTTPException(status_code=403, detail="Forbidden: You can only delete meetings you created")
+
     opp_id = meeting.opportunity_id
     title = meeting.title
 
@@ -193,7 +200,7 @@ def delete_meeting(
     # Log timeline event
     timeline = TimelineEvent(
         opportunity_id=opp_id,
-        actor_name="System",
+        actor_name=current_user.full_name or "System",
         action="Meeting Deleted",
         description=f"Meeting '{title}' was deleted",
         event_type="meeting",

@@ -17,7 +17,7 @@ from app.schemas.persona import (
     OpportunityPersonaResponse,
     OpportunityPersonaListResponse,
 )
-from app.api.auth import get_current_user
+from app.core.security import get_current_user
 from app.services.persona_service import generate_persona_playbook
 
 router = APIRouter(prefix="/api/opportunities/{opportunity_id}/personas", tags=["personas"])

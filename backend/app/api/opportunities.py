@@ -20,7 +20,7 @@ from app.schemas.opportunity import (
     OpportunityDocumentResponse,
     OpportunityDocumentListResponse,
 )
-from app.api.auth import get_current_user, require_capability
+from app.core.security import get_current_user, require_capability
 from app.tasks import (
     send_opportunity_created_notification,
     send_status_changed_notification,
@@ -823,7 +823,7 @@ async def create_opportunity_document(
     opportunity_id: uuid.UUID,
     data: OpportunityDocumentCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_capability("create_edit")),
 ):
     """Add a new document to an opportunity."""
     opp = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
@@ -862,7 +862,7 @@ async def update_opportunity_document(
     document_id: uuid.UUID,
     data: OpportunityDocumentUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_capability("create_edit")),
 ):
     """Update a document's details."""
     opp = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
@@ -879,6 +879,10 @@ async def update_opportunity_document(
     )
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
+
+    # Enforce ownership or superadmin/admin role
+    if document.uploaded_by != current_user.id and current_user.role not in ("admin", "superadmin"):
+        raise HTTPException(status_code=403, detail="Forbidden: You can only edit documents you uploaded")
 
     update_data = data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
@@ -905,7 +909,7 @@ async def delete_opportunity_document(
     opportunity_id: uuid.UUID,
     document_id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_capability("delete")),
 ):
     """Delete a document from an opportunity."""
     opp = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
@@ -922,6 +926,10 @@ async def delete_opportunity_document(
     )
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
+
+    # Enforce ownership or superadmin/admin role
+    if document.uploaded_by != current_user.id and current_user.role not in ("admin", "superadmin"):
+        raise HTTPException(status_code=403, detail="Forbidden: You can only delete documents you uploaded")
 
     doc_title = document.title
 
