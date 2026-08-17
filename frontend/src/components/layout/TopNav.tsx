@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { Search, FolderOpen, Calendar, X, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { NotificationDropdown } from "@/components/domains/notifications/NotificationDropdown";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
+import { useLanguage } from "@/context/LanguageContext";
 import { api } from "@/lib/api";
 
 interface SearchResult {
@@ -13,6 +15,7 @@ interface SearchResult {
 
 export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) {
     const router = useRouter();
+    const { t, locale } = useLanguage();
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<SearchResult | null>(null);
     const [isOpen, setIsOpen] = useState(false);
@@ -215,6 +218,7 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
                 )}
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
+                <LanguageToggle />
                 <NotificationDropdown />
             </div>
         </header>

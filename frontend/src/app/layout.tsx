@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { LanguageProvider } from "@/context/LanguageContext";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -17,13 +18,16 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
+        <html lang="id">
             <body className={inter.className}>
                 <QueryProvider>
-                    {children}
-                    <Toaster position="bottom-right" richColors closeButton />
+                    <LanguageProvider>
+                        {children}
+                        <Toaster position="bottom-right" richColors closeButton />
+                    </LanguageProvider>
                 </QueryProvider>
             </body>
         </html>
     );
 }
+
