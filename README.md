@@ -23,12 +23,15 @@ An enterprise presales intelligence and opportunity management platform built fo
 
 ## 🌟 Key Features
 
-* 🤖 **Automated AI KYC Research Engine:** Generates comprehensive company intelligence in < 5 minutes by crawling official websites, news, and LinkedIn data.
-* 📚 **RAG-Backed Solution Matching:** Integrates ChromaDB vector store to match customer pain points directly with internal Smartnet Magna solution briefs and Google Cloud products.
+* 🤖 **Automated AI KYC Research Engine:** Generates comprehensive company intelligence in < 5 minutes by crawling official websites, news, and search data with search grounding.
+* 🎯 **Target Persona Intelligence Playbook:** Generates custom discovery questioning strategies, strategic concerns, value propositions, and objection handling tailored by target seniority (C-Level, Director, Manager, Staff) and department (IT, Data & AI, Security, Finance, Operations, Business).
+* 📁 **Opportunity Resources & Document Hub:** Centralized document repository supporting Google Drive integration, labels/tagging (MoM, Solution Brief, Proposal), and fast asset preview.
+* 🌐 **Bilingual Interface (ID/EN):** Instant one-click locale toggle between Indonesian and English without page reload.
+* 📚 **RAG-Backed Solution Matching:** Integrates vector store to match customer pain points directly with internal Smartnet Magna solution briefs and Google Cloud products.
 * 🔄 **KYC Versioning & Editor:** Tracks immutable report revisions (`v1` Auto-generated, `v2` Regenerated, `v3+` Engineer-edited) with full diff support.
-* 📊 **Executive Dashboard & Pipeline Monitoring:** Role-based metrics, 30-day conversion trends, meeting schedules, and revenue pipeline analytics.
-* 📅 **Meeting Manager & Google Integration:** Multi-meeting scheduling, automated Google Calendar event sync, and Gmail notification reminders.
-* 🔒 **Role-Based Access Control (RBAC):** Tailored views and permissions for System Admins, Managers, Presales Engineers, and Lead Generation Officers (LGO).
+* 📊 **Executive Dashboard & Pipeline Monitoring:** Role-based metrics, Kanban & Table view toggle, 30-day conversion trends, presales workload filters, and revenue pipeline analytics.
+* 📅 **Meeting Manager & Calendar Sync:** Multi-meeting scheduling, automated Google Calendar event sync, and notification reminders.
+* 🔒 **Role-Based Access Control (RBAC):** Tailored views and capabilities for Super Admin, Admin, Manager, Presales Engineer, and Lead Gen.
 * 📝 **Audit Logging & System Security:** Comprehensive audit logs tracking every entity creation, modification, and state transition.
 
 ---

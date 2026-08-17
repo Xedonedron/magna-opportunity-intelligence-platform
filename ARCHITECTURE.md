@@ -132,19 +132,23 @@ By breaking down the UI into atomic and composite components, we ensure consiste
 
 #### D. Opportunity Detail (`components/domains/opportunities/`)
 
-* `PageHeader`: Breadcrumbs, Title, Main Actions.
-* `OpportunityTabs`: Next.js state or URL-param driven tabs.
-* **Tab: Overview** -> `CompanyInfoCard`, `NeedsSummary`, `StatusWidget`.
-* **Tab: Meetings** -> `MeetingAccordion` (Agenda, Notes, Action Items).
+* `PageHeader`: Breadcrumbs, Title, Main Actions, Edit Opportunity, AI Chat Drawer toggle.
+* `OpportunityTabs`: Next.js state driven tab panels.
+* **Tab: Overview** -> `CompanyInfoCard`, `ContactsList`, `NeedsSummary`, `StatusWidget`, `PotentialRevenueWidget`.
+* **Tab: KYC Report** ->
+  * `KYCHeader` (Executive Summary, Version history selector, Regenerate button).
+  * `CompanyOverviewGrid` & `IndustryAnalysisCard`.
+  * `CompetitorAnalysisCard` (Competitor matrix & Magna differentiators).
+  * `UseCaseAccordion` (Expanded/Collapsed state for mapped Magna AI capabilities).
+  * `ChecklistBoard` (Preparation items).
+* **Tab: Target Persona** (`components/domains/personas/`):
+  * Seniority & Department selector grid.
+  * Discovery questions with rationale, value propositions, and objection handling.
+* **Tab: Resources** (`components/domains/documents/`):
+  * Opportunity document library, Google Drive links, and label filtering.
+* **Tab: Meetings** -> `MeetingAccordion` (Agenda, Notes, Action Items, Calendar Sync).
 * **Tab: Timeline** -> `TimelineRoot` -> `TimelineItem` (GitHub-style, connected by vertical lines).
-* **Tab: KYC Report** (The highlight) ->
-* `KYCHeader` (Executive Summary).
-* `CompanyOverviewGrid`.
-* `UseCaseAccordion` (Expanded/Collapsed state for AI capabilities).
-* `ChecklistBoard` (Preparation items).
-
-
-* **Tab: Versions** -> `VersionHistoryList` (Selectable past KYC generations).
+* **AI Chat Sidebar** -> Floating right drawer with streamed RAG responses.
 
 
 

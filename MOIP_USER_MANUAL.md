@@ -61,6 +61,12 @@ Semua akun lain yang baru pertama kali login akan mendapatkan role **Viewer** de
 
 ## 3. Panduan Antarmuka & Menu Navigasi Utama
 
+### Fitur Global & Multi-Bahasa
+Pada bilah navigasi atas (Top Navigation Bar), pengguna dapat:
+- **Pencarian Global**: Melakukan pencarian instan nama perusahaan, kontak, atau kebutuhan di seluruh pipeline.
+- **Language Switcher (`ID` / `EN`)**: Berpindah bahasa antarmuka secara instan antara Bahasa Indonesia dan Bahasa Inggris tanpa me-refresh halaman.
+- **Pusat Notifikasi**: Melihat pembaruan penugasan engineer dan penyelesaian riset KYC otomatis.
+
 Sistem memiliki empat bilah menu utama di sisi kiri layar:
 
 ### A. Dashboard Utama
@@ -72,7 +78,8 @@ Merupakan halaman pusat pemantauan performa presales yang diperkaya dengan metri
 3. **Meetings Today**: Jumlah rapat koordinasi pre-sales yang dijadwalkan hari ini.
 4. **Need Follow Up**: Jumlah peluang yang membutuhkan tindakan segera.
 
-**Visualisasi Analitik:**
+**Visualisasi Analitik & Penyaringan:**
+- **Penyaringan Waktu & PIC Presales**: Saring metrik dashboard berdasarkan rentang tanggal atau presales engineer tertentu.
 - **Status Distribution**: Grafik lingkaran sebaran status seluruh peluang.
 - **Pipeline Trend**: Tren pendaftaran peluang baru dalam 30 hari terakhir.
 - **Solution Distribution**: Grafik sebaran fokus **solusi** yang ditawarkan (misalnya: *Google Cloud Infrastructure*, *Data Analytics & AI*, *Cybersecurity Suite*).
@@ -80,9 +87,10 @@ Merupakan halaman pusat pemantauan performa presales yang diperkaya dengan metri
 
 ### B. Opportunities
 
-Halaman manajemen seluruh peluang pre-sales.
+Halaman manajemen seluruh peluang pre-sales:
+- **Tampilan Kanban & Tabel**: Beralih antara papan kartu visual alur status (drag/move ready) atau tampilan daftar tabel ringkas.
 - **Pencarian & Penyaringan**: Cari peluang berdasarkan nama perusahaan atau saring berdasarkan status.
-- **Tambah Peluang Baru**: Tombol **New Opportunity** hanya muncul bagi pengguna yang memiliki kapabilitas *Create & Edit*. Isi Nama Perusahaan, Sektor Industri, Estimasi Nilai Peluang, Target Solusi, Kebutuhan Pelanggan, dan Jadwal Rapat Awal, lalu klik **Create Opportunity**.
+- **Tambah Peluang Baru**: Tombol **New Opportunity** hanya muncul bagi pengguna yang memiliki kapabilitas *Create & Edit*. Isi Nama Perusahaan, Sektor Industri, Estimasi Nilai Peluang, Target Solusi, Kebutuhan Pelanggan, Kontak PIC, dan Jadwal Rapat Awal, lalu klik **Create Opportunity**.
 
 ### C. Meetings
 
@@ -93,7 +101,7 @@ Daftar ringkasan rapat pre-sales global. Memudahkan manajer dan tim memantau age
 Halaman konfigurasi personal dan sistem:
 
 1. **User Profile**: Mengubah Nama Lengkap.
-2. **AI & Pipeline**: Konfigurasi parameter LLM untuk riset KYC (model dan Temperature).
+2. **AI & Pipeline**: Konfigurasi parameter LLM untuk riset KYC (model, Temperature, serta pilihan search provider: Google Grounding vs Tavily).
 3. **Magna Solutions Catalog**: Daftar katalog produk resmi PT Smartnet Magna Global.
 4. **User Management** *(Khusus Super Admin)*: Panel untuk mengelola akses seluruh pengguna (lihat Bagian 4).
 5. **System Operations** *(Khusus Super Admin)*: Ringkasan metrik sistem dan log audit aktivitas real-time.
@@ -125,17 +133,32 @@ Setiap peluang memiliki halaman detail khusus:
 
 ### A. Overview
 
-Menampilkan ringkasan profil pelanggan, detail kontak, engineer yang ditugaskan, **Target Solusi**, dan kebutuhan utama.
+Menampilkan ringkasan profil pelanggan, kontak multi-person PIC, engineer yang ditugaskan, estimasi nilai proyek (potential revenue), target tanggal agenda, **Target Solusi**, dan kebutuhan utama. Tombol **Edit** di pojok kanan atas memungkinkan perubahan data peluang.
 
 ### B. KYC Report
 
 Laporan analisis kelayakan pelanggan yang diperkaya otomatis oleh AI (Know Your Customer).
 - **Progres Bar Interaktif**: Bilah kemajuan real-time memberi tahu tahapan sistem saat KYC diproses.
-- **Hasil Riset**: Berisi rangkuman eksekutif, analisis tantangan industri, usulan use case solusi SMG, dan daftar kompetitor.
+- **Hasil Riset**: Berisi rangkuman eksekutif, profil dan analisis industri, usulan use case solusi SMG, serta analisis kompetitor yang mencantumkan nama kompetitor, kekuatan, kelemahan, dan diferensiasi Smartnet Magna.
 - **Tombol Regenerate** hanya terlihat bagi pengguna dengan kapabilitas *Generate KYC*.
 - **Tombol Edit** hanya terlihat bagi pengguna dengan kapabilitas *Create & Edit*.
 
-### C. Chat with AI (Drawer Kanan)
+### C. Target Persona
+
+Playbook presales interaktif yang disesuaikan secara dinamis oleh AI berdasarkan level jabatan (Seniority) dan divisi (Department) lawan bicara dalam rapat:
+- **Pilihan Seniority**: C-Level, VP/Director, Manager, Lead/Senior, Staff.
+- **Pilihan Department**: IT, Data & AI, Security, Finance, Operations, Business.
+- **Strategi & Pertanyaan Kunci**: Menampilkan *Strategic Concerns*, daftar pertanyaan discovery & teknis beserta latar belakang alasannya, proposisi nilai khusus (*Tailored Value Proposition*), serta antisipasi penolakan (*Objection Handling*).
+- Pengguna dapat mengklik **Generate Strategy** untuk memicu playbook persona baru.
+
+### D. Resources (Documents Hub)
+
+Pusat penyimpanan tautan dokumen & referensi penting untuk peluang:
+- **Dukungan Tautan & Google Drive**: Tautkan dokumen seperti Minutes of Meeting (MoM), Proposal Penawaran Teknis, Solution Brief, atau Company Profile.
+- **Kategori / Labels**: Klasifikasikan dokumen dengan label fleksibel untuk mempermudah pencarian.
+- **Pratinjau & Akses Cepat**: Klik tautan untuk membuka berkas asli langsung di tab baru.
+
+### E. Chat with AI (Drawer Kanan)
 
 Bilah panel pintar yang dapat dibuka dengan mengklik tombol **Chat with AI** di header halaman.
 - **Output Streaming**: Jawaban AI mengalir secara langsung.
@@ -143,11 +166,11 @@ Bilah panel pintar yang dapat dibuka dengan mengklik tombol **Chat with AI** di 
 - **Kustomisasi Dimensi**: Tombol *Maximize/Minimize* untuk mengubah lebar panel (400px / 650px).
 - **Retensi Riwayat**: Riwayat obrolan disimpan di database dan otomatis dihapus setelah 7 hari.
 
-### D. Meetings
+### F. Meetings
 
 Daftar riwayat rapat pre-sales spesifik untuk peluang ini. Tombol **Log Meeting** dan **Add Meeting** hanya terlihat bagi pengguna dengan kapabilitas *Create & Edit*.
 
-### E. Timeline
+### G. Timeline
 
 Jejak audit otomatis yang mencatat setiap peristiwa penting dari peluang tersebut.
 

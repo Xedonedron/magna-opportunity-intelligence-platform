@@ -49,6 +49,10 @@
 | DELETE | `/{opportunity_id}` | Delete opportunity | Yes |
 | GET | `/{opportunity_id}/chat` | Get RAG chat history for opportunity | Yes |
 | POST | `/{opportunity_id}/chat` | Send message / RAG chat streaming | Yes |
+| GET | `/{opportunity_id}/documents` | List opportunity resources/documents | Yes |
+| POST | `/{opportunity_id}/documents` | Add opportunity resource/document | Yes |
+| PATCH | `/{opportunity_id}/documents/{document_id}` | Update opportunity document | Yes |
+| DELETE | `/{opportunity_id}/documents/{document_id}` | Delete opportunity document | Yes |
 
 **Query Parameters (GET /):**
 - `page` (int): Page number, default 1
@@ -138,16 +142,20 @@
 |-------|------|-------------|
 | id | UUID | Primary key |
 | company_name | String(255) | Company name |
+| contact_name | String(255) | Primary contact person name |
 | website | String(500) | Company website |
 | email | String(255) | Contact email |
 | phone | String(50) | Contact phone number |
+| contacts | JSON | Multi-contact list `[{"name", "role", "email", "phone"}]` |
 | industry | String(255) | Industry sector |
 | product | String(255) | Product/solution target |
 | customer_needs | Text | Detailed customer pain points / needs |
-| additional_notes | Text | Additional notes |
+| additional_notes | Text | Additional notes / context for AI |
+| potential_revenue | Numeric(15,2) | Estimated project / deal value |
+| estimated_agenda_date | DateTime | Target agenda / closing date |
 | status | String(50) | Status (11 values below, default "New") |
 | meeting_schedule | DateTime | Scheduled meeting timestamp |
-| assigned_engineer_id | UUID | FK to Users |
+| assigned_engineer | String(255) | Assigned presales engineer name |
 | created_by | UUID | FK to Users (creator) |
 | created_at | DateTime | Creation timestamp |
 | updated_at | DateTime | Last update timestamp |
@@ -164,6 +172,41 @@
 9. `Won` - Deal won
 10. `Lost` - Deal lost
 11. `On Hold` - On hold
+
+### Opportunity Personas (`opportunity_personas`)
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| opportunity_id | UUID | FK to Opportunities |
+| seniority | String(50) | Target seniority (C-Level, VP/Director, Manager, Lead/Senior, Staff) |
+| department | String(50) | Target department (IT, Data & AI, Security, Finance, Operations, Business) |
+| focus_areas | JSONB | Priority topics and strategic concerns |
+| questions | JSONB | Discovery, technical, and commercial questions with rationales |
+| value_props | JSONB | Tailored value proposition statements |
+| objection_handling | JSONB | Antipatterns, objections, and suggested responses |
+| created_at | DateTime | Creation timestamp |
+| updated_at | DateTime | Last update timestamp |
+
+### Opportunity Documents (`opportunity_documents`)
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| opportunity_id | UUID | FK to Opportunities |
+| title | String(500) | Document title |
+| url | String(2000) | Document link / Google Drive URL |
+| description | Text | Document summary or notes |
+| labels | JSON | Array of document tags (e.g. `MoM`, `Solution Brief`, `Compro`) |
+| uploaded_by | UUID | FK to Users |
+| created_at | DateTime | Creation timestamp |
+
+### System Settings (`system_settings`)
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| key | String(100) | Unique setting key (e.g. `search_provider`, `gemini_model`) |
+| value | Text | Setting value |
+| description | String(255) | Setting description |
+| updated_at | DateTime | Last update timestamp |
 
 ### KYC Reports (`kyc_reports`)
 | Field | Type | Description |
@@ -252,6 +295,18 @@
 - `generate_executive_summary(data: dict)` - Generate executive summary via LLM
 - `generate_use_cases(company_data: dict, solutions: list)` - Generate use cases with RAG
 
+### Target Persona Service (`backend/app/services/persona_service.py`)
+**Functions:**
+- `generate_persona_playbook(...)` - Generate seniority & department customized presales discovery playbook and objection handling via LLM
+
+### AI Validation & Grounding Service (`backend/app/services/ai_validation_service.py`)
+**Functions:**
+- `validate_information_and_thinking(...)` - Validates AI output factuality, reasoning consistency, and verifies live web URLs via Google Grounding & Tavily
+
+### Link Verifier Service (`backend/app/services/link_verifier.py`)
+**Functions:**
+- `verify_urls(...)` - Concurrently checks HTTP status and verifies real accessibility of links before reporting
+
 ### Audit Service (`backend/app/services/audit_service.py`)
 **Functions:**
 - `log_change(entity_type: str, entity_id: UUID, user_id: UUID, action: str, old_value: dict, new_value: dict)` - Log entity changes
@@ -315,9 +370,17 @@
 - `OpportunityChatSidebar.tsx` - AI RAG Chat assistant sidebar for opportunity
 - `OpportunityDetailHeader.tsx` - Header info & action buttons
 - `OpportunityTimeline.tsx` - Activity log timeline
+- `EditOpportunityDialog.tsx` - Modal to edit opportunity details
+
+**Target Persona (`components/domains/personas/`):**
+- `TargetPersonaTab.tsx` - Persona selection matrix, AI questions generator, and playbook view
+
+**Documents / Resources (`components/domains/documents/`):**
+- `ResourcesTab.tsx` - Opportunity documents library with Google Drive preview & label filtering
+- `AddDocumentDialog.tsx` - Modal to link/edit document assets
 
 **KYC (`components/domains/kyc/`):**
-- `KYCReportTab.tsx` - Main KYC display component
+- `KYCReportTab.tsx` - Main KYC display component (with Competitor Analysis)
 - `KYCEditForm.tsx` - Edit KYC sections
 - `VersionSelector.tsx` - Version history dropdown
 - `UseCaseAccordion.tsx` - Expandable use case list
@@ -328,8 +391,14 @@
 - `EditMeetingDialog.tsx` - Meeting edit modal
 
 **Layout (`components/layout/`):**
-- `Sidebar.tsx` - Navigation sidebar with role capabilities
-- `TopNav.tsx` - Top navigation bar with global search & notifications badge
+- `Sidebar.tsx` - Navigation sidebar with role capabilities & dynamic localization
+- `TopNav.tsx` - Top navigation bar with global search, notifications badge, and LanguageToggle
+- `LanguageToggle.tsx` - Quick toggle button for switching EN/ID interface
+
+**Internationalization (`frontend/src/`):**
+- `context/LanguageContext.tsx` - React Context provider for reactive locale switching
+- `locales/en.ts` - English translation dictionary
+- `locales/id.ts` - Indonesian translation dictionary
 
 **Shared (`components/shared/`):**
 - `StatusBadge.tsx` - Status badge component

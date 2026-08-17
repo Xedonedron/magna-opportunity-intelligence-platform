@@ -71,15 +71,25 @@ curl -X POST http://localhost:8000/api/opportunities \
 {
   "id": "782cd211-1aef-4573-b26a-939e144a2eb9",
   "company_name": "PT. Semen Baturaja Tbk",
+  "contact_name": "Budi Santoso",
   "website": "https://semenbaturaja.co.id/",
   "email": "info@semenbaturaja.co.id",
   "phone": "+62 711 511261",
+  "contacts": [
+    {
+      "name": "Budi Santoso",
+      "role": "Head of IT",
+      "email": "budi@semenbaturaja.co.id",
+      "phone": "+62 812 3456 7890"
+    }
+  ],
   "industry": "Manufacturing",
   "product": "Data Analytics Platform",
   "customer_needs": "Visualisasi dashboard sebelumnya...",
-  "additional_notes": "Fokus pada peluang...",
+  "additional_notes": "Fokus pada peluang modernisasi data warehouse...",
+  "potential_revenue": 750000000.0,
   "meeting_schedule": "2026-08-05T10:00:00Z",
-  "assigned_engineer_id": null,
+  "assigned_engineer": "Robi Firmansyah",
   "created_by": "e963b6fb-cfa2-46be-8700-1c0f4f9f75a6",
   "status": "New",
   "created_at": "2026-07-30T16:05:00Z"
@@ -227,6 +237,77 @@ To trigger a new KYC analysis version (e.g., after updating customer needs or co
 ### Request
 ```bash
 curl -X POST http://localhost:8000/api/opportunities/OPPORTUNITY_ID/kyc/regenerate \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+---
+
+## 7. Generate Target Persona Playbook
+Generate customized questioning strategies, strategic concerns, and objection handling for specific seniority and department targets:
+
+### Request
+```bash
+curl -X POST http://localhost:8000/api/opportunities/OPPORTUNITY_ID/personas/generate \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{
+    "seniority": "C-Level",
+    "department": "IT"
+  }'
+```
+
+### Expected Response
+```json
+{
+  "id": "persona-uuid",
+  "opportunity_id": "OPPORTUNITY_ID",
+  "seniority": "C-Level",
+  "department": "IT",
+  "focus_areas": [
+    "Digital Transformation ROI",
+    "Data Governance & Modernization",
+    "Cloud Security Compliance"
+  ],
+  "questions": [
+    {
+      "category": "discovery",
+      "question": "Bagaimana strategi modernisasi infrastruktur data Baturaja mendukung efisiensi operasional pabrik?",
+      "rationale": "Mengaitkan investasi TI dengan metrik bisnis utama C-level."
+    }
+  ],
+  "value_props": [
+    "Smartnet Magna menyediakan arsitektur BigQuery + Looker yang mempercepat pelaporan hingga 60%."
+  ],
+  "objection_handling": [
+    {
+      "objection": "Biaya migrasi dan lisensi cloud dipandang terlalu tinggi.",
+      "response": "Smartnet Magna menawarkan TCO assessment dan optimasi bertahap untuk menekan OPEX."
+    }
+  ]
+}
+```
+
+---
+
+## 8. Manage Opportunity Documents & Resources
+Attach and organize references, Minutes of Meeting (MoM), or proposals:
+
+### Request (Add Document)
+```bash
+curl -X POST http://localhost:8000/api/opportunities/OPPORTUNITY_ID/documents \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{
+    "title": "MoM First Discovery Meeting PT Semen Baturaja",
+    "url": "https://docs.google.com/document/d/example-doc-id/edit",
+    "description": "Catatan rapat perdana dengan Head of IT",
+    "labels": ["MoM", "Discovery"]
+  }'
+```
+
+### Request (List Documents)
+```bash
+curl -X GET http://localhost:8000/api/opportunities/OPPORTUNITY_ID/documents \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
