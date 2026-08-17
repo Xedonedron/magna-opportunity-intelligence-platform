@@ -1,6 +1,9 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 import { STATUS_STYLES } from "@/types/opportunity";
 import type { OpportunityStatus } from "@/types/opportunity";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface StatusBadgeProps {
     status: OpportunityStatus;
@@ -8,6 +11,9 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
+    const { t } = useLanguage();
+    const label = t.status[status] || status;
+
     return (
         <span
             className={cn(
@@ -16,7 +22,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
                 className
             )}
         >
-            {status}
+            {label}
         </span>
     );
 }

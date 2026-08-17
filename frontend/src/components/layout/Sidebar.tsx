@@ -12,26 +12,28 @@ import {
     LogOut,
     X,
 } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 
-interface NavItem {
-    name: string;
+interface NavItemDef {
+    key: "dashboard" | "opportunities" | "meetings" | "settings";
     href: string;
     icon: React.ComponentType<{ className?: string }>;
     badge?: number;
 }
 
-const navItems: NavItem[] = [
-    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Opportunities", href: "/opportunities", icon: FolderOpen },
-    { name: "Meetings", href: "/meetings", icon: Calendar },
-    { name: "Settings", href: "/settings", icon: Settings },
+const navItemDefs: NavItemDef[] = [
+    { key: "dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { key: "opportunities", href: "/opportunities", icon: FolderOpen },
+    { key: "meetings", href: "/meetings", icon: Calendar },
+    { key: "settings", href: "/settings", icon: Settings },
 ];
 
 export function Sidebar() {
     const pathname = usePathname();
     const router = useRouter();
+    const { t } = useLanguage();
     const [user, setUser] = useState<{ full_name: string; email: string } | null>(null);
 
     const handleLogout = () => {
@@ -78,13 +80,14 @@ export function Sidebar() {
                 </Link>
             </div>
             <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-                {navItems.map((item) => {
+                {navItemDefs.map((item) => {
+                    const label = t.nav[item.key];
                     const isActive =
                         pathname === item.href ||
                         pathname.startsWith(item.href + "/");
                     return (
                         <Link
-                            key={item.name}
+                            key={item.key}
                             href={item.href}
                             className={cn(
                                 "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors",
@@ -100,7 +103,7 @@ export function Sidebar() {
                                         isActive ? "text-zinc-900" : "text-zinc-500"
                                     )}
                                 />
-                                {item.name}
+                                {label}
                             </div>
                             {item.badge && (
                                 <span className="bg-zinc-900 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
@@ -146,6 +149,7 @@ export function MobileSidebarDrawer({
 }) {
     const pathname = usePathname();
     const router = useRouter();
+    const { t } = useLanguage();
     const [user, setUser] = useState<{ full_name: string; email: string } | null>(null);
 
     useEffect(() => {
@@ -198,13 +202,14 @@ export function MobileSidebarDrawer({
                 </div>
 
                 <div className="flex-1 py-4 px-3 space-y-1.5 overflow-y-auto">
-                    {navItems.map((item) => {
+                    {navItemDefs.map((item) => {
+                        const label = t.nav[item.key];
                         const isActive =
                             pathname === item.href ||
                             pathname.startsWith(item.href + "/");
                         return (
                             <Link
-                                key={item.name}
+                                key={item.key}
                                 href={item.href}
                                 onClick={onClose}
                                 className={cn(
@@ -221,7 +226,7 @@ export function MobileSidebarDrawer({
                                             isActive ? "text-white" : "text-zinc-500"
                                         )}
                                     />
-                                    {item.name}
+                                    {label}
                                 </div>
                             </Link>
                         );
