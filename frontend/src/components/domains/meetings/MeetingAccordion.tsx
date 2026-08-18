@@ -4,11 +4,12 @@ import { useState } from "react";
 import { Calendar, ChevronDown, MapPin, Users, ListChecks, FileText, Edit3 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { useLanguage } from "@/context/LanguageContext";
 import { EditMeetingDialog } from "./EditMeetingDialog";
 import type { Meeting } from "@/types/meeting";
 
-function formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString("en-US", {
+function formatDate(dateStr: string, locale: string): string {
+    return new Date(dateStr).toLocaleDateString(locale === "id" ? "id-ID" : "en-US", {
         weekday: "short",
         month: "short",
         day: "numeric",
@@ -23,6 +24,7 @@ interface MeetingAccordionProps {
 }
 
 export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
+    const { t, locale } = useLanguage();
     const [openId, setOpenId] = useState<string | null>(
         meetings.length > 0 ? meetings[0].id : null
     );
@@ -33,7 +35,7 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
             <Card className="p-12 text-center">
                 <Calendar className="w-10 h-10 text-zinc-300 mx-auto mb-3" />
                 <p className="text-sm text-zinc-500">
-                    No meetings scheduled yet.
+                    {t.opportunityDetail.meetings.noMeetings}
                 </p>
             </Card>
         );
@@ -78,10 +80,10 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                                     size="sm"
                                     onClick={() => setEditingMeeting(meeting)}
                                     className="h-8 text-xs text-zinc-600 hover:text-zinc-900 gap-1"
-                                    title="Edit Meeting & Agenda"
+                                    title={t.opportunityDetail.meetings.editMeeting}
                                 >
                                     <Edit3 className="w-3.5 h-3.5" />
-                                    Edit
+                                    {t.opportunityDetail.meetings.editMeeting}
                                 </Button>
                                 <button
                                     onClick={() =>
@@ -105,7 +107,7 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                                         <div>
                                             <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                                 <Users className="w-3.5 h-3.5" />
-                                                Participants
+                                                {t.opportunityDetail.meetings.participants}
                                             </h4>
                                             <div className="flex flex-wrap gap-2">
                                                 {meeting.participants.map(
@@ -127,7 +129,7 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                                     <div>
                                         <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                             <ListChecks className="w-3.5 h-3.5" />
-                                            Agenda
+                                            {t.opportunityDetail.meetings.agenda}
                                         </h4>
                                         <ol className="list-decimal list-inside space-y-1">
                                             {meeting.agenda.map((item, i) => (
@@ -147,7 +149,7 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                                     <div>
                                         <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                             <FileText className="w-3.5 h-3.5" />
-                                            Notes
+                                            {t.opportunityDetail.meetings.notes}
                                         </h4>
                                         <p className="text-sm text-zinc-600 leading-relaxed bg-white border border-zinc-100 rounded-md p-3">
                                             {meeting.notes}

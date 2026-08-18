@@ -24,6 +24,7 @@ import {
     usePersonaDetail,
     useGeneratePersona,
 } from "@/hooks/use-personas";
+import { useLanguage } from "@/context/LanguageContext";
 import { SeniorityLevel, DepartmentType } from "@/types/persona";
 
 const SENIORITY_LEVELS: SeniorityLevel[] = [
@@ -48,6 +49,7 @@ interface TargetPersonaTabProps {
 }
 
 export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
+    const { t } = useLanguage();
     const [selectedSeniority, setSelectedSeniority] =
         useState<SeniorityLevel>("Director/C-Level");
     const [selectedDepartment, setSelectedDepartment] =
@@ -125,8 +127,8 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                     <div className="flex items-center gap-2.5">
                         <Loader2 className="w-4 h-4 text-orange-600 animate-spin shrink-0" />
                         <div className="text-xs">
-                            <span className="font-semibold text-orange-900">AI sedang menyusun Persona: </span>
-                            Sedang memproses panduan untuk <span className="font-semibold underline">{generatingSeniority} ({generatingDepartment})</span> di latar belakang. Anda dapat tetap melihat playbook posisi lain.
+                            <span className="font-semibold text-orange-900">{t.opportunityDetail.persona.backgroundNoticeTitle} </span>
+                            {t.opportunityDetail.persona.backgroundNoticeDesc} <span className="font-semibold underline">{generatingSeniority} ({generatingDepartment})</span> {t.opportunityDetail.persona.inBackground}
                         </div>
                     </div>
                     <button
@@ -137,7 +139,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                         }}
                         className="text-xs font-semibold text-orange-700 hover:text-orange-900 bg-white/80 hover:bg-white px-2.5 py-1 rounded-md border border-orange-200/80 transition-colors shrink-0"
                     >
-                        Lihat Proses
+                        {t.opportunityDetail.persona.backgroundNoticeAction}
                     </button>
                 </div>
             )}
@@ -150,11 +152,11 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             <Users className="w-5 h-5" />
                         </span>
                         <h3 className="text-base font-semibold text-zinc-900">
-                            Meeting Persona Intelligence Playbook
+                            {t.opportunityDetail.persona.title}
                         </h3>
                     </div>
                     <p className="text-xs text-zinc-500 mt-1">
-                        Generate pertanyaan & strategi khusus berbasis level jabatan dan departemen lawan bicara. Disimpan otomatis untuk setiap kombinasi.
+                        {t.opportunityDetail.persona.subtitle}
                     </p>
                 </div>
 
@@ -168,7 +170,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             className="gap-1.5 text-xs text-zinc-700 border-zinc-300 hover:bg-zinc-50"
                         >
                             <RefreshCw className={`w-3.5 h-3.5 ${isCurrentTargetGenerating ? "animate-spin" : ""}`} />
-                            {isCurrentTargetGenerating ? "Regenerating..." : "Regenerate Persona"}
+                            {isCurrentTargetGenerating ? t.opportunityDetail.persona.regenerating : t.opportunityDetail.persona.regeneratePlaybook}
                         </Button>
                     ) : (
                         <Button
@@ -178,7 +180,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             className="gap-1.5 text-xs bg-orange-600 hover:bg-orange-700 text-white disabled:opacity-50"
                         >
                             <Sparkles className={`w-3.5 h-3.5 ${isCurrentTargetGenerating ? "animate-spin" : ""}`} />
-                            {isCurrentTargetGenerating ? "Generating..." : "Generate Playbook"}
+                            {isCurrentTargetGenerating ? t.opportunityDetail.persona.generating : t.opportunityDetail.persona.generatePlaybook}
                         </Button>
                     )}
                 </div>
@@ -191,7 +193,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                     <div className="flex items-center justify-between mb-3">
                         <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
                             <ShieldCheck className="w-4 h-4 text-zinc-400" />
-                            1. Seniority Level
+                            {t.opportunityDetail.persona.seniorityLevel}
                         </span>
                         <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
                             {selectedSeniority}
@@ -237,7 +239,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                     <div className="flex items-center justify-between mb-3">
                         <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
                             <Building2 className="w-4 h-4 text-zinc-400" />
-                            2. Target Department
+                            {t.opportunityDetail.persona.targetDepartment}
                         </span>
                         <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
                             {selectedDepartment}
@@ -287,10 +289,10 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             <Sparkles className="w-6 h-6 animate-spin" />
                         </div>
                         <h4 className="text-sm font-semibold text-zinc-900">
-                            Generating Persona Intelligence...
+                            {t.opportunityDetail.persona.generating}
                         </h4>
                         <p className="text-xs text-zinc-500 max-w-sm">
-                            AI sedang menyusun panduan pertanyaan & strategi khusus untuk <span className="font-semibold text-zinc-800">{generatingSeniority}</span> di divisi <span className="font-semibold text-zinc-800">{generatingDepartment}</span>.
+                            {t.opportunityDetail.persona.backgroundNoticeDesc} <span className="font-semibold text-zinc-800">{generatingSeniority}</span> ({generatingDepartment}).
                         </p>
                     </div>
                 </Card>
@@ -298,7 +300,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                 <Card className="p-12 text-center bg-white border-zinc-200">
                     <div className="flex flex-col items-center justify-center space-y-3">
                         <Loader2 className="w-6 h-6 text-zinc-400 animate-spin" />
-                        <p className="text-xs text-zinc-500">Memuat playbook {selectedSeniority} ({selectedDepartment})...</p>
+                        <p className="text-xs text-zinc-500">{t.opportunityDetail.persona.loadingPlaybook} {selectedSeniority} ({selectedDepartment})...</p>
                     </div>
                 </Card>
             ) : activePersona ? (
@@ -310,7 +312,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             <div className="flex items-center gap-2 mb-3">
                                 <Compass className="w-4 h-4 text-orange-600" />
                                 <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">
-                                    Top Priority & Focus Area ({activePersona.seniority})
+                                    {t.opportunityDetail.persona.topPriority} ({activePersona.seniority})
                                 </h4>
                             </div>
                             <div className="space-y-3">
@@ -332,7 +334,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             <div className="flex items-center gap-2 mb-3">
                                 <Lightbulb className="w-4 h-4 text-amber-500" />
                                 <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">
-                                    Value Propositions to Pitch ({activePersona.department})
+                                    {t.opportunityDetail.persona.valuePropsToPitch} ({activePersona.department})
                                 </h4>
                             </div>
                             <div className="space-y-2.5">
@@ -353,12 +355,9 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                                 <div className="flex items-center gap-2">
                                     <HelpCircle className="w-4 h-4 text-blue-600" />
                                     <h4 className="text-sm font-semibold text-zinc-900">
-                                        Tailored Discovery Questions
+                                        {t.opportunityDetail.persona.discoveryQuestions}
                                     </h4>
                                 </div>
-                                <p className="text-xs text-zinc-500 mt-0.5">
-                                    Daftar pertanyaan taktis terkurasi untuk menggali kebutuhan dan tantangan spesifik
-                                </p>
                             </div>
 
                             <Button
@@ -370,12 +369,12 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                                 {copiedIndex === "all-questions" ? (
                                     <>
                                         <Check className="w-3.5 h-3.5 text-emerald-600" />
-                                        <span className="text-emerald-600">Copied all!</span>
+                                        <span className="text-emerald-600">{t.opportunityDetail.persona.copied}</span>
                                     </>
                                 ) : (
                                     <>
                                         <Copy className="w-3.5 h-3.5 text-zinc-500" />
-                                        <span>Copy All Questions</span>
+                                        <span>{t.opportunityDetail.persona.copyAll}</span>
                                     </>
                                 )}
                             </Button>
@@ -434,7 +433,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                                 <div className="flex items-center gap-2 mb-4">
                                     <AlertCircle className="w-4 h-4 text-rose-600" />
                                     <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">
-                                        Expected Objections & How to Counter
+                                        {t.opportunityDetail.persona.objectionHandling}
                                     </h4>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -444,12 +443,12 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                                             className="p-3.5 rounded-lg border border-rose-100 bg-rose-50/20 space-y-2"
                                         >
                                             <div className="text-xs font-medium text-rose-900">
-                                                <span className="font-bold text-rose-700">Objection: </span>
+                                                <span className="font-bold text-rose-700">{t.opportunityDetail.persona.potentialObjection}: </span>
                                                 "{obj.objection}"
                                             </div>
                                             <div className="text-xs text-zinc-700 bg-white p-2.5 rounded border border-zinc-200/80">
                                                 <span className="font-semibold text-emerald-700 block mb-0.5">
-                                                    Recommended Response:
+                                                    {t.opportunityDetail.persona.recommendedResponse}:
                                                 </span>
                                                 {obj.response}
                                             </div>
@@ -467,10 +466,10 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             <Users className="w-6 h-6" />
                         </div>
                         <h4 className="text-sm font-semibold text-zinc-900">
-                            Belum Ada Playbook untuk {selectedSeniority} ({selectedDepartment})
+                            {t.opportunityDetail.persona.noPersonaTitle} ({selectedSeniority} - {selectedDepartment})
                         </h4>
                         <p className="text-xs text-zinc-500 leading-relaxed">
-                            Klik tombol di bawah untuk membuat panduan pertanyaan dan strategi meeting terpersonalisasi khusus untuk posisi ini.
+                            {t.opportunityDetail.persona.noPersonaDesc}
                         </p>
                         <Button
                             size="sm"
@@ -479,7 +478,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             className="gap-1.5 text-xs bg-orange-600 hover:bg-orange-700 text-white mt-2 disabled:opacity-50"
                         >
                             <Sparkles className="w-3.5 h-3.5" />
-                            {isPending ? "Sedang generate..." : `Generate ${selectedSeniority} - ${selectedDepartment} Playbook`}
+                            {isPending ? t.opportunityDetail.persona.generating : `${t.opportunityDetail.persona.generatePlaybook} (${selectedSeniority} - ${selectedDepartment})`}
                         </Button>
                     </div>
                 </Card>

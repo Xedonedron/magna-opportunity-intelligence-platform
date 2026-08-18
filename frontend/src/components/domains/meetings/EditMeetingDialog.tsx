@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input, SuggestedInput } from "@/components/ui/Input";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useUpdateMeeting, useDeleteMeeting } from "@/hooks/use-meetings";
+import { useLanguage } from "@/context/LanguageContext";
 import type { Meeting } from "@/types/meeting";
 
 const LOCATION_SUGGESTIONS = [
@@ -25,6 +26,7 @@ export function EditMeetingDialog({
     meeting,
     onClose,
 }: EditMeetingDialogProps) {
+    const { t } = useLanguage();
     const updateMeeting = useUpdateMeeting();
     const deleteMeeting = useDeleteMeeting();
 
@@ -90,7 +92,7 @@ export function EditMeetingDialog({
             <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200">
                     <h2 className="text-lg font-semibold text-zinc-900">
-                        Edit Meeting & Agenda
+                        {t.opportunityDetail.meetings.editMeetingTitle}
                     </h2>
                     <button
                         onClick={onClose}
@@ -102,7 +104,7 @@ export function EditMeetingDialog({
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <Input
-                        label="Meeting Title"
+                        label={t.opportunityDetail.meetings.formTitle}
                         placeholder="e.g. Initial Discovery Call"
                         value={title}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -112,7 +114,7 @@ export function EditMeetingDialog({
                     />
 
                     <Input
-                        label="Date & Time"
+                        label={t.opportunityDetail.meetings.formDateTime}
                         type="datetime-local"
                         value={date}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -122,7 +124,7 @@ export function EditMeetingDialog({
                     />
 
                     <SuggestedInput
-                        label="Location"
+                        label={t.opportunityDetail.meetings.formLocation}
                         placeholder="e.g. Google Meet, Zoom, Office"
                         value={location}
                         onChange={setLocation}
@@ -130,7 +132,7 @@ export function EditMeetingDialog({
                     />
 
                     <Input
-                        label="Participants (comma-separated)"
+                        label={t.opportunityDetail.meetings.formParticipants}
                         placeholder="e.g. Sarah (Magna), John (Acme), Jane (Acme)"
                         value={participantsText}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -140,7 +142,7 @@ export function EditMeetingDialog({
 
                     <div className="space-y-1.5">
                         <label className="block text-sm font-medium text-zinc-700">
-                            Agenda (one per line)
+                            {t.opportunityDetail.meetings.formAgenda}
                         </label>
                         <textarea
                             rows={3}
@@ -153,7 +155,7 @@ export function EditMeetingDialog({
 
                     <div className="space-y-1.5">
                         <label className="block text-sm font-medium text-zinc-700">
-                            Notes
+                            {t.opportunityDetail.meetings.formNotes}
                         </label>
                         <textarea
                             rows={3}
@@ -173,7 +175,7 @@ export function EditMeetingDialog({
                             className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-1.5"
                         >
                             <Trash2 className="w-4 h-4" />
-                            Hapus Rapat
+                            {t.opportunityDetail.meetings.deleteMeeting}
                         </Button>
 
                         <div className="flex gap-2">
@@ -182,7 +184,7 @@ export function EditMeetingDialog({
                                 variant="ghost"
                                 onClick={onClose}
                             >
-                                Cancel
+                                {t.opportunityDetail.meetings.cancel}
                             </Button>
                             <Button
                                 type="submit"
@@ -191,8 +193,8 @@ export function EditMeetingDialog({
                             >
                                 <Save className="w-4 h-4" />
                                 {updateMeeting.isPending
-                                    ? "Saving..."
-                                    : "Save Changes"}
+                                    ? t.opportunityDetail.meetings.saving
+                                    : t.opportunityDetail.meetings.saveChanges}
                             </Button>
                         </div>
                     </div>

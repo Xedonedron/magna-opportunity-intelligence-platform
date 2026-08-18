@@ -34,6 +34,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { useOpportunity, useUpdateOpportunity } from "@/hooks/use-opportunities";
 import { getMasterPresales, fetchMasterData } from "@/lib/master-data";
 import { useMeetings } from "@/hooks/use-meetings";
+import { useLanguage } from "@/context/LanguageContext";
 import { MeetingAccordion } from "@/components/domains/meetings/MeetingAccordion";
 import { CreateMeetingDialog } from "@/components/domains/meetings/CreateMeetingDialog";
 import { EditOpportunityDialog } from "@/components/domains/opportunities/EditOpportunityDialog";
@@ -45,14 +46,14 @@ import { formatDateTime, timeAgo, formatCurrency } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { ALL_STATUSES, type OpportunityStatus } from "@/types/opportunity";
 
-const tabs = [
-    { id: "overview", label: "Overview", icon: LayoutDashboard },
-    { id: "kyc", label: "KYC Report", icon: FileText },
-    { id: "personas", label: "Target Persona", icon: UsersIcon },
-    { id: "meetings", label: "Meetings", icon: Calendar },
-    { id: "resources", label: "Resources", icon: FolderKey },
-    { id: "timeline", label: "Timeline", icon: GitCommit },
-];
+    const tabs = [
+        { id: "overview", label: t.opportunityDetail.tabs.overview || "Overview", icon: LayoutDashboard },
+        { id: "kyc", label: t.opportunityDetail.tabs.kyc || "KYC Report", icon: FileText },
+        { id: "personas", label: t.opportunityDetail.tabs.personas || "Target Persona", icon: UsersIcon },
+        { id: "meetings", label: t.opportunityDetail.tabs.meetings || "Meetings", icon: Calendar },
+        { id: "resources", label: t.opportunityDetail.tabs.documents || "Resources", icon: FolderKey },
+        { id: "timeline", label: t.opportunityDetail.tabs.timeline || "Timeline", icon: GitCommit },
+    ];
 
 const eventTypeIcons: Record<string, React.ReactNode> = {
     create: <CheckCircle2 className="w-4 h-4 text-green-500" />,
@@ -65,6 +66,7 @@ const eventTypeIcons: Record<string, React.ReactNode> = {
 export default function OpportunityDetailPage() {
     const { id } = useParams() as { id: string };
     const router = useRouter();
+    const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState("overview");
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [showCreateMeeting, setShowCreateMeeting] = useState(false);
@@ -123,10 +125,10 @@ export default function OpportunityDetailPage() {
         return (
             <div className="flex flex-col items-center justify-center py-24 text-zinc-500">
                 <FolderOpen className="w-12 h-12 mb-4 opacity-20" />
-                <p>Opportunity not found.</p>
+                <p>{t.common.notFound}</p>
                 <Link href="/opportunities">
                     <Button variant="secondary" className="mt-4">
-                        Back to Opportunities
+                        {t.common.back}
                     </Button>
                 </Link>
             </div>
@@ -144,7 +146,7 @@ export default function OpportunityDetailPage() {
                             onClick={() => router.push("/opportunities")}
                             className="text-sm text-zinc-500 hover:text-zinc-900 flex items-center gap-1 mb-2"
                         >
-                            <ChevronRight className="w-4 h-4 rotate-180" /> Opportunities
+                            <ChevronRight className="w-4 h-4 rotate-180" /> {t.opportunityDetail.header.backToOpportunities}
                         </button>
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div>
@@ -186,7 +188,7 @@ export default function OpportunityDetailPage() {
                                     <span className="hidden sm:inline">•</span>
                                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-zinc-100 font-medium text-zinc-800 border border-zinc-200/80">
                                         <User className="w-3.5 h-3.5 text-zinc-500" />
-                                        <span>Pre-Sales:</span>
+                                        <span>{t.opportunityDetail.header.preSales}:</span>
                                         {canCreateEdit ? (
                                             <select
                                                 value={opp.assigned_engineer || ""}
@@ -194,8 +196,8 @@ export default function OpportunityDetailPage() {
                                                     const newEng = e.target.value || null;
                                                     try {
                                                         await updateOpportunity.mutateAsync({
-                                                            id: opp.id,
-                                                            input: { assigned_engineer: newEng },
+                                                             id: opp.id,
+                                                             input: { assigned_engineer: newEng },
                                                         });
                                                     } catch (err) {
                                                         console.error("Gagal memperbarui Pre-Sales", err);
@@ -205,7 +207,7 @@ export default function OpportunityDetailPage() {
                                                 className="bg-transparent text-xs font-semibold text-zinc-900 border-none outline-none cursor-pointer focus:ring-0"
                                                 title="Ubah Assignment Pre-Sales"
                                             >
-                                                <option value="">Unassigned</option>
+                                                <option value="">{t.opportunityDetail.header.unassigned}</option>
                                                 {activePresales.map((name) => (
                                                     <option key={name} value={name}>
                                                         {name}
@@ -213,11 +215,11 @@ export default function OpportunityDetailPage() {
                                                 ))}
                                             </select>
                                         ) : (
-                                            <span>{opp.assigned_engineer || "Unassigned"}</span>
+                                            <span>{opp.assigned_engineer || t.opportunityDetail.header.unassigned}</span>
                                         )}
                                     </span>
                                     <span className="hidden sm:inline">•</span>
-                                    <span>Created {formatDateTime(opp.created_at)}</span>
+                                    <span>{t.opportunityDetail.header.created} {formatDateTime(opp.created_at)}</span>
                                 </div>
                             </div>
                             <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full md:w-auto">
@@ -227,7 +229,7 @@ export default function OpportunityDetailPage() {
                                         className="flex-1 sm:flex-initial gap-2 border-zinc-300 text-zinc-700 text-xs sm:text-sm"
                                         onClick={() => setShowEditOpportunity(true)}
                                     >
-                                        <Edit3 className="w-4 h-4" /> Edit
+                                        <Edit3 className="w-4 h-4" /> {t.common.edit}
                                     </Button>
                                 )}
                                 <Button
@@ -235,14 +237,14 @@ export default function OpportunityDetailPage() {
                                     className="flex-1 sm:flex-initial gap-2 border-zinc-300 text-xs sm:text-sm"
                                     onClick={() => setIsChatOpen(!isChatOpen)}
                                 >
-                                    <Sparkles className="w-4 h-4 text-zinc-900" /> AI Chat
+                                    <Sparkles className="w-4 h-4 text-zinc-900" /> {t.opportunityDetail.header.aiChat}
                                 </Button>
                                 {canCreateEdit && (
                                     <Button
                                         className="flex-1 sm:flex-initial gap-2 text-xs sm:text-sm"
                                         onClick={() => setShowCreateMeeting(true)}
                                     >
-                                        <Plus className="w-4 h-4" /> Log Meeting
+                                        <Plus className="w-4 h-4" /> {t.opportunityDetail.meetings.logMeeting}
                                     </Button>
                                 )}
                             </div>
@@ -280,7 +282,7 @@ export default function OpportunityDetailPage() {
                                             </div>
                                             <div>
                                                 <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">
-                                                    Potential Revenue / Deal Value
+                                                    {t.opportunityDetail.overview.potentialRevenue}
                                                 </span>
                                                 <span className="text-xl font-bold text-zinc-900 mt-0.5 block tracking-tight">
                                                     {formatCurrency(
@@ -299,12 +301,12 @@ export default function OpportunityDetailPage() {
                                             </div>
                                             <div>
                                                 <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">
-                                                    Estimasi Tanggal Agenda
+                                                    {t.opportunityDetail.overview.estimatedAgendaDate}
                                                 </span>
                                                 <span className="text-base font-bold text-zinc-900 mt-0.5 block tracking-tight">
                                                     {(() => {
                                                         const targetDate = opp.estimated_agenda_date || opp.meeting_schedule;
-                                                        return targetDate ? formatDateTime(targetDate) : "Belum diagendakan";
+                                                        return targetDate ? formatDateTime(targetDate) : t.opportunityDetail.overview.notScheduled;
                                                     })()}
                                                 </span>
                                             </div>
@@ -316,7 +318,7 @@ export default function OpportunityDetailPage() {
                                     <Card className="p-6">
                                         <div className="flex items-center justify-between mb-4">
                                             <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider">
-                                                Company Information
+                                                {t.opportunityDetail.overview.companyInfo}
                                             </h3>
                                             {canCreateEdit && (
                                                 <Button
@@ -325,45 +327,45 @@ export default function OpportunityDetailPage() {
                                                     onClick={() => setShowEditOpportunity(true)}
                                                     className="h-8 text-xs text-zinc-600 hover:text-zinc-900 gap-1"
                                                 >
-                                                    <Edit3 className="w-3.5 h-3.5" /> Edit
+                                                    <Edit3 className="w-3.5 h-3.5" /> {t.common.edit}
                                                 </Button>
                                             )}
                                         </div>
                                         <div className="space-y-3">
                                             <InfoRow
                                                 icon={<Building2 className="w-4 h-4" />}
-                                                label="Company"
+                                                label={t.common.company}
                                                 value={opp.company_name}
                                             />
                                             <InfoRow
                                                 icon={<User className="w-4 h-4" />}
-                                                label="Contact PIC"
+                                                label={t.opportunityDetail.overview.contactPic}
                                                 value={opp.contact_name}
                                             />
                                             <InfoRow
                                                 icon={<Globe className="w-4 h-4" />}
-                                                label="Website"
+                                                label={t.opportunityDetail.overview.website}
                                                 value={opp.website}
                                                 isLink
                                             />
                                             <InfoRow
                                                 icon={<Mail className="w-4 h-4" />}
-                                                label="Email"
+                                                label={t.opportunityDetail.overview.email}
                                                 value={opp.email}
                                             />
                                             <InfoRow
                                                 icon={<Phone className="w-4 h-4" />}
-                                                label="Phone"
+                                                label={t.opportunityDetail.overview.phone}
                                                 value={opp.phone}
                                             />
                                             <InfoRow
                                                 icon={<Package className="w-4 h-4" />}
-                                                label="Industry"
+                                                label={t.common.industry}
                                                 value={opp.industry}
                                             />
                                             <InfoRow
                                                 icon={<Package className="w-4 h-4" />}
-                                                label="Solution"
+                                                label={t.opportunityDetail.overview.productSolution}
                                                 value={opp.product}
                                             />
                                         </div>
@@ -371,7 +373,7 @@ export default function OpportunityDetailPage() {
 
                                     <Card className="p-6">
                                         <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider mb-4">
-                                            Customer Needs
+                                            {t.opportunityDetail.overview.customerNeeds}
                                         </h3>
                                         <p className="text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
                                             {opp.customer_needs}
@@ -379,7 +381,7 @@ export default function OpportunityDetailPage() {
                                         {opp.additional_notes && (
                                             <>
                                                 <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider mt-6 mb-4">
-                                                    Additional Notes
+                                                    {t.opportunityDetail.overview.keyHighlights}
                                                 </h3>
                                                 <p className="text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
                                                     {opp.additional_notes}
@@ -395,7 +397,7 @@ export default function OpportunityDetailPage() {
                             <div className="py-4 pl-4 pr-2">
                                 <div className="flex items-center justify-between mb-6 pb-3 border-b border-zinc-200">
                                     <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                                        Timeline Activity
+                                        {t.opportunityDetail.overview.recentActivity}
                                     </span>
                                     <button
                                         type="button"
@@ -403,7 +405,7 @@ export default function OpportunityDetailPage() {
                                         className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900 font-medium px-3 py-1.5 bg-white border border-zinc-200 hover:border-zinc-300 rounded-md shadow-sm transition-colors cursor-pointer"
                                     >
                                         <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
-                                        <span>{sortOrder === "desc" ? "Terbaru di atas" : "Terlama di atas"}</span>
+                                        <span>{sortOrder === "desc" ? t.opportunityDetail.overview.latestOnTop : t.opportunityDetail.overview.oldestOnTop}</span>
                                     </button>
                                 </div>
                                 <div className="relative border-l border-zinc-200 space-y-8 pb-4">
@@ -444,7 +446,7 @@ export default function OpportunityDetailPage() {
                                             ))
                                     ) : (
                                         <p className="text-sm text-zinc-500 pl-8">
-                                            No timeline events yet.
+                                            {t.opportunityDetail.overview.noTimeline}
                                         </p>
                                     )}
                                 </div>
@@ -461,7 +463,7 @@ export default function OpportunityDetailPage() {
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider">
-                                        Meeting History
+                                        {t.opportunityDetail.meetings.title}
                                     </h3>
                                     {canCreateEdit && (
                                         <Button
@@ -469,7 +471,7 @@ export default function OpportunityDetailPage() {
                                             className="gap-1.5"
                                             onClick={() => setShowCreateMeeting(true)}
                                         >
-                                            <Plus className="w-3.5 h-3.5" /> Log Meeting
+                                            <Plus className="w-3.5 h-3.5" /> {t.opportunityDetail.meetings.logMeeting}
                                         </Button>
                                     )}
                                 </div>

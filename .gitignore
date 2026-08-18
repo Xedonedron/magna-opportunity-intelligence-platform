@@ -15,3 +15,9 @@ chromadb/
 *.sqlite3
 *.db
 clone/
+
+# Graphify build artifacts & cache
+graphify-out/
+frontend/src/graphify-out/
+.graphify*/
+NUL

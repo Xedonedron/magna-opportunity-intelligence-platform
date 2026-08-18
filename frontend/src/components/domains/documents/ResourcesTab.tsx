@@ -23,6 +23,7 @@ import {
 } from "@/hooks/use-opportunities";
 import { fetchMasterData } from "@/lib/master-data";
 import { formatDateTime } from "@/lib/utils";
+import { useLanguage } from "@/context/LanguageContext";
 import type { OpportunityDocument } from "@/types/opportunity";
 import { AddDocumentDialog } from "./AddDocumentDialog";
 
@@ -84,11 +85,17 @@ function DocumentCard({
     onEdit,
     onDelete,
     canEdit,
+    unknownText,
+    editTooltip,
+    deleteTooltip,
 }: {
     document: OpportunityDocument;
     onEdit: () => void;
     onDelete: () => void;
     canEdit: boolean;
+    unknownText: string;
+    editTooltip: string;
+    deleteTooltip: string;
 }) {
     const [thumbnailError, setThumbnailError] = useState(false);
     const driveId = extractGoogleDriveId(document.url);
@@ -133,14 +140,14 @@ function DocumentCard({
                             <button
                                 onClick={onEdit}
                                 className="p-1.5 hover:bg-zinc-100 rounded-md text-zinc-500 hover:text-zinc-700"
-                                title="Edit document"
+                                title={editTooltip}
                             >
                                 <Pencil className="w-3.5 h-3.5" />
                             </button>
                             <button
                                 onClick={onDelete}
                                 className="p-1.5 hover:bg-red-50 rounded-md text-zinc-500 hover:text-red-600"
-                                title="Delete document"
+                                title={deleteTooltip}
                             >
                                 <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -173,7 +180,7 @@ function DocumentCard({
                 <div className="flex items-center gap-2 text-xs text-zinc-400">
                     <span>{formatDateTime(document.created_at)}</span>
                     <span>•</span>
-                    <span>{document.uploader?.full_name || "Unknown"}</span>
+                    <span>{document.uploader?.full_name || unknownText}</span>
                 </div>
             </div>
         </Card>
@@ -181,6 +188,7 @@ function DocumentCard({
 }
 
 export function ResourcesTab({ opportunityId, canCreateEdit = false }: ResourcesTabProps) {
+    const { t } = useLanguage();
     const [labelFilter, setLabelFilter] = useState<string | null>(null);
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
     const [showAddDialog, setShowAddDialog] = useState(false);
@@ -205,7 +213,7 @@ export function ResourcesTab({ opportunityId, canCreateEdit = false }: Resources
     const deleteDocument = useDeleteOpportunityDocument();
 
     const handleDelete = async (document: OpportunityDocument) => {
-        if (!confirm(`Hapus dokumen "${document.title}"?`)) return;
+        if (!confirm(`${t.opportunityDetail.documents.deleteConfirm} "${document.title}"?`)) return;
         await deleteDocument.mutateAsync({
             opportunityId,
             documentId: document.id,
@@ -219,7 +227,7 @@ export function ResourcesTab({ opportunityId, canCreateEdit = false }: Resources
             {/* Header */}
             <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider">
-                    Resources
+                    {t.opportunityDetail.documents.title}
                 </h3>
                 {canCreateEdit && (
                     <Button
@@ -227,7 +235,7 @@ export function ResourcesTab({ opportunityId, canCreateEdit = false }: Resources
                         className="gap-1.5"
                         onClick={() => setShowAddDialog(true)}
                     >
-                        <Plus className="w-3.5 h-3.5" /> Add Document
+                        <Plus className="w-3.5 h-3.5" /> {t.opportunityDetail.documents.addDocument}
                     </Button>
                 )}
             </div>
@@ -242,7 +250,7 @@ export function ResourcesTab({ opportunityId, canCreateEdit = false }: Resources
                         onChange={(e) => setLabelFilter(e.target.value || null)}
                         className="h-8 rounded-md border border-zinc-300 bg-white px-2.5 text-xs font-medium text-zinc-700 shadow-sm outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 cursor-pointer"
                     >
-                        <option value="">All Labels</option>
+                        <option value="">{t.opportunityDetail.documents.allLabels}</option>
                         {documentLabels.map((label) => (
                             <option key={label} value={label}>
                                 {label}
@@ -258,7 +266,7 @@ export function ResourcesTab({ opportunityId, canCreateEdit = false }: Resources
                     className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900 font-medium px-3 py-1.5 bg-white border border-zinc-200 hover:border-zinc-300 rounded-md shadow-sm transition-colors cursor-pointer"
                 >
                     <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
-                    <span>{sortOrder === "desc" ? "Terbaru di atas" : "Terlama di atas"}</span>
+                    <span>{sortOrder === "desc" ? t.opportunityDetail.documents.newestFirst : t.opportunityDetail.documents.oldestFirst}</span>
                 </button>
             </div>
 
@@ -280,8 +288,8 @@ export function ResourcesTab({ opportunityId, canCreateEdit = false }: Resources
                     <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
                     <p className="text-sm">
                         {labelFilter
-                            ? `Tidak ada dokumen dengan label "${labelFilter}"`
-                            : "Belum ada dokumen yang ditambahkan"}
+                            ? `${t.opportunityDetail.documents.noDocumentsWithLabel} "${labelFilter}"`
+                            : t.opportunityDetail.documents.noDocuments}
                     </p>
                     {canCreateEdit && (
                         <Button
@@ -290,7 +298,7 @@ export function ResourcesTab({ opportunityId, canCreateEdit = false }: Resources
                             className="mt-4"
                             onClick={() => setShowAddDialog(true)}
                         >
-                            <Plus className="w-4 h-4 mr-1.5" /> Add First Document
+                            <Plus className="w-4 h-4 mr-1.5" /> {t.opportunityDetail.documents.addFirstDocument}
                         </Button>
                     )}
                 </div>
@@ -303,6 +311,9 @@ export function ResourcesTab({ opportunityId, canCreateEdit = false }: Resources
                             onEdit={() => setEditingDocument(doc)}
                             onDelete={() => handleDelete(doc)}
                             canEdit={canCreateEdit}
+                            unknownText={t.opportunityDetail.documents.unknownUploader}
+                            editTooltip={t.opportunityDetail.documents.edit}
+                            deleteTooltip={t.opportunityDetail.documents.delete}
                         />
                     ))}
                 </div>

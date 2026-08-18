@@ -5,6 +5,7 @@ import { X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input, SuggestedInput } from "@/components/ui/Input";
 import { useCreateMeeting } from "@/hooks/use-meetings";
+import { useLanguage } from "@/context/LanguageContext";
 
 const LOCATION_SUGGESTIONS = [
     "Google Meet",
@@ -23,6 +24,7 @@ export function CreateMeetingDialog({
     opportunityId,
     onClose,
 }: CreateMeetingDialogProps) {
+    const { t } = useLanguage();
     const createMeeting = useCreateMeeting();
     const [title, setTitle] = useState("");
     const [date, setDate] = useState("");
@@ -60,7 +62,7 @@ export function CreateMeetingDialog({
             <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200">
                     <h2 className="text-lg font-semibold text-zinc-900">
-                        Schedule Meeting
+                        {t.opportunityDetail.meetings.scheduleMeeting}
                     </h2>
                     <button
                         onClick={onClose}
@@ -72,7 +74,7 @@ export function CreateMeetingDialog({
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <Input
-                        label="Meeting Title"
+                        label={t.opportunityDetail.meetings.formTitle}
                         placeholder="e.g. Initial Discovery Call"
                         value={title}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -82,7 +84,7 @@ export function CreateMeetingDialog({
                     />
 
                     <Input
-                        label="Date & Time"
+                        label={t.opportunityDetail.meetings.formDateTime}
                         type="datetime-local"
                         value={date}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -92,7 +94,7 @@ export function CreateMeetingDialog({
                     />
 
                     <SuggestedInput
-                        label="Location"
+                        label={t.opportunityDetail.meetings.formLocation}
                         placeholder="e.g. Google Meet, Zoom, Office"
                         value={location}
                         onChange={setLocation}
@@ -100,7 +102,7 @@ export function CreateMeetingDialog({
                     />
 
                     <Input
-                        label="Participants (comma-separated)"
+                        label={t.opportunityDetail.meetings.formParticipants}
                         placeholder="e.g. Sarah (Magna), John (Acme), Jane (Acme)"
                         value={participantsText}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -110,7 +112,7 @@ export function CreateMeetingDialog({
 
                     <div className="space-y-1.5">
                         <label className="block text-sm font-medium text-zinc-700">
-                            Agenda (one per line)
+                            {t.opportunityDetail.meetings.formAgenda}
                         </label>
                         <textarea
                             rows={3}
@@ -123,7 +125,7 @@ export function CreateMeetingDialog({
 
                     <div className="space-y-1.5">
                         <label className="block text-sm font-medium text-zinc-700">
-                            Notes
+                            {t.opportunityDetail.meetings.formNotes}
                         </label>
                         <textarea
                             rows={3}
@@ -140,7 +142,7 @@ export function CreateMeetingDialog({
                             variant="ghost"
                             onClick={onClose}
                         >
-                            Cancel
+                            {t.opportunityDetail.meetings.cancel}
                         </Button>
                         <Button
                             type="submit"
@@ -149,8 +151,8 @@ export function CreateMeetingDialog({
                         >
                             <Plus className="w-4 h-4" />
                             {createMeeting.isPending
-                                ? "Creating..."
-                                : "Create Meeting"}
+                                ? t.opportunityDetail.meetings.scheduling
+                                : t.opportunityDetail.meetings.scheduleMeeting}
                         </Button>
                     </div>
                 </form>

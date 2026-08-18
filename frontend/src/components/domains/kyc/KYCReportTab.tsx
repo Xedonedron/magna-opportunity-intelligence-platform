@@ -31,9 +31,11 @@ import {
     useKYCVersions,
     useUpdateKYCReport,
 } from "@/hooks/use-kyc";
+import { useLanguage } from "@/context/LanguageContext";
 import type { KYCReport } from "@/types/kyc";
 
 export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
+    const { t } = useLanguage();
     const { data: latestReport, isLoading } = useLatestKYCReport(opportunityId);
     const { data: versionsData } = useKYCVersions(opportunityId);
     const regenerate = useRegenerateKYC(opportunityId);
@@ -116,7 +118,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
         } catch (error) {
-            setSaveError("Failed to save changes. Please try again.");
+            setSaveError(t.opportunityDetail.kyc.saveError || "Failed to save changes. Please try again.");
             setTimeout(() => setSaveError(null), 5000);
         }
     };
@@ -164,10 +166,9 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
         return (
             <Card className="p-12 text-center">
                 <Zap className="w-12 h-12 mx-auto mb-4 text-zinc-200" />
-                <h3 className="text-lg font-medium text-zinc-900 mb-2">No KYC Report Yet</h3>
+                <h3 className="text-lg font-medium text-zinc-900 mb-2">{t.opportunityDetail.kyc.noReportTitle}</h3>
                 <p className="text-zinc-500 mb-6 max-w-md mx-auto">
-                    The AI KYC report will be generated automatically. You can also trigger it
-                    manually.
+                    {t.opportunityDetail.kyc.noReportDesc}
                 </p>
                 {canGenerate && (
                     <Button onClick={handleRegenerateClick} disabled={regenerate.isPending}>
@@ -176,7 +177,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                         ) : (
                             <Zap className="w-4 h-4 mr-2" />
                         )}
-                        Generate KYC Report
+                        {t.opportunityDetail.kyc.generateButton}
                     </Button>
                 )}
             </Card>
@@ -198,10 +199,10 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
         const percent = report.progress_percent || stepProgressMap[currentStep] || 20;
         
         const steps = [
-            { key: "received", label: "Penerimaan Data", desc: "Data input diterima dan divalidasi oleh sistem." },
-            { key: "fetching_web", label: "Mengambil Data Web", desc: "Memindai mesin pencari, website perusahaan, dan berita..." },
-            { key: "fetching_industry", label: "Mengambil Data Industri", desc: "Mengambil referensi tren industri dan use case relevan..." },
-            { key: "analyzing", label: "Perkaya Insights (AI)", desc: "AI sedang menganalisis data untuk merumuskan pain points..." },
+            { key: "received", label: t.opportunityDetail.kyc.progress.received, desc: t.opportunityDetail.kyc.progress.receivedDesc },
+            { key: "fetching_web", label: t.opportunityDetail.kyc.progress.fetchingWeb, desc: t.opportunityDetail.kyc.progress.fetchingWebDesc },
+            { key: "fetching_industry", label: t.opportunityDetail.kyc.progress.fetchingIndustry, desc: t.opportunityDetail.kyc.progress.fetchingIndustryDesc },
+            { key: "analyzing", label: t.opportunityDetail.kyc.progress.analyzing, desc: t.opportunityDetail.kyc.progress.analyzingDesc },
         ];
 
         const getStepState = (stepKey: string, currentStepName: string | undefined) => {
@@ -341,7 +342,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                 <div className="sticky top-0 z-20 bg-white border-b border-zinc-200 -mx-4 px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Edit3 className="w-4 h-4 text-zinc-500" />
-                        <span className="text-sm font-medium">Edit Mode</span>
+                        <span className="text-sm font-medium">{t.opportunityDetail.kyc.editButton}</span>
                         {hasUnsavedChanges && (
                             <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
                                 Unsaved changes
@@ -350,7 +351,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                     </div>
                     <div className="flex items-center gap-2">
                         <Button variant="secondary" size="sm" onClick={handleCancelEdit}>
-                            <X className="w-4 h-4 mr-1" /> Cancel
+                            <X className="w-4 h-4 mr-1" /> {t.common.cancel}
                         </Button>
                         <Button
                             size="sm"
@@ -362,7 +363,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                             ) : (
                                 <Save className="w-4 h-4 mr-1" />
                             )}
-                            Save Changes
+                            {t.opportunityDetail.kyc.saveButton}
                         </Button>
                     </div>
                 </div>
@@ -374,7 +375,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                 {saveSuccess && (
                     <div className="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50">
                         <Save className="w-4 h-4" />
-                        Changes saved successfully
+                        {t.opportunityDetail.kyc.saveSuccess}
                     </div>
                 )}
                 {saveError && (
@@ -413,7 +414,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                             onClick={handleEnterEditMode}
                         >
                             <Edit3 className="w-3.5 h-3.5" />
-                            Edit
+                            {t.opportunityDetail.kyc.editButton}
                         </Button>
                     )}
                     {canGenerate && (
@@ -429,7 +430,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                             ) : (
                                 <RefreshCw className="w-3.5 h-3.5" />
                             )}
-                            Regenerate
+                            {regenerate.isPending ? t.opportunityDetail.kyc.regenerating : t.opportunityDetail.kyc.regenerateButton}
                         </Button>
                     )}
                 </div>
@@ -739,20 +740,20 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <Card className="p-6 max-w-md mx-4">
                         <h3 className="text-lg font-medium text-zinc-900 mb-2">
-                            Regenerate KYC Report?
+                            {t.opportunityDetail.kyc.confirmRegenerateTitle}
                         </h3>
                         <p className="text-sm text-zinc-600 mb-4">
-                            This will create a new version of the KYC report. The current version will still be accessible from the version history.
+                            {t.opportunityDetail.kyc.confirmRegenerateDesc}
                         </p>
                         <div className="flex justify-end gap-2">
                             <Button
                                 variant="secondary"
                                 onClick={() => setShowConfirmRegenerate(false)}
                             >
-                                Cancel
+                                {t.common.cancel}
                             </Button>
                             <Button onClick={handleConfirmRegenerate}>
-                                Regenerate
+                                {t.opportunityDetail.kyc.confirmButton}
                             </Button>
                         </div>
                     </Card>
@@ -763,7 +764,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
             {saveSuccess && (
                 <div className="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50">
                     <Save className="w-4 h-4" />
-                    Changes saved successfully
+                    {t.opportunityDetail.kyc.saveSuccess}
                 </div>
             )}
         </div>

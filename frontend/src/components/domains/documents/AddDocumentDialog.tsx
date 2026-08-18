@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { useLanguage } from "@/context/LanguageContext";
 import {
     useCreateOpportunityDocument,
     useUpdateOpportunityDocument,
@@ -22,6 +23,7 @@ export function AddDocumentDialog({
     documentLabels,
     onClose,
 }: AddDocumentDialogProps) {
+    const { t } = useLanguage();
     const isEditing = !!initialDocument;
     const [title, setTitle] = useState(initialDocument?.title || "");
     const [url, setUrl] = useState(initialDocument?.url || "");
@@ -98,7 +100,7 @@ export function AddDocumentDialog({
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200">
                     <h2 className="text-lg font-semibold text-zinc-900">
-                        {isEditing ? "Edit Document" : "Add Document"}
+                        {isEditing ? t.opportunityDetail.documents.editDialogTitle : t.opportunityDetail.documents.addDialogTitle}
                     </h2>
                     <button
                         onClick={onClose}
@@ -113,7 +115,7 @@ export function AddDocumentDialog({
                     {/* Title */}
                     <div>
                         <label className="block text-sm font-medium text-zinc-700 mb-1.5">
-                            Title <span className="text-red-500">*</span>
+                            {t.opportunityDetail.documents.formTitle} <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="text"
@@ -128,7 +130,7 @@ export function AddDocumentDialog({
                     {/* URL */}
                     <div>
                         <label className="block text-sm font-medium text-zinc-700 mb-1.5">
-                            URL <span className="text-red-500">*</span>
+                            {t.opportunityDetail.documents.formUrl} <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="url"
@@ -143,7 +145,7 @@ export function AddDocumentDialog({
                     {/* Description */}
                     <div>
                         <label className="block text-sm font-medium text-zinc-700 mb-1.5">
-                            Description
+                            {t.opportunityDetail.documents.formDescription}
                         </label>
                         <textarea
                             value={description}
@@ -157,7 +159,7 @@ export function AddDocumentDialog({
                     {/* Label - Single Select Dropdown */}
                     <div ref={dropdownRef} className="relative">
                         <label className="block text-sm font-medium text-zinc-700 mb-1.5">
-                            Label
+                            {t.opportunityDetail.documents.formLabel}
                         </label>
 
                         {/* Dropdown Trigger */}
@@ -167,7 +169,7 @@ export function AddDocumentDialog({
                             className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 text-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 outline-none transition-colors text-left flex items-center justify-between bg-white hover:bg-zinc-50"
                         >
                             <span className={selectedLabel ? "text-zinc-900" : "text-zinc-400"}>
-                                {selectedLabel || "Select a label..."}
+                                {selectedLabel || t.opportunityDetail.documents.selectLabel}
                             </span>
                             <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${showLabelDropdown ? "rotate-180" : ""}`} />
                         </button>
@@ -182,7 +184,7 @@ export function AddDocumentDialog({
                                         onClick={clearLabel}
                                         className="w-full px-3.5 py-2.5 text-left text-sm flex items-center justify-between hover:bg-zinc-50 transition-colors text-zinc-500 border-b border-zinc-100"
                                     >
-                                        <span>Clear selection</span>
+                                        <span>{t.opportunityDetail.documents.clearSelection}</span>
                                         <X className="w-4 h-4" />
                                     </button>
                                 )}
@@ -207,7 +209,7 @@ export function AddDocumentDialog({
 
                                 {documentLabels.length === 0 && (
                                     <p className="px-3.5 py-2.5 text-sm text-zinc-500">
-                                        No labels available
+                                        {t.opportunityDetail.documents.noLabelsAvailable}
                                     </p>
                                 )}
                             </div>
@@ -222,14 +224,14 @@ export function AddDocumentDialog({
                             onClick={onClose}
                             disabled={isLoading}
                         >
-                            Cancel
+                            {t.opportunityDetail.documents.cancel}
                         </Button>
                         <Button type="submit" disabled={isLoading || !title.trim() || !url.trim()}>
                             {isLoading
-                                ? "Saving..."
+                                ? t.opportunityDetail.documents.saving
                                 : isEditing
-                                    ? "Save Changes"
-                                    : "Add Document"}
+                                    ? t.opportunityDetail.documents.saveChanges
+                                    : t.opportunityDetail.documents.addDialogTitle}
                         </Button>
                     </div>
                 </form>
