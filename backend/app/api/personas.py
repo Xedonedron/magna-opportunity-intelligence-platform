@@ -104,9 +104,21 @@ async def generate_or_get_persona(
     if latest_kyc:
         parts = []
         if latest_kyc.company_overview:
-            parts.append(f"Company Overview: {latest_kyc.company_overview.get('summary', '')}")
+            if isinstance(latest_kyc.company_overview, dict):
+                desc = latest_kyc.company_overview.get("description") or latest_kyc.company_overview.get("summary") or ""
+                if desc:
+                    parts.append(f"Company Overview: {desc}")
+            elif isinstance(latest_kyc.company_overview, str):
+                parts.append(f"Company Overview: {latest_kyc.company_overview}")
         if latest_kyc.industry_analysis:
-            parts.append(f"Industry: {latest_kyc.industry_analysis.get('industry', '')}")
+            if isinstance(latest_kyc.industry_analysis, dict):
+                ind = latest_kyc.industry_analysis.get("industry") or latest_kyc.industry_analysis.get("summary") or ""
+                if ind:
+                    parts.append(f"Industry Analysis: {ind}")
+            elif isinstance(latest_kyc.industry_analysis, str):
+                parts.append(f"Industry Analysis: {latest_kyc.industry_analysis}")
+        if latest_kyc.executive_summary:
+            parts.append(f"Executive Summary: {latest_kyc.executive_summary}")
         if parts:
             kyc_summary_text = "\n".join(parts)
 
