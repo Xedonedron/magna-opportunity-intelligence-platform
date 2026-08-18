@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { personaApi } from '@/lib/api/personas';
+import { toast } from 'sonner';
 import {
     SeniorityLevel,
     DepartmentType,
@@ -39,6 +40,13 @@ export function useGeneratePersona(opportunityId: string) {
                 data
             );
             queryClient.invalidateQueries({ queryKey: ['personas', opportunityId] });
+            toast.success(`Playbook untuk ${data.seniority} (${data.department}) berhasil dibuat!`);
+        },
+        onError: (error: any) => {
+            const message =
+                error?.response?.data?.detail ||
+                'Gagal menyusun panduan persona. Coba lagi.';
+            toast.error(message);
         },
     });
 }

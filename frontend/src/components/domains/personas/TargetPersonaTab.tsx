@@ -14,7 +14,9 @@ import {
     AlertCircle,
     Lightbulb,
     CheckCircle2,
+    Loader2,
 } from "lucide-react";
+
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import {
@@ -65,6 +67,17 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
 
     const generateMutation = useGeneratePersona(opportunityId);
 
+    const isPending = generateMutation.isPending;
+    const generatingSeniority = generateMutation.variables?.seniority;
+    const generatingDepartment = generateMutation.variables?.department;
+
+    const isCurrentTargetGenerating =
+        isPending &&
+        generatingSeniority === selectedSeniority &&
+        generatingDepartment === selectedDepartment;
+
+    const isBackgroundGenerating = isPending && !isCurrentTargetGenerating;
+
     const handleGenerate = (force = false) => {
         generateMutation.mutate({
             seniority: selectedSeniority,
@@ -104,10 +117,31 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
             ? generateMutation.data
             : null);
 
-    const isGenerating = generateMutation.isPending;
-
     return (
         <div className="space-y-6">
+            {/* Background generation banner notice */}
+            {isBackgroundGenerating && generatingSeniority && generatingDepartment && (
+                <div className="flex items-center justify-between gap-3 p-3.5 bg-orange-50 border border-orange-200 rounded-xl text-orange-950 animate-in fade-in slide-in-from-top-2">
+                    <div className="flex items-center gap-2.5">
+                        <Loader2 className="w-4 h-4 text-orange-600 animate-spin shrink-0" />
+                        <div className="text-xs">
+                            <span className="font-semibold text-orange-900">AI sedang menyusun Persona: </span>
+                            Sedang memproses panduan untuk <span className="font-semibold underline">{generatingSeniority} ({generatingDepartment})</span> di latar belakang. Anda dapat tetap melihat playbook posisi lain.
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setSelectedSeniority(generatingSeniority);
+                            setSelectedDepartment(generatingDepartment);
+                        }}
+                        className="text-xs font-semibold text-orange-700 hover:text-orange-900 bg-white/80 hover:bg-white px-2.5 py-1 rounded-md border border-orange-200/80 transition-colors shrink-0"
+                    >
+                        Lihat Proses
+                    </button>
+                </div>
+            )}
+
             {/* Header section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-zinc-200 shadow-sm">
                 <div>
@@ -130,21 +164,21 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             variant="outline"
                             size="sm"
                             onClick={() => handleGenerate(true)}
-                            disabled={isGenerating}
+                            disabled={isPending}
                             className="gap-1.5 text-xs text-zinc-700 border-zinc-300 hover:bg-zinc-50"
                         >
-                            <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? "animate-spin" : ""}`} />
-                            {isGenerating ? "Regenerating..." : "Regenerate Persona"}
+                            <RefreshCw className={`w-3.5 h-3.5 ${isCurrentTargetGenerating ? "animate-spin" : ""}`} />
+                            {isCurrentTargetGenerating ? "Regenerating..." : "Regenerate Persona"}
                         </Button>
                     ) : (
                         <Button
                             size="sm"
                             onClick={() => handleGenerate(false)}
-                            disabled={isGenerating}
-                            className="gap-1.5 text-xs bg-orange-600 hover:bg-orange-700 text-white"
+                            disabled={isPending}
+                            className="gap-1.5 text-xs bg-orange-600 hover:bg-orange-700 text-white disabled:opacity-50"
                         >
-                            <Sparkles className={`w-3.5 h-3.5 ${isGenerating ? "animate-spin" : ""}`} />
-                            {isGenerating ? "Generating..." : "Generate Playbook"}
+                            <Sparkles className={`w-3.5 h-3.5 ${isCurrentTargetGenerating ? "animate-spin" : ""}`} />
+                            {isCurrentTargetGenerating ? "Generating..." : "Generate Playbook"}
                         </Button>
                     )}
                 </div>
@@ -167,6 +201,10 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                         {SENIORITY_LEVELS.map((lvl) => {
                             const hasCached = isGenerated(lvl, selectedDepartment);
                             const isSelected = selectedSeniority === lvl;
+                            const isLvlGenerating =
+                                isPending &&
+                                generatingSeniority === lvl &&
+                                generatingDepartment === selectedDepartment;
                             return (
                                 <button
                                     key={lvl}
@@ -179,9 +217,11 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                                 >
                                     <div className="flex items-center justify-between w-full">
                                         <span className="text-xs font-semibold">{lvl}</span>
-                                        {hasCached && (
+                                        {isLvlGenerating ? (
+                                            <Loader2 className="w-3 h-3 text-orange-600 animate-spin" />
+                                        ) : hasCached ? (
                                             <span className="w-2 h-2 rounded-full bg-emerald-500" title="Saved playbook available" />
-                                        )}
+                                        ) : null}
                                     </div>
                                     <span className="text-[10px] text-zinc-400 mt-0.5">
                                         {lvl === "Director/C-Level" ? "Strategic ROI" : lvl === "Staff" ? "Technical / Hands-on" : "Ops & Team"}
@@ -207,6 +247,10 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                         {DEPARTMENTS.map((dept) => {
                             const hasCached = isGenerated(selectedSeniority, dept);
                             const isSelected = selectedDepartment === dept;
+                            const isDeptGenerating =
+                                isPending &&
+                                generatingDepartment === dept &&
+                                generatingSeniority === selectedSeniority;
                             return (
                                 <button
                                     key={dept}
@@ -219,9 +263,11 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                                 >
                                     <div className="flex items-center justify-between w-full">
                                         <span className="text-xs font-semibold">{dept}</span>
-                                        {hasCached && (
+                                        {isDeptGenerating ? (
+                                            <Loader2 className="w-3 h-3 text-orange-600 animate-spin" />
+                                        ) : hasCached ? (
                                             <span className="w-2 h-2 rounded-full bg-emerald-500" title="Saved playbook available" />
-                                        )}
+                                        ) : null}
                                     </div>
                                     <span className="text-[10px] text-zinc-400 mt-0.5">
                                         {dept === "IT" ? "Security & Infra" : dept === "Finance" ? "Cost & Budget" : "Workflow & KPI"}
@@ -234,7 +280,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
             </div>
 
             {/* Main Content Area */}
-            {isGenerating ? (
+            {isCurrentTargetGenerating ? (
                 <Card className="p-12 text-center bg-white border-zinc-200">
                     <div className="flex flex-col items-center justify-center space-y-3">
                         <div className="p-3 bg-orange-50 text-orange-600 rounded-full animate-pulse">
@@ -244,8 +290,15 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             Generating Persona Intelligence...
                         </h4>
                         <p className="text-xs text-zinc-500 max-w-sm">
-                            AI sedang menyusun panduan pertanyaan & strategi khusus untuk {selectedSeniority} di divisi {selectedDepartment}.
+                            AI sedang menyusun panduan pertanyaan & strategi khusus untuk <span className="font-semibold text-zinc-800">{generatingSeniority}</span> di divisi <span className="font-semibold text-zinc-800">{generatingDepartment}</span>.
                         </p>
+                    </div>
+                </Card>
+            ) : isDetailLoading ? (
+                <Card className="p-12 text-center bg-white border-zinc-200">
+                    <div className="flex flex-col items-center justify-center space-y-3">
+                        <Loader2 className="w-6 h-6 text-zinc-400 animate-spin" />
+                        <p className="text-xs text-zinc-500">Memuat playbook {selectedSeniority} ({selectedDepartment})...</p>
                     </div>
                 </Card>
             ) : activePersona ? (
@@ -422,10 +475,11 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                         <Button
                             size="sm"
                             onClick={() => handleGenerate(false)}
-                            className="gap-1.5 text-xs bg-orange-600 hover:bg-orange-700 text-white mt-2"
+                            disabled={isPending}
+                            className="gap-1.5 text-xs bg-orange-600 hover:bg-orange-700 text-white mt-2 disabled:opacity-50"
                         >
                             <Sparkles className="w-3.5 h-3.5" />
-                            Generate {selectedSeniority} - {selectedDepartment} Playbook
+                            {isPending ? "Sedang generate..." : `Generate ${selectedSeniority} - ${selectedDepartment} Playbook`}
                         </Button>
                     </div>
                 </Card>
