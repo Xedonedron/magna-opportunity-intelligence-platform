@@ -67,7 +67,7 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                                         {meeting.title}
                                     </p>
                                     <p className="text-xs text-zinc-500 mt-0.5">
-                                        {formatDate(meeting.date)}
+                                        {formatDate(meeting.date, locale)}
                                         {meeting.location &&
                                             ` • ${meeting.location}`}
                                     </p>
