@@ -46,15 +46,6 @@ import { formatDateTime, timeAgo, formatCurrency } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { ALL_STATUSES, type OpportunityStatus } from "@/types/opportunity";
 
-    const tabs = [
-        { id: "overview", label: t.opportunityDetail.tabs.overview || "Overview", icon: LayoutDashboard },
-        { id: "kyc", label: t.opportunityDetail.tabs.kyc || "KYC Report", icon: FileText },
-        { id: "personas", label: t.opportunityDetail.tabs.personas || "Target Persona", icon: UsersIcon },
-        { id: "meetings", label: t.opportunityDetail.tabs.meetings || "Meetings", icon: Calendar },
-        { id: "resources", label: t.opportunityDetail.tabs.documents || "Resources", icon: FolderKey },
-        { id: "timeline", label: t.opportunityDetail.tabs.timeline || "Timeline", icon: GitCommit },
-    ];
-
 const eventTypeIcons: Record<string, React.ReactNode> = {
     create: <CheckCircle2 className="w-4 h-4 text-green-500" />,
     update: <GitCommit className="w-4 h-4 text-zinc-500" />,
@@ -67,6 +58,14 @@ export default function OpportunityDetailPage() {
     const { id } = useParams() as { id: string };
     const router = useRouter();
     const { t } = useLanguage();
+    const tabs = [
+        { id: "overview", label: t.opportunityDetail.tabs.overview || "Overview", icon: LayoutDashboard },
+        { id: "kyc", label: t.opportunityDetail.tabs.kyc || "KYC Report", icon: FileText },
+        { id: "personas", label: t.opportunityDetail.tabs.personas || "Target Persona", icon: UsersIcon },
+        { id: "meetings", label: t.opportunityDetail.tabs.meetings || "Meetings", icon: Calendar },
+        { id: "resources", label: t.opportunityDetail.tabs.documents || "Resources", icon: FolderKey },
+        { id: "timeline", label: t.opportunityDetail.tabs.timeline || "Timeline", icon: GitCommit },
+    ];
     const [activeTab, setActiveTab] = useState("overview");
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [showCreateMeeting, setShowCreateMeeting] = useState(false);
