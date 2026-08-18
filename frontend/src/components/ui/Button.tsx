@@ -2,13 +2,14 @@ import { cn } from "@/lib/utils";
 import { forwardRef } from "react";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: "primary" | "secondary" | "ghost" | "danger";
+    variant?: "primary" | "secondary" | "outline" | "ghost" | "danger";
     size?: "sm" | "md" | "lg" | "icon";
 }
 
 const variants = {
     primary: "bg-zinc-900 text-white hover:bg-zinc-800",
     secondary: "bg-white text-zinc-700 border border-zinc-200 hover:bg-zinc-50 shadow-sm",
+    outline: "border border-zinc-300 bg-transparent text-zinc-700 hover:bg-zinc-50 shadow-sm",
     ghost: "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900",
     danger: "bg-red-600 text-white hover:bg-red-700",
 };
