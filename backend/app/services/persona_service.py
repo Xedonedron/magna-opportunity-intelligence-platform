@@ -19,17 +19,76 @@ def _clean_and_parse_json(content: Any) -> dict:
         raise ValueError("Empty response from AI model")
 
     text = content.strip()
-    fence_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text, re.IGNORECASE)
-    if fence_match:
+
+    # 1. Extract markdown fence if present
+    fence_match = re.search(r"```(?:json)?\s*([\s\S]*?)(?:```|$)", text, re.IGNORECASE)
+    if fence_match and fence_match.group(1).strip():
         text = fence_match.group(1).strip()
 
+    # 2. Slice from first '{'
     start_idx = text.find("{")
-    end_idx = text.rfind("}")
-    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-        text = text[start_idx : end_idx + 1]
+    if start_idx != -1:
+        text = text[start_idx:]
 
+    # 3. Clean trailing commas
     text = re.sub(r",\s*([\}\]])", r"\1", text)
-    return json.loads(text)
+
+    # 4. Try standard JSON parse on balanced substring first
+    end_idx = text.rfind("}")
+    if end_idx != -1:
+        candidate = text[: end_idx + 1]
+        candidate = re.sub(r",\s*([\}\]])", r"\1", candidate)
+        try:
+            return json.loads(candidate)
+        except json.JSONDecodeError:
+            pass
+
+    # 5. Try escaping unescaped newlines/tabs inside strings
+    fixed = re.sub(r'(?<!\\)\r?\n', r'\\n', text)
+    fixed = re.sub(r'(?<!\\)\t', r'\\t', fixed)
+    try:
+        return json.loads(fixed)
+    except Exception:
+        pass
+
+    # 6. Truncation self-healing
+    # ponytail: basic structural repair, full LLM retry kicks in if this raises JSONDecodeError
+    in_string = False
+    escape = False
+    stack = []
+    for ch in text:
+        if escape:
+            escape = False
+            continue
+        if ch == '\\':
+            escape = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+            continue
+        if not in_string:
+            if ch in ('{', '['):
+                stack.append(ch)
+            elif ch == '}' and stack and stack[-1] == '{':
+                stack.pop()
+            elif ch == ']' and stack and stack[-1] == '[':
+                stack.pop()
+
+    repaired = text
+    if in_string:
+        repaired += '"'
+
+    repaired = re.sub(r",\s*$", "", repaired.strip())
+    while stack:
+        opener = stack.pop()
+        repaired = re.sub(r",\s*$", "", repaired.strip())
+        if opener == '{':
+            repaired += "}"
+        elif opener == '[':
+            repaired += "]"
+
+    repaired = re.sub(r",\s*([\}\]])", r"\1", repaired)
+    return json.loads(repaired)
 
 
 PERSONA_SYSTEM_PROMPT = """You are a Principal Enterprise Presales & B2B Strategy Consultant at Magna.
@@ -144,15 +203,36 @@ Please generate the comprehensive meeting playbook in JSON format. Provide 3-4 f
         HumanMessage(content=user_prompt),
     ]
 
-    try:
-        response = await llm.ainvoke(messages)
-        parsed = _clean_and_parse_json(response.content)
-        return {
-            "focus_areas": parsed.get("focus_areas", []),
-            "questions": parsed.get("questions", []),
-            "value_props": parsed.get("value_props", []),
-            "objection_handling": parsed.get("objection_handling", []),
-        }
-    except Exception as e:
-        logger.error(f"Failed to generate persona playbook: {e}", exc_info=True)
-        raise RuntimeError(f"Gagal generate persona playbook: {str(e)}")
+    # Attempt invoke with auto-retry
+    max_retries = 3
+    last_error: Optional[Exception] = None
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            current_messages = list(messages)
+            if attempt > 1 and last_error:
+                current_messages.append(
+                    HumanMessage(
+                        content=(
+                            f"CRITICAL FIX: Your previous response failed JSON parsing with error: '{str(last_error)}'. "
+                            "Return ONLY strictly valid, complete RFC8259 JSON without markdown fences or unescaped quotes."
+                        )
+                    )
+                )
+            response = await llm.ainvoke(current_messages)
+            parsed = _clean_and_parse_json(response.content)
+            return {
+                "focus_areas": parsed.get("focus_areas", []),
+                "questions": parsed.get("questions", []),
+                "value_props": parsed.get("value_props", []),
+                "objection_handling": parsed.get("objection_handling", []),
+            }
+        except (json.JSONDecodeError, ValueError) as e:
+            last_error = e
+            logger.warning(f"[Persona Service] Attempt {attempt}/{max_retries} failed to parse JSON: {e}")
+            if attempt == max_retries:
+                logger.error(f"[Persona Service] All {max_retries} JSON parsing attempts failed: {e}")
+                raise RuntimeError(f"Gagal parse JSON persona playbook setelah {max_retries} percobaan: {str(e)}")
+        except Exception as e:
+            logger.error(f"Failed to generate persona playbook: {e}", exc_info=True)
+            raise RuntimeError(f"Gagal generate persona playbook: {str(e)}")

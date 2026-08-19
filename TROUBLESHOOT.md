@@ -117,6 +117,35 @@ Aturan keamanan dua-lapis (RBAC - Role Based Access Control). Role **Engineer** 
 
 ---
 
+## 🤖 5. Potensi Error & Solusi pada Proses KYC (KYC Pipeline)
+
+### 🔍 Gejala
+Status Opportunity berubah menjadi `KYC Running` lalu kembali ke status lama atau laporan KYC menampilkan status `failed` / tidak selesai.
+
+### 🚨 Penyebab & Penanganan Berdasarkan Layer:
+
+#### A. Konfigurasi LLM & Search API Key
+* **Penyebab**: API Key OpenAI (`OPENAI_API_KEY`) atau Gemini (`GEMINI_API_KEY`) belum dikonfigurasi di DB `system_settings` atau file `.env`.
+* **Solusi**: Masuk ke menu **Settings ➔ AI Configuration** sebagai Super Admin dan isi active API key, atau set di file `backend/.env`.
+
+#### B. Celery Worker / Redis Offline
+* **Penyebab**: Container Celery worker atau Redis tidak berjalan/restart mendadak.
+* **Solusi**:
+  ```bash
+  docker compose ps celery redis
+  docker compose restart celery redis
+  ```
+
+#### C. Kegagalan Crawling Website & SSRF Filter
+* **Penyebab**: Website target opportunity offline, proteksi Cloudflare (403), atau domain mengarah ke IP privat/lokal yang diblokir oleh anti-SSRF `link_verifier_service`.
+* **Solusi**: Periksa validitas field `website` pada opportunity atau kosongkan jika domain tidak dapat diakses publik.
+
+#### D. Kegagalan Parsing JSON Model LLM
+* **Penyebab**: Output respon AI terpotong atau format markdown code fence tidak valid.
+* **Solusi**: Gunakan model rekomendasi (`gemini-2.5-flash` atau `glm-5`) dengan parameter temperature `0.0` untuk stabilitas output terstruktur.
+
+---
+
 ## 🔍 4. Perintah Diagnosa Lengkap di VM (One-Liner Inspection)
 
 Untuk memeriksa kondisi seluruh layanan Docker, variabel lingkungan, dan log di VM, jalankan perintah sekali jalan berikut:
@@ -128,3 +157,17 @@ echo -e "\n=== 3. ENV FRONTEND ===" && docker compose exec -T frontend env | gre
 echo -e "\n=== 4. HEALTH CHECK BACKEND LOKAL ===" && curl -s http://localhost:8009/api/health
 echo -e "\n=== 5. LOG BACKEND (50 BARIS TERAKHIR) ===" && docker compose logs --tail=50 backend
 ```
+
+
+---
+
+### 16. Error `_clean_and_parse_json` (JSON Parse Error pada KYC / Persona AI)
+
+**Penyebab:**
+- Output LLM terpotong (max tokens) sehingga kurung penutup (`}`, `]`) atau tanda kutip string hilang.
+- LLM menulis markdown fences rusak atau unescaped double quotes di dalam string.
+
+**Solusi & Mitigasi Otomatis yang Diterapkan:**
+1. **Self-Healing Truncation Parser**: Parser otomatis menyeimbangkan stack kurung kurawal/siku dan menutup string yang terpotong.
+2. **Auto-Retry Loop (3 Attempts)**: Jika JSON decode tetap gagal, pipeline otomatis me-reinvoke LLM dengan feedback pesan error format spesifik.
+3. Jika model sering menghasilkan format tidak stabil di environment tertentu, pastikan model LLM di System Settings menggunakan provider yang mendukung strict JSON mode (misalnya `gpt-4o`, `deepseek-chat`, `glm-5`).

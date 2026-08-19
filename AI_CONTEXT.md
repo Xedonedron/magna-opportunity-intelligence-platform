@@ -455,6 +455,32 @@ type MeetingStatus = 'scheduled' | 'completed' | 'cancelled'
   7. Update opportunity status to `Ready Meeting` (or `KYC Completed`)
   8. Create notification for assigned engineer / creator
 
+### KYC Process Possible Errors & Failure Points
+1. **API & Authentication Layer**:
+   - `401 Unauthorized`: Missing, expired, or invalid JWT bearer token.
+   - `403 Forbidden`: User lacking `generate_kyc` capability (e.g. `viewer` role).
+   - `404 Not Found`: Opportunity record not found by UUID.
+   - `422 Unprocessable Entity`: Invalid UUID format or corrupted request body.
+2. **Task Queue & Worker Layer (Celery/Redis)**:
+   - Redis broker unreachable or connection refused during task dispatch (`run_kyc_pipeline_task.delay`).
+   - Celery worker timeout, OOM crash, or worker offline.
+   - Database connection pool exhaustion inside worker thread (`SessionLocal`).
+3. **API Key & External Configuration Layer**:
+   - Missing LLM Key: `has_active_llm_key() == False` (`OPENAI_API_KEY` / `GEMINI_API_KEY` unconfigured in DB & env) → instant failure status.
+   - Expired / exhausted quota / invalid API key for LLM provider or Web Search provider (HTTP 401 / 403 / 429).
+4. **Web Research & Scraping Layer**:
+   - Web search engine timeout or rate limit (Tavily API / Google Search Grounding).
+   - Target website crawler failure: timeout, SSL/TLS handshake error, DNS failure, or Cloudflare/WAF anti-bot block (403/503).
+   - SSRF Protection Block: Website URL resolving to internal/private IP or metadata endpoints (`link_verifier_service`).
+5. **LLM Inference & Parsing Layer**:
+   - Provider rate limits (TPM/RPM limits hit) or provider service outage (5xx).
+   - Context window overflow from excessively long web crawling payloads.
+   - JSON parsing defects: LLM output truncation (`MAX_TOKENS`), broken markdown code block fences, or malformed JSON syntax.
+   - Content moderation / safety filter rejection on target company profile or prompts.
+6. **Database & Persistence Layer**:
+   - DB commit error or transaction conflict when saving output to `kyc_reports`.
+   - Inconsistent state revert: pipeline fails and reverting `opportunities.status` encounters a database rollback failure.
+
 ---
 
 ## Docker Services

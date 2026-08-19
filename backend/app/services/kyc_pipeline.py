@@ -57,7 +57,7 @@ class KYCState(TypedDict):
 
 # --- Helper for robust JSON parsing ---
 def _clean_and_parse_json(content: Any) -> dict:
-    """Robustly clean and parse JSON output from LLM, fixing common formatting defects."""
+    """Robustly clean and parse JSON output from LLM, fixing common formatting defects and truncated outputs."""
     if isinstance(content, list):
         content = "".join([c.get("text", "") if isinstance(c, dict) else str(c) for c in content])
     if not content or not isinstance(content, str):
@@ -65,28 +65,75 @@ def _clean_and_parse_json(content: Any) -> dict:
 
     text = content.strip()
 
-    # 1. If wrapped in markdown code fence, extract inside block
-    fence_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text, re.IGNORECASE)
-    if fence_match:
+    # 1. Extract markdown fence if present
+    fence_match = re.search(r"```(?:json)?\s*([\s\S]*?)(?:```|$)", text, re.IGNORECASE)
+    if fence_match and fence_match.group(1).strip():
         text = fence_match.group(1).strip()
 
-    # 2. Extract substring between first '{' and last '}'
+    # 2. Slice from first '{'
     start_idx = text.find("{")
-    end_idx = text.rfind("}")
-    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-        text = text[start_idx : end_idx + 1]
+    if start_idx != -1:
+        text = text[start_idx:]
 
     # 3. Clean trailing commas inside arrays/objects (e.g. ", }", ", ]")
     text = re.sub(r",\s*([\}\]])", r"\1", text)
 
-    # 4. Try parsing standard JSON
+    # 4. Try standard JSON parse on balanced substring first
+    end_idx = text.rfind("}")
+    if end_idx != -1:
+        candidate = text[: end_idx + 1]
+        candidate = re.sub(r",\s*([\}\]])", r"\1", candidate)
+        try:
+            return json.loads(candidate)
+        except json.JSONDecodeError:
+            pass
+
+    # 5. Try escaping unescaped newlines/tabs inside strings
+    fixed = re.sub(r'(?<!\\)\r?\n', r'\\n', text)
+    fixed = re.sub(r'(?<!\\)\t', r'\\t', fixed)
     try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        # 5. Fallback: escape raw unescaped newlines/tabs inside string values
-        fixed = re.sub(r'(?<!\\)\r?\n', r'\\n', text)
-        fixed = re.sub(r'(?<!\\)\t', r'\\t', fixed)
         return json.loads(fixed)
+    except Exception:
+        pass
+
+    # 6. Truncation self-healing: balance open quotes, arrays, and objects
+    # ponytail: basic structural repair, full LLM retry kicks in if this raises JSONDecodeError
+    in_string = False
+    escape = False
+    stack = []
+    for ch in text:
+        if escape:
+            escape = False
+            continue
+        if ch == '\\':
+            escape = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+            continue
+        if not in_string:
+            if ch in ('{', '['):
+                stack.append(ch)
+            elif ch == '}' and stack and stack[-1] == '{':
+                stack.pop()
+            elif ch == ']' and stack and stack[-1] == '[':
+                stack.pop()
+
+    repaired = text
+    if in_string:
+        repaired += '"'
+
+    repaired = re.sub(r",\s*$", "", repaired.strip())
+    while stack:
+        opener = stack.pop()
+        repaired = re.sub(r",\s*$", "", repaired.strip())
+        if opener == '{':
+            repaired += "}"
+        elif opener == '[':
+            repaired += "]"
+
+    repaired = re.sub(r",\s*([\}\]])", r"\1", repaired)
+    return json.loads(repaired)
 
 
 # --- LLM Setup ---
@@ -295,10 +342,34 @@ IMPORTANT: When generating use_cases, reference the Industry Use Cases Reference
 
 Return ONLY valid JSON, no markdown formatting."""
 
-    try:
-        response = await llm.ainvoke(prompt)
-        result = _clean_and_parse_json(response.content)
+    # Attempt invoke with auto-retry
+    max_retries = 3
+    last_error: Optional[Exception] = None
+    result: dict = {}
 
+    for attempt in range(1, max_retries + 1):
+        try:
+            current_prompt = prompt
+            if attempt > 1 and last_error:
+                # Feedback loop on retry to steer LLM to strictly correct syntax
+                current_prompt += (
+                    f"\n\nCRITICAL FIX: Your previous attempt failed JSON parsing with error: '{str(last_error)}'. "
+                    "Ensure you escape all double quotes inside string values and output 100% valid, complete RFC8259 JSON."
+                )
+            response = await llm.ainvoke(current_prompt)
+            result = _clean_and_parse_json(response.content)
+            break
+        except (json.JSONDecodeError, ValueError) as e:
+            last_error = e
+            logger.warning(f"[KYC Pipeline] Attempt {attempt}/{max_retries} failed to parse JSON: {e}")
+            if attempt == max_retries:
+                logger.error(f"[KYC Pipeline] All {max_retries} JSON parsing attempts failed: {e}")
+                return {"error": f"Failed to parse AI response after {max_retries} attempts: {str(e)}"}
+        except Exception as e:
+            logger.error(f"[KYC Pipeline] LLM invocation failed on attempt {attempt}: {e}")
+            return {"error": f"AI analysis failed: {str(e)}"}
+
+    try:
         # Sanitize references via live LinkVerifier Engine
         raw_references = result.get("references", [])
         verified_references = await link_verifier_service.sanitize_references_and_sources(
@@ -323,12 +394,9 @@ Return ONLY valid JSON, no markdown formatting."""
             "references": verified_references,
         }
 
-    except json.JSONDecodeError as e:
-        logger.error(f"[KYC Pipeline] Failed to parse LLM response: {e}")
-        return {"error": f"Failed to parse AI response: {str(e)}"}
     except Exception as e:
-        logger.error(f"[KYC Pipeline] LLM analysis failed: {e}")
-        return {"error": f"AI analysis failed: {str(e)}"}
+        logger.error(f"[KYC Pipeline] Reference sanitation failed: {e}")
+        return {"error": f"AI post-processing failed: {str(e)}"}
 
 
 # --- Graph Builder ---
