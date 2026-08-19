@@ -1,5 +1,15 @@
 import { api } from "@/lib/api";
 
+export const DEFAULT_TARGET_SOLUTIONS = [
+    "Data Analytics Platform",
+    "AI/ML Solutions",
+    "Google Workspace (GWS)",
+    "Google Maps Platform (GMaps)",
+    "Cloud Infrastructure (GCP)",
+    "Cybersecurity Suite",
+    "Network Solutions",
+];
+
 export const DEFAULT_INDUSTRIES = [
     "Finance & Banking",
     "Insurance",

@@ -261,11 +261,8 @@ async def get_dashboard_metrics(
         ~Opportunity.status.in_(["Won", "Lost", "On Hold"])
     ).count()
 
-    # Product count aggregation
-    product_query = db.query(
-        Opportunity.product,
-        sa_func.count(Opportunity.id).label("count")
-    )
+    # Product count aggregation (splitting comma-separated multi-select values)
+    product_query = db.query(Opportunity.product)
     if user_role == "lgo":
         product_query = product_query.filter(Opportunity.created_by == current_user.id)
     if status:
@@ -277,10 +274,22 @@ async def get_dashboard_metrics(
     if date_to:
         product_query = product_query.filter(Opportunity.created_at < date_to + timedelta(days=1))
         
-    product_counts = product_query.group_by(Opportunity.product).all()
+    product_rows = product_query.all()
+    product_counter = {}
+    for (prod_str,) in product_rows:
+        if not prod_str:
+            product_counter["None"] = product_counter.get("None", 0) + 1
+        else:
+            parts = [p.strip() for p in prod_str.split(",") if p.strip()]
+            if not parts:
+                product_counter["None"] = product_counter.get("None", 0) + 1
+            else:
+                for item in parts:
+                    product_counter[item] = product_counter.get(item, 0) + 1
+
     by_product = [
-        ProductCount(product=p or "None", count=c)
-        for p, c in product_counts
+        ProductCount(product=p, count=c)
+        for p, c in product_counter.items()
     ]
 
     # Industry count aggregation

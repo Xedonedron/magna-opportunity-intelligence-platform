@@ -366,6 +366,7 @@ export default function OpportunityDetailPage() {
                                                 icon={<Package className="w-4 h-4" />}
                                                 label={t.opportunityDetail.overview.productSolution}
                                                 value={opp.product}
+                                                isBadges
                                             />
                                         </div>
                                     </Card>
@@ -521,18 +522,31 @@ function InfoRow({
     label,
     value,
     isLink,
+    isBadges,
 }: {
     icon: React.ReactNode;
     label: string;
     value: string | null | undefined;
     isLink?: boolean;
+    isBadges?: boolean;
 }) {
     return (
-        <div className="flex items-center gap-3 py-1.5">
-            <span className="text-zinc-400">{icon}</span>
-            <span className="text-sm text-zinc-500 w-20 shrink-0">{label}</span>
+        <div className="flex items-start gap-3 py-1.5">
+            <span className="text-zinc-400 mt-0.5">{icon}</span>
+            <span className="text-sm text-zinc-500 w-20 shrink-0 mt-0.5">{label}</span>
             {value ? (
-                isLink ? (
+                isBadges ? (
+                    <div className="flex flex-wrap gap-1.5">
+                        {value.split(", ").map((item, idx) => (
+                            <span
+                                key={idx}
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 text-zinc-800 border border-zinc-200"
+                            >
+                                {item.trim()}
+                            </span>
+                        ))}
+                    </div>
+                ) : isLink ? (
                     <a
                         href={value}
                         target="_blank"

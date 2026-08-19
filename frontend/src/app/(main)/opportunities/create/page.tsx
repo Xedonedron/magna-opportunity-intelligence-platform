@@ -16,10 +16,10 @@ import {
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Input, Textarea, Select, SuggestedInput } from "@/components/ui/Input";
+import { Input, Textarea, Select, SuggestedInput, MultiSelect } from "@/components/ui/Input";
 import { useCreateOpportunity } from "@/hooks/use-opportunities";
 
-import { getMasterIndustries, getMasterPresales, fetchMasterData } from "@/lib/master-data";
+import { getMasterIndustries, getMasterPresales, fetchMasterData, DEFAULT_TARGET_SOLUTIONS } from "@/lib/master-data";
 
 import { useEffect } from "react";
 
@@ -313,16 +313,19 @@ export default function CreateOpportunityPage() {
                             Target Solution & Assignment
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Select label="Target Solution" required {...register("product")}>
-                                <option value="">Select solution...</option>
-                                <option value="Data Analytics Platform">Data Analytics Platform</option>
-                                <option value="AI/ML Solutions">AI/ML Solutions</option>
-                                <option value="Google Workspace (GWS)">Google Workspace (GWS)</option>
-                                <option value="Google Maps Platform (GMaps)">Google Maps Platform (GMaps)</option>
-                                <option value="Cloud Infrastructure (GCP)">Cloud Infrastructure (GCP)</option>
-                                <option value="Cybersecurity Suite">Cybersecurity Suite</option>
-                                <option value="Network Solutions">Network Solutions</option>
-                            </Select>
+                            <div>
+                                <MultiSelect
+                                    label="Target Solution"
+                                    required
+                                    options={DEFAULT_TARGET_SOLUTIONS}
+                                    value={watch("product") ? watch("product").split(", ").filter(Boolean) : []}
+                                    onChange={(selected) => setValue("product", selected.join(", "), { shouldValidate: true })}
+                                    placeholder="Select one or more solutions..."
+                                />
+                                {errors.product && (
+                                    <p className="text-xs text-red-500 mt-1">{errors.product.message}</p>
+                                )}
+                            </div>
 
                             <Select label="Assigned Pre-Sales / Engineer" {...register("assigned_engineer")}>
                                 <option value="">Unassigned (Belum ditugaskan)</option>

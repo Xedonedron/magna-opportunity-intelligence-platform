@@ -268,3 +268,111 @@ export function SuggestedInput({
         </div>
     );
 }
+
+interface MultiSelectProps {
+    label?: string;
+    required?: boolean;
+    options: string[];
+    value: string[];
+    onChange: (value: string[]) => void;
+    placeholder?: string;
+}
+
+export function MultiSelect({
+    label,
+    required,
+    options,
+    value,
+    onChange,
+    placeholder = "Select options...",
+}: MultiSelectProps) {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(e: MouseEvent) {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+                setIsOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const toggleOption = (opt: string) => {
+        if (value.includes(opt)) {
+            onChange(value.filter((v) => v !== opt));
+        } else {
+            onChange([...value, opt]);
+        }
+    };
+
+    const removeOption = (opt: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        onChange(value.filter((v) => v !== opt));
+    };
+
+    return (
+        <div className="space-y-1.5 w-full" ref={containerRef}>
+            {label && (
+                <label className="block text-sm font-medium text-zinc-700">
+                    {label} {required && <span className="text-red-500">*</span>}
+                </label>
+            )}
+            <div className="relative">
+                <div
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="min-h-9 w-full rounded-md border border-zinc-200 bg-transparent px-2.5 py-1.5 text-sm shadow-sm cursor-pointer hover:border-zinc-300 focus-within:ring-1 focus-within:ring-zinc-900 transition-colors flex flex-wrap items-center gap-1.5"
+                >
+                    {value.length === 0 ? (
+                        <span className="text-zinc-400 select-none py-0.5">{placeholder}</span>
+                    ) : (
+                        value.map((item) => (
+                            <span
+                                key={item}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-zinc-100 text-zinc-800 border border-zinc-200"
+                            >
+                                <span>{item}</span>
+                                <button
+                                    type="button"
+                                    onClick={(e) => removeOption(item, e)}
+                                    className="text-zinc-400 hover:text-zinc-600 rounded-full p-0.5 hover:bg-zinc-200 transition-colors"
+                                >
+                                    ✕
+                                </button>
+                            </span>
+                        ))
+                    )}
+                </div>
+
+                {isOpen && (
+                    <ul className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-md border border-zinc-200 bg-white py-1 shadow-lg">
+                        {options.map((opt) => {
+                            const isSelected = value.includes(opt);
+                            return (
+                                <li key={opt}>
+                                    <button
+                                        type="button"
+                                        className={cn(
+                                            "w-full px-3 py-2 text-left text-sm flex items-center justify-between transition-colors",
+                                            isSelected
+                                                ? "bg-zinc-100 text-zinc-900 font-medium"
+                                                : "text-zinc-700 hover:bg-zinc-50"
+                                        )}
+                                        onClick={() => toggleOption(opt)}
+                                    >
+                                        <span>{opt}</span>
+                                        {isSelected && (
+                                            <span className="text-xs text-zinc-900 font-semibold">✓</span>
+                                        )}
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
+            </div>
+        </div>
+    );
+}
+

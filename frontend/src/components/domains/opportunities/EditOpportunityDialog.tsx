@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { X, Save } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Input, Select, SuggestedInput } from "@/components/ui/Input";
+import { Input, Select, SuggestedInput, MultiSelect } from "@/components/ui/Input";
 import { useUpdateOpportunity } from "@/hooks/use-opportunities";
 import type { Opportunity } from "@/types/opportunity";
 
 import { useEffect } from "react";
-import { getMasterIndustries, getMasterPresales, fetchMasterData } from "@/lib/master-data";
+import { getMasterIndustries, getMasterPresales, fetchMasterData, DEFAULT_TARGET_SOLUTIONS } from "@/lib/master-data";
 
 interface EditOpportunityDialogProps {
     opportunity: Opportunity;
@@ -154,22 +154,13 @@ export function EditOpportunityDialog({
                                 onChange={setIndustry}
                                 suggestions={industriesList.length > 0 ? industriesList : getMasterIndustries()}
                             />
-                            <Select
+                            <MultiSelect
                                 label="Target Solution"
-                                value={product}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                                    setProduct(e.target.value)
-                                }
-                            >
-                                <option value="">Select solution...</option>
-                                <option value="Data Analytics Platform">Data Analytics Platform</option>
-                                <option value="AI/ML Solutions">AI/ML Solutions</option>
-                                <option value="Google Workspace (GWS)">Google Workspace (GWS)</option>
-                                <option value="Google Maps Platform (GMaps)">Google Maps Platform (GMaps)</option>
-                                <option value="Cloud Infrastructure (GCP)">Cloud Infrastructure (GCP)</option>
-                                <option value="Cybersecurity Suite">Cybersecurity Suite</option>
-                                <option value="Network Solutions">Network Solutions</option>
-                            </Select>
+                                options={DEFAULT_TARGET_SOLUTIONS}
+                                value={product ? product.split(", ").filter(Boolean) : []}
+                                onChange={(selected) => setProduct(selected.join(", "))}
+                                placeholder="Select one or more solutions..."
+                            />
                         </div>
                         <div className="space-y-1">
                             <Select

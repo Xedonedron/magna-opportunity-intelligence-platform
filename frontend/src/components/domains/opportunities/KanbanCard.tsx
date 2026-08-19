@@ -83,8 +83,15 @@ export function KanbanCard({
 
                     {/* Needs / Product Tag */}
                     {opportunity.product && (
-                        <div className="bg-zinc-50 border border-zinc-100 rounded-md px-2 py-1 text-[11px] text-zinc-600 font-medium truncate">
-                            Target: {opportunity.product}
+                        <div className="flex flex-wrap gap-1">
+                            {opportunity.product.split(", ").filter(Boolean).map((prod, idx) => (
+                                <span
+                                    key={idx}
+                                    className="bg-zinc-50 border border-zinc-200/80 rounded px-1.5 py-0.5 text-[10px] text-zinc-600 font-medium truncate max-w-full"
+                                >
+                                    {prod}
+                                </span>
+                            ))}
                         </div>
                     )}
 
