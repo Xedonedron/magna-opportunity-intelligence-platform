@@ -19,12 +19,14 @@ import {
 
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { toast } from "sonner";
 import {
     usePersonasList,
     usePersonaDetail,
     useGeneratePersona,
 } from "@/hooks/use-personas";
 import { useLanguage } from "@/context/LanguageContext";
+import { formatPersonaToMarkdown } from "@/lib/clipboard-formatters";
 import { SeniorityLevel, DepartmentType } from "@/types/persona";
 
 const SENIORITY_LEVELS: SeniorityLevel[] = [
@@ -55,6 +57,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
     const [selectedDepartment, setSelectedDepartment] =
         useState<DepartmentType>("IT");
     const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
+    const [isFullCopied, setIsFullCopied] = useState(false);
 
     // Fetch list to show available generated combinations
     const { data: personaList, isLoading: isListLoading } =
@@ -119,6 +122,22 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
             ? generateMutation.data
             : null);
 
+    const handleCopyFullPlaybook = () => {
+        if (!activePersona) return;
+        try {
+            const markdown = formatPersonaToMarkdown(activePersona);
+            navigator.clipboard.writeText(markdown);
+            setIsFullCopied(true);
+            toast.success(
+                t.opportunityDetail.persona.copyPlaybookSuccess ||
+                `Playbook persona (${activePersona.seniority} - ${activePersona.department}) berhasil disalin!`
+            );
+            setTimeout(() => setIsFullCopied(false), 2500);
+        } catch (e) {
+            toast.error("Gagal menyalin playbook ke clipboard.");
+        }
+    };
+
     return (
         <div className="space-y-6">
             {/* Background generation banner notice */}
@@ -160,7 +179,32 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                     </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                    {/* Copy Full Playbook Button */}
+                    {activePersona && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleCopyFullPlaybook}
+                            className="gap-1.5 text-xs text-zinc-700 border-zinc-300 hover:bg-zinc-50 transition-colors"
+                            title={t.opportunityDetail.persona.copyFullPlaybook || "Salin Full Playbook"}
+                        >
+                            {isFullCopied ? (
+                                <>
+                                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span className="text-emerald-600 font-medium">
+                                        {t.opportunityDetail.persona.fullPlaybookCopied || "Playbook Tersalin!"}
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <Copy className="w-3.5 h-3.5 text-zinc-500" />
+                                    <span>{t.opportunityDetail.persona.copyFullPlaybook || "Salin Full Playbook"}</span>
+                                </>
+                            )}
+                        </Button>
+                    )}
+
                     {activePersona ? (
                         <Button
                             variant="outline"

@@ -18,8 +18,11 @@ import {
     Save,
     CheckCircle2,
     Clock,
+    Copy,
+    Check,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { UseCaseAccordion } from "./UseCaseAccordion";
@@ -32,6 +35,7 @@ import {
     useUpdateKYCReport,
 } from "@/hooks/use-kyc";
 import { useLanguage } from "@/context/LanguageContext";
+import { formatKYCToMarkdown } from "@/lib/clipboard-formatters";
 import type { KYCReport } from "@/types/kyc";
 
 export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
@@ -47,6 +51,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
     const [showConfirmRegenerate, setShowConfirmRegenerate] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
+    const [isCopied, setIsCopied] = useState(false);
     const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
@@ -135,6 +140,20 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
     const handleConfirmRegenerate = () => {
         regenerate.mutate({});
         setShowConfirmRegenerate(false);
+    };
+
+    // Handle copy KYC to clipboard
+    const handleCopyKYC = () => {
+        if (!report) return;
+        try {
+            const markdown = formatKYCToMarkdown(report);
+            navigator.clipboard.writeText(markdown);
+            setIsCopied(true);
+            toast.success(t.opportunityDetail.kyc.copySuccess || "Laporan KYC berhasil disalin ke clipboard.");
+            setTimeout(() => setIsCopied(false), 2500);
+        } catch (e) {
+            toast.error("Gagal menyalin laporan ke clipboard.");
+        }
     };
 
     // Check for unsaved changes
@@ -391,8 +410,8 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
     // Render view mode
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            {/* Header with version info & regenerate */}
-            <div className="flex items-center justify-between">
+            {/* Header with version info & actions */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-zinc-200">
                 <div className="flex items-center gap-3">
                     {versionsData && versionsData.items.length > 0 && (
                         <VersionSelector
@@ -405,7 +424,31 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                         {report.source_type.replace(/_/g, " ")}
                     </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                    {/* Copy to Clipboard Button */}
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        className="gap-1.5 text-xs text-zinc-700 border border-zinc-200 hover:bg-zinc-100 transition-colors"
+                        onClick={handleCopyKYC}
+                        disabled={report.status === "running"}
+                        title={t.opportunityDetail.kyc.copyButton || "Salin Laporan KYC"}
+                    >
+                        {isCopied ? (
+                            <>
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                <span className="text-emerald-600 font-medium">
+                                    {t.opportunityDetail.kyc.copied || "Laporan Tersalin!"}
+                                </span>
+                            </>
+                        ) : (
+                            <>
+                                <Copy className="w-3.5 h-3.5 text-zinc-500" />
+                                <span>{t.opportunityDetail.kyc.copyButton || "Salin Laporan KYC"}</span>
+                            </>
+                        )}
+                    </Button>
+
                     {canEdit && (
                         <Button
                             variant="secondary"
