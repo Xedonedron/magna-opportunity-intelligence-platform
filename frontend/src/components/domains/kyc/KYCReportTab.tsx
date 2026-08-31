@@ -431,7 +431,6 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                         size="sm"
                         className="gap-1.5 text-xs text-zinc-700 border border-zinc-200 hover:bg-zinc-100 transition-colors"
                         onClick={handleCopyKYC}
-                        disabled={report.status === "running"}
                         title={t.opportunityDetail.kyc.copyButton || "Salin Laporan KYC"}
                     >
                         {isCopied ? (
