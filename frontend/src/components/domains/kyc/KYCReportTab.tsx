@@ -439,7 +439,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
             {/* Executive Summary */}
             {report.executive_summary && (
                 <section>
-                    <SectionTitle>Executive Summary</SectionTitle>
+                    <SectionTitle>{t.opportunityDetail.kyc.sections.executiveSummary || "Executive Summary"}</SectionTitle>
                     <Card className="p-6 bg-zinc-900 text-zinc-50 border-none shadow-md">
                         <div className="flex gap-4 items-start">
                             <Zap className="w-6 h-6 text-zinc-400 shrink-0 mt-1" />
@@ -454,7 +454,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
             {/* Company Overview */}
             {report.company_overview && (
                 <section>
-                    <SectionTitle>Company Overview</SectionTitle>
+                    <SectionTitle>{t.opportunityDetail.kyc.sections.companyOverview || "Company Overview"}</SectionTitle>
                     <Card className="p-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-3">
@@ -520,7 +520,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                 <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {report.industry_analysis && (
                         <div>
-                            <SectionTitle>Industry Analysis</SectionTitle>
+                            <SectionTitle>{t.opportunityDetail.kyc.sections.industryAnalysis || "Industry Analysis"}</SectionTitle>
                             <Card className="p-6">
                                 <p className="text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
                                     {report.industry_analysis}
@@ -530,7 +530,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                     )}
                     {report.business_model && (
                         <div>
-                            <SectionTitle>Business Model</SectionTitle>
+                            <SectionTitle>{t.opportunityDetail.kyc.sections.businessModel || "Business Model"}</SectionTitle>
                             <Card className="p-6">
                                 <p className="text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
                                     {report.business_model}
@@ -544,7 +544,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
             {/* Competitor Analysis */}
             {report.competitor_analysis && report.competitor_analysis.length > 0 && (
                 <section>
-                    <SectionTitle>Competitor Analysis</SectionTitle>
+                    <SectionTitle>{t.opportunityDetail.kyc.sections.competitorAnalysis || "Competitor Analysis"}</SectionTitle>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {report.competitor_analysis.map((comp, idx) => (
                             <Card key={idx} className="p-5 flex flex-col justify-between border-zinc-200">
@@ -618,7 +618,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                     <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {report.customer_need_summary && (
                             <div>
-                                <SectionTitle>Customer Need Summary</SectionTitle>
+                                <SectionTitle>{t.opportunityDetail.kyc.sections.customerNeedSummary || "Customer Need Summary"}</SectionTitle>
                                 <Card className="p-6">
                                     <p className="text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
                                         {report.customer_need_summary}
@@ -628,7 +628,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                         )}
                         {report.potential_pain_points && report.potential_pain_points.length > 0 && (
                             <div>
-                                <SectionTitle>Potential Pain Points</SectionTitle>
+                                <SectionTitle>{t.opportunityDetail.kyc.sections.potentialPainPoints || "Potential Pain Points"}</SectionTitle>
                                 <Card className="p-6">
                                     <ul className="space-y-2">
                                         {report.potential_pain_points.map((point, i) => (
@@ -647,7 +647,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
             {/* Use Cases */}
             {report.use_cases && report.use_cases.length > 0 && (
                 <section>
-                    <SectionTitle>Recommended Solutions & Use Cases</SectionTitle>
+                    <SectionTitle>{t.opportunityDetail.kyc.sections.recommendedUseCases || "Recommended Solutions & Use Cases"}</SectionTitle>
                     <UseCaseAccordion useCases={report.use_cases} />
                 </section>
             )}
@@ -657,7 +657,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                 <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {report.meeting_objectives && report.meeting_objectives.length > 0 && (
                         <div>
-                            <SectionTitle>Meeting Objectives</SectionTitle>
+                            <SectionTitle>{t.opportunityDetail.kyc.sections.meetingObjectives || "Meeting Objectives"}</SectionTitle>
                             <Card className="p-6">
                                 <ul className="space-y-2">
                                     {report.meeting_objectives.map((obj, i) => (
@@ -672,7 +672,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                     )}
                     {report.recommended_questions && report.recommended_questions.length > 0 && (
                         <div>
-                            <SectionTitle>Recommended Questions</SectionTitle>
+                            <SectionTitle>{t.opportunityDetail.kyc.sections.recommendedQuestions || "Recommended Questions"}</SectionTitle>
                             <Card className="p-6">
                                 <ul className="space-y-2">
                                     {report.recommended_questions.map((q, i) => (
@@ -691,7 +691,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
             {/* Preparation Checklist */}
             {report.preparation_checklist && report.preparation_checklist.length > 0 && (
                 <section>
-                    <SectionTitle>Meeting Preparation Checklist</SectionTitle>
+                    <SectionTitle>{t.opportunityDetail.kyc.sections.preparationChecklist || "Meeting Preparation Checklist"}</SectionTitle>
                     <Card className="p-0">
                         <ul className="divide-y divide-zinc-100">
                             {report.preparation_checklist.map((item, idx) => (
@@ -711,7 +711,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
             {/* References */}
             {report.references && report.references.length > 0 && (
                 <section>
-                    <SectionTitle>References</SectionTitle>
+                    <SectionTitle>{t.opportunityDetail.kyc.sections.externalReferences || "References"}</SectionTitle>
                     <Card className="p-6">
                         <ul className="space-y-2">
                             {report.references.map((ref, i) => (

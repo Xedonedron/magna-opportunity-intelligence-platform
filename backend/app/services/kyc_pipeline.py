@@ -257,8 +257,8 @@ async def analysis_node(state: KYCState, config: Optional[RunnableConfig] = None
 
     # Built-in Smartnet Magna Global Profile
     solutions_context = """
-## Smartnet Magna Global Company Profile & Solutions Catalog
-You are representing Smartnet Magna Global (SMG), a leading IT consulting and solutions provider specializing in:
+## Profil Perusahaan & Katalog Solusi PT Smartnet Magna Global
+Anda mewakili PT Smartnet Magna Global (SMG), penyedia solusi dan konsultan IT enterprise terkemuka yang berspesialisasi dalam:
 1. Google Cloud Infrastructure & Modernization (GCP, GKE, Serverless, Cloud Migration)
 2. Data Analytics & AI (BigQuery, Looker, Vertex AI, Predictive/Generative AI)
 3. Cybersecurity Suite (Zero Trust, Cloud Security, SIEM, SOC, Penetration Testing)
@@ -267,80 +267,82 @@ You are representing Smartnet Magna Global (SMG), a leading IT consulting and so
 """
 
     # Generate comprehensive KYC report
-    prompt = f"""You are an expert business analyst preparing a KYC (Know Your Customer) report for a presales engineering meeting at PT Smartnet Magna Global.
+    prompt = f"""Anda adalah seorang Principal Business Analyst dan Enterprise Solutions Consultant yang sedang menyusun laporan intelijen KYC (Know Your Customer) komprehensif untuk persiapan meeting presales engineering di PT Smartnet Magna Global.
 
-## Company Information
-- Company Name: {state['company_name']}
+## Informasi Perusahaan Klien
+- Nama Perusahaan: {state['company_name']}
 - Website: {state.get('website', 'N/A')}
-- Industry: {state.get('industry', 'N/A')}
-- Target Product: {state.get('product', 'N/A')}
+- Industri: {state.get('industry', 'N/A')}
+- Target Solusi / Produk: {state.get('product', 'N/A')}
 
-## Customer Needs (from LGO)
+## Kebutuhan Klien (Customer Needs dari LGO/Sales)
 {state['customer_needs']}
 
-## Additional Notes
+## Catatan Tambahan
 {state.get('additional_notes', 'None')}
 
-## Research Data
+## Data Riset & Intelijen Eksternal
 {context}
 {use_cases_context}
 {solutions_context}
 
 ---
 
-Generate a comprehensive KYC report in JSON format with the following structure. All text should be in English. Be specific and actionable.
+INSTRUKSI BAHASA:
+Seluruh teks narasi, ringkasan eksekutif, deskripsi, analisis industri, analisis kompetitor, use cases, tujuan meeting, rekomendasi pertanyaan, dan checklist persiapan WAJIB ditulis dalam Bahasa Indonesia yang formal, profesional, dan komprehensif (standar B2B enterprise presales). Tetap pertahankan istilah teknis standar industri IT/Cloud dalam bahasa Inggris yang umum digunakan (misal: "Cloud Migration", "Data Warehouse", "BigQuery", "Predictive AI", "Dashboard", "Workload", "Zero Trust", "API").
 
-CRITICAL ALIGNMENT INSTRUCTION: The entire generated report (including executive_summary, customer_need_summary, use_cases, recommended_questions, potential_pain_points, and meeting_objectives) MUST be strictly aligned with the "Customer Needs" and "Target Product" sections above. Adapt the industry research context (like general manufacturing use cases) to solve the customer's *actual* specified needs (e.g., if they ask for visualization/dashboards/reporting, do NOT focus use cases on predictive maintenance, IoT sensors, or hardware utilization just because they are in the Manufacturing industry; instead, focus on analytics dashboards, KPI reporting, and data migration for manufacturing).
+CRITICAL ALIGNMENT INSTRUCTION: Seluruh laporan yang dihasilkan (termasuk executive_summary, customer_need_summary, use_cases, recommended_questions, potential_pain_points, dan meeting_objectives) HARUS selaras secara ketat dengan "Kebutuhan Klien" dan "Target Solusi / Produk" di atas. Sesuaikan konteks riset industri untuk menyelesaikan kebutuhan nyata klien (misal: jika klien membutuhkan visualisasi/dashboard/reporting analitik, fokuskan use case pada modernisasi data warehouse, KPI dashboard, dan pipeline data, bukan hal yang tidak relevan).
 
-CRITICAL LINK INSTRUCTION: For the "references" array, you MUST ONLY include real URLs explicitly provided in the Research Data section above. DO NOT invent, construct, or guess any URL.
+CRITICAL LINK INSTRUCTION: Untuk array "references", Anda HANYA BOLEH menyertakan URL nyata yang secara eksplisit tersedia pada bagian Data Riset di atas. DILARANG membuat, merekayasa, atau menebak URL.
 
-IMPORTANT: When generating use_cases, reference the Industry Use Cases Reference and Smartnet Magna Solutions Catalog sections above. Use actual Smartnet Magna solutions from the catalog in the "smartnet_solutions" field of each use case.
+PANDUAN SOLUSI & USE CASE: Saat menyusun use_cases, rujuk bagian Referensi Riset dan Katalog Solusi Smartnet Magna Global di atas. Masukkan solusi nyata dari katalog Smartnet Magna pada field "smartnet_solutions" dan produk Google Cloud pada field "google_products". Nilai "impact_level" harus salah satu dari: "High", "Medium", atau "Low".
 
+Format output HARUS berupa JSON valid dengan struktur kunci (keys) persis berikut:
 {{
-    "executive_summary": "2-3 paragraph executive summary of the company and opportunity",
+    "executive_summary": "Ringkasan eksekutif 2-3 paragraf mengenai profil perusahaan, konteks bisnis, peluang kolaborasi, dan urgensi solusi",
     "company_overview": {{
-        "name": "company name",
-        "description": "brief company description",
-        "founded": "year if known",
-        "size": "employee count estimate",
-        "headquarters": "location",
-        "key_products": ["list of main products/services"]
+        "name": "{state['company_name']}",
+        "description": "Deskripsi singkat profil bisnis, fokus utama operasional, dan positioning pasar perusahaan",
+        "founded": "Tahun pendirian jika diketahui (atau N/A)",
+        "size": "Estimasi jumlah karyawan / skala perusahaan",
+        "headquarters": "Lokasi kantor pusat / wilayah operasional utama",
+        "key_products": ["Daftar produk, layanan, atau lini bisnis utama perusahaan"]
     }},
-    "industry_analysis": "Analysis of the industry landscape, trends, and challenges",
+    "industry_analysis": "Analisis mendalam mengenai lanskap industri, tren adopsi teknologi, regulasi/tantangan utama, dan peluang pertumbuhan pasar",
     "competitor_analysis": [
         {{
-            "name": "Competitor company name",
-            "market_position": "Market leader / Challenger / Niche player etc.",
-            "strengths": ["Strength 1", "Strength 2"],
-            "weaknesses": ["Weakness 1", "Weakness 2"],
-            "differentiators": "How target company compares or differentiates against this competitor"
+            "name": "Nama perusahaan kompetitor",
+            "market_position": "Market Leader / Challenger / Niche Player / Kompetitor Utama",
+            "strengths": ["Keunggulan kompetitif 1", "Keunggulan 2"],
+            "weaknesses": ["Kelemahan atau celah pasar 1", "Kelemahan 2"],
+            "differentiators": "Bagaimana target perusahaan bersaing atau membedakan diri dari kompetitor ini"
         }}
     ],
-    "business_model": "How the company makes money and operates",
-    "company_location": "Primary locations and operational footprint",
-    "customer_need_summary": "Summary of what the customer needs based on the input and research",
-    "potential_pain_points": ["pain point 1", "pain point 2", "pain point 3"],
+    "business_model": "Penjelasan bagaimana perusahaan menghasilkan pendapatan (revenue stream) dan menjalankan model operasional bisnisnya",
+    "company_location": "Lokasi kantor pusat, fasilitas operasional, dan cakupan geografis pasar",
+    "customer_need_summary": "Rangkuman komprehensif mengenai latar belakang kebutuhan, objektif teknis & bisnis klien berdasarkan data input dan riset",
+    "potential_pain_points": ["Kendala operasional / teknis 1", "Pain point integrasi / infrastruktur 2", "Tantangan skalabilitas / keamanan 3"],
     "use_cases": [
         {{
-            "title": "Use case title",
-            "description": "Brief description",
-            "problem_solved": "What problem this solves",
-            "how_it_works": "How the solution works",
-            "business_impact": "Expected business impact",
-            "google_products": ["relevant Google products"],
-            "smartnet_solutions": ["relevant Smartnet Magna solutions from the catalog above"],
-            "impact_level": "High/Medium/Low"
+            "title": "Judul use case / skenario solusi",
+            "description": "Deskripsi singkat implementasi use case",
+            "problem_solved": "Masalah spesifik yang diselesaikan oleh solusi ini",
+            "how_it_works": "Bagaimana arsitektur dan alur kerja solusi ini diimplementasikan",
+            "business_impact": "Dampak bisnis terukur, efisiensi biaya, atau percepatan time-to-market",
+            "google_products": ["Produk Google Cloud yang relevan (misal: BigQuery, Vertex AI, GKE)"],
+            "smartnet_solutions": ["Solusi spesifik dari katalog Smartnet Magna"],
+            "impact_level": "High"
         }}
     ],
-    "meeting_objectives": ["objective 1", "objective 2", "objective 3"],
-    "recommended_questions": ["question 1", "question 2", "question 3", "question 4", "question 5"],
-    "preparation_checklist": ["prep item 1", "prep item 2", "prep item 3"],
+    "meeting_objectives": ["Tujuan strategis meeting 1", "Tujuan teknis meeting 2", "Target kesepakatan langkah berikutnya (Next Steps)"],
+    "recommended_questions": ["Pertanyaan discovery kebutuhan bisnis 1", "Pertanyaan pendalaman arsitektur teknis 2", "Pertanyaan terkait timeline & budget 3", "Pertanyaan kriteria keberhasilan proyek 4", "Pertanyaan pengambil keputusan 5"],
+    "preparation_checklist": ["Item persiapan presentasi / demo teknis 1", "Dokumen / proposal referensi yang perlu disiapkan 2", "Pemeriksaan arsitektur atau studi kasus relevan 3"],
     "references": [
-        {{"title": "source title", "url": "source url", "type": "website/news/linkedin"}}
+        {{"title": "Judul artikel / referensi", "url": "URL sumber valid dari riset data", "type": "website/news/linkedin"}}
     ]
 }}
 
-Return ONLY valid JSON, no markdown formatting."""
+Kembalikan HANYA JSON yang valid, tanpa teks pengantar atau penutup di luar JSON."""
 
     # Attempt invoke with auto-retry
     max_retries = 3

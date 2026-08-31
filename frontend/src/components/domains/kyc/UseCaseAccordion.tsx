@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, Target, Lightbulb, Settings, TrendingUp, Package, Building2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
+import { useLanguage } from "@/context/LanguageContext";
 import type { KYCUseCase } from "@/types/kyc";
 
 const impactStyles: Record<string, string> = {
@@ -12,13 +13,15 @@ const impactStyles: Record<string, string> = {
 };
 
 export function UseCaseAccordion({ useCases }: { useCases: KYCUseCase[] }) {
+    const { t } = useLanguage();
+    const details = t.opportunityDetail.kyc.sections.useCaseDetails;
     const [openId, setOpenId] = useState<string | null>(useCases[0]?.title || null);
 
     if (!useCases || useCases.length === 0) {
         return (
             <Card className="p-12 text-center text-zinc-500">
                 <Target className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p>No use cases generated yet.</p>
+                <p>{details?.noUseCases || "No use cases generated yet."}</p>
             </Card>
         );
     }
@@ -46,7 +49,7 @@ export function UseCaseAccordion({ useCases }: { useCases: KYCUseCase[] }) {
                                 <span
                                     className={`text-xs border rounded px-2 py-1 ${impactStyles[uc.impact_level] || impactStyles.Low}`}
                                 >
-                                    Impact: {uc.impact_level}
+                                    {details?.impact || "Impact"}: {uc.impact_level}
                                 </span>
                                 <ChevronDown
                                     className={`w-4 h-4 text-zinc-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
@@ -57,28 +60,28 @@ export function UseCaseAccordion({ useCases }: { useCases: KYCUseCase[] }) {
                             <div className="px-5 py-5 border-t border-zinc-100 bg-zinc-50/50 space-y-5">
                                 <DetailSection
                                     icon={<Lightbulb className="w-3.5 h-3.5" />}
-                                    title="Description"
+                                    title={details?.description || "Description"}
                                     content={uc.description}
                                 />
                                 <DetailSection
                                     icon={<Target className="w-3.5 h-3.5" />}
-                                    title="Problem Solved"
+                                    title={details?.problemSolved || "Problem Solved"}
                                     content={uc.problem_solved}
                                 />
                                 <DetailSection
                                     icon={<Settings className="w-3.5 h-3.5" />}
-                                    title="How It Works"
+                                    title={details?.howItWorks || "How It Works"}
                                     content={uc.how_it_works}
                                 />
                                 <DetailSection
                                     icon={<TrendingUp className="w-3.5 h-3.5" />}
-                                    title="Business Impact"
+                                    title={details?.businessImpact || "Business Impact"}
                                     content={uc.business_impact}
                                 />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                            <Package className="w-3.5 h-3.5" /> Google Products
+                                            <Package className="w-3.5 h-3.5" /> {details?.googleProducts || "Google Products"}
                                         </h4>
                                         <div className="flex flex-wrap gap-1.5">
                                             {(uc.google_products || []).map((p) => (
@@ -93,7 +96,7 @@ export function UseCaseAccordion({ useCases }: { useCases: KYCUseCase[] }) {
                                     </div>
                                     <div>
                                         <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                            <Building2 className="w-3.5 h-3.5" /> Smartnet Solutions
+                                            <Building2 className="w-3.5 h-3.5" /> {details?.smartnetSolutions || "Smartnet Solutions"}
                                         </h4>
                                         <div className="flex flex-wrap gap-1.5">
                                             {(uc.smartnet_solutions || []).map((s) => (

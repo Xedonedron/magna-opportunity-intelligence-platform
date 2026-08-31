@@ -10,17 +10,22 @@ import type {
     KYCCompetitor,
 } from "@/types/kyc";
 
+import { useLanguage } from "@/context/LanguageContext";
+
 interface KYCEditFormProps {
     report: KYCReport;
     onChange: (field: keyof KYCReport, value: unknown) => void;
 }
 
 export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
+    const { t } = useLanguage();
+    const sec = t.opportunityDetail.kyc.sections;
+
     return (
         <div className="space-y-8">
             {/* Executive Summary */}
             <section>
-                <SectionLabel>Executive Summary</SectionLabel>
+                <SectionLabel>{sec.executiveSummary || "Executive Summary"}</SectionLabel>
                 <textarea
                     value={report.executive_summary || ""}
                     onChange={(e) => onChange("executive_summary", e.target.value)}
@@ -31,7 +36,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
 
             {/* Company Overview */}
             <section>
-                <SectionLabel>Company Overview</SectionLabel>
+                <SectionLabel>{sec.companyOverview || "Company Overview"}</SectionLabel>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border border-zinc-200 rounded-lg">
                     <TextInput
                         label="Name"
@@ -106,7 +111,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
             {/* Industry Analysis & Business Model */}
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                    <SectionLabel>Industry Analysis</SectionLabel>
+                    <SectionLabel>{sec.industryAnalysis || "Industry Analysis"}</SectionLabel>
                     <textarea
                         value={report.industry_analysis || ""}
                         onChange={(e) => onChange("industry_analysis", e.target.value)}
@@ -115,7 +120,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
                     />
                 </div>
                 <div>
-                    <SectionLabel>Business Model</SectionLabel>
+                    <SectionLabel>{sec.businessModel || "Business Model"}</SectionLabel>
                     <textarea
                         value={report.business_model || ""}
                         onChange={(e) => onChange("business_model", e.target.value)}
@@ -127,7 +132,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
 
             {/* Competitor Analysis */}
             <section>
-                <SectionLabel>Competitor Analysis</SectionLabel>
+                <SectionLabel>{sec.competitorAnalysis || "Competitor Analysis"}</SectionLabel>
                 <CompetitorInput
                     competitors={report.competitor_analysis || []}
                     onChange={(competitors) => onChange("competitor_analysis", competitors)}
@@ -137,7 +142,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
             {/* Customer Need Summary & Pain Points */}
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                    <SectionLabel>Customer Need Summary</SectionLabel>
+                    <SectionLabel>{sec.customerNeedSummary || "Customer Need Summary"}</SectionLabel>
                     <textarea
                         value={report.customer_need_summary || ""}
                         onChange={(e) => onChange("customer_need_summary", e.target.value)}
@@ -146,7 +151,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
                     />
                 </div>
                 <div>
-                    <SectionLabel>Potential Pain Points</SectionLabel>
+                    <SectionLabel>{sec.potentialPainPoints || "Potential Pain Points"}</SectionLabel>
                     <ListInput
                         values={report.potential_pain_points || []}
                         onChange={(v) => onChange("potential_pain_points", v)}
@@ -157,7 +162,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
 
             {/* Use Cases */}
             <section>
-                <SectionLabel>Use Cases</SectionLabel>
+                <SectionLabel>{sec.recommendedUseCases || "Use Cases"}</SectionLabel>
                 <UseCasesInput
                     useCases={report.use_cases || []}
                     onChange={(v) => onChange("use_cases", v)}
@@ -167,7 +172,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
             {/* Meeting Objectives & Questions */}
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                    <SectionLabel>Meeting Objectives</SectionLabel>
+                    <SectionLabel>{sec.meetingObjectives || "Meeting Objectives"}</SectionLabel>
                     <ListInput
                         values={report.meeting_objectives || []}
                         onChange={(v) => onChange("meeting_objectives", v)}
@@ -175,7 +180,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
                     />
                 </div>
                 <div>
-                    <SectionLabel>Recommended Questions</SectionLabel>
+                    <SectionLabel>{sec.recommendedQuestions || "Recommended Questions"}</SectionLabel>
                     <ListInput
                         values={report.recommended_questions || []}
                         onChange={(v) => onChange("recommended_questions", v)}
@@ -186,7 +191,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
 
             {/* Preparation Checklist */}
             <section>
-                <SectionLabel>Preparation Checklist</SectionLabel>
+                <SectionLabel>{sec.preparationChecklist || "Preparation Checklist"}</SectionLabel>
                 <ListInput
                     values={report.preparation_checklist || []}
                     onChange={(v) => onChange("preparation_checklist", v)}
@@ -196,7 +201,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
 
             {/* References */}
             <section>
-                <SectionLabel>References</SectionLabel>
+                <SectionLabel>{sec.externalReferences || "References"}</SectionLabel>
                 <ReferencesInput
                     references={report.references || []}
                     onChange={(v) => onChange("references", v)}
