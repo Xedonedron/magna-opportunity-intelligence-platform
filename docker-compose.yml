@@ -48,7 +48,7 @@ services:
       GEMINI_MODEL: ${GEMINI_MODEL:-gemma-4-26b-a4b-it}
       OPENAI_API_BASE: ${OPENAI_API_BASE:-https://api.cosmoshub.tech/v1}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      OPENAI_MODEL: ${OPENAI_MODEL:-glm-5}
+      OPENAI_MODEL: ${OPENAI_MODEL:-glm-4-plus}
       TAVILY_API_KEY: ${TAVILY_API_KEY:-}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3009}
       REDIS_URL: redis://redis:6379/0
@@ -78,7 +78,7 @@ services:
       GEMINI_MODEL: ${GEMINI_MODEL:-gemma-4-26b-a4b-it}
       OPENAI_API_BASE: ${OPENAI_API_BASE:-https://api.cosmoshub.tech/v1}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      OPENAI_MODEL: ${OPENAI_MODEL:-glm-5}
+      OPENAI_MODEL: ${OPENAI_MODEL:-glm-4-plus}
       TAVILY_API_KEY: ${TAVILY_API_KEY:-}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3009}
       REDIS_URL: redis://redis:6379/0
