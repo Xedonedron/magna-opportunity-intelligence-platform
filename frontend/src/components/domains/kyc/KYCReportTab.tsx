@@ -22,9 +22,11 @@ import {
     Check,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { CollapsibleErrorAlert } from "@/components/ui/CollapsibleErrorAlert";
 import { UseCaseAccordion } from "./UseCaseAccordion";
 import { VersionSelector } from "./VersionSelector";
 import { KYCEditForm } from "./KYCEditForm";
@@ -39,6 +41,7 @@ import { formatKYCToMarkdown } from "@/lib/clipboard-formatters";
 import type { KYCReport } from "@/types/kyc";
 
 export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
+    const router = useRouter();
     const { t } = useLanguage();
     const { data: latestReport, isLoading } = useLatestKYCReport(opportunityId);
     const { data: versionsData } = useKYCVersions(opportunityId);
@@ -332,24 +335,19 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
     }
 
     if (report.status === "failed") {
+        const isSuperAdmin = user?.role === "superadmin";
         return (
-            <Card className="p-12 text-center">
-                <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-300" />
-                <h3 className="text-lg font-medium text-zinc-900 mb-2">KYC Generation Failed</h3>
-                <p className="text-zinc-500 mb-2 max-w-md mx-auto">
-                    {report.error_message || "An unexpected error occurred during KYC generation."}
-                </p>
-                {canGenerate && (
-                    <Button
-                        variant="secondary"
-                        className="mt-4"
-                        onClick={handleRegenerateClick}
-                        disabled={regenerate.isPending}
-                    >
-                        <RefreshCw className="w-4 h-4 mr-2" /> Retry
-                    </Button>
-                )}
-            </Card>
+            <div className="max-w-3xl mx-auto mt-4">
+                <CollapsibleErrorAlert
+                    title={t.opportunityDetail.kyc.failedTitle || "Pembuatan Laporan KYC Gagal"}
+                    errorMessage={report.error_message}
+                    canRetry={canGenerate}
+                    onRetry={handleRegenerateClick}
+                    isRetrying={regenerate.isPending}
+                    showSettingsLink={isSuperAdmin}
+                    onNavigateSettings={() => router.push("/settings")}
+                />
+            </div>
         );
     }
 

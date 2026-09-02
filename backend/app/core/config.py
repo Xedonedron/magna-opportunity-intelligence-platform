@@ -49,7 +49,7 @@ class Settings(BaseSettings):
     # OpenAI Compatible API (CosmosHub/DeepSeek)
     OPENAI_API_BASE: str = "https://api.cosmoshub.tech/v1"
     OPENAI_API_KEY: str = ""
-    OPENAI_MODEL: str = "glm-5"
+    OPENAI_MODEL: str = "glm-4-plus"
     OPENAI_EMBEDDING_MODEL: str = "text-embedding-ada-002"
 
     # Tavily (Web Search for KYC)

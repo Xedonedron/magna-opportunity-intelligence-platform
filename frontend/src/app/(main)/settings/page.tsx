@@ -57,6 +57,23 @@ export default function SettingsPage() {
     const [testingConnection, setTestingConnection] = useState(false);
     const [testResult, setTestResult] = useState<{ status: string; message: string } | null>(null);
 
+    // Dynamic AI Models State
+    const [googleModels, setGoogleModels] = useState<string[]>([
+        "gemma-4-26b-a4b-it",
+        "gemini-2.5-flash",
+        "gemini-1.5-flash",
+        "gemini-1.5-pro",
+    ]);
+    const [openaiModels, setOpenaiModels] = useState<string[]>([
+        "glm-4-plus",
+        "glm-4",
+        "deepseek-chat",
+        "deepseek-reasoner",
+        "gpt-4o",
+        "gpt-4o-mini",
+    ]);
+    const [manualModelInput, setManualModelInput] = useState("");
+
     // Operations State
     const [metrics, setMetrics] = useState<any>(null);
     const [logs, setLogs] = useState<any[]>([]);
@@ -110,6 +127,12 @@ export default function SettingsPage() {
                 setMaskedGeminiKey(data.masked_gemini_key || "");
                 setMaskedOpenaiKey(data.masked_openai_key || "");
                 setOpenaiApiBase(data.openai_api_base || "https://api.cosmoshub.tech/v1");
+                if (data.google_models && Array.isArray(data.google_models)) {
+                    setGoogleModels(data.google_models);
+                }
+                if (data.openai_models && Array.isArray(data.openai_models)) {
+                    setOpenaiModels(data.openai_models);
+                }
             }
         } catch (e) {
             console.error("Failed to load settings from server, falling back to localStorage", e);
@@ -203,12 +226,76 @@ export default function SettingsPage() {
         }, 800);
     };
 
+    const activeModelList = llmProvider === "google" ? googleModels : openaiModels;
+
+    const handleSelectModel = (modelName: string) => {
+        setAiModel(modelName);
+    };
+
+    const handleAddManualModel = (explicitModel?: string) => {
+        const trimmed = (explicitModel || manualModelInput).trim();
+        if (!trimmed) return;
+
+        if (llmProvider === "google") {
+            if (!googleModels.includes(trimmed)) {
+                setGoogleModels((prev) => [...prev, trimmed]);
+            }
+        } else {
+            if (!openaiModels.includes(trimmed)) {
+                setOpenaiModels((prev) => [...prev, trimmed]);
+            }
+        }
+        setAiModel(trimmed);
+        setManualModelInput("");
+        showToast(`Model '${trimmed}' ditambahkan ke pilihan.`);
+    };
+
+    const handleDeleteModel = (modelToDelete: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!isSuperAdmin) return;
+
+        if (llmProvider === "google") {
+            const nextList = googleModels.filter((m) => m !== modelToDelete);
+            const fallbackList = nextList.length > 0 ? nextList : ["gemma-4-26b-a4b-it"];
+            setGoogleModels(fallbackList);
+            if (aiModel === modelToDelete) {
+                setAiModel(fallbackList[0]);
+            }
+        } else {
+            const nextList = openaiModels.filter((m) => m !== modelToDelete);
+            const fallbackList = nextList.length > 0 ? nextList : ["glm-4-plus"];
+            setOpenaiModels(fallbackList);
+            if (aiModel === modelToDelete) {
+                setAiModel(fallbackList[0]);
+            }
+        }
+        showToast(`Model '${modelToDelete}' dihapus.`);
+    };
+
     const handleSaveAISettings = async () => {
         setSavingAiSettings(true);
         try {
+            const finalModel = (manualModelInput.trim() || aiModel).trim();
+            const finalGoogle = [...googleModels];
+            const finalOpenai = [...openaiModels];
+
+            if (llmProvider === "google") {
+                if (!finalGoogle.includes(finalModel)) {
+                    finalGoogle.push(finalModel);
+                }
+                setGoogleModels(finalGoogle);
+            } else {
+                if (!finalOpenai.includes(finalModel)) {
+                    finalOpenai.push(finalModel);
+                }
+                setOpenaiModels(finalOpenai);
+            }
+            setAiModel(finalModel);
+            setManualModelInput("");
+
             await api.patch("/api/admin/settings", {
                 llm_provider: llmProvider,
-                ai_model: aiModel,
+                ai_model: finalModel,
                 temperature,
                 search_provider: searchProvider,
                 search_depth: searchDepth,
@@ -217,11 +304,13 @@ export default function SettingsPage() {
                 gemini_api_key: geminiApiKey.trim() || undefined,
                 openai_api_key: openaiApiKey.trim() || undefined,
                 openai_api_base: openaiApiBase.trim() || undefined,
+                google_models: finalGoogle,
+                openai_models: finalOpenai,
             });
 
             const aiSettings = {
                 provider: llmProvider,
-                model: aiModel,
+                model: finalModel,
                 temperature,
                 search_provider: searchProvider,
                 search_depth: searchDepth,
@@ -247,13 +336,21 @@ export default function SettingsPage() {
         setTestResult(null);
         try {
             const currentKey = llmProvider === "google" ? geminiApiKey : openaiApiKey;
+            const targetModel = (manualModelInput.trim() || aiModel).trim();
+
             const res = await api.post("/api/admin/settings/test-connection", {
                 provider: llmProvider,
-                model: aiModel,
+                model: targetModel,
                 api_key: currentKey.trim() || undefined,
                 api_base: llmProvider === "openai" ? (openaiApiBase.trim() || undefined) : undefined,
             });
             setTestResult(res.data);
+
+            if (res.data?.status === "success") {
+                if (manualModelInput.trim()) {
+                    handleAddManualModel(manualModelInput.trim());
+                }
+            }
         } catch (e: any) {
             setTestResult({
                 status: "error",
@@ -493,7 +590,7 @@ export default function SettingsPage() {
                                         onClick={() => {
                                             if (!isSuperAdmin) return;
                                             setLlmProvider("openai");
-                                            setAiModel("glm-5");
+                                            setAiModel("glm-4-plus");
                                         }}
                                         className={`p-3.5 rounded-lg border text-left transition-all flex flex-col justify-between ${!isSuperAdmin ? "opacity-80 cursor-not-allowed " : ""
                                             }${llmProvider === "openai"
@@ -507,40 +604,114 @@ export default function SettingsPage() {
                                                 <span className="text-[10px] bg-zinc-100 text-zinc-700 font-bold px-2 py-0.5 rounded-full">CosmosHub</span>
                                             </div>
                                             <p className="text-xs text-zinc-500 mt-1">
-                                                GLM-5, DeepSeek 3.2, Minimax & Nemotron via CosmosHub API.
+                                                GLM-4 Plus, DeepSeek, Minimax & Nemotron via CosmosHub API.
                                             </p>
                                         </div>
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Model Select */}
-                            <div className="space-y-2">
-                                <label className="text-xs font-semibold text-zinc-700 uppercase flex items-center gap-1">
-                                    Model LLM Utama
-                                </label>
-                                <select
-                                    disabled={!isSuperAdmin}
-                                    value={aiModel}
-                                    onChange={(e) => setAiModel(e.target.value)}
-                                    className={`w-full h-10 px-3 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-950 bg-white ${!isSuperAdmin ? "bg-zinc-50 cursor-not-allowed text-zinc-600" : ""
-                                        }`}
-                                >
-                                    {llmProvider === "google" ? (
-                                        <>
-                                            <option value="gemma-4-26b-a4b-it">Gemma 4 26B (Default - Google AI Studio)</option>
-                                            <option value="gemini-3.6-flash">Gemini 3.6 Flash (Fast & Analytical)</option>
-                                            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Context)</option>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <option value="glm-5">GLM-5</option>
-                                            <option value="deepseek-3.2">DeepSeek 3.2</option>
-                                            <option value="minimax-m2.5">Minimax M2.5</option>
-                                            <option value="nemotron">Nemotron</option>
-                                        </>
-                                    )}
-                                </select>
+                            {/* Model Selection & Dynamic Model List */}
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider flex items-center gap-1.5">
+                                        <span>Model LLM Utama</span>
+                                    </label>
+                                    <span className="text-[11px] text-zinc-500 font-mono bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200">
+                                        Aktif: <strong className="text-zinc-900">{aiModel}</strong>
+                                    </span>
+                                </div>
+
+                                {/* Saved Models List (Interactive Selectable & Deletable Cards) */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-[11px] font-medium text-zinc-500 uppercase">
+                                        <span>Daftar Model Tersimpan ({llmProvider === "google" ? "Google AI Studio" : "OpenAI Compatible"})</span>
+                                        <span>{activeModelList.length} Model</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        {activeModelList.map((modelName) => {
+                                            const isActive = aiModel === modelName;
+                                            return (
+                                                <div
+                                                    key={modelName}
+                                                    onClick={() => isSuperAdmin && handleSelectModel(modelName)}
+                                                    className={`flex items-center justify-between p-2.5 rounded-lg border text-left transition-all ${
+                                                        isActive
+                                                            ? "border-zinc-950 bg-zinc-900 text-white shadow-sm ring-1 ring-zinc-950"
+                                                            : "border-zinc-200 bg-white text-zinc-800 hover:border-zinc-300 hover:bg-zinc-50 cursor-pointer"
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-2 min-w-0 pr-2">
+                                                        <span className="font-mono text-xs truncate" title={modelName}>
+                                                            {modelName}
+                                                        </span>
+                                                        {isActive && (
+                                                            <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-semibold px-1.5 py-0.5 rounded shrink-0 flex items-center gap-0.5">
+                                                                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" /> Aktif
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {isSuperAdmin && activeModelList.length > 1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => handleDeleteModel(modelName, e)}
+                                                            title={`Hapus model '${modelName}' dari daftar`}
+                                                            className={`p-1 rounded transition-colors ${
+                                                                isActive
+                                                                    ? "text-zinc-400 hover:text-red-300 hover:bg-zinc-800"
+                                                                    : "text-zinc-400 hover:text-red-600 hover:bg-red-50"
+                                                            }`}
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Manual Model Input & Add */}
+                                {isSuperAdmin && (
+                                    <div className="pt-2 space-y-1.5 border-t border-zinc-100">
+                                        <label className="text-[11px] font-semibold text-zinc-600 uppercase flex items-center gap-1">
+                                            <span>Ketik Nama Model Baru (Manual)</span>
+                                        </label>
+                                        <div className="flex gap-2">
+                                            <Input
+                                                type="text"
+                                                placeholder={
+                                                    llmProvider === "google"
+                                                        ? "Contoh: gemini-2.5-flash, gemma-4-26b-a4b-it..."
+                                                        : "Contoh: glm-4-plus, deepseek-chat, qwen-2.5-72b..."
+                                                }
+                                                value={manualModelInput}
+                                                onChange={(e) => setManualModelInput(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        e.preventDefault();
+                                                        handleAddManualModel();
+                                                    }
+                                                }}
+                                                className="font-mono text-xs"
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                size="sm"
+                                                onClick={() => handleAddManualModel()}
+                                                disabled={!manualModelInput.trim()}
+                                                className="shrink-0 text-xs gap-1 border border-zinc-200"
+                                            >
+                                                <Plus className="w-3.5 h-3.5" /> Tambah
+                                            </Button>
+                                        </div>
+                                        <p className="text-[11px] text-zinc-500">
+                                            Ketik nama model yang tersedia pada provider Anda. Model baru akan otomatis disimpan setelah Anda mengklik <strong>Tambah</strong>, <strong>Test Koneksi Model</strong>, atau <strong>Simpan Pengaturan AI</strong>.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Temperature Slider */}

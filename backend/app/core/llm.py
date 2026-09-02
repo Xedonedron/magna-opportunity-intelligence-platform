@@ -130,7 +130,7 @@ def get_chat_llm(
 
     else:
         # OpenAI Compatible (CosmosHub / DeepSeek / GLM / Nemotron)
-        final_model = active_model or settings.OPENAI_MODEL or "glm-5"
+        final_model = active_model or settings.OPENAI_MODEL or "glm-4-plus"
         final_key = api_key or db_openai_key or settings.OPENAI_API_KEY
         def _clean_str(val: Optional[str]) -> Optional[str]:
             return val.strip() if val and val.strip() else None

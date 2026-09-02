@@ -222,6 +222,8 @@ class SystemSettingsPayload(BaseModel):
     gemini_api_key: Optional[str] = None
     openai_api_key: Optional[str] = None
     openai_api_base: Optional[str] = None
+    google_models: Optional[list[str]] = None
+    openai_models: Optional[list[str]] = None
 
 
 class TestConnectionPayload(BaseModel):
@@ -239,12 +241,30 @@ def mask_key(key: Optional[str]) -> str:
     return f"{key[:4]}...{key[-4:]}"
 
 
+DEFAULT_GOOGLE_MODELS = [
+    "gemma-4-26b-a4b-it",
+    "gemini-2.5-flash",
+    "gemini-1.5-flash",
+    "gemini-1.5-pro",
+]
+
+DEFAULT_OPENAI_MODELS = [
+    "glm-4-plus",
+    "glm-4",
+    "deepseek-chat",
+    "deepseek-reasoner",
+    "gpt-4o",
+    "gpt-4o-mini",
+]
+
+
 @router.get("/settings")
 def get_system_settings_api(
     db: Session = Depends(get_db),
     _user: User = Depends(get_current_user)
 ):
     """Get system and AI pipeline configuration settings."""
+    import json
     from app.models.system_setting import SystemSetting
     from app.core.config import settings
 
@@ -262,9 +282,30 @@ def get_system_settings_api(
         db.merge(SystemSetting(key="openai_api_key", value=settings.OPENAI_API_KEY))
         db.commit()
 
+    google_models = list(DEFAULT_GOOGLE_MODELS)
+    if kv.get("google_models"):
+        try:
+            google_models = json.loads(kv["google_models"])
+        except Exception:
+            google_models = list(DEFAULT_GOOGLE_MODELS)
+
+    openai_models = list(DEFAULT_OPENAI_MODELS)
+    if kv.get("openai_models"):
+        try:
+            openai_models = json.loads(kv["openai_models"])
+        except Exception:
+            openai_models = list(DEFAULT_OPENAI_MODELS)
+
+    current_model = kv.get("ai_model") or settings.OPENAI_MODEL
+    current_provider = kv.get("llm_provider") or settings.LLM_PROVIDER
+    if current_provider == "google" and current_model and current_model not in google_models:
+        google_models.append(current_model)
+    elif current_provider == "openai" and current_model and current_model not in openai_models:
+        openai_models.append(current_model)
+
     return {
         "llm_provider": kv.get("llm_provider") or settings.LLM_PROVIDER,
-        "ai_model": kv.get("ai_model") or settings.OPENAI_MODEL,
+        "ai_model": current_model,
         "temperature": float(kv.get("temperature", 0.0)),
         "search_depth": kv.get("search_depth", "advanced"),
         "max_results": int(kv.get("max_results", 5)),
@@ -274,6 +315,8 @@ def get_system_settings_api(
         "has_openai_key": bool(openai_key),
         "masked_openai_key": mask_key(openai_key),
         "openai_api_base": kv.get("openai_api_base") or settings.OPENAI_API_BASE,
+        "google_models": google_models,
+        "openai_models": openai_models,
     }
 
 
@@ -284,6 +327,7 @@ def update_system_settings_api(
     _admin: User = Depends(require_superadmin)
 ):
     """Update AI system configuration and API keys (Superadmin only)."""
+    import json
     from app.models.system_setting import SystemSetting
 
     updates = {
@@ -305,6 +349,38 @@ def update_system_settings_api(
 
     if payload.openai_api_base is not None:
         updates["openai_api_base"] = payload.openai_api_base.strip()
+
+    # Handle google_models persistence
+    if payload.google_models is not None:
+        cleaned_g = [m.strip() for m in payload.google_models if m.strip()]
+        if payload.llm_provider == "google" and payload.ai_model and payload.ai_model.strip() not in cleaned_g:
+            cleaned_g.append(payload.ai_model.strip())
+        updates["google_models"] = json.dumps(cleaned_g)
+    elif payload.llm_provider == "google" and payload.ai_model:
+        existing = db.query(SystemSetting).filter(SystemSetting.key == "google_models").first()
+        try:
+            g_list = json.loads(existing.value) if existing and existing.value else list(DEFAULT_GOOGLE_MODELS)
+        except Exception:
+            g_list = list(DEFAULT_GOOGLE_MODELS)
+        if payload.ai_model.strip() not in g_list:
+            g_list.append(payload.ai_model.strip())
+            updates["google_models"] = json.dumps(g_list)
+
+    # Handle openai_models persistence
+    if payload.openai_models is not None:
+        cleaned_o = [m.strip() for m in payload.openai_models if m.strip()]
+        if payload.llm_provider == "openai" and payload.ai_model and payload.ai_model.strip() not in cleaned_o:
+            cleaned_o.append(payload.ai_model.strip())
+        updates["openai_models"] = json.dumps(cleaned_o)
+    elif payload.llm_provider == "openai" and payload.ai_model:
+        existing = db.query(SystemSetting).filter(SystemSetting.key == "openai_models").first()
+        try:
+            o_list = json.loads(existing.value) if existing and existing.value else list(DEFAULT_OPENAI_MODELS)
+        except Exception:
+            o_list = list(DEFAULT_OPENAI_MODELS)
+        if payload.ai_model.strip() not in o_list:
+            o_list.append(payload.ai_model.strip())
+            updates["openai_models"] = json.dumps(o_list)
 
     for k, v in updates.items():
         row = db.query(SystemSetting).filter(SystemSetting.key == k).first()
