@@ -40,11 +40,11 @@ export function CollapsibleErrorAlert({
     onNavigateSettings,
     className = "",
 }: CollapsibleErrorAlertProps) {
-    const { language } = useLanguage();
+    const { locale } = useLanguage();
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [copied, setCopied] = useState(false);
 
-    const parsed = parsePipelineError(errorMessage, (language as "id" | "en") || "id");
+    const parsed = parsePipelineError(errorMessage, (locale as "id" | "en") || "id");
     const displayTitle = title || parsed.title;
 
     const handleCopy = () => {
@@ -52,7 +52,7 @@ export function CollapsibleErrorAlert({
         navigator.clipboard.writeText(parsed.rawDetails);
         setCopied(true);
         toast.success(
-            language === "id"
+            locale === "id"
                 ? "Detail error berhasil disalin ke clipboard."
                 : "Error details copied to clipboard."
         );
@@ -72,7 +72,7 @@ export function CollapsibleErrorAlert({
                             {displayTitle}
                         </h3>
                         <p className="text-xs text-zinc-500 mt-0.5">
-                            {language === "id" ? "Proses pembuatan KYC terhenti" : "KYC pipeline generation halted"}
+                            {locale === "id" ? "Proses pembuatan KYC terhenti" : "KYC pipeline generation halted"}
                             {parsed.statusCode ? ` (HTTP ${parsed.statusCode})` : ""}
                         </p>
                     </div>
@@ -88,7 +88,7 @@ export function CollapsibleErrorAlert({
                             className="text-xs border-zinc-200 text-zinc-700 hover:bg-zinc-50 gap-1.5"
                         >
                             <Settings className="w-3.5 h-3.5 text-zinc-500" />
-                            <span>{language === "id" ? "Pengaturan AI" : "AI Settings"}</span>
+                            <span>{locale === "id" ? "Pengaturan AI" : "AI Settings"}</span>
                         </Button>
                     )}
                     {canRetry && onRetry && (
@@ -102,12 +102,12 @@ export function CollapsibleErrorAlert({
                             {isRetrying ? (
                                 <>
                                     <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-700" />
-                                    <span>{language === "id" ? "Mencoba Ulang..." : "Retrying..."}</span>
+                                    <span>{locale === "id" ? "Mencoba Ulang..." : "Retrying..."}</span>
                                 </>
                             ) : (
                                 <>
                                     <RefreshCw className="w-3.5 h-3.5 text-zinc-700" />
-                                    <span>{language === "id" ? "Coba Lagi" : "Retry"}</span>
+                                    <span>{locale === "id" ? "Coba Lagi" : "Retry"}</span>
                                 </>
                             )}
                         </Button>
@@ -129,7 +129,7 @@ export function CollapsibleErrorAlert({
                         <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
                         <span className="leading-relaxed">
                             <strong className="font-semibold text-zinc-800">
-                                {language === "id" ? "Saran Tindakan: " : "Suggested Action: "}
+                                {locale === "id" ? "Saran Tindakan: " : "Suggested Action: "}
                             </strong>
                             {parsed.suggestion}
                         </span>
@@ -148,10 +148,10 @@ export function CollapsibleErrorAlert({
                         <Terminal className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-700" />
                         <span>
                             {isDetailsOpen
-                                ? language === "id"
+                                ? locale === "id"
                                     ? "Sembunyikan Detail Teknis & Log Error"
                                     : "Hide Technical Details & Error Log"
-                                : language === "id"
+                                : locale === "id"
                                     ? "Lihat Detail Teknis & Log Error"
                                     : "View Technical Details & Error Log"}
                         </span>
@@ -159,10 +159,10 @@ export function CollapsibleErrorAlert({
                     <div className="flex items-center gap-1 text-zinc-400 group-hover:text-zinc-700">
                         <span className="text-[11px]">
                             {isDetailsOpen
-                                ? language === "id"
+                                ? locale === "id"
                                     ? "Tutup"
                                     : "Collapse"
-                                : language === "id"
+                                : locale === "id"
                                     ? "Buka"
                                     : "Expand"}
                         </span>
