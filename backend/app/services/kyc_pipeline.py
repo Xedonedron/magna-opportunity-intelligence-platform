@@ -35,6 +35,7 @@ class KYCState(TypedDict):
     user_id: Optional[str]
     kyc_version: Optional[int]
     source_type: Optional[str]
+    focus_notes: Optional[str]
 
     # Intermediate results
     search_results: dict
@@ -268,6 +269,13 @@ async def analysis_node(state: KYCState, config: Optional[RunnableConfig] = None
         limit=4,
     )
 
+    focus_notes_section = ""
+    if state.get("focus_notes"):
+        focus_notes_section = f"""
+## PANDUAN FOKUS KHUSUS VERSI INI (PRIORITAS TERTINGGI):
+{state['focus_notes']}
+"""
+
     # Generate comprehensive KYC report
     prompt = f"""Anda adalah seorang Principal Business Analyst dan Enterprise Solutions Consultant yang sedang menyusun laporan intelijen KYC (Know Your Customer) komprehensif untuk persiapan meeting presales engineering di PT Smartnet Magna Global.
 
@@ -282,7 +290,7 @@ async def analysis_node(state: KYCState, config: Optional[RunnableConfig] = None
 
 ## Catatan Tambahan
 {state.get('additional_notes', 'None')}
-
+{focus_notes_section}
 ## Data Riset & Intelijen Eksternal
 {context}
 {use_cases_context}
@@ -293,7 +301,10 @@ async def analysis_node(state: KYCState, config: Optional[RunnableConfig] = None
 INSTRUKSI BAHASA:
 Seluruh teks narasi, ringkasan eksekutif, deskripsi, analisis industri, analisis kompetitor, use cases, tujuan meeting, rekomendasi pertanyaan, dan checklist persiapan WAJIB ditulis dalam Bahasa Indonesia yang formal, profesional, dan komprehensif (standar B2B enterprise presales). Tetap pertahankan istilah teknis standar industri IT/Cloud dalam bahasa Inggris yang umum digunakan (misal: "Cloud Migration", "Data Warehouse", "BigQuery", "Predictive AI", "Dashboard", "Workload", "Zero Trust", "API").
 
-CRITICAL ALIGNMENT INSTRUCTION: Seluruh laporan yang dihasilkan (termasuk executive_summary, customer_need_summary, use_cases, recommended_questions, potential_pain_points, dan meeting_objectives) HARUS selaras secara ketat dengan "Kebutuhan Klien" dan "Target Solusi / Produk" di atas. Sesuaikan konteks riset industri untuk menyelesaikan kebutuhan nyata klien (misal: jika klien membutuhkan visualisasi/dashboard/reporting analitik, fokuskan use case pada modernisasi data warehouse, KPI dashboard, dan pipeline data, bukan hal yang tidak relevan).
+CRITICAL ALIGNMENT & ISOLATION INSTRUCTION:
+1. Seluruh laporan yang dihasilkan (termasuk executive_summary, customer_need_summary, use_cases, recommended_questions, potential_pain_points, dan meeting_objectives) HARUS selaras secara ketat dengan "Kebutuhan Klien", "Target Solusi / Produk", dan "PANDUAN FOKUS KHUSUS VERSI INI" di atas.
+2. DILARANG KERAS mencampuradukkan atau memasukkan topik solusi di luar kebutuhan aktif saat ini (misal: jika kebutuhan klien saat ini berfokus pada Server, Compute Infrastructure, atau Core Switch, JANGAN memasukkan use case WiFi, Endpoint Antivirus, atau Anti-Fraud kecuali diminta secara eksplisit).
+3. Pilihlah solusi Smartnet Magna dan Google Cloud yang benar-benar relevan dengan arsitektur kebutuhan saat ini. Jika katalog solusi tidak memiliki produk yang persis sama, gunakan solusi infrastruktur komputasi/arsitektur yang relevan secara logis tanpa memaksakan produk katalog yang tidak berhubungan.
 
 CRITICAL LINK INSTRUCTION: Untuk array "references", Anda HANYA BOLEH menyertakan URL nyata yang secara eksplisit tersedia pada bagian Data Riset di atas. DILARANG membuat, merekayasa, atau menebak URL.
 
@@ -526,6 +537,7 @@ async def run_kyc_pipeline(
     user_id: Optional[str] = None,
     kyc_version: int = 1,
     source_type: str = "automatic",
+    focus_notes: Optional[str] = None,
 ) -> dict[str, Any]:
     """Run the full KYC pipeline and return the report data.
 
@@ -550,6 +562,7 @@ async def run_kyc_pipeline(
         "user_id": user_id,
         "kyc_version": kyc_version,
         "source_type": source_type,
+        "focus_notes": focus_notes,
         "search_results": {},
         "website_content": None,
         "industry_use_cases": [],

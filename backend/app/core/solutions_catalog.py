@@ -340,30 +340,54 @@ class SolutionsCatalog:
 
         for card in self._cards:
             score = 0
-            # Tier 1 priority boost
-            if card.tier == 1:
-                score += 3
+            has_relevant_match = False
 
             # Industry match
             for ind in card.target_industries:
-                if ind.lower() != "enterprise general" and any(k in search_blob for k in ind.lower().split()):
+                if ind.lower() != "enterprise general" and any(k in search_blob for k in ind.lower().split() if len(k) > 2):
                     score += 5
+                    has_relevant_match = True
 
             # Product match
             for prod in card.primary_products:
                 if prod.lower() in search_blob:
                     score += 6
+                    has_relevant_match = True
             for prod in card.all_products:
                 if prod.lower() in search_blob:
                     score += 2
+                    has_relevant_match = True
+
+            # Pillar and title match
+            if any(term in search_blob for term in card.pillar.lower().split() if len(term) > 3):
+                score += 3
+                has_relevant_match = True
 
             # Subheading & keyword matching
+            infra_keywords = [
+                "server", "compute", "virtualization", "vmware", "gke", "cloud run",
+                "nutanix", "switch", "network", "firewall", "wifi", "storage", "backup",
+                "disaster recovery", "migrasi", "migration", "database", "dataflow",
+                "bigquery", "predictive", "fraud", "streaming", "ransomware", "antivirus",
+                "zero trust", "scc", "pam", "iam", "endpoint", "infrastructure"
+            ]
             for sub in card.key_subheadings:
-                for kw in ["fraud", "predictive", "streaming", "dataflow", "bigquery", "migrasi", "ransomware", "antivirus", "vmware", "zero trust", "scc", "pam", "gke"]:
+                for kw in infra_keywords:
                     if kw in sub.lower() and kw in search_blob:
                         score += 3
+                        has_relevant_match = True
 
-            scored_cards.append((score, card))
+            # Only apply Tier 1 priority boost if the solution actually has some relevance to the query!
+            # This prevents irrelevant cards (e.g. NGAV / Anti-Fraud) from dominating unrelated deals (e.g. Server / Switch).
+            if card.tier == 1 and has_relevant_match:
+                score += 2
+
+            if has_relevant_match and score > 0:
+                scored_cards.append((score, card))
+
+        # If no curated solutions matched, do not inject unrelated solutions into the prompt
+        if not scored_cards:
+            return ""
 
         # Sort descending by relevance score
         scored_cards.sort(key=lambda x: x[0], reverse=True)

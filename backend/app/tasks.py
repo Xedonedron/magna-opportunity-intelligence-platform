@@ -194,7 +194,11 @@ def create_calendar_event(meeting_id: str) -> dict:
 
 
 @celery_app.task(name="tasks.run_kyc_pipeline")
-def run_kyc_pipeline_task(opportunity_id: str, source_type: str = "automatic") -> dict:
+def run_kyc_pipeline_task(
+    opportunity_id: str,
+    source_type: str = "automatic",
+    focus_notes: str | None = None,
+) -> dict:
     """Run the AI KYC pipeline for an opportunity.
 
     This task:
@@ -288,6 +292,7 @@ def run_kyc_pipeline_task(opportunity_id: str, source_type: str = "automatic") -
         time.sleep(1.5)
 
         # Run the async pipeline
+        effective_focus = focus_notes or (kyc_report.focus_notes if kyc_report else None)
         result = asyncio.run(
             run_kyc_pipeline(
                 company_name=opportunity.company_name,
@@ -301,6 +306,7 @@ def run_kyc_pipeline_task(opportunity_id: str, source_type: str = "automatic") -
                 user_id=str(opportunity.created_by) if opportunity.created_by else None,
                 kyc_version=next_version,
                 source_type=source_type,
+                focus_notes=effective_focus,
             )
         )
 

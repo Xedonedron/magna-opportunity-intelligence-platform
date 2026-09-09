@@ -6,6 +6,7 @@ export const DEFAULT_TARGET_SOLUTIONS = [
     "Google Workspace (GWS)",
     "Google Maps Platform (GMaps)",
     "Cloud Infrastructure (GCP)",
+    "Enterprise Server & Compute",
     "Cybersecurity Suite",
     "Network Solutions",
 ];

@@ -116,12 +116,16 @@ async def regenerate_kyc_report(
     next_version = (max_version[0] + 1) if max_version else 1
 
     source_type = data.source_type if data else "manual_regenerate"
+    title = (data.title.strip() if data.title else None) if data else None
+    focus_notes = (data.focus_notes.strip() if data.focus_notes else None) if data else None
 
     # Create a placeholder report with 'running' status
     report = KYCReport(
         id=uuid.uuid4(),
         opportunity_id=opportunity.id,
         version=next_version,
+        title=title,
+        focus_notes=focus_notes,
         status="running",
         source_type=source_type,
     )
@@ -129,12 +133,13 @@ async def regenerate_kyc_report(
     db.flush()
 
     # Log timeline event
+    title_suffix = f" - '{title}'" if title else ""
     timeline_event = TimelineEvent(
         opportunity_id=opportunity.id,
         actor_id=current_user.id,
         actor_name=current_user.full_name,
-        action=f"KYC Regeneration Started (v{next_version})",
-        description=f"KYC regeneration triggered ({source_type}).",
+        action=f"KYC Regeneration Started (v{next_version}{title_suffix})",
+        description=f"KYC regeneration triggered ({source_type})." + (f" Focus: {focus_notes}" if focus_notes else ""),
         event_type="system",
     )
     db.add(timeline_event)
@@ -157,7 +162,11 @@ async def regenerate_kyc_report(
 
     # Trigger async KYC pipeline
     try:
-        run_kyc_pipeline_task.delay(str(opportunity.id), source_type=source_type)
+        run_kyc_pipeline_task.delay(
+            str(opportunity.id),
+            source_type=source_type,
+            focus_notes=focus_notes,
+        )
     except Exception:
         pass  # Don't fail the request if trigger fails
 
@@ -172,9 +181,9 @@ async def update_kyc_report(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_capability("create_edit")),
 ):
-    """Edit a KYC report (engineer edits).
+    """Edit a KYC report (engineer edits or version title change).
 
-    Updates the report and marks source_type as 'engineer_edited'.
+    Updates the report and marks source_type as 'engineer_edited' unless only title is changed.
     """
     opp = _get_opportunity_or_404(db, opportunity_id)
 
@@ -197,19 +206,25 @@ async def update_kyc_report(
             )
         )
 
+    only_title_edit = set(update_data.keys()).issubset({"title", "focus_notes"})
+
     for field, value in update_data.items():
         setattr(report, field, value)
 
-    # Mark as engineer edited
-    report.source_type = "engineer_edited"
+    # Mark as engineer edited only if substantive fields were modified
+    if not only_title_edit:
+        report.source_type = "engineer_edited"
 
     # Log timeline event
+    action_text = f"KYC Version Note Updated (v{report.version})" if only_title_edit else f"KYC Report Edited (v{report.version})"
+    desc_text = f"Version title updated to '{report.title}'." if only_title_edit else "Engineer manually edited the KYC report."
+
     timeline_event = TimelineEvent(
         opportunity_id=opportunity_id,
         actor_id=current_user.id,
         actor_name=current_user.full_name,
-        action=f"KYC Report Edited (v{report.version})",
-        description="Engineer manually edited the KYC report.",
+        action=action_text,
+        description=desc_text,
         event_type="update",
     )
     db.add(timeline_event)

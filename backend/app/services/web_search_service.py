@@ -106,8 +106,12 @@ class WebSearchService:
             if product:
                 query_parts.append(product)
 
-            # Simple keyword extraction from customer needs:
-            keywords = ["dashboard", "reporting", "visualization", "migration", "analytics", "business intelligence", "database", "infrastructure", "security"]
+            # Keyword extraction from customer needs:
+            keywords = [
+                "dashboard", "reporting", "visualization", "migration", "analytics",
+                "business intelligence", "database", "infrastructure", "security",
+                "server", "compute", "switch", "network", "wifi", "storage", "cloud", "virtualization"
+            ]
             found_keywords = [kw for kw in keywords if kw in customer_needs.lower()]
 
             # Translate Indonesian keywords to English for better search results
@@ -120,6 +124,10 @@ class WebSearchService:
                 found_keywords.append("migration")
             if "keamanan" in lower_needs:
                 found_keywords.append("security")
+            if "jaringan" in lower_needs:
+                found_keywords.append("networking")
+            if "komputasi" in lower_needs or "server" in lower_needs:
+                found_keywords.append("enterprise server compute")
 
             if found_keywords:
                 query_parts.append(" ".join(list(set(found_keywords))[:3]))
