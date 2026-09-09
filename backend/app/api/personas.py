@@ -131,6 +131,8 @@ async def generate_or_get_persona(
         seniority=payload.seniority,
         department=payload.department,
         kyc_summary=kyc_summary_text,
+        opportunity_id=opportunity_id,
+        user_id=current_user.id,
     )
 
     if existing_persona:

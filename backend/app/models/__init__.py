@@ -6,6 +6,7 @@ from app.models.notification import Notification
 from app.models.kyc_report import KYCReport
 from app.models.audit_log import AuditLog
 from app.models.system_setting import SystemSetting
+from app.models.ai_token_usage import AITokenUsage
 
 __all__ = [
     "User",
@@ -18,4 +19,5 @@ __all__ = [
     "KYCReport",
     "AuditLog",
     "SystemSetting",
+    "AITokenUsage",
 ]

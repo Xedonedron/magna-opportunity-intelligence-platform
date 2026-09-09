@@ -525,4 +525,108 @@ async def test_llm_connection(
         }
 
 
+# =========================================================================
+# AI Token Monitoring & Prompt Audit Endpoints (Superadmin Only)
+# =========================================================================
+
+@router.get("/ai/metrics")
+def get_ai_monitoring_metrics(
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_superadmin),
+):
+    """Retrieve operational KPIs, token breakdown, costs, and 14-day trends."""
+    from app.services.ai_usage_service import get_metrics_summary
+    return get_metrics_summary(db)
+
+
+@router.get("/ai/usage/by-opportunity")
+def get_ai_usage_by_opportunity(
+    search: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 15,
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_superadmin),
+):
+    """Retrieve aggregated token usage per opportunity with company details."""
+    from datetime import date
+    from app.services.ai_usage_service import get_usage_by_opportunity
+
+    d_from = date.fromisoformat(date_from) if date_from else None
+    d_to = date.fromisoformat(date_to) if date_to else None
+
+    return get_usage_by_opportunity(
+        db=db,
+        search=search,
+        date_from=d_from,
+        date_to=d_to,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get("/ai/usage/by-user")
+def get_ai_usage_by_user(
+    search: Optional[str] = None,
+    role: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 15,
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_superadmin),
+):
+    """Retrieve aggregated token usage per user to monitor consumption and detect abuse."""
+    from datetime import date
+    from app.services.ai_usage_service import get_usage_by_user
+
+    d_from = date.fromisoformat(date_from) if date_from else None
+    d_to = date.fromisoformat(date_to) if date_to else None
+
+    return get_usage_by_user(
+        db=db,
+        search=search,
+        role=role,
+        date_from=d_from,
+        date_to=d_to,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get("/ai/assistant-queries")
+def get_ai_assistant_queries_audit(
+    search: Optional[str] = None,
+    user_id: Optional[uuid.UUID] = None,
+    opportunity_id: Optional[uuid.UUID] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 15,
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_superadmin),
+):
+    """
+    Granular prompt & query audit log for Superadmin.
+    Inspect full prompt query submitted by users to the AI Assistant.
+    """
+    from datetime import date
+    from app.services.ai_usage_service import get_assistant_queries_audit
+
+    d_from = date.fromisoformat(date_from) if date_from else None
+    d_to = date.fromisoformat(date_to) if date_to else None
+
+    return get_assistant_queries_audit(
+        db=db,
+        user_id=user_id,
+        opportunity_id=opportunity_id,
+        search=search,
+        date_from=d_from,
+        date_to=d_to,
+        page=page,
+        page_size=page_size,
+    )
+
+
 

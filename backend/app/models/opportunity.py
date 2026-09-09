@@ -118,6 +118,9 @@ class OpportunityChatMessage(Base):
     opportunity_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("opportunities.id", ondelete="CASCADE"), nullable=False
     )
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
     role: Mapped[str] = mapped_column(String(50), nullable=False)  # user, assistant
     content: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
@@ -126,6 +129,7 @@ class OpportunityChatMessage(Base):
 
     # Relationships
     opportunity: Mapped["Opportunity"] = relationship(back_populates="chat_messages")
+    user: Mapped["User | None"] = relationship("User", foreign_keys=[user_id], lazy="selectin")
 
     def __repr__(self) -> str:
         return f"<OpportunityChatMessage {self.role} to {self.opportunity_id}>"

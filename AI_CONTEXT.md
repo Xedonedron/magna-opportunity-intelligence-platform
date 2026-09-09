@@ -111,6 +111,10 @@
 | POST | `/master-data` | Update master data options | Yes (Admin) |
 | GET | `/settings` | Get system settings (search provider, LLM models) | Yes (Admin) |
 | PUT | `/settings` | Update system settings | Yes (Admin) |
+| GET | `/ai/metrics` | AI Token usage summary, costs (USD/IDR), 14-day trend & distribution | Yes (Superadmin) |
+| GET | `/ai/usage/by-opportunity` | Aggregated AI token & cost breakdown per opportunity | Yes (Superadmin) |
+| GET | `/ai/usage/by-user` | Aggregated AI token & cost breakdown per user (abuse prevention) | Yes (Superadmin) |
+| GET | `/ai/assistant-queries` | Transparent audit log of user prompts and AI Assistant queries | Yes (Superadmin) |
 
 ### Dashboard (`/api/dashboard`)
 | Method | Path | Description | Auth Required |
@@ -274,8 +278,31 @@
 |-------|------|-------------|
 | id | UUID | Primary key |
 | opportunity_id | UUID | FK to Opportunities |
+| user_id | UUID | FK to Users (actor/author) |
 | role | String(50) | user, assistant |
 | content | Text | Chat message content |
+| created_at | DateTime | Creation timestamp |
+
+### AI Token Usages (`ai_token_usages`)
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| user_id | UUID | FK to Users (actor, nullable) |
+| opportunity_id | UUID | FK to Opportunities (target, nullable) |
+| feature | String(50) | `opportunity_chat`, `kyc_generation`, `persona_generation`, `ai_validation`, etc. |
+| model_name | String(100) | Active model name (e.g. `gemini-2.5-flash`, `glm-4-plus`) |
+| provider | String(50) | LLM provider (`google`, `openai`) |
+| prompt_tokens | Integer | Input tokens count |
+| completion_tokens | Integer | Output tokens count |
+| total_tokens | Integer | Total tokens |
+| cost_usd | Numeric(10,6) | Estimated cost in USD |
+| cost_idr | Numeric(14,2) | Estimated cost in IDR |
+| query_prompt | Text | User's prompt query text for audit transparency |
+| response_preview | Text | AI response preview |
+| status | String(50) | `success`, `error` |
+| error_message | Text | Error details if failed |
+| duration_ms | Integer | Execution duration in ms |
+| metadata_json | JSONB | Parameter snapshots |
 | created_at | DateTime | Creation timestamp |
 
 ### Audit Logs (`audit_logs`)
@@ -313,6 +340,15 @@
 ### Link Verifier Service (`backend/app/services/link_verifier.py`)
 **Functions:**
 - `verify_urls(...)` - Concurrently checks HTTP status and verifies real accessibility of links before reporting
+
+### AI Usage & Pricing Service (`backend/app/services/ai_usage_service.py`)
+**Functions:**
+- `calculate_cost(...)` - Compute estimated costs in USD and IDR based on model catalog rate cards
+- `record_ai_usage(...)` - Persist token counts, latency, acting user, opportunity, and query prompt
+- `get_metrics_summary(...)` - KPIs summary (today, yesterday, all-time, daily trend, model breakdown)
+- `get_usage_by_opportunity(...)` - Aggregated AI consumption per opportunity
+- `get_usage_by_user(...)` - Aggregated AI consumption per user for abuse monitoring
+- `get_assistant_queries_audit(...)` - Transparent granular query/prompt audit trail
 
 ### Audit Service (`backend/app/services/audit_service.py`)
 **Functions:**

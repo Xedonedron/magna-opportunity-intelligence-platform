@@ -24,6 +24,7 @@ import {
     Clock,
     Calendar,
     Activity,
+    Cpu,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -31,6 +32,7 @@ import { Input } from "@/components/ui/Input";
 import { api } from "@/lib/api";
 import { fetchMasterData, updateMasterData, getMasterIndustries, getMasterPresales } from "@/lib/master-data";
 import { UserActivityDrawer, formatRelativeTime } from "@/components/domains/admin/UserActivityDrawer";
+import { AITokenMonitoringTab } from "@/components/domains/admin/AITokenMonitoringTab";
 
 const tabs = [
     { id: "profile", label: "User Profile", icon: User },
@@ -107,6 +109,7 @@ export default function SettingsPage() {
     ];
     if (isSuperAdmin) {
         activeTabs.push({ id: "ai", label: "AI & Pipeline", icon: BrainCircuit });
+        activeTabs.push({ id: "ai_monitoring", label: "Token Usage & AI Audit", icon: Cpu });
         activeTabs.push({ id: "master_data", label: "Master Data (Presales & Industry)", icon: Database });
         activeTabs.push({ id: "users", label: "User Management", icon: Users });
         activeTabs.push({ id: "operations", label: "System Operations", icon: Shield });
@@ -1046,6 +1049,11 @@ export default function SettingsPage() {
                             </div>
                         )}
                     </Card>
+                )}
+
+                {/* AI Monitoring Tab */}
+                {activeTab === "ai_monitoring" && isSuperAdmin && (
+                    <AITokenMonitoringTab />
                 )}
 
                 {/* 3. Catalog Tab */}

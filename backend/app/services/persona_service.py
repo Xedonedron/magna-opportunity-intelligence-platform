@@ -139,6 +139,10 @@ Return ONLY valid JSON matching this exact structure:
 """
 
 
+import uuid
+from app.services.ai_usage_service import record_ai_usage, estimate_tokens
+
+
 async def generate_persona_playbook(
     company_name: str,
     industry: Optional[str],
@@ -148,6 +152,8 @@ async def generate_persona_playbook(
     seniority: str,
     department: str,
     kyc_summary: Optional[str] = None,
+    opportunity_id: Optional[uuid.UUID] = None,
+    user_id: Optional[uuid.UUID] = None,
 ) -> dict:
     """Generate persona playbook using LLM."""
     if not has_active_llm_key():
@@ -222,6 +228,28 @@ Please generate the comprehensive meeting playbook in JSON format. Provide 3-4 f
                 )
             response = await llm.ainvoke(current_messages)
             parsed = _clean_and_parse_json(response.content)
+
+            # Record token usage for persona generation
+            usage_meta = getattr(response, "usage_metadata", None) or getattr(response, "response_metadata", {}).get("token_usage") or {}
+            p_tokens = usage_meta.get("input_tokens") or usage_meta.get("prompt_tokens") or estimate_tokens(user_prompt)
+            c_tokens = usage_meta.get("output_tokens") or usage_meta.get("completion_tokens") or estimate_tokens(str(response.content))
+            model_name = getattr(llm, "model_name", None) or getattr(llm, "model", "gemini-2.5-flash")
+            provider = "google" if "google" in llm.__class__.__name__.lower() else "openai"
+
+            record_ai_usage(
+                db=None,
+                user_id=user_id,
+                opportunity_id=opportunity_id,
+                feature="persona_generation",
+                model_name=str(model_name),
+                provider=provider,
+                prompt_tokens=int(p_tokens),
+                completion_tokens=int(c_tokens),
+                query_prompt=f"Persona Discovery: {seniority} - {department} for {company_name}",
+                response_preview=str(response.content)[:1000] if response.content else None,
+                status="success",
+            )
+
             return {
                 "focus_areas": parsed.get("focus_areas", []),
                 "questions": parsed.get("questions", []),

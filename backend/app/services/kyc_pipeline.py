@@ -30,6 +30,8 @@ class KYCState(TypedDict):
     customer_needs: str
     additional_notes: Optional[str]
     product: Optional[str]
+    opportunity_id: Optional[str]
+    user_id: Optional[str]
 
     # Intermediate results
     search_results: dict
@@ -362,6 +364,38 @@ Kembalikan HANYA JSON yang valid, tanpa teks pengantar atau penutup di luar JSON
             logger.info(f"[KYC Pipeline] Invoking LLM analysis (attempt {attempt}/{max_retries})...")
             response = await current_llm.ainvoke(current_prompt)
             result = _clean_and_parse_json(response.content)
+
+            # Record token usage for KYC LLM analysis
+            try:
+                import uuid as py_uuid
+                from app.services.ai_usage_service import record_ai_usage, estimate_tokens
+
+                opp_uuid = py_uuid.UUID(state["opportunity_id"]) if state.get("opportunity_id") else None
+                usr_uuid = py_uuid.UUID(state["user_id"]) if state.get("user_id") else None
+
+                usage_meta = getattr(response, "usage_metadata", None) or getattr(response, "response_metadata", {}).get("token_usage") or {}
+                p_tokens = usage_meta.get("input_tokens") or usage_meta.get("prompt_tokens") or estimate_tokens(current_prompt)
+                c_tokens = usage_meta.get("output_tokens") or usage_meta.get("completion_tokens") or estimate_tokens(str(response.content))
+
+                model_name = getattr(current_llm, "model_name", None) or getattr(current_llm, "model", "gemini-2.5-flash")
+                provider = "google" if "google" in current_llm.__class__.__name__.lower() else "openai"
+
+                record_ai_usage(
+                    db=None,
+                    user_id=usr_uuid,
+                    opportunity_id=opp_uuid,
+                    feature="kyc_generation",
+                    model_name=str(model_name),
+                    provider=provider,
+                    prompt_tokens=int(p_tokens),
+                    completion_tokens=int(c_tokens),
+                    query_prompt=f"KYC Pipeline Synthesis for {state.get('company_name')}",
+                    response_preview=str(response.content)[:1000] if response.content else None,
+                    status="success",
+                )
+            except Exception as usage_err:
+                logger.warning(f"[KYC Pipeline] Non-blocking usage recording error: {usage_err}")
+
             break
         except (json.JSONDecodeError, ValueError) as e:
             last_error = e
@@ -451,6 +485,8 @@ async def run_kyc_pipeline(
     product: Optional[str] = None,
     additional_notes: Optional[str] = None,
     on_progress: Optional[Callable[[str, int], Any]] = None,
+    opportunity_id: Optional[str] = None,
+    user_id: Optional[str] = None,
 ) -> dict[str, Any]:
     """Run the full KYC pipeline and return the report data.
 
@@ -471,6 +507,8 @@ async def run_kyc_pipeline(
         "customer_needs": customer_needs,
         "additional_notes": additional_notes,
         "product": product,
+        "opportunity_id": opportunity_id,
+        "user_id": user_id,
         "search_results": {},
         "website_content": None,
         "industry_use_cases": [],

@@ -455,6 +455,7 @@ async def chat_with_opportunity(
     # 2. Save user message to DB
     user_msg = OpportunityChatMessage(
         opportunity_id=opportunity_id,
+        user_id=current_user.id,
         role="user",
         content=payload.message
     )
@@ -523,10 +524,20 @@ Opportunity & KYC Context:
             api_messages.append(AIMessage(content=msg.content))
 
     from fastapi.responses import StreamingResponse
+    import time
     from app.core.database import SessionLocal
-    from app.core.llm import get_chat_llm
+    from app.core.llm import get_chat_llm, get_db_setting
+    from app.services.ai_usage_service import record_ai_usage, estimate_tokens
+
+    acting_user_id = current_user.id
+    user_prompt_text = payload.message
 
     async def generate_response_chunks():
+        start_time = time.time()
+        active_model_name = payload.model or get_db_setting(db, "ai_model") or "gemini-2.5-flash"
+        provider = "google" if ("gemini" in active_model_name.lower() or "gemma" in active_model_name.lower()) else "openai"
+        streamed_usage = None
+
         try:
             llm = get_chat_llm(
                 model_name=payload.model,
@@ -537,12 +548,44 @@ Opportunity & KYC Context:
             
             full_content = ""
             async for chunk in llm.astream(api_messages):
+                # Inspect for chunk usage metadata if provided by LangChain provider
+                if hasattr(chunk, "usage_metadata") and chunk.usage_metadata:
+                    streamed_usage = chunk.usage_metadata
+
                 content_chunk = chunk.content
                 if isinstance(content_chunk, list):
                     content_chunk = "".join([c.get("text", "") if isinstance(c, dict) else str(c) for c in content_chunk])
                 if content_chunk:
                     full_content += content_chunk
                     yield content_chunk
+
+            elapsed_ms = int((time.time() - start_time) * 1000)
+
+            # Determine prompt & completion tokens
+            if streamed_usage and isinstance(streamed_usage, dict):
+                p_tokens = streamed_usage.get("input_tokens", 0)
+                c_tokens = streamed_usage.get("output_tokens", 0)
+            else:
+                # Fallback estimation across system context and full completion
+                full_input_str = system_prompt + " " + " ".join([m.content for m in db_messages])
+                p_tokens = estimate_tokens(full_input_str)
+                c_tokens = estimate_tokens(full_content)
+
+            # Record AI token usage for superadmin monitoring and audit
+            record_ai_usage(
+                db=None,
+                user_id=acting_user_id,
+                opportunity_id=opportunity_id,
+                feature="opportunity_chat",
+                model_name=active_model_name,
+                provider=provider,
+                prompt_tokens=p_tokens,
+                completion_tokens=c_tokens,
+                query_prompt=user_prompt_text,
+                response_preview=full_content[:1500] if full_content else None,
+                status="success",
+                duration_ms=elapsed_ms,
+            )
 
             # Save assistant message to DB after stream finishes (with dead-link verification)
             if full_content.strip():
@@ -554,6 +597,7 @@ Opportunity & KYC Context:
                 try:
                     assistant_msg = OpportunityChatMessage(
                         opportunity_id=opportunity_id,
+                        user_id=acting_user_id,
                         role="assistant",
                         content=cleaned_msg or full_content
                     )
@@ -564,6 +608,22 @@ Opportunity & KYC Context:
                 finally:
                     db_session.close()
         except Exception as e:
+            elapsed_ms = int((time.time() - start_time) * 1000)
+            # Record failed AI interaction
+            record_ai_usage(
+                db=None,
+                user_id=acting_user_id,
+                opportunity_id=opportunity_id,
+                feature="opportunity_chat",
+                model_name=active_model_name,
+                provider=provider,
+                prompt_tokens=estimate_tokens(user_prompt_text),
+                completion_tokens=0,
+                query_prompt=user_prompt_text,
+                status="error",
+                error_message=str(e),
+                duration_ms=elapsed_ms,
+            )
             yield f"\n[AI Error]: {str(e)}"
 
     return StreamingResponse(generate_response_chunks(), media_type="text/plain")
