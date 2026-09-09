@@ -14,6 +14,7 @@ import { timeAgo, formatCurrency } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { ALL_STATUSES } from "@/types/opportunity";
 import type { OpportunityStatus } from "@/types/opportunity";
+import { fetchMasterData, DEFAULT_PRESALES } from "@/lib/master-data";
 
 export default function OpportunitiesPage() {
     const router = useRouter();
@@ -24,6 +25,7 @@ export default function OpportunitiesPage() {
     const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
     const [user, setUser] = useState<any>(null);
     const [hideFinancialNumbers, setHideFinancialNumbers] = useState(false);
+    const [presalesList, setPresalesList] = useState<string[]>(DEFAULT_PRESALES);
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -48,6 +50,14 @@ export default function OpportunitiesPage() {
         api.get("/api/admin/settings")
             .then((res) => setHideFinancialNumbers(Boolean(res.data?.hide_financial_numbers)))
             .catch((e) => console.error("Failed to load settings", e));
+
+        fetchMasterData()
+            .then((data) => {
+                if (data?.presales && data.presales.length > 0) {
+                    setPresalesList(data.presales);
+                }
+            })
+            .catch((err) => console.warn("Failed to fetch master presales", err));
     }, []);
 
     const handleViewModeChange = (mode: "list" | "kanban") => {
@@ -146,26 +156,51 @@ export default function OpportunitiesPage() {
                             ))}
                         </select>
 
-                        {engineerFilter && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                                Pre-Sales: <strong className="font-semibold">{engineerFilter}</strong>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setEngineerFilter("");
-                                        setPage(1);
-                                        if (typeof window !== "undefined") {
-                                            const url = new URL(window.location.href);
-                                            url.searchParams.delete("assigned_engineer");
-                                            window.history.replaceState({}, "", url.pathname);
-                                        }
-                                    }}
-                                    className="hover:text-blue-900 dark:hover:text-blue-100 ml-1 transition-colors"
-                                    title="Clear Pre-Sales filter"
-                                >
-                                    <X className="w-3.5 h-3.5" />
-                                </button>
-                            </span>
+                        <select
+                            value={engineerFilter}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setEngineerFilter(val);
+                                setPage(1);
+                                if (typeof window !== "undefined") {
+                                    const url = new URL(window.location.href);
+                                    if (val) {
+                                        url.searchParams.set("assigned_engineer", val);
+                                    } else {
+                                        url.searchParams.delete("assigned_engineer");
+                                    }
+                                    window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""));
+                                }
+                            }}
+                            className="h-9 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600 transition-colors"
+                        >
+                            <option value="">All Pre-Sales</option>
+                            {presalesList.map((name) => (
+                                <option key={name} value={name}>
+                                    {name}
+                                </option>
+                            ))}
+                        </select>
+
+                        {(search || statusFilter || engineerFilter) && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSearch("");
+                                    setStatusFilter("");
+                                    setEngineerFilter("");
+                                    setPage(1);
+                                    if (typeof window !== "undefined") {
+                                        const url = new URL(window.location.href);
+                                        url.searchParams.delete("assigned_engineer");
+                                        window.history.replaceState({}, "", url.pathname);
+                                    }
+                                }}
+                                className="text-xs text-zinc-500 hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1 px-2.5 py-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors font-medium"
+                                title="Reset filter"
+                            >
+                                <X className="w-3.5 h-3.5" /> Reset
+                            </button>
                         )}
                     </div>
 
