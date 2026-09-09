@@ -491,7 +491,15 @@ type MeetingStatus = 'scheduled' | 'completed' | 'cancelled'
 5. **LLM Inference & Parsing Layer**:
    - Provider rate limits (TPM/RPM limits hit) or provider service outage (5xx).
    - Context window overflow from excessively long web crawling payloads.
-   - JSON parsing defects: LLM output truncation (`MAX_TOKENS`), broken markdown code block fences, or malformed JSON syntax.
+   - `HTTP 502 - Upstream stream ended before completion`:
+     - **Symptom**: Settings "Test Koneksi Model" succeeds (OK/stable), but running actual KYC pipeline fails with 502 error.
+     - **Root Cause**: Test connection only sends 2 tokens (`Say 'OK'`) taking <500ms. The actual KYC pipeline generates 13 structured sections (3,000–5,000+ tokens) which can take 60–120s. Upstream aggregator proxies (CosmosHub / LiteLLM) or model providers drop the streaming connection if generation exceeds their gateway timeout (30–60s), or if reasoning models (e.g. DeepSeek-R1, o1) spend too long generating internal `<think>` tokens, or when strict `response_format: {"type": "json_object"}` is rejected by non-supporting models.
+     - **Mitigation & Resilience**:
+       - Increased client/gateway timeout to 180s–240s in `get_chat_llm()`.
+       - Automatic bypass of `response_format: {"type": "json_object"}` for reasoning models (e.g. `r1`, `o1`, `reasoner`) and graceful downgrade to prompt-only JSON on retries.
+       - Retry loop with exponential backoff on transient exceptions (502, 503, 504, stream disconnects) instead of immediate abort.
+       - Automatic fallback to Google Gemini/Gemma (`gemini-2.5-flash`) on final retry if OpenAI provider fails.
+   - JSON parsing defects: LLM output truncation (`MAX_TOKENS`), broken markdown code block fences, or malformed JSON syntax (handled via regex fencing and self-healing bracket repair in `_clean_and_parse_json`).
    - Content moderation / safety filter rejection on target company profile or prompts.
 6. **Database & Persistence Layer**:
    - DB commit error or transaction conflict when saving output to `kyc_reports`.

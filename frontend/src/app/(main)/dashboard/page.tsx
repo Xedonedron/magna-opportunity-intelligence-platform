@@ -6,6 +6,7 @@ import { format, parseISO } from "date-fns";
 import { Card } from "@/components/ui/Card";
 import { DashboardMetrics } from "@/components/dashboard/DashboardMetrics";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
+import { PipelineFunnelChart } from "@/components/dashboard/PipelineFunnelChart";
 import { StatusChart } from "@/components/dashboard/StatusChart";
 import { TrendChart } from "@/components/dashboard/TrendChart";
 import { SolutionDistributionChart } from "@/components/dashboard/SolutionDistributionChart";
@@ -152,6 +153,8 @@ export default function DashboardPage() {
                 userRole={metrics.user_role}
             />
 
+            <PipelineFunnelChart data={metrics.by_status} />
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <StatusChart data={metrics.by_status} />
                 <TrendChart data={metrics.trend_data} />
@@ -262,12 +265,12 @@ export default function DashboardPage() {
                             </a>
                         </div>
                         <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                            {metrics.recent_opportunities.length === 0 ? (
+                            {metrics.recent_opportunities.slice(0, 5).length === 0 ? (
                                 <div className="p-8 text-center text-zinc-400 dark:text-zinc-500 text-sm">
                                     No opportunities found
                                 </div>
                             ) : (
-                                metrics.recent_opportunities.map((opp) => (
+                                metrics.recent_opportunities.slice(0, 5).map((opp) => (
                                     <a
                                         key={opp.id}
                                         href={`/opportunities/${opp.id}`}

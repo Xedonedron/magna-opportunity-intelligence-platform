@@ -189,7 +189,7 @@ async def get_dashboard_metrics(
     recent_results = (
         recent_query
         .order_by(Opportunity.created_at.desc())
-        .limit(10)
+        .limit(5)
         .all()
     )
     recent_opportunities = [

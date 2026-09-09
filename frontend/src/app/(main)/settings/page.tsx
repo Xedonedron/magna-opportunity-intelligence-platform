@@ -921,26 +921,37 @@ export default function SettingsPage() {
 
                                 {/* Test Connection */}
                                 {isSuperAdmin && (
-                                    <div className="pt-2 flex items-center justify-between gap-4">
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                            size="sm"
-                                            onClick={handleTestConnection}
-                                            disabled={testingConnection}
-                                            className="text-xs gap-1.5"
-                                        >
-                                            {testingConnection ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <BrainCircuit className="w-3.5 h-3.5" />}
-                                            Test Koneksi Model
-                                        </Button>
+                                    <div className="pt-2 space-y-2">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                size="sm"
+                                                onClick={handleTestConnection}
+                                                disabled={testingConnection}
+                                                className="text-xs gap-1.5"
+                                            >
+                                                {testingConnection ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <BrainCircuit className="w-3.5 h-3.5" />}
+                                                Test Koneksi Model
+                                            </Button>
 
-                                        {testResult && (
-                                            <div className={`text-xs px-3 py-1.5 rounded-md flex items-center gap-1.5 max-w-xs ${testResult.status === "success"
-                                                ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                                                : "bg-red-50 text-red-800 border border-red-200"
-                                                }`}>
-                                                {testResult.status === "success" ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 shrink-0" />}
-                                                <span className="truncate">{testResult.message}</span>
+                                            {testResult && (
+                                                <div className={`text-xs px-3 py-1.5 rounded-md flex items-center gap-1.5 ${testResult.status === "success"
+                                                    ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                                    : "bg-red-50 text-red-800 border border-red-200"
+                                                    }`}>
+                                                    {testResult.status === "success" ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 shrink-0" />}
+                                                    <span>{testResult.status === "success" ? "Koneksi Terverifikasi (Ping OK)" : testResult.message}</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {testResult?.warning && (
+                                            <div className="text-xs p-3 rounded-md bg-amber-50 text-amber-900 border border-amber-200/80 flex items-start gap-2">
+                                                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                                                <div className="leading-relaxed">
+                                                    {testResult.warning}
+                                                </div>
                                             </div>
                                         )}
                                     </div>

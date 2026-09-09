@@ -1,5 +1,6 @@
 """Target Persona Playbook Generation Service using LLM."""
 
+import asyncio
 import json
 import logging
 import re
@@ -230,9 +231,16 @@ Please generate the comprehensive meeting playbook in JSON format. Provide 3-4 f
         except (json.JSONDecodeError, ValueError) as e:
             last_error = e
             logger.warning(f"[Persona Service] Attempt {attempt}/{max_retries} failed to parse JSON: {e}")
-            if attempt == max_retries:
+            if attempt < max_retries:
+                await asyncio.sleep(2.0 * attempt)
+            else:
                 logger.error(f"[Persona Service] All {max_retries} JSON parsing attempts failed: {e}")
                 raise RuntimeError(f"Gagal parse JSON persona playbook setelah {max_retries} percobaan: {str(e)}")
         except Exception as e:
-            logger.error(f"Failed to generate persona playbook: {e}", exc_info=True)
-            raise RuntimeError(f"Gagal generate persona playbook: {str(e)}")
+            last_error = e
+            logger.warning(f"[Persona Service] LLM invocation failed on attempt {attempt}/{max_retries}: {e}")
+            if attempt < max_retries:
+                await asyncio.sleep(2.5 * attempt)
+            else:
+                logger.error(f"Failed to generate persona playbook after {max_retries} attempts: {e}", exc_info=True)
+                raise RuntimeError(f"Gagal generate persona playbook: {str(e)}")

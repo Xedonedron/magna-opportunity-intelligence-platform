@@ -276,7 +276,28 @@ export function parsePipelineError(
         };
     }
 
-    // 5. Connection Timeout / Network Errors
+    // 5. Upstream Stream Ended / Proxy Gateway Dropout
+    if (
+        rawLower.includes("upstream stream ended") ||
+        rawLower.includes("stream ended before completion")
+    ) {
+        return {
+            title: lang === "id" ? "Upstream AI Timeout / Stream Terputus" : "Upstream AI Stream Interrupted",
+            summary:
+                lang === "id"
+                    ? "Koneksi streaming ke upstream AI terputus sebelum generasi laporan selesai. Hal ini umumnya terjadi jika model memerlukan waktu berpikir terlalu lama (seperti model reasoning R1/o1) atau proxy gateway mencapai limit durasi respons."
+                    : "The upstream AI provider stream ended prematurely before completion. This typically happens when the model takes too long to generate (e.g. reasoning models) or the gateway proxy reaches its duration limit.",
+            suggestion:
+                lang === "id"
+                    ? "Buka menu Settings ➔ AI & Pipeline untuk memilih model instruction/chat non-reasoning yang cepat dan stabil (misal: deepseek-chat, glm-4-plus, atau Google Gemini/Gemma), lalu klik 'Retry'."
+                    : "Go to Settings ➔ AI & Pipeline to switch to a standard chat/instruction model (like deepseek-chat, glm-4-plus, or Google Gemini/Gemma), then click 'Retry'.",
+            rawDetails: raw,
+            errorCategory: "TIMEOUT",
+            statusCode: 502,
+        };
+    }
+
+    // 6. Generic Connection Timeout / Network Errors
     if (
         rawLower.includes("timeout") ||
         rawLower.includes("connection refused") ||

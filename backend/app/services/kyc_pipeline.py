@@ -12,7 +12,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph, END
 
 from app.core.config import settings
-from app.core.llm import get_chat_llm, has_active_llm_key
+from app.core.llm import get_chat_llm, has_active_llm_key, get_db_setting
 from app.services.web_search_service import web_search_service
 from app.services.web_crawler_service import web_crawler_service
 from app.services.link_verifier import link_verifier_service
@@ -137,9 +137,9 @@ def _clean_and_parse_json(content: Any) -> dict:
 
 
 # --- LLM Setup ---
-def get_llm(db: Any = None):
+def get_llm(json_mode: bool = True, timeout: float = 180.0, db: Any = None):
     """Get the active Chat LLM instance via Unified LLM Factory."""
-    return get_chat_llm(json_mode=True, db=db)
+    return get_chat_llm(json_mode=json_mode, timeout=timeout, db=db)
 
 
 async def _update_progress(config: Optional[RunnableConfig], step: str, percent: int):
@@ -344,10 +344,11 @@ Format output HARUS berupa JSON valid dengan struktur kunci (keys) persis beriku
 
 Kembalikan HANYA JSON yang valid, tanpa teks pengantar atau penutup di luar JSON."""
 
-    # Attempt invoke with auto-retry
+    # Attempt invoke with auto-retry & graceful fallback
     max_retries = 3
     last_error: Optional[Exception] = None
     result: dict = {}
+    current_llm = llm
 
     for attempt in range(1, max_retries + 1):
         try:
@@ -355,21 +356,42 @@ Kembalikan HANYA JSON yang valid, tanpa teks pengantar atau penutup di luar JSON
             if attempt > 1 and last_error:
                 # Feedback loop on retry to steer LLM to strictly correct syntax
                 current_prompt += (
-                    f"\n\nCRITICAL FIX: Your previous attempt failed JSON parsing with error: '{str(last_error)}'. "
-                    "Ensure you escape all double quotes inside string values and output 100% valid, complete RFC8259 JSON."
+                    f"\n\nCRITICAL FIX: Percobaan sebelumnya mengalami kendala: '{str(last_error)}'. "
+                    "Pastikan seluruh string dan quote di-escape dengan benar dan kembalikan struktur JSON lengkap yang valid."
                 )
-            response = await llm.ainvoke(current_prompt)
+            logger.info(f"[KYC Pipeline] Invoking LLM analysis (attempt {attempt}/{max_retries})...")
+            response = await current_llm.ainvoke(current_prompt)
             result = _clean_and_parse_json(response.content)
             break
         except (json.JSONDecodeError, ValueError) as e:
             last_error = e
             logger.warning(f"[KYC Pipeline] Attempt {attempt}/{max_retries} failed to parse JSON: {e}")
-            if attempt == max_retries:
+            if attempt < max_retries:
+                # Switch to plain chat LLM without strict response_format on retry to avoid upstream streaming truncation
+                current_llm = get_chat_llm(json_mode=False, timeout=240.0)
+                await asyncio.sleep(2.0 * attempt)
+            else:
                 logger.error(f"[KYC Pipeline] All {max_retries} JSON parsing attempts failed: {e}")
                 return {"error": f"Failed to parse AI response after {max_retries} attempts: {str(e)}"}
         except Exception as e:
-            logger.error(f"[KYC Pipeline] LLM invocation failed on attempt {attempt}: {e}")
-            return {"error": f"AI analysis failed: {str(e)}"}
+            last_error = e
+            logger.warning(f"[KYC Pipeline] LLM invocation failed on attempt {attempt}/{max_retries}: {e}")
+            if attempt < max_retries:
+                # On transient/gateway errors (like 502 upstream stream ended, timeouts):
+                await asyncio.sleep(3.0 * attempt)
+                if attempt == max_retries - 1 and (settings.active_gemini_api_key or get_db_setting(None, "gemini_api_key")):
+                    # Auto-fallback: If OpenAI provider keeps failing with 502/stream dropped and Google API key is available, switch to Google
+                    try:
+                        logger.info("[KYC Pipeline] Attempting fallback to Google Gemini provider for final retry...")
+                        current_llm = get_chat_llm(provider="google", model_name="gemini-2.5-flash", timeout=180.0)
+                    except Exception as fb_err:
+                        logger.warning(f"[KYC Pipeline] Google fallback initialization failed: {fb_err}")
+                        current_llm = get_chat_llm(json_mode=False, timeout=240.0)
+                else:
+                    current_llm = get_chat_llm(json_mode=False, timeout=240.0)
+            else:
+                logger.error(f"[KYC Pipeline] All {max_retries} attempts failed. Last error: {e}")
+                return {"error": f"AI analysis failed: {str(e)}"}
 
     try:
         # Sanitize references via live LinkVerifier Engine

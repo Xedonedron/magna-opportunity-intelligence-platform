@@ -69,6 +69,8 @@ def get_chat_llm(
     streaming: bool = False,
     max_retries: int = 2,
     json_mode: bool = False,
+    timeout: float = 180.0,
+    max_tokens: Optional[int] = None,
     db: Optional[Session] = None,
 ) -> BaseChatModel:
     """
@@ -118,7 +120,7 @@ def get_chat_llm(
         if not final_key:
             logger.warning("[LLM Factory] Active Google API Key is missing!")
 
-        logger.info(f"[LLM Factory] Instantiating ChatGoogleGenerativeAI (model='{final_model}', temp={selected_temp})")
+        logger.info(f"[LLM Factory] Instantiating ChatGoogleGenerativeAI (model='{final_model}', temp={selected_temp}, timeout={timeout}s)")
 
         return ChatGoogleGenerativeAI(
             model=final_model,
@@ -126,6 +128,7 @@ def get_chat_llm(
             google_api_key=final_key,
             max_retries=max_retries,
             streaming=streaming,
+            timeout=timeout,
         )
 
     else:
@@ -145,10 +148,16 @@ def get_chat_llm(
         if not final_key:
             logger.warning("[LLM Factory] Active OpenAI API Key is missing!")
 
-        logger.info(f"[LLM Factory] Instantiating ChatOpenAI (model='{final_model}', temp={selected_temp}, base='{final_base}')")
+        logger.info(f"[LLM Factory] Instantiating ChatOpenAI (model='{final_model}', temp={selected_temp}, base='{final_base}', timeout={timeout}s)")
 
         model_kwargs = {}
-        if json_mode:
+        # Guard: Reasoning/thinking models (e.g. R1, o1, o3, reasoner) do NOT support response_format: {"type": "json_object"}
+        # and forcing it will trigger upstream 400/502 streaming aborts.
+        is_reasoning_model = any(
+            token in final_model.lower()
+            for token in ["r1", "reasoner", "o1", "o3", "qwq"]
+        )
+        if json_mode and not is_reasoning_model:
             model_kwargs["response_format"] = {"type": "json_object"}
 
         return ChatOpenAI(
@@ -158,5 +167,8 @@ def get_chat_llm(
             base_url=final_base,
             streaming=streaming,
             max_retries=max_retries,
+            timeout=timeout,
+            request_timeout=timeout,
+            max_tokens=max_tokens or 8192,
             model_kwargs=model_kwargs,
         )

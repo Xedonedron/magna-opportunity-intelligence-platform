@@ -500,14 +500,28 @@ async def test_llm_connection(
         if isinstance(content, list):
             content = "".join([c.get("text", "") if isinstance(c, dict) else str(c) for c in content])
 
+        model_str = (payload.model or "").lower()
+        warning = None
+        if any(token in model_str for token in ["r1", "reasoner", "o1", "o3", "qwq"]):
+            warning = (
+                "Catatan: Model reasoning/thinking menghasilkan token berpikir internal yang memakan waktu lama "
+                "dan rentan memicu '502 - Upstream stream ended' pada pipeline KYC berukuran besar. "
+                "Disarankan menggunakan model instruction/chat non-reasoning (seperti glm-4-plus, deepseek-chat, atau gemini-2.5-flash)."
+            )
+
+        resp_msg = f"Koneksi berhasil! Provider '{payload.provider}' merespon: '{content.strip()}'"
+        if warning:
+            resp_msg += f" | {warning}"
+
         return {
             "status": "success",
-            "message": f"Connection successful! Provider '{payload.provider}' responded: '{content.strip()}'",
+            "message": resp_msg,
+            "warning": warning,
         }
     except Exception as e:
         return {
             "status": "error",
-            "message": f"Connection failed: {str(e)}",
+            "message": f"Koneksi gagal: {str(e)}",
         }
 
 
