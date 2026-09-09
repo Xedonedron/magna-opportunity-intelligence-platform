@@ -70,10 +70,10 @@ export function Sidebar() {
     }, []);
 
     return (
-        <div className="hidden md:flex w-64 border-r border-zinc-200 bg-zinc-50 flex-col h-screen shrink-0 sticky top-0">
-            <div className="h-14 flex items-center px-6 border-b border-zinc-200">
-                <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-zinc-900">
-                    <div className="w-6 h-6 rounded bg-zinc-900 text-white flex items-center justify-center text-xs">
+        <div className="hidden md:flex w-64 border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 flex-col h-screen shrink-0 sticky top-0 transition-colors">
+            <div className="h-14 flex items-center px-6 border-b border-zinc-200 dark:border-zinc-800">
+                <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-zinc-900 dark:text-white">
+                    <div className="w-6 h-6 rounded bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center text-xs font-bold">
                         M
                     </div>
                     MOIP
@@ -92,21 +92,21 @@ export function Sidebar() {
                             className={cn(
                                 "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors",
                                 isActive
-                                    ? "bg-zinc-200/50 text-zinc-900"
-                                    : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+                                    ? "bg-zinc-200/50 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+                                    : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-zinc-100"
                             )}
                         >
                             <div className="flex items-center gap-3">
                                 <item.icon
                                     className={cn(
                                         "w-4 h-4",
-                                        isActive ? "text-zinc-900" : "text-zinc-500"
+                                        isActive ? "text-zinc-900 dark:text-white" : "text-zinc-500 dark:text-zinc-400"
                                     )}
                                 />
                                 {label}
                             </div>
                             {item.badge && (
-                                <span className="bg-zinc-900 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                                <span className="bg-zinc-900 dark:bg-zinc-700 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
                                     {item.badge}
                                 </span>
                             )}
@@ -114,22 +114,22 @@ export function Sidebar() {
                     );
                 })}
             </div>
-            <div className="p-4 border-t border-zinc-200">
+            <div className="p-4 border-t border-zinc-200 dark:border-zinc-800">
                 <div className="flex items-center gap-3 px-2">
-                    <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center">
-                        <User className="w-4 h-4 text-zinc-600" />
+                    <div className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center">
+                        <User className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
                     </div>
                     <div className="text-left flex-1 min-w-0">
-                        <p className="text-sm font-medium text-zinc-900 truncate">
+                        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
                             {user?.full_name || "User"}
                         </p>
-                        <p className="text-xs text-zinc-500 truncate">
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
                             {user?.email || ""}
                         </p>
                     </div>
                     <button
                         onClick={handleLogout}
-                        className="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        className="p-1.5 text-zinc-400 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors"
                         title="Logout"
                     >
                         <LogOut className="w-4 h-4" />
@@ -181,21 +181,21 @@ export function MobileSidebarDrawer({
             />
 
             {/* Slide-over Content */}
-            <div className="relative w-4/5 max-w-xs bg-zinc-50 h-full flex flex-col z-10 shadow-2xl animate-in slide-in-from-left duration-200">
-                <div className="h-14 flex items-center justify-between px-5 border-b border-zinc-200 bg-white">
+            <div className="relative w-4/5 max-w-xs bg-zinc-50 dark:bg-zinc-900 h-full flex flex-col z-10 shadow-2xl animate-in slide-in-from-left duration-200">
+                <div className="h-14 flex items-center justify-between px-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
                     <Link
                         href="/dashboard"
                         onClick={onClose}
-                        className="flex items-center gap-2 font-semibold text-zinc-900"
+                        className="flex items-center gap-2 font-semibold text-zinc-900 dark:text-white"
                     >
-                        <div className="w-6 h-6 rounded bg-zinc-900 text-white flex items-center justify-center text-xs">
+                        <div className="w-6 h-6 rounded bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center text-xs font-bold">
                             M
                         </div>
                         MOIP
                     </Link>
                     <button
                         onClick={onClose}
-                        className="p-2 rounded-md text-zinc-500 hover:bg-zinc-100 text-zinc-700"
+                        className="p-2 rounded-md text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -215,15 +215,17 @@ export function MobileSidebarDrawer({
                                 className={cn(
                                     "w-full flex items-center justify-between px-3.5 py-2.5 text-sm font-medium rounded-lg transition-colors",
                                     isActive
-                                        ? "bg-zinc-900 text-white shadow-sm"
-                                        : "text-zinc-700 hover:bg-zinc-200/60"
+                                        ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm"
+                                        : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200/60 dark:hover:bg-zinc-800"
                                 )}
                             >
                                 <div className="flex items-center gap-3">
                                     <item.icon
                                         className={cn(
                                             "w-4 h-4",
-                                            isActive ? "text-white" : "text-zinc-500"
+                                            isActive
+                                                ? "text-white dark:text-zinc-900"
+                                                : "text-zinc-500 dark:text-zinc-400"
                                         )}
                                     />
                                     {label}
@@ -233,22 +235,22 @@ export function MobileSidebarDrawer({
                     })}
                 </div>
 
-                <div className="p-4 border-t border-zinc-200 bg-white">
+                <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center">
-                            <User className="w-4 h-4 text-zinc-600" />
+                        <div className="w-9 h-9 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center">
+                            <User className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
                         </div>
                         <div className="text-left flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-zinc-900 truncate">
+                            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
                                 {user?.full_name || "User"}
                             </p>
-                            <p className="text-xs text-zinc-500 truncate">
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
                                 {user?.email || ""}
                             </p>
                         </div>
                         <button
                             onClick={handleLogout}
-                            className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                            className="p-2 text-zinc-400 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors"
                             title="Logout"
                         >
                             <LogOut className="w-4 h-4" />

@@ -38,7 +38,7 @@ export function TrendChart({ data }: TrendChartProps) {
 
     return (
         <Card className="p-5">
-            <h3 className="text-sm font-semibold text-zinc-900 mb-4">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                 30-Day Trend
             </h3>
             <div className="h-64">
@@ -58,7 +58,7 @@ export function TrendChart({ data }: TrendChartProps) {
                                 <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                             </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#71717a" strokeOpacity={0.2} />
                         <XAxis
                             dataKey="dateFormatted"
                             tick={{ fontSize: 10, fill: "#71717a" }}
@@ -73,12 +73,6 @@ export function TrendChart({ data }: TrendChartProps) {
                             allowDecimals={false}
                         />
                         <Tooltip
-                            contentStyle={{
-                                backgroundColor: "white",
-                                border: "1px solid #e4e4e7",
-                                borderRadius: "6px",
-                                fontSize: "12px",
-                            }}
                             labelFormatter={(label) => `Date: ${label}`}
                         />
                         <Area
@@ -111,15 +105,15 @@ export function TrendChart({ data }: TrendChartProps) {
             <div className="flex gap-4 mt-4 justify-center">
                 <div className="flex items-center gap-1.5 text-xs">
                     <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                    <span className="text-zinc-600">New</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">New</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs">
                     <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                    <span className="text-zinc-600">Won</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">Won</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs">
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                    <span className="text-zinc-600">Lost</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">Lost</span>
                 </div>
             </div>
         </Card>

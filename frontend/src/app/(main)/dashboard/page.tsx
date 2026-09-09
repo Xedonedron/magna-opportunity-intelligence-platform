@@ -14,17 +14,17 @@ import { getDashboardMetrics, type DashboardFilters as Filters } from "@/lib/api
 import type { DashboardMetrics as Metrics } from "@/types/dashboard";
 
 const statusStyles: Record<string, string> = {
-    New: "bg-blue-50 text-blue-700 ring-blue-600/20",
-    "KYC Running": "bg-orange-50 text-orange-700 ring-orange-600/20",
-    "Ready Meeting": "bg-purple-50 text-purple-700 ring-purple-600/20",
-    "Meeting Scheduled": "bg-cyan-50 text-cyan-700 ring-cyan-600/20",
-    "Meeting Done": "bg-slate-50 text-slate-700 ring-slate-600/20",
-    "Need Proposal": "bg-yellow-50 text-yellow-800 ring-yellow-600/20",
-    Negotiation: "bg-pink-50 text-pink-700 ring-pink-600/20",
-    PO: "bg-green-50 text-green-700 ring-green-600/20",
-    Won: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-    Lost: "bg-red-50 text-red-700 ring-red-600/20",
-    "On Hold": "bg-gray-50 text-gray-700 ring-gray-600/20",
+    New: "bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 ring-blue-600/20 dark:ring-blue-500/30",
+    "KYC Running": "bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 ring-orange-600/20 dark:ring-orange-500/30",
+    "Ready Meeting": "bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 ring-purple-600/20 dark:ring-purple-500/30",
+    "Meeting Scheduled": "bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 ring-cyan-600/20 dark:ring-cyan-500/30",
+    "Meeting Done": "bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 ring-slate-600/20 dark:ring-slate-500/30",
+    "Need Proposal": "bg-yellow-50 dark:bg-yellow-950/60 text-yellow-800 dark:text-yellow-300 ring-yellow-600/20 dark:ring-yellow-500/30",
+    Negotiation: "bg-pink-50 dark:bg-pink-950/60 text-pink-700 dark:text-pink-300 ring-pink-600/20 dark:ring-pink-500/30",
+    PO: "bg-green-50 dark:bg-green-950/60 text-green-700 dark:text-green-300 ring-green-600/20 dark:ring-green-500/30",
+    Won: "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 ring-emerald-600/20 dark:ring-emerald-500/30",
+    Lost: "bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 ring-red-600/20 dark:ring-red-500/30",
+    "On Hold": "bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-300 ring-gray-600/20 dark:ring-gray-500/30",
 };
 
 export default function DashboardPage() {
@@ -100,10 +100,10 @@ export default function DashboardPage() {
     return (
         <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 sm:space-y-8">
             <div>
-                <h1 className="text-2xl font-semibold text-zinc-900">
+                <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
                     {getGreeting()}
                 </h1>
-                <p className="text-zinc-500 text-sm mt-1">
+                <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">
                     Here is what&apos;s happening with your pipeline today.
                 </p>
             </div>
@@ -136,24 +136,24 @@ export default function DashboardPage() {
             {/* Engineer Performance (admin/manager only) */}
             {metrics.by_engineer.length > 0 && (
                 <Card className="p-0">
-                    <div className="px-5 py-4 border-b border-zinc-100">
-                        <h2 className="text-sm font-semibold text-zinc-900">
+                    <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
+                        <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                             Presales Performance
                         </h2>
                     </div>
-                    <div className="divide-y divide-zinc-100">
+                    <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
                         {metrics.by_engineer.map((eng) => (
                             <div
                                 key={eng.engineer_id}
-                                className="p-4 flex items-center justify-between hover:bg-zinc-50/50"
+                                className="p-4 flex items-center justify-between hover:bg-zinc-50/50 dark:hover:bg-zinc-800/40"
                             >
                                 <div>
-                                    <p className="text-sm font-medium text-zinc-900">
+                                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                                         {eng.engineer_name}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <span className="text-sm text-zinc-500">
+                                    <span className="text-sm text-zinc-500 dark:text-zinc-400">
                                         {eng.count} opportunities
                                     </span>
                                 </div>
@@ -166,20 +166,20 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     <Card className="p-0">
-                        <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between">
-                            <h2 className="text-sm font-semibold text-zinc-900">
+                        <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                            <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                                 Recent Opportunities
                             </h2>
                             <a
                                 href="/opportunities"
-                                className="text-sm text-zinc-500 hover:text-zinc-900"
+                                className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
                             >
                                 View All
                             </a>
                         </div>
-                        <div className="divide-y divide-zinc-100">
+                        <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
                             {metrics.recent_opportunities.length === 0 ? (
-                                <div className="p-8 text-center text-zinc-400 text-sm">
+                                <div className="p-8 text-center text-zinc-400 dark:text-zinc-500 text-sm">
                                     No opportunities found
                                 </div>
                             ) : (
@@ -187,13 +187,13 @@ export default function DashboardPage() {
                                     <a
                                         key={opp.id}
                                         href={`/opportunities/${opp.id}`}
-                                        className="p-4 flex items-center justify-between hover:bg-zinc-50/50 cursor-pointer transition-colors block"
+                                        className="p-4 flex items-center justify-between hover:bg-zinc-50/50 dark:hover:bg-zinc-800/40 cursor-pointer transition-colors block"
                                     >
                                         <div>
-                                            <p className="text-sm font-medium text-zinc-900">
+                                            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                                                 {opp.company_name}
                                             </p>
-                                            <p className="text-xs text-zinc-500 mt-0.5">
+                                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                                                 {opp.id.slice(0, 8)}... • {opp.engineer_name || "Unassigned"}
                                             </p>
                                         </div>
@@ -203,7 +203,7 @@ export default function DashboardPage() {
                                             >
                                                 {opp.status}
                                             </span>
-                                            <ChevronRight className="w-4 h-4 text-zinc-400" />
+                                            <ChevronRight className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
                                         </div>
                                     </a>
                                 ))
@@ -214,14 +214,14 @@ export default function DashboardPage() {
 
                 <div className="space-y-6">
                     <Card className="p-0">
-                        <div className="px-5 py-4 border-b border-zinc-100">
-                            <h2 className="text-sm font-semibold text-zinc-900">
+                        <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
+                            <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                                 Upcoming Meetings
                             </h2>
                         </div>
                         <div className="p-5 space-y-4">
                             {metrics.upcoming_meetings.length === 0 ? (
-                                <p className="text-sm text-zinc-400 text-center">
+                                <p className="text-sm text-zinc-400 dark:text-zinc-500 text-center">
                                     No upcoming meetings
                                 </p>
                             ) : (
@@ -231,21 +231,21 @@ export default function DashboardPage() {
                                         <a
                                             key={meeting.opportunity_id}
                                             href={`/opportunities/${meeting.opportunity_id}`}
-                                            className="flex gap-4 hover:bg-zinc-50 -mx-2 px-2 py-1 rounded transition-colors"
+                                            className="flex gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 -mx-2 px-2 py-1 rounded transition-colors"
                                         >
-                                            <div className="w-10 h-10 rounded-lg bg-zinc-100 border border-zinc-200 flex flex-col items-center justify-center shrink-0">
-                                                <span className="text-[10px] font-semibold text-zinc-500 uppercase">
+                                            <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex flex-col items-center justify-center shrink-0">
+                                                <span className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase">
                                                     {format(meetingDate, "MMM")}
                                                 </span>
-                                                <span className="text-sm font-bold text-zinc-900 leading-none">
+                                                <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-none">
                                                     {format(meetingDate, "d")}
                                                 </span>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-zinc-900">
+                                                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                                                     {meeting.company_name}
                                                 </p>
-                                                <p className="text-xs text-zinc-500 mt-0.5">
+                                                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                                                     {format(meetingDate, "h:mm a")}
                                                 </p>
                                             </div>

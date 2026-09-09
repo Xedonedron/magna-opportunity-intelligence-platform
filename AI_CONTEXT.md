@@ -392,8 +392,14 @@
 
 **Layout (`components/layout/`):**
 - `Sidebar.tsx` - Navigation sidebar with role capabilities & dynamic localization
-- `TopNav.tsx` - Top navigation bar with global search, notifications badge, and LanguageToggle
+- `TopNav.tsx` - Top navigation bar with global search, notifications badge, ThemeToggle, and LanguageToggle
+- `ThemeToggle.tsx` - Interactive button for toggling light/dark mode with localized tooltips
 - `LanguageToggle.tsx` - Quick toggle button for switching EN/ID interface
+
+**Providers (`components/providers/`):**
+- `ThemeProvider.tsx` - Next-themes provider wrapper with class attribute and persistent storage
+- `QueryProvider.tsx` - TanStack React Query provider
+- `AuthProvider.tsx` - Authentication state verification and session provider
 
 **Internationalization (`frontend/src/`):**
 - `context/LanguageContext.tsx` - React Context provider for reactive locale switching

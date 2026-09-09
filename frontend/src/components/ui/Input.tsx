@@ -11,14 +11,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         return (
             <div className="space-y-1.5 w-full">
                 {label && (
-                    <label className="block text-sm font-medium text-zinc-700">
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                         {label} {required && <span className="text-red-500">*</span>}
                     </label>
                 )}
                 <input
                     ref={ref}
                     className={cn(
-                        "flex h-9 w-full rounded-md border border-zinc-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900 disabled:cursor-not-allowed disabled:opacity-50",
+                        "flex h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-700 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-400 disabled:cursor-not-allowed disabled:opacity-50",
                         className
                     )}
                     {...props}
@@ -40,14 +40,14 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         return (
             <div className="space-y-1.5 w-full">
                 {label && (
-                    <label className="block text-sm font-medium text-zinc-700">
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                         {label} {required && <span className="text-red-500">*</span>}
                     </label>
                 )}
                 <textarea
                     ref={ref}
                     className={cn(
-                        "flex w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900 disabled:cursor-not-allowed disabled:opacity-50",
+                        "flex w-full rounded-md border border-zinc-200 dark:border-zinc-700 bg-transparent px-3 py-2 text-sm shadow-sm transition-colors text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-400 disabled:cursor-not-allowed disabled:opacity-50",
                         className
                     )}
                     {...props}
@@ -69,14 +69,14 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         return (
             <div className="space-y-1.5 w-full">
                 {label && (
-                    <label className="block text-sm font-medium text-zinc-700">
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                         {label} {required && <span className="text-red-500">*</span>}
                     </label>
                 )}
                 <select
                     ref={ref}
                     className={cn(
-                        "flex h-9 w-full rounded-md border border-zinc-200 bg-transparent px-3 py-1 text-sm shadow-sm outline-none focus:ring-1 focus:ring-zinc-900",
+                        "flex h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-3 py-1 text-sm shadow-sm outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-400 transition-colors",
                         className
                     )}
                     {...props}
@@ -196,7 +196,7 @@ export function SuggestedInput({
     return (
         <div className="space-y-1.5 w-full" ref={containerRef}>
             {label && (
-                <label className="block text-sm font-medium text-zinc-700">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                     {label} {required && <span className="text-red-500">*</span>}
                 </label>
             )}
@@ -214,7 +214,7 @@ export function SuggestedInput({
                     placeholder={placeholder}
                     autoComplete="off"
                     className={cn(
-                        "flex h-9 w-full rounded-md border border-zinc-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900 disabled:cursor-not-allowed disabled:opacity-50",
+                        "flex h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-700 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-400 disabled:cursor-not-allowed disabled:opacity-50",
                         className
                     )}
                     {...props}
@@ -223,7 +223,7 @@ export function SuggestedInput({
                 {isOpen && totalItems > 0 && (
                     <ul
                         ref={listRef}
-                        className="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-md border border-zinc-200 bg-white py-1 shadow-lg"
+                        className="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 py-1 shadow-lg"
                     >
                         {filtered.map((item, idx) => (
                             <li key={item}>
@@ -232,8 +232,8 @@ export function SuggestedInput({
                                     className={cn(
                                         "w-full px-3 py-2 text-left text-sm transition-colors",
                                         idx === highlightedIndex
-                                            ? "bg-zinc-100 text-zinc-900"
-                                            : "text-zinc-700 hover:bg-zinc-50"
+                                            ? "bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100"
+                                            : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700/60"
                                     )}
                                     onMouseDown={(e) => e.preventDefault()}
                                     onClick={() => selectItem(item)}
@@ -251,8 +251,8 @@ export function SuggestedInput({
                                     className={cn(
                                         "w-full px-3 py-2 text-left text-sm italic transition-colors",
                                         highlightedIndex === filtered.length
-                                            ? "bg-zinc-100 text-zinc-900"
-                                            : "text-zinc-500 hover:bg-zinc-50"
+                                            ? "bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100"
+                                            : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-700/60"
                                     )}
                                     onMouseDown={(e) => e.preventDefault()}
                                     onClick={selectOthers}
@@ -315,28 +315,28 @@ export function MultiSelect({
     return (
         <div className="space-y-1.5 w-full" ref={containerRef}>
             {label && (
-                <label className="block text-sm font-medium text-zinc-700">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                     {label} {required && <span className="text-red-500">*</span>}
                 </label>
             )}
             <div className="relative">
                 <div
                     onClick={() => setIsOpen(!isOpen)}
-                    className="min-h-9 w-full rounded-md border border-zinc-200 bg-transparent px-2.5 py-1.5 text-sm shadow-sm cursor-pointer hover:border-zinc-300 focus-within:ring-1 focus-within:ring-zinc-900 transition-colors flex flex-wrap items-center gap-1.5"
+                    className="min-h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-700 bg-transparent px-2.5 py-1.5 text-sm shadow-sm cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-600 focus-within:ring-1 focus-within:ring-zinc-900 dark:focus-within:ring-zinc-400 transition-colors flex flex-wrap items-center gap-1.5 text-zinc-900 dark:text-zinc-100"
                 >
                     {value.length === 0 ? (
-                        <span className="text-zinc-400 select-none py-0.5">{placeholder}</span>
+                        <span className="text-zinc-400 dark:text-zinc-500 select-none py-0.5">{placeholder}</span>
                     ) : (
                         value.map((item) => (
                             <span
                                 key={item}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-zinc-100 text-zinc-800 border border-zinc-200"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700"
                             >
                                 <span>{item}</span>
                                 <button
                                     type="button"
                                     onClick={(e) => removeOption(item, e)}
-                                    className="text-zinc-400 hover:text-zinc-600 rounded-full p-0.5 hover:bg-zinc-200 transition-colors"
+                                    className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 rounded-full p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
                                 >
                                     ✕
                                 </button>
@@ -346,7 +346,7 @@ export function MultiSelect({
                 </div>
 
                 {isOpen && (
-                    <ul className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-md border border-zinc-200 bg-white py-1 shadow-lg">
+                    <ul className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 py-1 shadow-lg">
                         {options.map((opt) => {
                             const isSelected = value.includes(opt);
                             return (
@@ -356,14 +356,14 @@ export function MultiSelect({
                                         className={cn(
                                             "w-full px-3 py-2 text-left text-sm flex items-center justify-between transition-colors",
                                             isSelected
-                                                ? "bg-zinc-100 text-zinc-900 font-medium"
-                                                : "text-zinc-700 hover:bg-zinc-50"
+                                                ? "bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 font-medium"
+                                                : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700/60"
                                         )}
                                         onClick={() => toggleOption(opt)}
                                     >
                                         <span>{opt}</span>
                                         {isSelected && (
-                                            <span className="text-xs text-zinc-900 font-semibold">✓</span>
+                                            <span className="text-xs text-zinc-900 dark:text-zinc-100 font-semibold">✓</span>
                                         )}
                                     </button>
                                 </li>
@@ -375,4 +375,3 @@ export function MultiSelect({
         </div>
     );
 }
-

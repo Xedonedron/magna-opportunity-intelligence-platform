@@ -51,7 +51,7 @@ export function StatusChart({ data }: StatusChartProps) {
 
     return (
         <Card className="p-5">
-            <h3 className="text-sm font-semibold text-zinc-900 mb-4">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                 Status Distribution
             </h3>
             <div className="h-64">
@@ -72,14 +72,7 @@ export function StatusChart({ data }: StatusChartProps) {
                                 <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
                         </Pie>
-                        <Tooltip
-                            contentStyle={{
-                                backgroundColor: "white",
-                                border: "1px solid #e4e4e7",
-                                borderRadius: "6px",
-                                fontSize: "12px",
-                            }}
-                        />
+                        <Tooltip />
                     </PieChart>
                 </ResponsiveContainer>
             </div>
@@ -90,7 +83,7 @@ export function StatusChart({ data }: StatusChartProps) {
                             className="w-2.5 h-2.5 rounded-full"
                             style={{ backgroundColor: item.color }}
                         />
-                        <span className="text-zinc-600">{item.name}</span>
+                        <span className="text-zinc-600 dark:text-zinc-400">{item.name}</span>
                     </div>
                 ))}
             </div>

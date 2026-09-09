@@ -14,15 +14,15 @@ export default function MainLayout({
 
     return (
         <AuthProvider>
-            <div className="flex h-screen w-full bg-zinc-100 text-zinc-900 font-sans selection:bg-zinc-200 overflow-hidden">
+            <div className="flex h-screen w-full bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans selection:bg-zinc-200 dark:selection:bg-zinc-800 overflow-hidden transition-colors">
                 <Sidebar />
                 <MobileSidebarDrawer
                     isOpen={isMobileOpen}
                     onClose={() => setIsMobileOpen(false)}
                 />
-                <div className="flex flex-col flex-1 min-w-0 overflow-hidden bg-white">
+                <div className="flex flex-col flex-1 min-w-0 overflow-hidden bg-white dark:bg-zinc-900 transition-colors">
                     <TopNav onOpenMobileMenu={() => setIsMobileOpen(true)} />
-                    <main className="flex-1 overflow-y-auto relative bg-zinc-50">
+                    <main className="flex-1 overflow-y-auto relative bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors">
                         {children}
                     </main>
                 </div>

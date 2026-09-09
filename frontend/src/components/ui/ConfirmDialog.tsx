@@ -30,18 +30,18 @@ export function ConfirmDialog({
 
     const variantStyles = {
         danger: {
-            iconBg: "bg-red-100 text-red-600",
+            iconBg: "bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400",
             buttonBg: "bg-red-600 hover:bg-red-700 text-white focus:ring-red-500",
             icon: Trash2,
         },
         warning: {
-            iconBg: "bg-amber-100 text-amber-600",
+            iconBg: "bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400",
             buttonBg: "bg-amber-600 hover:bg-amber-700 text-white focus:ring-amber-500",
             icon: AlertTriangle,
         },
         info: {
-            iconBg: "bg-zinc-100 text-zinc-800",
-            buttonBg: "bg-zinc-900 hover:bg-zinc-800 text-white focus:ring-zinc-500",
+            iconBg: "bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200",
+            buttonBg: "bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 text-white focus:ring-zinc-500",
             icon: AlertTriangle,
         },
     };
@@ -55,7 +55,7 @@ export function ConfirmDialog({
             onClick={onClose}
         >
             <div 
-                className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-zinc-100 transform transition-all animate-in zoom-in-95 duration-200"
+                className="bg-white dark:bg-zinc-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-zinc-100 dark:border-zinc-800 transform transition-all animate-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex items-start justify-between">
@@ -65,16 +65,16 @@ export function ConfirmDialog({
                     <button
                         onClick={onClose}
                         disabled={isLoading}
-                        className="text-zinc-400 hover:text-zinc-600 p-1 rounded-lg hover:bg-zinc-100 transition-colors disabled:opacity-50"
+                        className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <h3 className="text-lg font-bold text-zinc-900 tracking-tight mb-2">
+                <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 tracking-tight mb-2">
                     {title}
                 </h3>
-                <p className="text-sm text-zinc-600 leading-relaxed mb-6">
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed mb-6">
                     {description}
                 </p>
 
@@ -83,7 +83,7 @@ export function ConfirmDialog({
                         type="button"
                         onClick={onClose}
                         disabled={isLoading}
-                        className="px-4 py-2.5 text-sm font-medium text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded-xl transition-colors disabled:opacity-50"
+                        className="px-4 py-2.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl transition-colors disabled:opacity-50"
                     >
                         {cancelText}
                     </button>
@@ -91,7 +91,7 @@ export function ConfirmDialog({
                         type="button"
                         onClick={onConfirm}
                         disabled={isLoading}
-                        className={`px-5 py-2.5 text-sm font-medium rounded-xl shadow-sm transition-colors flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${config.buttonBg}`}
+                        className={`px-5 py-2.5 text-sm font-medium rounded-xl shadow-sm transition-colors flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 disabled:opacity-50 ${config.buttonBg}`}
                     >
                         {isLoading && (
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

@@ -83,16 +83,16 @@ export default function OpportunitiesPage() {
         <div className="p-8 max-w-[1400px] mx-auto space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-semibold text-zinc-900">Opportunities</h1>
-                    <p className="text-zinc-500 text-sm mt-1">
+                    <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Opportunities</h1>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">
                         Manage and track your active sales pipeline.
                     </p>
                 </div>
                 {canCreate && (
                     <div className="flex items-center gap-2">
                         <Link href="/opportunities/import">
-                            <Button variant="secondary" className="gap-2 border-zinc-200">
-                                <Upload className="w-4 h-4 text-zinc-700" /> Import Leads
+                            <Button variant="secondary" className="gap-2 border-zinc-200 dark:border-zinc-700">
+                                <Upload className="w-4 h-4 text-zinc-700 dark:text-zinc-300" /> Import Leads
                             </Button>
                         </Link>
                         <Link href="/opportunities/create">
@@ -106,10 +106,10 @@ export default function OpportunitiesPage() {
 
             <Card className="flex flex-col">
                 {/* Toolbar */}
-                <div className="p-4 border-b border-zinc-200 flex items-center justify-between gap-4 bg-zinc-50/50 flex-wrap">
+                <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-4 bg-zinc-50/50 dark:bg-zinc-900/50 flex-wrap">
                     <div className="flex items-center gap-2 flex-1 min-w-[280px]">
                         <div className="relative w-72">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-400" />
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-400 dark:text-zinc-500" />
                             <input
                                 type="text"
                                 placeholder="Filter companies..."
@@ -118,7 +118,7 @@ export default function OpportunitiesPage() {
                                     setSearch(e.target.value);
                                     setPage(1);
                                 }}
-                                className="h-9 w-full rounded-md border border-zinc-300 bg-white pl-9 pr-4 text-sm outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400"
+                                className="h-9 w-full rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 pl-9 pr-4 text-sm outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 transition-colors"
                             />
                         </div>
                         <select
@@ -127,7 +127,7 @@ export default function OpportunitiesPage() {
                                 setStatusFilter(e.target.value);
                                 setPage(1);
                             }}
-                            className="h-9 rounded-md border border-zinc-300 bg-white px-3 text-sm outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400"
+                            className="h-9 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600 transition-colors"
                         >
                             <option value="">All Status</option>
                             {ALL_STATUSES.map((s) => (
@@ -139,14 +139,14 @@ export default function OpportunitiesPage() {
                     </div>
 
                     {/* View Switcher Toggle Buttons */}
-                    <div className="flex items-center bg-zinc-200/80 p-1 rounded-lg border border-zinc-300/70">
+                    <div className="flex items-center bg-zinc-200/80 dark:bg-zinc-800 p-1 rounded-lg border border-zinc-300/70 dark:border-zinc-700 transition-colors">
                         <button
                             type="button"
                             onClick={() => handleViewModeChange("list")}
                             className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-md transition-all ${
                                 viewMode === "list"
-                                    ? "bg-white text-zinc-900 shadow-xs"
-                                    : "text-zinc-600 hover:text-zinc-900"
+                                    ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs"
+                                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
                             }`}
                         >
                             <List className="w-3.5 h-3.5" /> List
@@ -156,8 +156,8 @@ export default function OpportunitiesPage() {
                             onClick={() => handleViewModeChange("kanban")}
                             className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-md transition-all ${
                                 viewMode === "kanban"
-                                    ? "bg-white text-zinc-900 shadow-xs"
-                                    : "text-zinc-600 hover:text-zinc-900"
+                                    ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs"
+                                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
                             }`}
                         >
                             <LayoutGrid className="w-3.5 h-3.5" /> Kanban

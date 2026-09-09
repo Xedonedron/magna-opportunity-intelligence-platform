@@ -37,8 +37,8 @@ export function SolutionDistributionChart({ data }: SolutionDistributionChartPro
     }));
 
     return (
-        <Card className="p-5 shadow-sm border border-zinc-200">
-            <h3 className="text-sm font-semibold text-zinc-900 mb-4">
+        <Card className="p-5 shadow-sm border border-zinc-200 dark:border-zinc-800">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                 Solution Distribution
             </h3>
             <div className="h-64">
@@ -59,14 +59,7 @@ export function SolutionDistributionChart({ data }: SolutionDistributionChartPro
                                 <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
                         </Pie>
-                        <Tooltip
-                            contentStyle={{
-                                backgroundColor: "white",
-                                border: "1px solid #e4e4e7",
-                                borderRadius: "6px",
-                                fontSize: "12px",
-                            }}
-                        />
+                        <Tooltip />
                     </PieChart>
                 </ResponsiveContainer>
             </div>
@@ -77,7 +70,7 @@ export function SolutionDistributionChart({ data }: SolutionDistributionChartPro
                             className="w-2.5 h-2.5 rounded-full shrink-0"
                             style={{ backgroundColor: item.color }}
                         />
-                        <span className="text-zinc-600 font-medium">{item.name}</span>
+                        <span className="text-zinc-600 dark:text-zinc-400 font-medium">{item.name}</span>
                     </div>
                 ))}
             </div>

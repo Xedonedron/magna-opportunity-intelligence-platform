@@ -5,6 +5,7 @@ import { Search, FolderOpen, Calendar, X, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { NotificationDropdown } from "@/components/domains/notifications/NotificationDropdown";
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useLanguage } from "@/context/LanguageContext";
 import { api } from "@/lib/api";
 
@@ -85,11 +86,11 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
     };
 
     return (
-        <header className="h-14 border-b border-zinc-200 bg-white flex items-center justify-between px-4 sm:px-6 sticky top-0 z-20">
+        <header className="h-14 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-20 transition-colors">
             {/* Hamburger button for mobile */}
             <button
                 onClick={onOpenMobileMenu}
-                className="p-2 -ml-1 mr-2 text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 rounded-md md:hidden"
+                className="p-2 -ml-1 mr-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md md:hidden transition-colors"
                 aria-label="Open Mobile Menu"
             >
                 <Menu className="w-5 h-5" />
@@ -98,7 +99,7 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
             <div className="flex items-center flex-1 relative" ref={containerRef}>
                 {/* Desktop Search Bar */}
                 <div className="relative w-96 hidden md:block">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-400" />
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-400 dark:text-zinc-500" />
                     <input
                         ref={inputRef}
                         type="text"
@@ -106,7 +107,7 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
                         onChange={(e) => setQuery(e.target.value)}
                         onFocus={() => query.trim().length >= 2 && setIsOpen(true)}
                         placeholder="Cari peluang atau rapat... (Ctrl+K)"
-                        className="h-9 w-full rounded-md border border-zinc-200 bg-zinc-50 pl-9 pr-8 text-xs outline-none placeholder:text-zinc-400 focus:border-zinc-300 focus:bg-white transition-colors"
+                        className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 pl-9 pr-8 text-xs outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100 focus:border-zinc-300 dark:focus:border-zinc-600 focus:bg-white dark:focus:bg-zinc-800 transition-colors"
                     />
                     {query && (
                         <button
@@ -114,7 +115,7 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
                                 setQuery("");
                                 setResults(null);
                             }}
-                            className="absolute right-2.5 top-2.5 text-zinc-400 hover:text-zinc-600"
+                            className="absolute right-2.5 top-2.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
                         >
                             <X className="w-4 h-4" />
                         </button>
@@ -124,7 +125,7 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
                 {/* Mobile Search Toggle Icon */}
                 <button
                     onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-                    className="p-2 text-zinc-600 hover:text-zinc-950 md:hidden"
+                    className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 md:hidden"
                     aria-label="Toggle Search"
                 >
                     <Search className="w-5 h-5" />
@@ -132,23 +133,23 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
 
                 {/* Mobile Expandable Search Bar */}
                 {isMobileSearchOpen && (
-                    <div className="absolute left-0 right-0 top-0 bottom-0 bg-white flex items-center z-30 md:hidden">
+                    <div className="absolute left-0 right-0 top-0 bottom-0 bg-white dark:bg-zinc-900 flex items-center z-30 md:hidden">
                         <div className="relative w-full">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-400" />
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-400 dark:text-zinc-500" />
                             <input
                                 autoFocus
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Cari peluang atau rapat..."
-                                className="h-9 w-full rounded-md border border-zinc-200 bg-zinc-50 pl-9 pr-8 text-xs outline-none"
+                                className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 pl-9 pr-8 text-xs outline-none text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             />
                             <button
                                 onClick={() => {
                                     setIsMobileSearchOpen(false);
                                     setQuery("");
                                 }}
-                                className="absolute right-2.5 top-2.5 text-zinc-400 hover:text-zinc-600"
+                                className="absolute right-2.5 top-2.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -158,26 +159,26 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
 
                 {/* Dropdown Results */}
                 {isOpen && results && (
-                    <div className="absolute top-11 left-0 w-full sm:w-96 bg-white border border-zinc-200 rounded-lg shadow-lg max-h-[380px] overflow-y-auto z-50 p-2 space-y-3">
+                    <div className="absolute top-11 left-0 w-full sm:w-96 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg max-h-[380px] overflow-y-auto z-50 p-2 space-y-3">
                         {/* Opportunities section */}
                         <div>
-                            <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-2 py-1 flex items-center gap-1">
+                            <h4 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider px-2 py-1 flex items-center gap-1">
                                 <FolderOpen className="w-3 h-3" /> Opportunities
                             </h4>
                             {results.opportunities.length === 0 ? (
-                                <p className="text-xs text-zinc-500 px-2 py-1">Tidak ada peluang cocok.</p>
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400 px-2 py-1">Tidak ada peluang cocok.</p>
                             ) : (
                                 <div className="space-y-0.5 mt-1">
                                     {results.opportunities.map((opp) => (
                                         <button
                                             key={opp.id}
                                             onClick={() => handleNavigate(`/opportunities/${opp.id}`)}
-                                            className="w-full text-left px-2.5 py-1.5 hover:bg-zinc-50 rounded-md transition-colors block text-xs"
+                                            className="w-full text-left px-2.5 py-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 rounded-md transition-colors block text-xs"
                                         >
-                                            <p className="font-semibold text-zinc-900">{opp.company_name}</p>
-                                            <p className="text-[10px] text-zinc-500 mt-0.5">
+                                            <p className="font-semibold text-zinc-900 dark:text-zinc-100">{opp.company_name}</p>
+                                            <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">
                                                 {opp.product || "No Product"} •{" "}
-                                                <span className="font-medium text-zinc-600">{opp.status}</span>
+                                                <span className="font-medium text-zinc-600 dark:text-zinc-300">{opp.status}</span>
                                             </p>
                                         </button>
                                     ))}
@@ -186,12 +187,12 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
                         </div>
 
                         {/* Meetings section */}
-                        <div className="border-t border-zinc-100 pt-2">
-                            <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-2 py-1 flex items-center gap-1">
+                        <div className="border-t border-zinc-100 dark:border-zinc-800 pt-2">
+                            <h4 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider px-2 py-1 flex items-center gap-1">
                                 <Calendar className="w-3 h-3" /> Meetings
                             </h4>
                             {results.meetings.length === 0 ? (
-                                <p className="text-xs text-zinc-500 px-2 py-1">Tidak ada rapat cocok.</p>
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400 px-2 py-1">Tidak ada rapat cocok.</p>
                             ) : (
                                 <div className="space-y-0.5 mt-1">
                                     {results.meetings.map((meet) => (
@@ -202,10 +203,10 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
                                                     `/opportunities/${meet.opportunity_id}?tab=meetings`
                                                 )
                                             }
-                                            className="w-full text-left px-2.5 py-1.5 hover:bg-zinc-50 rounded-md transition-colors block text-xs"
+                                            className="w-full text-left px-2.5 py-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 rounded-md transition-colors block text-xs"
                                         >
-                                            <p className="font-semibold text-zinc-900">{meet.title}</p>
-                                            <p className="text-[10px] text-zinc-500 mt-0.5">
+                                            <p className="font-semibold text-zinc-900 dark:text-zinc-100">{meet.title}</p>
+                                            <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">
                                                 {meet.company_name} •{" "}
                                                 {new Date(meet.date).toLocaleDateString("id-ID")}
                                             </p>
@@ -217,7 +218,8 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
                     </div>
                 )}
             </div>
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+                <ThemeToggle />
                 <LanguageToggle />
                 <NotificationDropdown />
             </div>

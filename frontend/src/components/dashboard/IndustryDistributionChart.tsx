@@ -40,8 +40,8 @@ export function IndustryDistributionChart({ data }: IndustryDistributionChartPro
     }));
 
     return (
-        <Card className="p-5 shadow-sm border border-zinc-200">
-            <h3 className="text-sm font-semibold text-zinc-900 mb-4">
+        <Card className="p-5 shadow-sm border border-zinc-200 dark:border-zinc-800">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                 Industry Distribution
             </h3>
             <div className="h-64">
@@ -50,7 +50,7 @@ export function IndustryDistributionChart({ data }: IndustryDistributionChartPro
                         data={chartData}
                         margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                     >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f4f4f5" />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#71717a" strokeOpacity={0.2} />
                         <XAxis
                             dataKey="name"
                             tick={{ fill: "#71717a", fontSize: 10 }}
@@ -63,15 +63,7 @@ export function IndustryDistributionChart({ data }: IndustryDistributionChartPro
                             tickLine={false}
                             allowDecimals={false}
                         />
-                        <Tooltip
-                            cursor={{ fill: "#f4f4f5" }}
-                            contentStyle={{
-                                backgroundColor: "white",
-                                border: "1px solid #e4e4e7",
-                                borderRadius: "6px",
-                                fontSize: "12px",
-                            }}
-                        />
+                        <Tooltip />
                         <Bar dataKey="Opportunity" radius={[4, 4, 0, 0]}>
                             {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color} />

@@ -342,6 +342,14 @@ export const en = {
             logs: "Audit Logs",
         },
     },
+    theme: {
+        toggleTheme: "Toggle theme",
+        switchToDark: "Switch to dark mode",
+        switchToLight: "Switch to light mode",
+        system: "System theme",
+        dark: "Dark",
+        light: "Light",
+    },
 };
 
 export type Translations = typeof en;

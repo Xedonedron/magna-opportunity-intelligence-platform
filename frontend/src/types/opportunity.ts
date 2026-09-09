@@ -129,17 +129,17 @@ export interface OpportunityUpdateInput {
 }
 
 export const STATUS_STYLES: Record<OpportunityStatus, string> = {
-    New: "bg-blue-50 text-blue-700 ring-blue-600/20",
-    "KYC Running": "bg-orange-50 text-orange-700 ring-orange-600/20",
-    "Ready Meeting": "bg-green-50 text-green-700 ring-green-600/20",
-    "Meeting Scheduled": "bg-indigo-50 text-indigo-700 ring-indigo-600/20",
-    "Meeting Done": "bg-teal-50 text-teal-700 ring-teal-600/20",
-    "Need Proposal": "bg-purple-50 text-purple-700 ring-purple-600/20",
-    Negotiation: "bg-amber-50 text-amber-700 ring-amber-600/20",
-    PO: "bg-cyan-50 text-cyan-700 ring-cyan-600/20",
-    Won: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-    Lost: "bg-red-50 text-red-700 ring-red-600/20",
-    "On Hold": "bg-zinc-100 text-zinc-600 ring-zinc-500/20",
+    New: "bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 ring-blue-600/20 dark:ring-blue-500/30",
+    "KYC Running": "bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 ring-orange-600/20 dark:ring-orange-500/30",
+    "Ready Meeting": "bg-green-50 dark:bg-green-950/60 text-green-700 dark:text-green-300 ring-green-600/20 dark:ring-green-500/30",
+    "Meeting Scheduled": "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 ring-indigo-600/20 dark:ring-indigo-500/30",
+    "Meeting Done": "bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 ring-teal-600/20 dark:ring-teal-500/30",
+    "Need Proposal": "bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 ring-purple-600/20 dark:ring-purple-500/30",
+    Negotiation: "bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 ring-amber-600/20 dark:ring-amber-500/30",
+    PO: "bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 ring-cyan-600/20 dark:ring-cyan-500/30",
+    Won: "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 ring-emerald-600/20 dark:ring-emerald-500/30",
+    Lost: "bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 ring-red-600/20 dark:ring-red-500/30",
+    "On Hold": "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 ring-zinc-500/20 dark:ring-zinc-600/30",
 };
 
 export const ALL_STATUSES: OpportunityStatus[] = [

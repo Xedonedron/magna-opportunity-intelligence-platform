@@ -50,23 +50,23 @@ export function NotificationDropdown() {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setOpen(!open)}
-                className="text-zinc-500 hover:text-zinc-900 relative p-2 rounded-md hover:bg-zinc-100 transition-colors"
+                className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white relative p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
             >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-zinc-900" />
                 )}
             </button>
 
             {open && (
-                <div className="absolute right-0 mt-2 w-96 bg-white border border-zinc-200 rounded-lg shadow-lg z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="px-4 py-3 border-b border-zinc-100 flex items-center justify-between">
-                        <h3 className="text-sm font-semibold text-zinc-900">Notifications</h3>
+                <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Notifications</h3>
                         <div className="flex items-center gap-2">
                             {unreadCount > 0 && (
                                 <button
                                     onClick={() => markAllRead.mutate()}
-                                    className="text-xs text-zinc-500 hover:text-zinc-900 flex items-center gap-1 transition-colors"
+                                    className="text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1 transition-colors"
                                 >
                                     <CheckCheck className="w-3.5 h-3.5" />
                                     Mark all read
@@ -74,16 +74,16 @@ export function NotificationDropdown() {
                             )}
                             <button
                                 onClick={() => setOpen(false)}
-                                className="text-zinc-400 hover:text-zinc-600 transition-colors"
+                                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
                             >
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
                     </div>
 
-                    <div className="max-h-80 overflow-y-auto divide-y divide-zinc-50">
+                    <div className="max-h-80 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800/80">
                         {notifications.length === 0 ? (
-                            <div className="px-4 py-8 text-center text-sm text-zinc-400">
+                            <div className="px-4 py-8 text-center text-sm text-zinc-400 dark:text-zinc-500">
                                 No notifications yet
                             </div>
                         ) : (
@@ -99,7 +99,7 @@ export function NotificationDropdown() {
                                             setOpen(false);
                                         }
                                     }}
-                                    className={`w-full text-left px-4 py-3 hover:bg-zinc-50 transition-colors ${!notification.is_read ? "bg-blue-50/50" : ""
+                                    className={`w-full text-left px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${!notification.is_read ? "bg-blue-50/50 dark:bg-blue-950/25" : ""
                                         }`}
                                 >
                                     <div className="flex items-start gap-3">
@@ -107,13 +107,13 @@ export function NotificationDropdown() {
                                             <span className="mt-1.5 w-2 h-2 rounded-full bg-blue-500 shrink-0" />
                                         )}
                                         <div className={`flex-1 min-w-0 ${notification.is_read ? "ml-5" : ""}`}>
-                                            <p className="text-sm font-medium text-zinc-900 truncate">
+                                            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
                                                 {notification.title}
                                             </p>
-                                            <p className="text-xs text-zinc-500 mt-0.5 line-clamp-2">
+                                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 line-clamp-2">
                                                 {notification.message}
                                             </p>
-                                            <p className="text-xs text-zinc-400 mt-1">
+                                            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
                                                 {formatTime(notification.created_at)}
                                             </p>
                                         </div>
@@ -123,13 +123,13 @@ export function NotificationDropdown() {
                         )}
                     </div>
 
-                    <div className="px-4 py-2.5 border-t border-zinc-100">
+                    <div className="px-4 py-2.5 border-t border-zinc-100 dark:border-zinc-800">
                         <button
                             onClick={() => {
                                 router.push("/notifications");
                                 setOpen(false);
                             }}
-                            className="text-xs text-zinc-500 hover:text-zinc-900 font-medium transition-colors w-full text-center"
+                            className="text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium transition-colors w-full text-center"
                         >
                             View all notifications
                         </button>

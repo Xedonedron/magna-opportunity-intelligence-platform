@@ -61,15 +61,15 @@ export function DashboardMetrics({
             {metrics.map((metric, i) => (
                 <Card key={i} className="p-4 shadow-sm hover:shadow transition-shadow">
                     <div className="flex items-center justify-between">
-                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{metric.label}</p>
-                        <metric.icon className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                        <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">{metric.label}</p>
+                        <metric.icon className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 shrink-0" />
                     </div>
                     <div className="mt-2 flex items-baseline gap-2">
-                        <span className="text-lg font-bold tracking-tight text-zinc-900 truncate">
+                        <span className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100 truncate">
                             {metric.value}
                         </span>
                     </div>
-                    <p className="text-[10px] text-zinc-500 mt-1 font-medium leading-none truncate">{metric.description}</p>
+                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1 font-medium leading-none truncate">{metric.description}</p>
                 </Card>
             ))}
         </div>

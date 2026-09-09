@@ -342,4 +342,12 @@ export const id: Translations = {
             logs: "Log Audit",
         },
     },
+    theme: {
+        toggleTheme: "Ubah tema",
+        switchToDark: "Beralih ke mode gelap",
+        switchToLight: "Beralih ke mode terang",
+        system: "Tema sistem",
+        dark: "Gelap",
+        light: "Terang",
+    },
 };

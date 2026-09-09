@@ -71,26 +71,26 @@ export default function MeetingsPage() {
     return (
         <div className="p-8 max-w-5xl mx-auto space-y-8">
             {/* Header & Overview Stats */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-6">
                 <div>
-                    <h1 className="text-3xl font-semibold text-zinc-900 tracking-tight flex items-center gap-2">
-                        <Calendar className="w-8 h-8 text-zinc-800" /> Meetings Dashboard
+                    <h1 className="text-3xl font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight flex items-center gap-2">
+                        <Calendar className="w-8 h-8 text-zinc-800 dark:text-zinc-200" /> Meetings Dashboard
                     </h1>
-                    <p className="text-zinc-500 text-sm mt-1">
+                    <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">
                         Kelola dan tinjau semua agenda pertemuan pre-sales Smartnet Magna Global secara terpusat.
                     </p>
                 </div>
                 <div className="flex gap-4">
-                    <div className="bg-zinc-50 border border-zinc-200 px-4 py-2.5 rounded-lg text-center shadow-sm">
-                        <p className="text-xs text-zinc-500 font-medium uppercase">Total Rapat</p>
-                        <p className="text-xl font-semibold text-zinc-900 mt-0.5">{totalMeetings}</p>
+                    <div className="bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 px-4 py-2.5 rounded-lg text-center shadow-sm">
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium uppercase">Total Rapat</p>
+                        <p className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mt-0.5">{totalMeetings}</p>
                     </div>
                 </div>
             </div>
 
             {/* Search Bar */}
             <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 dark:text-zinc-500" />
                 <Input
                     placeholder="Cari berdasarkan judul rapat atau nama perusahaan..."
                     value={searchTerm}
@@ -101,10 +101,10 @@ export default function MeetingsPage() {
 
             {/* Meetings List */}
             {filteredMeetings.length === 0 ? (
-                <Card className="p-12 text-center border border-zinc-200 bg-white">
-                    <FolderOpen className="w-12 h-12 mx-auto text-zinc-200 mb-4" />
-                    <h3 className="text-lg font-medium text-zinc-900">Belum Ada Pertemuan</h3>
-                    <p className="text-zinc-500 text-sm mt-1">
+                <Card className="p-12 text-center border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+                    <FolderOpen className="w-12 h-12 mx-auto text-zinc-200 dark:text-zinc-700 mb-4" />
+                    <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">Belum Ada Pertemuan</h3>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">
                         Tidak ada agenda rapat yang cocok dengan pencarian Anda atau belum ada rapat yang dijadwalkan.
                     </p>
                 </Card>
