@@ -20,6 +20,8 @@ class KYCReport(Base):
         nullable=False,
     )
     version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    title: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    focus_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(50), default="pending", nullable=False)
     # Status: pending, running, completed, failed
 

@@ -27,6 +27,8 @@ class KYCReportResponse(BaseModel):
     id: UUID
     opportunity_id: UUID
     version: int
+    title: Optional[str] = None
+    focus_notes: Optional[str] = None
     status: str
     executive_summary: Optional[str] = None
     company_overview: Optional[dict[str, Any]] = None
@@ -60,6 +62,8 @@ class KYCReportListResponse(BaseModel):
 
 class KYCRegenerateRequest(BaseModel):
     source_type: str = "manual_regenerate"
+    title: Optional[str] = None
+    focus_notes: Optional[str] = None
     # source_type: manual_regenerate, engineer_edited
 
 
@@ -74,6 +78,8 @@ class KYCStatusResponse(BaseModel):
 
 class KYCReportUpdate(BaseModel):
     """Schema for updating KYC report fields (engineer edits)."""
+    title: Optional[str] = None
+    focus_notes: Optional[str] = None
     executive_summary: Optional[str] = None
     company_overview: Optional[dict[str, Any]] = None
     industry_analysis: Optional[str] = None
