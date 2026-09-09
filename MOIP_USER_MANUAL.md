@@ -204,18 +204,29 @@ Buka halaman detail opportunity → tab **KYC Report**. Laporan terdiri dari:
 > **Mekanisme Grounding Cerdas (Dynamic Solution Grounding)**:  
 > AI tidak merekomendasikan solusi generik atau berhalusinasi. Sistem mencocokkan industri (*industry*), produk yang dipilih (*product*), dan deskripsi kebutuhan (*customer needs*) klien dengan **Katalog Solusi Resmi PT Smartnet Magna Global** di database. Hasilnya, bab *Use Cases & Solution Mapping* langsung memetakan arsitektur konkret (seperti *Pub/Sub → Dataflow → BigQuery ML*, *Modern Endpoint Security NGAV*, atau *Homogeneous Database Migration ke Cloud SQL*) lengkap dengan studi kasus terbukti dan tautan artikel resmi.
 
-### 4.3 Regenerasi & Editing KYC
+### 4.3 Manajemen Versi & Regenerasi KYC
 
-- **Regenerate KYC**: Klik tombol **Regenerate** (memerlukan kapabilitas *Generate KYC*). Berguna jika ada update data klien, kebutuhan berubah, atau riset awal dirasa kurang lengkap. Ini menghasilkan versi baru.
-- **Edit KYC**: Klik tombol **Edit** (memerlukan kapabilitas *Create & Edit*). Engineer dapat menyunting isi laporan secara manual — misalnya menambahkan temuan dari rapat awal atau mengoreksi informasi yang kurang tepat.
-- **Version History**: Gunakan dropdown **Version Selector** untuk menelusuri riwayat versi KYC sebelumnya.
+- **Version Selector Universal**: Dropdown pemilih versi berada di bar header atas dan **selalu dapat diakses di setiap status** (baik saat laporan *completed*, *running*, maupun *failed*). Anda dapat dengan bebas berpindah antar versi kapan saja.
+- **Pemberian Nama / Deskripsi Versi (Ikon Pensil)**:
+  - Klik tombol **Ubah Deskripsi** / **Beri Deskripsi** (ikon pensil `Edit3`) di samping nomor versi untuk memberikan label ringkas secara inline (contoh: `v2 - Penambahan konteks untuk core switch`).
+  - Tekan **Enter** atau klik centang `[✓]` untuk menyimpan secara instan, atau tekan **Escape** / silang `[✕]` untuk membatalkan.
+  - Label versi ini akan otomatis muncul pada tombol pemilih versi dan seluruh riwayat dropdown.
+- **Smart Quick-Switch (Layar Gagal)**:
+  - Jika Anda membuka versi yang gagal (*failed*), sistem otomatis mendeteksi jika ada versi lain yang berhasil dibuat dan menampilkan banner bantuan: *"Versi ini gagal dibuat, namun **v2 - Core Switch** telah berhasil dibuat. `[Buka v2]`"*. Anda tidak perlu me-refresh halaman atau berpindah tab.
+- **Regenerasi & Isolasi Konteks AI (`Focus Notes`)**:
+  - Klik tombol **Regenerate** (memerlukan kapabilitas *Generate KYC*).
+  - Jika kebutuhan klien berubah (misalnya dari pengadaan WiFi/Security menjadi Server On-Premise & migrasi compute), Anda dapat memasukkan:
+    1. **Judul / Label Versi Baru** (opsional).
+    2. **Fokus / Arahan Pembaruan Versi** (opsional, misal: *"Kebutuhan beralih ke Server On-Premise, abaikan kebutuhan WiFi sebelumnya"*).
+  - AI akan memprioritaskan instruksi ini dengan tingkat tertinggi (*highest priority*) dan menerapkan isolasi ketat sehingga use case yang dihasilkan 100% relevan dengan konteks kebutuhan terbaru tanpa tercampur topik lama.
+- **Edit Manual KYC**: Klik tombol **Edit** (memerlukan kapabilitas *Create & Edit*). Pre-sales engineer dapat menyunting isi seksi laporan secara langsung jika ada temuan rapat tambahan.
 
 ### 4.4 Progres Bar Real-Time
 
 Saat KYC sedang berjalan, bilah progres interaktif ditampilkan di atas laporan. Progres menunjukkan tahapan pipeline secara real-time:
-- `pending` → `researching` → `analyzing` → `completed` (atau `failed`)
+- `received` → `fetching_web` → `fetching_industry` → `analyzing` → `completed` (atau `failed`)
 
-Jika status `failed`, pesan error akan ditampilkan. Anda dapat klik **Regenerate** untuk mencoba lagi.
+Jika status `failed`, pesan error teknis yang jelas akan ditampilkan bersama opsi retry atau tombol beralih ke versi lain yang berhasil.
 
 ---
 
