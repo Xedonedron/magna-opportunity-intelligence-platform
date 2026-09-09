@@ -491,18 +491,35 @@ type MeetingStatus = 'scheduled' | 'completed' | 'cancelled'
    - DB commit error or transaction conflict when saving output to `kyc_reports`.
    - Inconsistent state revert: pipeline fails and reverting `opportunities.status` encounters a database rollback failure.
 
+## Deployment Architecture
+
+### Frontend (Vercel)
+- **Hosting**: Deployed separately on **Vercel** (connected to the GitHub repository).
+- **Auto-Deployment**: Automatically triggers build & deployment on push to `main`.
+- **Environment**: Next.js 15 (App Router).
+- **API Connection**: Points to the backend server via `NEXT_PUBLIC_API_URL`.
+
+### Backend & Services (Docker / Self-Hosted VPS)
+- **Hosting**: Self-hosted on VPS (`root@magnasight`) via Docker Compose.
+- **Active Server Services**: `backend` (FastAPI), `celery` (worker), `postgres` (DB), `redis` (task queue).
+- **Important**: Frontend container is **not** deployed on the VPS. On the server, only build and run backend services:
+  ```bash
+  docker compose build --no-cache backend celery
+  docker compose up -d backend celery
+  ```
+
 ---
 
 ## Docker Services
 
 ### docker-compose.yml
-| Service | Image | Port | Purpose |
-|---------|-------|------|---------|
-| postgres | postgres:16-alpine | 5432 | Primary database (pgvector enabled) |
-| redis | redis:7-alpine | 6379 | Celery broker |
-| backend | Python 3.11 | 8000 | FastAPI app |
-| celery | Python 3.11 | - | Background worker |
-| frontend | Node 20 | 3001:3000 | Next.js app |
+| Service | Image | Port | Purpose | Deployment Location |
+|---------|-------|------|---------|---------------------|
+| postgres | postgres:16-alpine | 5432 | Primary database (pgvector enabled) | VPS Docker |
+| redis | redis:7-alpine | 6379 | Celery broker | VPS Docker |
+| backend | Python 3.11 | 8000 | FastAPI app | VPS Docker |
+| celery | Python 3.11 | - | Background worker | VPS Docker |
+| frontend | Node 20 | 3000 | Next.js app | **Vercel** (Production) / Docker (Local Dev only) |
 
 ---
 
