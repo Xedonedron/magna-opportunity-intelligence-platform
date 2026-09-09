@@ -19,10 +19,22 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column('kyc_reports', sa.Column('title', sa.String(length=255), nullable=True))
-    op.add_column('kyc_reports', sa.Column('focus_notes', sa.Text(), nullable=True))
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [c['name'] for c in inspector.get_columns('kyc_reports')]
+
+    if 'title' not in columns:
+        op.add_column('kyc_reports', sa.Column('title', sa.String(length=255), nullable=True))
+    if 'focus_notes' not in columns:
+        op.add_column('kyc_reports', sa.Column('focus_notes', sa.Text(), nullable=True))
 
 
 def downgrade() -> None:
-    op.drop_column('kyc_reports', 'focus_notes')
-    op.drop_column('kyc_reports', 'title')
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [c['name'] for c in inspector.get_columns('kyc_reports')]
+
+    if 'focus_notes' in columns:
+        op.drop_column('kyc_reports', 'focus_notes')
+    if 'title' in columns:
+        op.drop_column('kyc_reports', 'title')
