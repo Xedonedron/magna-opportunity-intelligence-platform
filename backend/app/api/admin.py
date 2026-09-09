@@ -12,6 +12,7 @@ from app.models.opportunity import Opportunity
 from app.models.meeting import Meeting
 from app.models.kyc_report import KYCReport
 from app.core.security import get_current_user, require_superadmin
+from app.services.audit_service import AuditService
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -88,10 +89,16 @@ def list_users(
     db: Session = Depends(get_db),
     _admin: User = Depends(require_superadmin)
 ):
-    """Retrieve all users in the system (Super Admin only)."""
+    """Retrieve all users with activity telemetry (Super Admin only)."""
     users = db.query(User).order_by(User.created_at.desc()).all()
-    return [
-        {
+    audit_service = AuditService(db)
+
+    result = []
+    for u in users:
+        summary = audit_service.get_user_activity_summary(u.id)
+        last_active = u.last_active_at or u.last_login or u.created_at
+
+        result.append({
             "id": str(u.id),
             "email": u.email,
             "full_name": u.full_name,
@@ -100,9 +107,53 @@ def list_users(
             "capabilities": u.capabilities,
             "created_at": u.created_at.isoformat() if u.created_at else None,
             "last_login": u.last_login.isoformat() if u.last_login else None,
-        }
-        for u in users
-    ]
+            "last_active_at": last_active.isoformat() if last_active else None,
+            "activity_summary": summary,
+        })
+    return result
+
+
+@router.get("/users/{user_id}/activity")
+def get_user_activity_history(
+    user_id: uuid.UUID,
+    page: int = 1,
+    page_size: int = 20,
+    category: Optional[str] = None,
+    range: Optional[str] = None,
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_superadmin),
+):
+    """Retrieve granular chronological activity log for a specific user."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    audit_service = AuditService(db)
+    activities = audit_service.get_user_detailed_activities(
+        user_id=user_id,
+        page=page,
+        page_size=page_size,
+        category=category,
+        range_filter=range,
+    )
+    summary = audit_service.get_user_activity_summary(user_id)
+    last_active = user.last_active_at or user.last_login or user.created_at
+
+    return {
+        "user": {
+            "id": str(user.id),
+            "email": user.email,
+            "full_name": user.full_name,
+            "role": user.role,
+            "is_active": user.is_active,
+            "capabilities": user.capabilities,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "last_login": user.last_login.isoformat() if user.last_login else None,
+            "last_active_at": last_active.isoformat() if last_active else None,
+        },
+        "summary": summary,
+        **activities,
+    }
 
 
 @router.patch("/users/{user_id}")
@@ -125,10 +176,35 @@ def update_user_access(
                 detail="Superadmin tidak dapat mengubah role atau menonaktifkan akun sendiri untuk mencegah lockout."
             )
 
+    old_vals = {
+        "role": user.role,
+        "capabilities": user.capabilities,
+        "is_active": user.is_active,
+    }
+
     user.role = payload.role
     user.capabilities = payload.capabilities
     if payload.is_active is not None:
         user.is_active = payload.is_active
+
+    new_vals = {
+        "role": user.role,
+        "capabilities": user.capabilities,
+        "is_active": user.is_active,
+    }
+
+    try:
+        AuditService(db).log(
+            action="user_access_update",
+            entity_type="User",
+            entity_id=user.id,
+            user_id=_admin.id,
+            old_value=old_vals,
+            new_value=new_vals,
+            extra_data={"target_email": user.email, "target_name": user.full_name},
+        )
+    except Exception:
+        pass
         
     db.commit()
     db.refresh(user)
@@ -201,6 +277,7 @@ def get_master_data(_user: User = Depends(get_current_user)):
 @router.post("/master-data")
 def update_master_data(
     payload: MasterDataPayload,
+    db: Session = Depends(get_db),
     _admin: User = Depends(require_superadmin)
 ):
     """Update master data options (Super Admin only)."""
@@ -208,6 +285,22 @@ def update_master_data(
     MASTER_DATA["presales"] = [p.strip() for p in payload.presales if p.strip()]
     if payload.document_labels is not None:
         MASTER_DATA["document_labels"] = [l.strip() for l in payload.document_labels if l.strip()]
+
+    try:
+        AuditService(db).log(
+            action="master_data_update",
+            entity_type="System",
+            entity_id=_admin.id,
+            user_id=_admin.id,
+            extra_data={
+                "industries_count": len(MASTER_DATA["industries"]),
+                "presales_count": len(MASTER_DATA["presales"]),
+            },
+        )
+        db.commit()
+    except Exception:
+        pass
+
     return {"status": "success", "master_data": MASTER_DATA}
 
 
@@ -363,6 +456,17 @@ def update_system_settings_api(
             db.add(row)
         else:
             row.value = v
+
+    try:
+        AuditService(db).log(
+            action="system_settings_update",
+            entity_type="SystemSetting",
+            entity_id=_admin.id,
+            user_id=_admin.id,
+            extra_data={"updated_keys": list(updates.keys())},
+        )
+    except Exception:
+        pass
 
     db.commit()
     return {"status": "success", "message": "System AI settings updated successfully."}

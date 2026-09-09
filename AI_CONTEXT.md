@@ -104,7 +104,8 @@
 |--------|------|-------------|---------------|
 | GET | `/metrics` | Admin system metrics | Yes (Admin) |
 | GET | `/logs` | System audit logs | Yes (Admin) |
-| GET | `/users` | List all users | Yes (Admin) |
+| GET | `/users` | List all users with telemetry (last active, monthly active days, last action) | Yes (Admin) |
+| GET | `/users/{user_id}/activity` | Granular chronological activity audit trail for specific user | Yes (Admin) |
 | PATCH | `/users/{user_id}` | Update user role and capabilities | Yes (Admin) |
 | GET | `/master-data` | Get master data options | Yes (Admin) |
 | POST | `/master-data` | Update master data options | Yes (Admin) |
@@ -140,6 +141,7 @@
 | created_at | DateTime | Creation timestamp |
 | updated_at | DateTime | Last update timestamp |
 | last_login | DateTime | Last login timestamp |
+| last_active_at | DateTime | Last user interaction / action timestamp |
 
 ### Opportunities (`opportunities`)
 | Field | Type | Description |
@@ -393,6 +395,9 @@
 - `MeetingAccordion.tsx` - Meeting list with expandable details
 - `CreateMeetingDialog.tsx` - Meeting creation modal
 - `EditMeetingDialog.tsx` - Meeting edit modal
+
+**Admin & User Management (`components/domains/admin/`):**
+- `UserActivityDrawer.tsx` - Slide-over drawer with user telemetry KPIs, filters, and granular chronological activity audit trail
 
 **Layout (`components/layout/`):**
 - `Sidebar.tsx` - Navigation sidebar with role capabilities & dynamic localization

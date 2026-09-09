@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -22,6 +22,7 @@ from app.services.auth import (
     decode_access_token,
     get_or_create_user,
 )
+from app.services.audit_service import AuditService
 
 settings = get_settings()
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -113,7 +114,7 @@ async def get_current_user(
 
 
 @router.post("/google", response_model=TokenResponse)
-async def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db)):
+async def google_login(request: GoogleLoginRequest, req: Request, db: Session = Depends(get_db)):
     """Login with Google Workspace account."""
     google_info = verify_google_token(request.credential)
     if google_info is None:
@@ -123,6 +124,13 @@ async def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db
         )
 
     user = get_or_create_user(db, google_info)
+
+    # Log audit event for login
+    client_ip = req.client.host if req.client else None
+    user_agent = req.headers.get("user-agent")
+    AuditService(db).log_user_login(user.id, ip_address=client_ip, user_agent=user_agent)
+    db.commit()
+
     access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
 
     return TokenResponse(
@@ -132,7 +140,7 @@ async def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db
 
 
 @router.post("/login", response_model=TokenResponse)
-async def username_login(request: UsernameLoginRequest, db: Session = Depends(get_db)):
+async def username_login(request: UsernameLoginRequest, req: Request, db: Session = Depends(get_db)):
     """Login with username and password (dummy auth for development)."""
     # Check if username exists in static users
     if request.username not in STATIC_USERS:
@@ -175,11 +183,19 @@ async def username_login(request: UsernameLoginRequest, db: Session = Depends(ge
             capabilities=caps,
             is_active=True,
             last_login=datetime.now(timezone.utc),
+            last_active_at=datetime.now(timezone.utc),
         )
         db.add(user)
     else:
-        # Update last login
-        user.last_login = datetime.now(timezone.utc)
+        # Update last login & active
+        now = datetime.now(timezone.utc)
+        user.last_login = now
+        user.last_active_at = now
+
+    # Log audit event for login
+    client_ip = req.client.host if req.client else None
+    user_agent = req.headers.get("user-agent")
+    AuditService(db).log_user_login(user.id, ip_address=client_ip, user_agent=user_agent)
 
     db.commit()
     db.refresh(user)

@@ -15,6 +15,7 @@ from app.schemas.meeting import (
     MeetingListResponse,
 )
 from app.tasks import create_calendar_event
+from app.services.audit_service import AuditService
 
 router = APIRouter(prefix="/api/meetings", tags=["meetings"])
 
@@ -134,6 +135,18 @@ def create_meeting(
         )
         db.add(status_timeline)
 
+    # Log to AuditService
+    try:
+        AuditService(db).log_meeting_create(
+            meeting_id=meeting.id,
+            opportunity_id=payload.opportunity_id,
+            user_id=current_user.id,
+            meeting_data={"title": payload.title, "date": payload.date.isoformat() if payload.date else None},
+            company_name=opp.company_name,
+        )
+    except Exception:
+        pass
+
     db.commit()
     db.refresh(meeting)
 
@@ -174,6 +187,18 @@ def update_meeting(
     )
     db.add(timeline)
 
+    # Log to AuditService
+    try:
+        AuditService(db).log(
+            action="meeting_update",
+            entity_type="Meeting",
+            entity_id=meeting.id,
+            user_id=current_user.id,
+            extra_data={"title": meeting.title},
+        )
+    except Exception:
+        pass
+
     db.commit()
     db.refresh(meeting)
     return meeting
@@ -206,5 +231,17 @@ def delete_meeting(
         event_type="meeting",
     )
     db.add(timeline)
+
+    # Log to AuditService
+    try:
+        AuditService(db).log(
+            action="meeting_delete",
+            entity_type="Meeting",
+            entity_id=meeting_id,
+            user_id=current_user.id,
+            extra_data={"title": title},
+        )
+    except Exception:
+        pass
 
     db.commit()

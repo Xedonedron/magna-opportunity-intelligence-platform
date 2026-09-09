@@ -18,6 +18,7 @@ from app.schemas.kyc import (
 )
 from app.core.security import get_current_user, require_capability
 from app.tasks import run_kyc_pipeline_task
+from app.services.audit_service import AuditService
 
 router = APIRouter(prefix="/api/opportunities/{opportunity_id}/kyc", tags=["kyc"])
 
@@ -135,6 +136,20 @@ async def regenerate_kyc_report(
         event_type="system",
     )
     db.add(timeline_event)
+
+    # Log to AuditService
+    try:
+        AuditService(db).log_kyc_create(
+            kyc_report_id=report.id,
+            opportunity_id=opportunity.id,
+            user_id=current_user.id,
+            version=next_version,
+            source_type=source_type,
+            company_name=opportunity.company_name,
+        )
+    except Exception:
+        pass
+
     db.commit()
     db.refresh(report)
 
@@ -159,7 +174,7 @@ async def update_kyc_report(
 
     Updates the report and marks source_type as 'engineer_edited'.
     """
-    _get_opportunity_or_404(db, opportunity_id)
+    opp = _get_opportunity_or_404(db, opportunity_id)
 
     report = (
         db.query(KYCReport)
@@ -187,6 +202,19 @@ async def update_kyc_report(
         event_type="update",
     )
     db.add(timeline_event)
+
+    # Log to AuditService
+    try:
+        AuditService(db).log_kyc_edit(
+            kyc_report_id=report.id,
+            user_id=current_user.id,
+            old_value={},
+            new_value=update_data,
+            company_name=opp.company_name,
+        )
+    except Exception:
+        pass
+
     db.commit()
     db.refresh(report)
 

@@ -44,6 +44,10 @@ def _log_timeline(
     action: str,
     description: str | None = None,
     event_type: str = "system",
+    company_name: str | None = None,
+    old_value: dict | None = None,
+    new_value: dict | None = None,
+    extra_data: dict | None = None,
 ) -> None:
     event = TimelineEvent(
         opportunity_id=opportunity_id,
@@ -54,6 +58,44 @@ def _log_timeline(
         event_type=event_type,
     )
     db.add(event)
+
+    # Sync with system-wide AuditLog for user telemetry
+    try:
+        from app.services.audit_service import AuditService
+        audit_action = "opportunity_update"
+        act_lower = action.lower()
+        if event_type == "create" or "created" in act_lower:
+            audit_action = "opportunity_create"
+        elif event_type == "status_change" or "status" in act_lower:
+            audit_action = "status_change"
+        elif "document added" in act_lower:
+            audit_action = "document_upload"
+        elif "document deleted" in act_lower:
+            audit_action = "document_delete"
+
+        combined_extra = {"description": description, "event_type": event_type}
+        if company_name:
+            combined_extra["company_name"] = company_name
+        else:
+            # Query company_name if not passed
+            opp = db.query(Opportunity.company_name).filter(Opportunity.id == opportunity_id).first()
+            if opp and opp[0]:
+                combined_extra["company_name"] = opp[0]
+
+        if extra_data:
+            combined_extra.update(extra_data)
+
+        AuditService(db).log(
+            action=audit_action,
+            entity_type="Opportunity",
+            entity_id=opportunity_id,
+            user_id=actor.id,
+            old_value=old_value,
+            new_value=new_value,
+            extra_data=combined_extra,
+        )
+    except Exception:
+        pass
 
 
 @router.get("", response_model=OpportunityListResponse)
@@ -316,7 +358,21 @@ async def delete_opportunity(
     if opportunity is None:
         raise HTTPException(status_code=404, detail="Opportunity not found")
 
+    company_name = opportunity.company_name
     db.delete(opportunity)
+
+    try:
+        from app.services.audit_service import AuditService
+        AuditService(db).log(
+            action="opportunity_delete",
+            entity_type="Opportunity",
+            entity_id=opportunity_id,
+            user_id=current_user.id,
+            extra_data={"company_name": company_name},
+        )
+    except Exception:
+        pass
+
     db.commit()
 
 

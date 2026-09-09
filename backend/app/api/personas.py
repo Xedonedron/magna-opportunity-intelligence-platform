@@ -161,6 +161,24 @@ async def generate_or_get_persona(
         event_type="update",
     )
     db.add(timeline)
+
+    # Log to AuditService for user telemetry
+    try:
+        from app.services.audit_service import AuditService
+        AuditService(db).log(
+            action="persona_generate",
+            entity_type="OpportunityPersona",
+            entity_id=persona_record.id,
+            user_id=current_user.id,
+            extra_data={
+                "seniority": payload.seniority,
+                "department": payload.department,
+                "company_name": opp.company_name,
+            },
+        )
+    except Exception:
+        pass
+
     db.commit()
     db.refresh(persona_record)
 

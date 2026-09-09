@@ -21,6 +21,7 @@ class UserResponse(UserBase):
     capabilities: str | None = None
     created_at: datetime
     last_login: datetime | None = None
+    last_active_at: datetime | None = None
 
     class Config:
         from_attributes = True

@@ -52,7 +52,7 @@ class AuditLog(Base):
     )
 
     # Relationships
-    user: Mapped["User | None"] = relationship("User", lazy="selectin")
+    user: Mapped["User | None"] = relationship("User", back_populates="audit_logs", lazy="selectin")
 
     # Indexes for common queries
     __table_args__ = (

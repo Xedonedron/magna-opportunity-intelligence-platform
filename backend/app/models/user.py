@@ -27,9 +27,11 @@ class User(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
     last_login: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_active_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
 
     # Relationships
     notifications = relationship("Notification", back_populates="user", lazy="selectin")
+    audit_logs = relationship("AuditLog", back_populates="user", lazy="select")
 
     def __repr__(self) -> str:
         return f"<User {self.email} ({self.role})>"

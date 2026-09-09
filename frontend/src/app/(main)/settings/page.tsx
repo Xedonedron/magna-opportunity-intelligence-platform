@@ -20,12 +20,17 @@ import {
     Plus,
     Trash2,
     X,
+    History,
+    Clock,
+    Calendar,
+    Activity,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { api } from "@/lib/api";
 import { fetchMasterData, updateMasterData, getMasterIndustries, getMasterPresales } from "@/lib/master-data";
+import { UserActivityDrawer, formatRelativeTime } from "@/components/domains/admin/UserActivityDrawer";
 
 const tabs = [
     { id: "profile", label: "User Profile", icon: User },
@@ -74,6 +79,13 @@ export default function SettingsPage() {
     const [editingUserId, setEditingUserId] = useState<string | null>(null);
     const [editDraft, setEditDraft] = useState<{ role: string; capabilities: string; is_active: boolean } | null>(null);
     const [savingUserId, setSavingUserId] = useState<string | null>(null);
+    const [selectedUserForActivity, setSelectedUserForActivity] = useState<any | null>(null);
+    const [isActivityDrawerOpen, setIsActivityDrawerOpen] = useState(false);
+
+    const handleViewActivity = (u: any) => {
+        setSelectedUserForActivity(u);
+        setIsActivityDrawerOpen(true);
+    };
 
     // Master Data State
     const [masterIndustries, setMasterIndustries] = useState<string[]>([]);
@@ -1240,36 +1252,68 @@ export default function SettingsPage() {
                                         ? (draft!.capabilities || "").split(",").map((c) => c.trim()).filter(Boolean)
                                         : (u.capabilities || "").split(",").map((c: string) => c.trim()).filter(Boolean);
 
+                                    const summary = u.activity_summary;
+                                    const daysActiveMonth = summary?.days_active_this_month ?? 0;
+                                    const actionsMonth = summary?.actions_count_this_month ?? 0;
+                                    const lastAction = summary?.last_action;
+                                    const lastActive = u.last_active_at || u.last_login;
+
                                     return (
-                                        <Card key={u.id} className={`p-4 border ${isEditing ? "border-zinc-900 bg-white shadow-md" : "border-zinc-200 bg-white"}  transition-all`}>
+                                        <Card key={u.id} className={`p-4 border ${isEditing ? "border-zinc-900 bg-white shadow-md" : "border-zinc-200 bg-white"} transition-all space-y-3`}>
                                             <div className="flex items-start justify-between gap-4">
                                                 <div className="flex items-center gap-3 min-w-0">
-                                                    <div className="w-9 h-9 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center shrink-0">
-                                                        <User className="w-4 h-4 text-zinc-500" />
+                                                    <div className="relative shrink-0">
+                                                        <div className="w-10 h-10 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center font-bold text-zinc-700">
+                                                            {u.full_name ? u.full_name.charAt(0).toUpperCase() : <User className="w-4 h-4 text-zinc-500" />}
+                                                        </div>
+                                                        <span
+                                                            className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
+                                                                !u.is_active ? "bg-zinc-300" : (daysActiveMonth > 0 ? "bg-emerald-500" : "bg-zinc-400")
+                                                            }`}
+                                                            title={u.is_active ? "Akun Aktif" : "Akun Nonaktif"}
+                                                        />
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <p className="text-sm font-semibold text-zinc-900 truncate">{u.full_name}</p>
-                                                        <p className="text-xs text-zinc-400 truncate">{u.email}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2 shrink-0">
-                                                    {!isEditing ? (
-                                                        <>
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <p className="text-sm font-semibold text-zinc-900 truncate">{u.full_name}</p>
                                                             <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${u.role === "superadmin" ? "bg-violet-50 text-violet-700 border-violet-200" :
                                                                 u.role === "manager" ? "bg-blue-50 text-blue-700 border-blue-200" :
                                                                     "bg-zinc-100 text-zinc-600 border-zinc-200"
                                                                 }`}>{u.role}</span>
+                                                            {isSelf && <span className="text-[10px] text-zinc-400 italic">(Anda)</span>}
+                                                        </div>
+                                                        <p className="text-xs text-zinc-400 truncate">{u.email}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        className="text-xs gap-1.5 h-8 text-zinc-700 hover:text-zinc-900 border-zinc-200"
+                                                        onClick={() => handleViewActivity(u)}
+                                                        title="Lihat riwayat aktivitas detail pengguna ini"
+                                                    >
+                                                        <History className="w-3.5 h-3.5 text-zinc-500" />
+                                                        <span className="hidden sm:inline">Riwayat Aktivitas</span>
+                                                        <span className="sm:hidden">Riwayat</span>
+                                                    </Button>
+
+                                                    {!isEditing ? (
+                                                        <>
                                                             {!isSelf && (
-                                                                <Button size="sm" variant="secondary" className="text-xs" onClick={() => startEditing(u)}>Edit Access</Button>
+                                                                <Button size="sm" variant="secondary" className="text-xs h-8" onClick={() => startEditing(u)}>
+                                                                    Edit Access
+                                                                </Button>
                                                             )}
-                                                            {isSelf && <span className="text-[10px] text-zinc-400 italic">You</span>}
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <Button size="sm" variant="secondary" onClick={cancelEditing} className="text-xs">Cancel</Button>
+                                                            <Button size="sm" variant="secondary" onClick={cancelEditing} className="text-xs h-8">
+                                                                Cancel
+                                                            </Button>
                                                             <Button
                                                                 size="sm"
-                                                                className="text-xs gap-1.5"
+                                                                className="text-xs gap-1.5 h-8"
                                                                 onClick={() => handleSaveUser(u.id)}
                                                                 disabled={savingUserId === u.id}
                                                             >
@@ -1277,6 +1321,33 @@ export default function SettingsPage() {
                                                                 Save
                                                             </Button>
                                                         </>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Telemetry Summary Strip */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
+                                                {/* Last active & Monthly active days */}
+                                                <div className="flex items-center gap-2 text-xs text-zinc-600 bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-100">
+                                                    <Clock className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                                                    <span className="text-zinc-500">Terakhir aktif:</span>
+                                                    <strong className="text-zinc-900 font-semibold">{formatRelativeTime(lastActive)}</strong>
+                                                    <span className="text-zinc-300">|</span>
+                                                    <Calendar className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                                                    <span className="font-semibold text-purple-700">{daysActiveMonth} hari aktif</span>
+                                                    <span className="text-zinc-400 font-normal">({actionsMonth} aksi)</span>
+                                                </div>
+
+                                                {/* Last Action Description */}
+                                                <div className="flex items-center gap-2 text-xs text-zinc-600 bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-100 min-w-0">
+                                                    <Activity className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                                    <span className="text-zinc-500 shrink-0">Aksi terakhir:</span>
+                                                    {lastAction ? (
+                                                        <span className="truncate text-zinc-800 font-medium" title={lastAction.description}>
+                                                            {lastAction.description}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-zinc-400 italic">Belum ada aktivitas</span>
                                                     )}
                                                 </div>
                                             </div>
@@ -1343,12 +1414,14 @@ export default function SettingsPage() {
 
                                             {/* Readonly capability summary */}
                                             {!isEditing && (
-                                                <div className="mt-3 flex flex-wrap gap-1.5">
-                                                    {caps.map((c: string) => (
-                                                        <span key={c} className="text-[10px] bg-zinc-100 text-zinc-500 px-2 py-0.5 rounded-full font-medium border border-zinc-200">
-                                                            {CAP_LABELS[c] || c}
-                                                        </span>
-                                                    ))}
+                                                <div className="pt-2 border-t border-zinc-100 flex flex-wrap items-center justify-between gap-2">
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {caps.map((c: string) => (
+                                                            <span key={c} className="text-[10px] bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-full font-medium border border-zinc-200">
+                                                                {CAP_LABELS[c] || c}
+                                                            </span>
+                                                        ))}
+                                                    </div>
                                                     {!u.is_active && (
                                                         <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium border border-red-200">Nonaktif</span>
                                                     )}
@@ -1466,6 +1539,13 @@ export default function SettingsPage() {
                     </div>
                 )}
             </div>
+
+            {/* User Detailed Activity History Drawer */}
+            <UserActivityDrawer
+                user={selectedUserForActivity}
+                isOpen={isActivityDrawerOpen}
+                onClose={() => setIsActivityDrawerOpen(false)}
+            />
         </div>
     );
 }
