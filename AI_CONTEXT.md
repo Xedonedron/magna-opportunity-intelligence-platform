@@ -137,13 +137,17 @@
 | PATCH | `/users/{user_id}` | Update user role and capabilities | Yes (Admin) |
 | GET | `/master-data` | Get master data options | Yes (Admin) |
 | POST | `/master-data` | Update master data options | Yes (Admin) |
-| GET | `/settings` | Get system settings (search provider, LLM models, API keys) | Yes (Superadmin) |
-| PATCH | `/settings` | Update system settings | Yes (Superadmin) |
-| POST | `/settings/test-connection` | Test LLM API key connectivity and model validity | Yes (Superadmin) |
-| GET | `/ai/metrics` | AI Token usage summary, costs (USD/IDR), 14-day trend & distribution | Yes (Superadmin) |
-| GET | `/ai/usage/by-opportunity` | Aggregated AI token & cost breakdown per opportunity | Yes (Superadmin) |
-| GET | `/ai/usage/by-user` | Aggregated AI token & cost breakdown per user (abuse prevention) | Yes (Superadmin) |
-| GET | `/ai/assistant-queries` | Transparent audit log of user prompts and AI Assistant queries | Yes (Superadmin) |
+| GET | `/settings` | Get system settings (search provider, LLM models, API keys) | Yes (Admin) |
+| PATCH | `/settings` | Update system settings | Yes (Admin) |
+| POST | `/settings/test-connection` | Test LLM API key connectivity and model validity | Yes (Admin) |
+| GET | `/ai/metrics` | AI Token usage summary, costs (USD/IDR), 14-day trend & distribution | Yes (Admin) |
+| GET | `/ai/usage/by-opportunity` | Aggregated AI token & cost breakdown per opportunity | Yes (Admin) |
+| GET | `/ai/usage/by-user` | Aggregated AI token & cost breakdown per user (abuse prevention) | Yes (Admin) |
+| GET | `/ai/assistant-queries` | Transparent audit log of user prompts and AI Assistant queries | Yes (Admin) |
+| GET | `/solutions` | List master solutions catalog with filters (pillar, search, tier, is_active) | Yes |
+| POST | `/solutions` | Create new solution in master catalog | Yes (Admin) |
+| PUT | `/solutions/{solution_id}` | Update existing solution in master catalog | Yes (Admin) |
+| DELETE | `/solutions/{solution_id}` | Delete solution from master catalog | Yes (Admin) |
 
 ### Dashboard (`/api/dashboard`)
 | Method | Path | Description | Auth Required |
@@ -167,7 +171,7 @@
 | email | String(255) | Unique email |
 | full_name | String(255) | Full name |
 | avatar_url | String(500) | Profile picture URL |
-| role | String(50) | superadmin, admin, lead_gen, managerial, engineer, presales, viewer |
+| role | String(50) | admin, lead_gen, managerial, engineer, presales, viewer |
 | capabilities | String(255) | Comma-separated permissions (e.g. view,create_edit,delete,generate_kyc,user_management) |
 | is_active | Boolean | Active status |
 | google_id | String(255) | Google OAuth ID |
@@ -362,9 +366,34 @@
 | new_value | JSONB | New value |
 | created_at | DateTime | Creation timestamp |
 
+### Master Solutions (`master_solutions`)
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| slug | String(150) | Unique slug identifier |
+| title | String(255) | Title / solution name |
+| pillar | String(100) | Solution pillar category |
+| tier | Integer | Tier (1 = Core Product/Case Study, 2 = Niche Concept/Framework) |
+| primary_products | JSONB / ARRAY | Core products (e.g. BigQuery, GKE, Palo Alto, CrowdStrike) |
+| all_products | JSONB / ARRAY | All products involved |
+| target_industries | JSONB / ARRAY | Targeted industry verticals |
+| key_subheadings | JSONB / ARRAY | Architectural components & technical structure |
+| pain_points | JSONB / ARRAY | Client challenges resolved |
+| business_impact | Text | Quantifiable business impact or case study outcome |
+| summary_snippet | Text | Brief technical summary |
+| source_url | String(500) | URL reference to original article / whitepaper |
+| is_active | Boolean | Active status for AI prompt grounding & UI |
+| created_at | DateTime | Creation timestamp |
+| updated_at | DateTime | Last update timestamp |
+
 ---
 
 ## Backend Services
+
+### Solutions Catalog Engine (`backend/app/core/solutions_catalog.py`)
+- Centralized knowledge grounding provider for PT Smartnet Magna Global offerings.
+- Dynamically queries active solutions from the `master_solutions` database table (with automatic fallback to curated JSON and in-memory presets).
+- Generates categorized system prompt context for KYC pipeline analysis and Opportunity AI Pre-Sales Chat.
 
 ### KYC Pipeline Service (`backend/app/services/kyc_pipeline.py`)
 **Architecture**: LangGraph 2-node StateGraph (`research_node` → `analysis_node`)
@@ -506,6 +535,7 @@
 **Admin & User Management (`components/domains/admin/`):**
 - `UserActivityDrawer.tsx` - Slide-over drawer with user telemetry KPIs, filters, and granular chronological activity audit trail
 - `AITokenMonitoringTab.tsx` - AI token usage monitoring dashboard with charts and cost tracking
+- `SolutionsCatalogTab.tsx` - Master Solutions Catalog management UI with pillar filters, tier switcher, search, and dynamic CRUD modal
 
 **Notifications (`components/domains/notifications/`):**
 - `NotificationDropdown.tsx` - Notification dropdown in top nav
@@ -535,8 +565,9 @@
 
 ### Modular API & Hooks
 - `src/lib/api.ts` — Axios instance (`api`) with Bearer Token interceptor & `meetingApi`
-- `src/lib/api/dashboard.ts` — Dashboard metrics API helper (`getDashboardMetrics`)
+-`src/lib/api/dashboard.ts` — Dashboard metrics API helper (`getDashboardMetrics`)
 - `src/lib/api/personas.ts` — Persona API client (`personaApi`)
+- `src/lib/api/solutions.ts` — Master Solutions Catalog API client (`solutionsApi`)
 - `src/lib/master-data.ts` — Admin master data API client
 - `src/lib/clipboard-formatters.ts` — Clipboard copy formatters
 - `src/lib/error-utils.ts` — Standardized error message extraction (`handleApiError`)
@@ -554,7 +585,7 @@
 ### Core Types
 ```typescript
 // User roles
-type UserRole = 'superadmin' | 'admin' | 'lead_gen' | 'managerial' | 'engineer' | 'presales' | 'viewer'
+type UserRole = 'admin' | 'lead_gen' | 'managerial' | 'engineer' | 'presales' | 'viewer'
 
 // Opportunity status (Title Case)
 type OpportunityStatus = 'New' | 'KYC Running' | 'Ready Meeting' | 'Meeting Scheduled' | 
@@ -650,10 +681,13 @@ type MeetingStatus = 'scheduled' | 'completed' | 'cancelled'
 ## Key Files Reference
 
 ### Backend Entry Points
-- `backend/app/main.py` - FastAPI app initialization, middleware setup, CORS, router inclusions
-- `backend/app/core/config.py` - Configuration management
-- `backend/app/core/database.py` - DB Session & Base model setup
-- `backend/app/tasks.py` - Celery background tasks definition
+- `backend/app/main.py` — FastAPI app initialization, middleware setup (CORS, ErrorHandler), router inclusions
+- `backend/app/core/config.py` — Configuration management
+- `backend/app/core/database.py` — DB Session & Base model setup
+- `backend/app/core/llm.py` — Unified LLM Factory (`get_chat_llm`) — dual-provider (Google/OpenAI), runtime switchable via `system_settings`
+- `backend/app/core/celery_app.py` — Celery app configuration with Redis broker
+- `backend/app/core/security.py` — JWT auth, `get_current_user`, `require_admin`, capability-based auth
+- `backend/app/tasks.py` — Celery background tasks definition
 
 ### Frontend Entry Points
 - `frontend/src/app/layout.tsx` - Root layout with QueryClientProvider
@@ -665,7 +699,7 @@ type MeetingStatus = 'scheduled' | 'completed' | 'cancelled'
 ## Authentication Flow
 
 1. User opens app and navigates to `/login`
-2. User logs in via Google Workspace OAuth or Dev Username/Password (e.g. `superadmin`, `admin`, `engineer`)
+2. User logs in via Google Workspace OAuth or Dev Username/Password (e.g. `admin`, `engineer`)
 3. Backend verifies credentials (`POST /api/auth/google` or `POST /api/auth/login`)
 4. Backend generates JWT session token
 5. Frontend stores token in `localStorage.setItem("moip_token", token)` and redirects to `/opportunities` or `/dashboard`
@@ -673,4 +707,4 @@ type MeetingStatus = 'scheduled' | 'completed' | 'cancelled'
 
 ---
 
-*Last updated: 2026-08-01*
+*Last updated: 2026-09-09*
