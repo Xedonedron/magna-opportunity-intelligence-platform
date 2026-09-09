@@ -195,6 +195,7 @@ Teks yang Anda isi di field ini akan disertakan langsung ke dalam **prompt instr
 | **Meeting Scheduled** | Jadwal rapat awal telah dikonfirmasi. | Setelah jadwal rapat dikonfirmasi oleh klien. |
 | **Meeting Done** | Rapat perdana selesai dilaksanakan. | Setelah rapat awal selesai dan hasilnya dicatat. |
 | **Need Proposal** | Klien membutuhkan proposal teknis. | Jika hasil rapat menyimpulkan perlunya rancangan solusi formal. |
+| **POC** | Uji coba konsep (Proof of Concept) sedang berjalan. | Jika klien memerlukan validasi teknis/demo implementasi sebelum komersial. |
 | **Negotiation** | Proposal sedang ditinjau/dinegosiasikan. | Saat penawaran harga sudah dikirim ke klien. |
 | **PO** | Klien menerbitkan Purchase Order. | Saat dokumen PO resmi diterima. |
 | **Won** | Kontrak ditandatangani, peluang berhasil dimenangkan. | Untuk menutup peluang dengan kemenangan. |

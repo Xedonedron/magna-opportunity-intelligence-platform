@@ -173,11 +173,12 @@
 4. `Meeting Scheduled` - Meeting scheduled
 5. `Meeting Done` - Meeting completed
 6. `Need Proposal` - Proposal requested
-7. `Negotiation` - Commercial negotiation
-8. `PO` - Purchase Order received
-9. `Won` - Deal won
-10. `Lost` - Deal lost
-11. `On Hold` - On hold
+7. `POC` - Proof of Concept / technical validation in progress
+8. `Negotiation` - Commercial negotiation
+9. `PO` - Purchase Order received
+10. `Won` - Deal won
+11. `Lost` - Deal lost
+12. `On Hold` - On hold
 
 ### Opportunity Personas (`opportunity_personas`)
 | Field | Type | Description |
@@ -447,7 +448,7 @@ type UserRole = 'superadmin' | 'admin' | 'lead_gen' | 'managerial' | 'engineer' 
 
 // Opportunity status (Title Case)
 type OpportunityStatus = 'New' | 'KYC Running' | 'Ready Meeting' | 'Meeting Scheduled' | 
-  'Meeting Done' | 'Need Proposal' | 'Negotiation' | 'PO' | 'Won' | 'Lost' | 'On Hold'
+  'Meeting Done' | 'Need Proposal' | 'POC' | 'Negotiation' | 'PO' | 'Won' | 'Lost' | 'On Hold'
 
 // Meeting status
 type MeetingStatus = 'scheduled' | 'completed' | 'cancelled'

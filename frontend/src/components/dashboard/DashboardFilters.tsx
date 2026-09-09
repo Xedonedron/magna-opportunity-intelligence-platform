@@ -18,6 +18,7 @@ const STATUS_OPTIONS = [
     "Meeting Scheduled",
     "Meeting Done",
     "Need Proposal",
+    "POC",
     "Negotiation",
     "PO",
     "Won",

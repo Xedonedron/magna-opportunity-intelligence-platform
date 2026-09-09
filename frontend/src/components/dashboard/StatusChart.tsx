@@ -22,6 +22,7 @@ const STATUS_COLORS: Record<string, string> = {
     "Meeting Scheduled": "#06b6d4",
     "Meeting Done": "#64748b",
     "Need Proposal": "#eab308",
+    POC: "#6366f1",
     Negotiation: "#ec4899",
     PO: "#22c55e",
     Won: "#10b981",

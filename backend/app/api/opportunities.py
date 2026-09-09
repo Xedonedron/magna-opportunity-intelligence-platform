@@ -32,7 +32,7 @@ router = APIRouter(prefix="/api/opportunities", tags=["opportunities"])
 
 VALID_STATUSES = [
     "New", "KYC Running", "Ready Meeting", "Meeting Scheduled",
-    "Meeting Done", "Need Proposal", "Negotiation", "PO",
+    "Meeting Done", "Need Proposal", "POC", "Negotiation", "PO",
     "Won", "Lost", "On Hold",
 ]
 

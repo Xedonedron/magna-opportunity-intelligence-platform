@@ -33,7 +33,7 @@ export function KanbanBoard({
         setItems(opportunities);
     }, [opportunities]);
 
-    // Active status columns to display (either filtered or all 11 statuses)
+    // Active status columns to display (either filtered or all 12 statuses)
     const columnsToDisplay = statusFilter
         ? ALL_STATUSES.filter((s) => s === statusFilter)
         : ALL_STATUSES;

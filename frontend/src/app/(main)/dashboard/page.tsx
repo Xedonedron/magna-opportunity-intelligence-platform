@@ -20,6 +20,7 @@ const statusStyles: Record<string, string> = {
     "Meeting Scheduled": "bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 ring-cyan-600/20 dark:ring-cyan-500/30",
     "Meeting Done": "bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 ring-slate-600/20 dark:ring-slate-500/30",
     "Need Proposal": "bg-yellow-50 dark:bg-yellow-950/60 text-yellow-800 dark:text-yellow-300 ring-yellow-600/20 dark:ring-yellow-500/30",
+    POC: "bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 ring-violet-600/20 dark:ring-violet-500/30",
     Negotiation: "bg-pink-50 dark:bg-pink-950/60 text-pink-700 dark:text-pink-300 ring-pink-600/20 dark:ring-pink-500/30",
     PO: "bg-green-50 dark:bg-green-950/60 text-green-700 dark:text-green-300 ring-green-600/20 dark:ring-green-500/30",
     Won: "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 ring-emerald-600/20 dark:ring-emerald-500/30",

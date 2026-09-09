@@ -75,6 +75,7 @@ export const id: Translations = {
         "Meeting Scheduled": "Rapat Terjadwal",
         "Meeting Done": "Rapat Selesai",
         "Need Proposal": "Butuh Proposal",
+        POC: "POC",
         Negotiation: "Negosiasi",
         PO: "PO",
         Won: "Menang",

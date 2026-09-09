@@ -75,6 +75,7 @@ export const en = {
         "Meeting Scheduled": "Meeting Scheduled",
         "Meeting Done": "Meeting Done",
         "Need Proposal": "Need Proposal",
+        POC: "POC",
         Negotiation: "Negotiation",
         PO: "PO",
         Won: "Won",

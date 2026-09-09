@@ -5,6 +5,7 @@ export type OpportunityStatus =
     | "Meeting Scheduled"
     | "Meeting Done"
     | "Need Proposal"
+    | "POC"
     | "Negotiation"
     | "PO"
     | "Won"
@@ -135,6 +136,7 @@ export const STATUS_STYLES: Record<OpportunityStatus, string> = {
     "Meeting Scheduled": "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 ring-indigo-600/20 dark:ring-indigo-500/30",
     "Meeting Done": "bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 ring-teal-600/20 dark:ring-teal-500/30",
     "Need Proposal": "bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 ring-purple-600/20 dark:ring-purple-500/30",
+    POC: "bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 ring-violet-600/20 dark:ring-violet-500/30",
     Negotiation: "bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 ring-amber-600/20 dark:ring-amber-500/30",
     PO: "bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 ring-cyan-600/20 dark:ring-cyan-500/30",
     Won: "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 ring-emerald-600/20 dark:ring-emerald-500/30",
@@ -149,6 +151,7 @@ export const ALL_STATUSES: OpportunityStatus[] = [
     "Meeting Scheduled",
     "Meeting Done",
     "Need Proposal",
+    "POC",
     "Negotiation",
     "PO",
     "Won",

@@ -256,6 +256,22 @@ class TestOpportunityUpdate:
         data = response.json()
         assert data["status"] == "KYC Running"
 
+    def test_update_opportunity_status_poc(
+        self,
+        client: TestClient,
+        auth_headers: dict[str, str],
+        test_opportunity: Opportunity,
+    ):
+        """Should update opportunity status to POC."""
+        response = client.patch(
+            f"/api/opportunities/{test_opportunity.id}",
+            headers=auth_headers,
+            json={"status": "POC"},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "POC"
+
     def test_update_opportunity_invalid_status(
         self,
         client: TestClient,

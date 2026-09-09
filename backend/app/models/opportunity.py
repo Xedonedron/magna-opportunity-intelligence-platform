@@ -31,7 +31,7 @@ class Opportunity(Base):
     )
     status: Mapped[str] = mapped_column(String(50), default="New", nullable=False)
     # Status: New, KYC Running, Ready Meeting, Meeting Scheduled, Meeting Done,
-    #         Need Proposal, Negotiation, PO, Won, Lost, On Hold
+    #         Need Proposal, POC, Negotiation, PO, Won, Lost, On Hold
     meeting_schedule: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
