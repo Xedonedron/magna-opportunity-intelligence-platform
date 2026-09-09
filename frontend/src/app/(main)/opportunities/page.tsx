@@ -71,7 +71,7 @@ export default function OpportunitiesPage() {
     const deleteMutation = useDeleteOpportunity();
 
     // In Kanban mode, fetch a larger batch so all status columns are populated
-    const { data, isLoading } = useOpportunities({
+    const { data, isLoading, isPlaceholderData } = useOpportunities({
         page: viewMode === "kanban" ? 1 : page,
         page_size: viewMode === "kanban" ? 100 : 20,
         search: search || undefined,
@@ -233,8 +233,8 @@ export default function OpportunitiesPage() {
 
                 {/* Main Content Area */}
                 {viewMode === "kanban" ? (
-                    <div className="p-4 bg-zinc-100/40 rounded-b-xl min-h-[500px]">
-                        {isLoading ? (
+                    <div className={`p-4 bg-zinc-100/40 rounded-b-xl min-h-[500px] transition-opacity duration-150 ${isPlaceholderData ? "opacity-70" : "opacity-100"}`}>
+                        {isLoading && !data ? (
                             <div className="p-12 text-center text-zinc-400 text-sm animate-pulse">
                                 Loading Kanban Board...
                             </div>
@@ -256,8 +256,8 @@ export default function OpportunitiesPage() {
                 ) : (
                     <>
                         {/* Mobile Card List View (visible on < md) */}
-                        <div className="block md:hidden space-y-3 p-4">
-                            {isLoading ? (
+                        <div className={`block md:hidden space-y-3 p-4 transition-opacity duration-150 ${isPlaceholderData ? "opacity-70" : "opacity-100"}`}>
+                            {isLoading && !data ? (
                                 Array.from({ length: 3 }).map((_, i) => (
                                     <div key={i} className="p-4 border border-zinc-200 rounded-xl bg-white space-y-3 animate-pulse">
                                         <div className="h-5 bg-zinc-200 rounded w-1/2" />
@@ -315,7 +315,7 @@ export default function OpportunitiesPage() {
                         </div>
 
                         {/* Desktop Table (visible on >= md) */}
-                        <div className="hidden md:block overflow-x-auto">
+                        <div className={`hidden md:block overflow-x-auto transition-opacity duration-150 ${isPlaceholderData ? "opacity-70" : "opacity-100"}`}>
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-zinc-500 uppercase bg-zinc-50 border-b border-zinc-200">
                                     <tr>
@@ -330,7 +330,7 @@ export default function OpportunitiesPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-zinc-100">
-                                    {isLoading ? (
+                                    {isLoading && !data ? (
                                         Array.from({ length: 5 }).map((_, i) => (
                                             <tr key={i}>
                                                 <td colSpan={8} className="px-6 py-4">

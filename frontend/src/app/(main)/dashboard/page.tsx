@@ -30,12 +30,17 @@ const statusStyles: Record<string, string> = {
 export default function DashboardPage() {
     const [metrics, setMetrics] = useState<Metrics | null>(null);
     const [filters, setFilters] = useState<Filters>({});
-    const [loading, setLoading] = useState(true);
+    const [initialLoading, setInitialLoading] = useState(true);
+    const [isUpdating, setIsUpdating] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         async function fetchMetrics() {
-            setLoading(true);
+            if (!metrics) {
+                setInitialLoading(true);
+            } else {
+                setIsUpdating(true);
+            }
             setError(null);
             try {
                 const data = await getDashboardMetrics(filters);
@@ -44,7 +49,8 @@ export default function DashboardPage() {
                 setError("Failed to load dashboard data");
                 console.error(err);
             } finally {
-                setLoading(false);
+                setInitialLoading(false);
+                setIsUpdating(false);
             }
         }
         fetchMetrics();
@@ -72,7 +78,7 @@ export default function DashboardPage() {
         }
     };
 
-    if (loading) {
+    if (initialLoading && !metrics) {
         return (
             <div className="p-4 sm:p-8 max-w-7xl mx-auto">
                 <div className="animate-pulse space-y-8">
@@ -117,7 +123,8 @@ export default function DashboardPage() {
                 currentFilters={filters}
             />
 
-            {activeEngineer && (
+            <div className={`space-y-6 sm:space-y-8 transition-opacity duration-150 ${isUpdating ? "opacity-75" : "opacity-100"}`}>
+                {activeEngineer && (
                 <div className="flex items-center justify-between bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-lg px-4 py-2 text-sm text-blue-900 dark:text-blue-200 animate-in fade-in duration-200">
                     <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-zinc-600 dark:text-zinc-400">Menampilkan analitik khusus Pre-Sales:</span>
@@ -332,6 +339,7 @@ export default function DashboardPage() {
                         </div>
                     </Card>
                 </div>
+            </div>
             </div>
         </div>
     );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type {
     Opportunity,
@@ -29,6 +29,7 @@ export function useOpportunities(params?: {
             });
             return data;
         },
+        placeholderData: keepPreviousData,
     });
 }
 
