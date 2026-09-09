@@ -40,6 +40,8 @@ export interface KYCReport {
     id: string;
     opportunity_id: string;
     version: number;
+    title?: string;
+    focus_notes?: string;
     status: 'running' | 'completed' | 'failed';
     source_type: 'automatic' | 'manual_regenerate' | 'engineer_edited';
     progress_step?: string;
@@ -69,4 +71,6 @@ export interface KYCReportListResponse {
 
 export interface KYCRegenerateRequest {
     source_type?: string;
+    title?: string;
+    focus_notes?: string;
 }

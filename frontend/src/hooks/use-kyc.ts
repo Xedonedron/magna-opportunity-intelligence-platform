@@ -36,6 +36,11 @@ export function useKYCVersions(opportunityId: string) {
             return response.data;
         },
         enabled: !!opportunityId,
+        refetchInterval: (query) => {
+            // Auto-refresh while any version is running
+            const hasRunning = query.state.data?.items.some((item) => item.status === 'running');
+            return hasRunning ? 1500 : false;
+        },
     });
 }
 

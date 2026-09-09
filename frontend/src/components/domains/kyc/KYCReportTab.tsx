@@ -20,6 +20,7 @@ import {
     Clock,
     Copy,
     Check,
+    Sparkles,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -52,6 +53,10 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
     const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
     const [editingReport, setEditingReport] = useState<KYCReport | null>(null);
     const [showConfirmRegenerate, setShowConfirmRegenerate] = useState(false);
+    const [regenerateTitle, setRegenerateTitle] = useState("");
+    const [regenerateFocus, setRegenerateFocus] = useState("");
+    const [isEditingTitle, setIsEditingTitle] = useState(false);
+    const [titleInput, setTitleInput] = useState("");
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
     const [isCopied, setIsCopied] = useState(false);
@@ -75,6 +80,14 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
     const report = selectedReportId
         ? versionsData?.items.find((r) => r.id === selectedReportId) || latestReport
         : latestReport;
+
+    // Sync title input and reset inline title edit when report changes
+    useEffect(() => {
+        if (report) {
+            setTitleInput(report.title || "");
+            setIsEditingTitle(false);
+        }
+    }, [report?.id]);
 
     // Reset edit state when report changes
     useEffect(() => {
@@ -131,18 +144,45 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
         }
     };
 
-    // Handle regenerate with confirmation
-    const handleRegenerateClick = () => {
-        if (!report || report.status === "failed") {
-            regenerate.mutate({});
-        } else {
-            setShowConfirmRegenerate(true);
+    // Handle quick title save via pencil icon
+    const handleSaveTitle = async () => {
+        if (!report) return;
+        try {
+            await updateReport.mutateAsync({
+                reportId: report.id,
+                data: { title: titleInput.trim() || undefined },
+            });
+            setIsEditingTitle(false);
+            toast.success("Deskripsi versi berhasil diperbarui");
+        } catch (error) {
+            toast.error("Gagal memperbarui deskripsi versi");
         }
     };
 
-    const handleConfirmRegenerate = () => {
-        regenerate.mutate({});
-        setShowConfirmRegenerate(false);
+    // Handle regenerate modal trigger
+    const handleRegenerateClick = () => {
+        const currentMax = versionsData?.items.reduce((max, v) => Math.max(max, v.version), 0) || report?.version || 1;
+        const nextVersion = currentMax + 1;
+        setRegenerateTitle(`v${nextVersion} - `);
+        setRegenerateFocus("");
+        setShowConfirmRegenerate(true);
+    };
+
+    const handleConfirmRegenerate = async () => {
+        try {
+            const cleanTitle = regenerateTitle.trim() || undefined;
+            const cleanFocus = regenerateFocus.trim() || undefined;
+            await regenerate.mutateAsync({
+                source_type: "manual_regenerate",
+                title: cleanTitle,
+                focus_notes: cleanFocus,
+            });
+            setShowConfirmRegenerate(false);
+            setSelectedReportId(null); // Auto-track latestReport
+            toast.success("Regenerasi KYC berhasil dimulai.");
+        } catch (error) {
+            toast.error("Gagal memulai regenerasi KYC.");
+        }
     };
 
     // Handle copy KYC to clipboard
@@ -206,6 +246,219 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
         );
     }
 
+    // Header component containing VersionSelector, Version Title + Pencil Edit, and Actions
+    const renderHeader = () => (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-zinc-200 shadow-sm">
+            <div className="flex items-center gap-3 flex-wrap">
+                {versionsData && versionsData.items.length > 0 && (
+                    <VersionSelector
+                        versions={versionsData.items}
+                        currentVersionId={selectedReportId || report?.id || null}
+                        onSelectVersion={(id) => setSelectedReportId(id)}
+                    />
+                )}
+
+                {/* Version Title & Pencil Edit Button */}
+                {report && (
+                    <div className="flex items-center gap-1.5">
+                        {isEditingTitle ? (
+                            <div className="flex items-center gap-1.5 animate-in fade-in">
+                                <input
+                                    type="text"
+                                    value={titleInput}
+                                    onChange={(e) => setTitleInput(e.target.value)}
+                                    placeholder="Judul / deskripsi versi (contoh: Penambahan konteks switch)..."
+                                    className="px-2.5 py-1 text-xs border border-zinc-300 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900 w-52 sm:w-64"
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") handleSaveTitle();
+                                        if (e.key === "Escape") setIsEditingTitle(false);
+                                    }}
+                                    autoFocus
+                                />
+                                <Button
+                                    size="sm"
+                                    className="h-7 px-2 text-xs"
+                                    onClick={handleSaveTitle}
+                                    disabled={updateReport.isPending}
+                                    title="Simpan judul versi"
+                                >
+                                    <Check className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    className="h-7 px-2 text-xs"
+                                    onClick={() => {
+                                        setIsEditingTitle(false);
+                                        setTitleInput(report.title || "");
+                                    }}
+                                    title="Batal"
+                                >
+                                    <X className="w-3 h-3" />
+                                </Button>
+                            </div>
+                        ) : (
+                            canEdit && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setTitleInput(report.title || "");
+                                        setIsEditingTitle(true);
+                                    }}
+                                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200/80 rounded-md transition-colors"
+                                    title="Ubah deskripsi versi ini"
+                                >
+                                    <Edit3 className="w-3 h-3 text-zinc-400" />
+                                    <span>{report.title ? "Ubah Deskripsi" : "Beri Deskripsi"}</span>
+                                </button>
+                            )
+                        )}
+                    </div>
+                )}
+
+                {report && (
+                    <span className="text-xs text-zinc-400 capitalize hidden sm:inline">
+                        • {report.source_type.replace(/_/g, " ")}
+                    </span>
+                )}
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+                {/* Copy to Clipboard Button (only when report is completed) */}
+                {report && report.status === "completed" && (
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        className="gap-1.5 text-xs text-zinc-700 border border-zinc-200 hover:bg-zinc-100 transition-colors"
+                        onClick={handleCopyKYC}
+                        title={t.opportunityDetail.kyc.copyButton || "Salin Laporan KYC"}
+                    >
+                        {isCopied ? (
+                            <>
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                <span className="text-emerald-600 font-medium">
+                                    {t.opportunityDetail.kyc.copied || "Laporan Tersalin!"}
+                                </span>
+                            </>
+                        ) : (
+                            <>
+                                <Copy className="w-3.5 h-3.5 text-zinc-500" />
+                                <span>{t.opportunityDetail.kyc.copyButton || "Salin Laporan KYC"}</span>
+                            </>
+                        )}
+                    </Button>
+                )}
+
+                {canEdit && report && report.status === "completed" && (
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        className="gap-2"
+                        onClick={handleEnterEditMode}
+                    >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        {t.opportunityDetail.kyc.editButton}
+                    </Button>
+                )}
+
+                {canGenerate && (
+                    <Button
+                        variant={report?.status === "failed" ? "primary" : "secondary"}
+                        size="sm"
+                        className="gap-2"
+                        onClick={handleRegenerateClick}
+                        disabled={regenerate.isPending || report?.status === "running"}
+                    >
+                        {regenerate.isPending ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                            <RefreshCw className="w-3.5 h-3.5" />
+                        )}
+                        {report?.status === "failed"
+                            ? "Generate Ulang Versi Baru"
+                            : regenerate.isPending
+                                ? t.opportunityDetail.kyc.regenerating
+                                : t.opportunityDetail.kyc.regenerateButton}
+                    </Button>
+                )}
+            </div>
+        </div>
+    );
+
+    // Enhanced Regenerate Modal Dialog
+    const renderRegenerateModal = () => {
+        if (!showConfirmRegenerate) return null;
+
+        return (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <Card className="p-6 max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-150">
+                    <div className="flex items-center gap-2 mb-3">
+                        <RefreshCw className="w-5 h-5 text-zinc-900" />
+                        <h3 className="text-lg font-semibold text-zinc-900">
+                            {t.opportunityDetail.kyc.confirmRegenerateTitle || "Generate Ulang Laporan KYC"}
+                        </h3>
+                    </div>
+                    <p className="text-sm text-zinc-600 mb-4">
+                        {t.opportunityDetail.kyc.confirmRegenerateDesc || "Analisis AI akan membuat versi baru berdasarkan profil opportunity terkini."}
+                    </p>
+
+                    <div className="space-y-4 mb-6">
+                        <div>
+                            <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-1.5">
+                                Judul / Label Versi (Opsional)
+                            </label>
+                            <input
+                                type="text"
+                                value={regenerateTitle}
+                                onChange={(e) => setRegenerateTitle(e.target.value)}
+                                placeholder="Contoh: v2 - Penambahan konteks untuk core switch"
+                                className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-1.5">
+                                Fokus / Instruksi Pembaruan Versi (Opsional)
+                            </label>
+                            <textarea
+                                rows={3}
+                                value={regenerateFocus}
+                                onChange={(e) => setRegenerateFocus(e.target.value)}
+                                placeholder="Tuliskan arahan spesifik jika konteks berubah, contoh: Fokus pada pengadaan Server On-Premise & migrasi compute. Abaikan kebutuhan WiFi/Network sebelumnya."
+                                className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900 placeholder:text-zinc-400"
+                            />
+                            <p className="text-[11px] text-zinc-500 mt-1">
+                                AI akan mengisolasi fokus analisis ke arahan ini agar hasil tidak bercampur dengan konteks sebelumnya.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-3 border-t border-zinc-100">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setShowConfirmRegenerate(false)}
+                            disabled={regenerate.isPending}
+                        >
+                            {t.common.cancel}
+                        </Button>
+                        <Button 
+                            onClick={handleConfirmRegenerate}
+                            disabled={regenerate.isPending}
+                            className="gap-2"
+                        >
+                            {regenerate.isPending ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Sparkles className="w-4 h-4" />
+                            )}
+                            {regenerate.isPending ? "Memulai Analisis..." : "Generate Versi Baru"}
+                        </Button>
+                    </div>
+                </Card>
+            </div>
+        );
+    };
+
     if (report.status === "running") {
         const currentStep = report.progress_step || "received";
         
@@ -249,104 +502,134 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
         const timelineLineHeight = Math.min(100, Math.max(10, ((currentStepIdx + 0.5) / steps.length) * 100));
 
         return (
-            <Card className="p-8 max-w-2xl mx-auto border border-zinc-200 shadow-sm bg-white mt-4">
-                <div className="text-center mb-6">
-                    <div className="inline-flex p-3 rounded-full bg-zinc-50 border border-zinc-100 mb-3 animate-pulse">
-                        <Loader2 className="w-6 h-6 animate-spin text-zinc-950" />
+            <div className="space-y-6 animate-in fade-in duration-300">
+                {renderHeader()}
+                <Card className="p-8 max-w-2xl mx-auto border border-zinc-200 shadow-sm bg-white mt-4">
+                    <div className="text-center mb-6">
+                        <div className="inline-flex p-3 rounded-full bg-zinc-50 border border-zinc-100 mb-3 animate-pulse">
+                            <Loader2 className="w-6 h-6 animate-spin text-zinc-950" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-zinc-950">
+                            Analisis KYC Sedang Berjalan (v{report.version})
+                        </h3>
+                        <p className="text-zinc-500 text-sm mt-1">
+                            Magna AI sedang mengumpulkan informasi dari berbagai sumber. Halaman ini akan diperbarui secara otomatis.
+                        </p>
                     </div>
-                    <h3 className="text-xl font-semibold text-zinc-950">
-                        Analisis KYC Sedang Berjalan (v{report.version})
-                    </h3>
-                    <p className="text-zinc-500 text-sm mt-1">
-                        Magna AI sedang mengumpulkan informasi dari berbagai sumber. Halaman ini akan diperbarui secara otomatis.
-                    </p>
-                </div>
 
-                {/* Progress bar with percentage indicator */}
-                <div className="mb-6">
-                    <div className="flex justify-between items-center mb-2 text-xs font-medium text-zinc-500">
-                        <span>Progress Analisis</span>
-                        <span className="text-zinc-950 font-semibold">{percent}%</span>
+                    {/* Progress bar with percentage indicator */}
+                    <div className="mb-6">
+                        <div className="flex justify-between items-center mb-2 text-xs font-medium text-zinc-500">
+                            <span>Progress Analisis</span>
+                            <span className="text-zinc-950 font-semibold">{percent}%</span>
+                        </div>
+                        <div className="w-full bg-zinc-100 h-2 rounded-full overflow-hidden">
+                            <div 
+                                className="bg-zinc-900 h-full transition-all duration-500 ease-out rounded-full"
+                                style={{ width: `${Math.min(100, Math.max(5, percent))}%` }}
+                            />
+                        </div>
                     </div>
-                    <div className="w-full bg-zinc-100 h-2 rounded-full overflow-hidden">
+
+                    {/* Vertical Timeline Steps */}
+                    <div className="space-y-6 relative">
+                        {/* Background grey vertical connector line */}
+                        <div className="absolute left-[15px] top-3 bottom-3 w-0.5 bg-zinc-100" />
+                        {/* Active green/dark vertical connector line synced with progress */}
                         <div 
-                            className="bg-zinc-900 h-full transition-all duration-500 ease-out rounded-full"
-                            style={{ width: `${Math.min(100, Math.max(5, percent))}%` }}
+                            className="absolute left-[15px] top-3 w-0.5 bg-zinc-900 transition-all duration-500 ease-out" 
+                            style={{ height: `${timelineLineHeight}%` }}
                         />
+                        {steps.map((step) => {
+                            const state = getStepState(step.key, currentStep);
+                            return (
+                                <div key={step.key} className="flex gap-4 items-start relative z-10">
+                                    <div className="flex items-center justify-center">
+                                        {state === "completed" && (
+                                            <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-sm">
+                                                <CheckCircle2 className="w-4 h-4" />
+                                            </div>
+                                        )}
+                                        {state === "active" && (
+                                            <div className="w-8 h-8 rounded-full bg-zinc-950 border border-zinc-800 flex items-center justify-center text-white shadow-md animate-pulse">
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            </div>
+                                        )}
+                                        {state === "pending" && (
+                                            <div className="w-8 h-8 rounded-full bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-300">
+                                                <Clock className="w-4 h-4" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 pt-0.5">
+                                        <h4 className={`text-sm font-semibold transition-colors ${
+                                            state === "active" 
+                                                ? "text-zinc-950" 
+                                                : state === "completed" 
+                                                    ? "text-zinc-800" 
+                                                    : "text-zinc-400"
+                                        }`}>
+                                            {step.label}
+                                        </h4>
+                                        <p className={`text-xs mt-0.5 transition-colors ${
+                                            state === "active" 
+                                                ? "text-zinc-600" 
+                                                : state === "completed" 
+                                                    ? "text-zinc-500" 
+                                                    : "text-zinc-400"
+                                        }`}>
+                                            {step.desc}
+                                        </p>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
-                </div>
-
-                {/* Vertical Timeline Steps */}
-                <div className="space-y-6 relative">
-                    {/* Background grey vertical connector line */}
-                    <div className="absolute left-[15px] top-3 bottom-3 w-0.5 bg-zinc-100" />
-                    {/* Active green/dark vertical connector line synced with progress */}
-                    <div 
-                        className="absolute left-[15px] top-3 w-0.5 bg-zinc-900 transition-all duration-500 ease-out" 
-                        style={{ height: `${timelineLineHeight}%` }}
-                    />
-                    {steps.map((step) => {
-                        const state = getStepState(step.key, currentStep);
-                        return (
-                            <div key={step.key} className="flex gap-4 items-start relative z-10">
-                                <div className="flex items-center justify-center">
-                                    {state === "completed" && (
-                                        <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-sm">
-                                            <CheckCircle2 className="w-4 h-4" />
-                                        </div>
-                                    )}
-                                    {state === "active" && (
-                                        <div className="w-8 h-8 rounded-full bg-zinc-950 border border-zinc-800 flex items-center justify-center text-white shadow-md animate-pulse">
-                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                        </div>
-                                    )}
-                                    {state === "pending" && (
-                                        <div className="w-8 h-8 rounded-full bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-300">
-                                            <Clock className="w-4 h-4" />
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex-1 pt-0.5">
-                                    <h4 className={`text-sm font-semibold transition-colors ${
-                                        state === "active" 
-                                            ? "text-zinc-950" 
-                                            : state === "completed" 
-                                                ? "text-zinc-800" 
-                                                : "text-zinc-400"
-                                    }`}>
-                                        {step.label}
-                                    </h4>
-                                    <p className={`text-xs mt-0.5 transition-colors ${
-                                        state === "active" 
-                                            ? "text-zinc-600" 
-                                            : state === "completed" 
-                                                ? "text-zinc-500" 
-                                                : "text-zinc-400"
-                                    }`}>
-                                        {step.desc}
-                                    </p>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            </Card>
+                </Card>
+                {renderRegenerateModal()}
+            </div>
         );
     }
 
     if (report.status === "failed") {
         const isSuperAdmin = user?.role === "superadmin";
+        const otherCompletedVersion = versionsData?.items.find(
+            (v) => v.status === "completed" && v.id !== report.id
+        );
+
         return (
-            <div className="max-w-3xl mx-auto mt-4">
-                <CollapsibleErrorAlert
-                    title={t.opportunityDetail.kyc.failedTitle || "Pembuatan Laporan KYC Gagal"}
-                    errorMessage={report.error_message}
-                    canRetry={canGenerate}
-                    onRetry={handleRegenerateClick}
-                    isRetrying={regenerate.isPending}
-                    showSettingsLink={isSuperAdmin}
-                    onNavigateSettings={() => router.push("/settings")}
-                />
+            <div className="space-y-6 animate-in fade-in duration-300">
+                {renderHeader()}
+                <div className="max-w-3xl mx-auto mt-4 space-y-3">
+                    {otherCompletedVersion && (
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-blue-50/90 border border-blue-200 rounded-xl text-blue-900 shadow-sm animate-in fade-in">
+                            <div className="flex items-center gap-2.5">
+                                <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
+                                <span className="text-xs">
+                                    Versi ini gagal dibuat, namun <strong>v{otherCompletedVersion.version}{otherCompletedVersion.title ? ` - ${otherCompletedVersion.title}` : ""}</strong> telah berhasil dibuat.
+                                </span>
+                            </div>
+                            <Button
+                                size="sm"
+                                variant="secondary"
+                                className="text-xs h-7 bg-white hover:bg-blue-50 border-blue-200 text-blue-800 shrink-0 shadow-xs"
+                                onClick={() => setSelectedReportId(otherCompletedVersion.id)}
+                            >
+                                Buka v{otherCompletedVersion.version}
+                            </Button>
+                        </div>
+                    )}
+                    <CollapsibleErrorAlert
+                        title={t.opportunityDetail.kyc.failedTitle || "Pembuatan Laporan KYC Gagal"}
+                        errorMessage={report.error_message}
+                        canRetry={canGenerate}
+                        onRetry={handleRegenerateClick}
+                        isRetrying={regenerate.isPending}
+                        showSettingsLink={isSuperAdmin}
+                        onNavigateSettings={() => router.push("/settings")}
+                    />
+                </div>
+                {renderRegenerateModal()}
             </div>
         );
     }
@@ -401,6 +684,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                         {saveError}
                     </div>
                 )}
+                {renderRegenerateModal()}
             </div>
         );
     }
@@ -409,72 +693,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header with version info & actions */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-zinc-200">
-                <div className="flex items-center gap-3">
-                    {versionsData && versionsData.items.length > 0 && (
-                        <VersionSelector
-                            versions={versionsData.items}
-                            currentVersionId={selectedReportId || report.id}
-                            onSelectVersion={setSelectedReportId}
-                        />
-                    )}
-                    <span className="text-xs text-zinc-400 capitalize">
-                        {report.source_type.replace(/_/g, " ")}
-                    </span>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                    {/* Copy to Clipboard Button */}
-                    <Button
-                        variant="secondary"
-                        size="sm"
-                        className="gap-1.5 text-xs text-zinc-700 border border-zinc-200 hover:bg-zinc-100 transition-colors"
-                        onClick={handleCopyKYC}
-                        title={t.opportunityDetail.kyc.copyButton || "Salin Laporan KYC"}
-                    >
-                        {isCopied ? (
-                            <>
-                                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                                <span className="text-emerald-600 font-medium">
-                                    {t.opportunityDetail.kyc.copied || "Laporan Tersalin!"}
-                                </span>
-                            </>
-                        ) : (
-                            <>
-                                <Copy className="w-3.5 h-3.5 text-zinc-500" />
-                                <span>{t.opportunityDetail.kyc.copyButton || "Salin Laporan KYC"}</span>
-                            </>
-                        )}
-                    </Button>
-
-                    {canEdit && (
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            className="gap-2"
-                            onClick={handleEnterEditMode}
-                        >
-                            <Edit3 className="w-3.5 h-3.5" />
-                            {t.opportunityDetail.kyc.editButton}
-                        </Button>
-                    )}
-                    {canGenerate && (
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            className="gap-2"
-                            onClick={handleRegenerateClick}
-                            disabled={regenerate.isPending}
-                        >
-                            {regenerate.isPending ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                                <RefreshCw className="w-3.5 h-3.5" />
-                            )}
-                            {regenerate.isPending ? t.opportunityDetail.kyc.regenerating : t.opportunityDetail.kyc.regenerateButton}
-                        </Button>
-                    )}
-                </div>
-            </div>
+            {renderHeader()}
 
             {/* Executive Summary */}
             {report.executive_summary && (
@@ -775,30 +994,8 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                 </section>
             )}
 
-            {/* Regenerate Confirmation Dialog */}
-            {showConfirmRegenerate && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <Card className="p-6 max-w-md mx-4">
-                        <h3 className="text-lg font-medium text-zinc-900 mb-2">
-                            {t.opportunityDetail.kyc.confirmRegenerateTitle}
-                        </h3>
-                        <p className="text-sm text-zinc-600 mb-4">
-                            {t.opportunityDetail.kyc.confirmRegenerateDesc}
-                        </p>
-                        <div className="flex justify-end gap-2">
-                            <Button
-                                variant="secondary"
-                                onClick={() => setShowConfirmRegenerate(false)}
-                            >
-                                {t.common.cancel}
-                            </Button>
-                            <Button onClick={handleConfirmRegenerate}>
-                                {t.opportunityDetail.kyc.confirmButton}
-                            </Button>
-                        </div>
-                    </Card>
-                </div>
-            )}
+            {/* Enhanced Regenerate Modal Dialog */}
+            {renderRegenerateModal()}
 
             {/* Save Success Toast */}
             {saveSuccess && (
