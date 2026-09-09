@@ -1,0 +1,1397 @@
+[
+  {
+    "id": "waspada-ai-powered-ransomware-mengincar-enterprise",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Waspada! AI-Powered Ransomware Mengincar Enterprise",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [
+      "Security Command Center",
+      "Google Threat Intelligence",
+      "PAM",
+      "Privileged Access Management"
+    ],
+    "all_products": [
+      "Security Command Center",
+      "Google Threat Intelligence",
+      "PAM",
+      "Privileged Access Management",
+      "EPM",
+      "SIEM",
+      "SOC",
+      "NGAV",
+      "EDR",
+      "Ransomware Protection",
+      "Data Loss Prevention",
+      "DLP",
+      "IAM"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance"
+    ],
+    "source_url": "https://magnaglobal.id/articles/waspada-ai-powered-ransomware-mengincar-enterprise",
+    "key_subheadings": [
+      "Memahami Evolusi Ransomware: Bagaimana Penjahat Siber Memanfaatkan AI?",
+      "Dari Malware Statis ke Polymorphic Malware",
+      "Mengapa Antivirus Tradisional Tidak Lagi Cukup Menahan AI-Powered Ransomware?",
+      "Pentingnya Security Telemetry",
+      "Strategi Deteksi dan Respons Berbasis AI Menggunakan Google Security Operations",
+      "1. Analisis Telemetry dalam Skala Enterprise",
+      "2. AI-Assisted Detection dan Investigation",
+      "3. SecOps Automation untuk Mempercepat Respons"
+    ],
+    "pain_points": [
+      "Sebagai evolusi ancaman siber yang memanfaatkan AI, AI- powered ransomware membantu otomatisasi, pembuatan, atau modifikasi komponen serangan.",
+      "Menghasilkan atau mempercepat pembuatan script Membantu technical problem solving selama serangan.",
+      "Mendukung modifikasi malware atau komponen serangan."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Specific tech products: Security Command Center, Google Threat Intelligence, PAM; Vertical focus: FSI / Banking & Multifinance; Technical subheadings: 7",
+    "summary_snippet": "AI kini tidak hanya digunakan untuk meningkatkan operasional bisnis namun teknologi ini juga semakin dimanfaatkan oleh pelaku serangan siber untuk menciptakan polymorphic malware dan meretas sistem dengan kecepatan eksponensial."
+  },
+  {
+    "id": "menghentikan-fraud-sebelum-merugikan-pendekatan-predictive-analytics-untuk-fsi",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Real-Time Anti-Fraud & Predictive Analytics untuk FSI",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [
+      "Dataflow",
+      "BigQuery",
+      "BigQuery ML",
+      "Vertex AI",
+      "Pub/Sub",
+      "Looker"
+    ],
+    "all_products": [
+      "Google Cloud",
+      "BigQuery",
+      "Dataflow",
+      "Vertex AI",
+      "Gemini",
+      "Looker",
+      "Pub/Sub",
+      "Cloud Storage"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance"
+    ],
+    "source_url": "https://magnaglobal.id/articles/menghentikan-fraud-sebelum-merugikan-pendekatan-predictive-analytics-untuk-fsi",
+    "key_subheadings": [
+      "Tantangan Deteksi Fraud Tradisional di Perusahaan FSI",
+      "Terlalu Banyak False Positive",
+      "Sulit Mengikuti Pola Fraud yang Terus Berubah",
+      "Cara Kerja Predictive Analytics & Machine Learning dalam Mengidentifikasi Risiko",
+      "1. Streaming Data Ingestion",
+      "2. Historical Pattern Matching",
+      "3. Real-Time Risk Scoring",
+      "Mengembangkan Anti-Fraud System Menggunakan Ekosistem Google Cloud"
+    ],
+    "pain_points": [
+      "Dengan modus seperti phishing yang makin marak, tantangan perusahaan bukan hanya mendeteks i fraud, tetapi mendeteksi secara cepat dan akurat tanpa mengganggu transaksi pelanggan yang sah.",
+      "&nbsp; Tantangan Deteksi Fraud Tradisional di Perusahaan FSI Fraud detection bukan sekadar mencari transaksi bernilai besar atau aktivitas yang terlihat tidak biasa.",
+      "Jika seluruh aktivitas tersebut langsung dianggap fraud , tim investigasi berisiko menghadapi terlalu banyak alert dan menghabiskan waktu serta sumber daya untuk memeriksa transaksi yang sebenarnya legitimate."
+    ],
+    "business_impact": "Pemanfaatan predictive analytics untuk fraud detection memungkinkan perusahaan FSI mengidentifikasi pola transaksi mencurigakan lebih cepat, bahkan saat transaksi sedang berlangsung.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "OJK mencatat total kerugian konsumen akibat scam dan fraud mencapai Rp2,5 triliun sepanjang 2022 hingga triwulan I 2024. Dengan modus seperti phishing yang makin marak, tantangan perusahaan bukan hanya mendeteksi fraud, tetapi mendeteksi secara cepat dan akurat tanpa mengganggu transaksi pelanggan..."
+  },
+  {
+    "id": "mengapa-ai-ready-infrastructure-jadi-fondasi-utama-enterprise-di-era-modern",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Mengapa AI-Ready Infrastructure jadi Fondasi Utama Enterprise di Era Modern?",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [
+      "Google Cloud",
+      "BigQuery",
+      "Vertex AI",
+      "Google Kubernetes Engine"
+    ],
+    "all_products": [
+      "Google Cloud",
+      "BigQuery",
+      "Vertex AI",
+      "Google Kubernetes Engine",
+      "GKE",
+      "Zero Trust",
+      "IAM",
+      "Identity and Access Management"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance",
+      "Public Sector & BUMN"
+    ],
+    "source_url": "https://magnaglobal.id/articles/mengapa-ai-ready-infrastructure-jadi-fondasi-utama-enterprise-di-era-modern",
+    "key_subheadings": [
+      "Mengapa Aplikasi AI Butuh Infrastruktur IT Modern?",
+      "Kebutuhan Komputasi Berkinerja Tinggi",
+      "Mengapa Legacy Infrastructure Jadi Penghambat Utama Adopsi AI?",
+      "Karakteristik Utama Infrastruktur AI-Ready yang Resilient",
+      "Arsitektur Cloud-Native & Skalabilitas Fleksibel",
+      "Unified Data Platform & Eliminasi Data Silo",
+      "Keamanan Enterprise, Governance, & Observability",
+      "Membangun Fondasi AI Melalui Google Cloud Infrastructure"
+    ],
+    "pain_points": [
+      "Tanpa infrastruktur yang memadai, performa AI akan sulit mencapai hasil yang optimal.",
+      "Tanpa baseline yang jelas, migrasi berisiko memindahkan masalah alih-alih menyelesaikannya.",
+      "Pendekatan bertahap juga memungkinkan perusahaan mengurangi risiko sekaligus memberikan waktu bagi tim IT untuk beradaptasi dengan lingkungan cloud ."
+    ],
+    "business_impact": "Selain keamanan, organisasi membutuhkan observability yang memberikan visibilitas end-to-end terhadap seluruh komponen sistem, termasuk aplikasi, container , jaringan, database, dan workload AI.",
+    "filter_reason": "Specific tech products: Google Cloud, BigQuery, Vertex AI; Vertical focus: FSI / Banking & Multifinance, Public Sector & BUMN; Technical subheadings: 12",
+    "summary_snippet": "Artificial Intelligence (AI) telah menjadi prioritas strategis bagi banyak organisasi untuk meningkatkan produktivitas, mempercepat inovasi, dan menciptakan keunggulan kompetitif. Namun, keberhasilan implementasi AI tidak hanya ditentukan oleh model atau algoritma yang digunakan, tetapi juga oleh..."
+  },
+  {
+    "id": "kenali-homogeneous-database-migration-langkah-strategis-membangun-fondasi-data-untuk-ai",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Homogeneous Database Migration & AI Data Foundation",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [
+      "Cloud SQL",
+      "BigQuery",
+      "Database Migration Service"
+    ],
+    "all_products": [],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/kenali-homogeneous-database-migration-langkah-strategis-membangun-fondasi-data-untuk-ai",
+    "key_subheadings": [
+      "Mengapa Database On-Premises Mulai Menjadi Tantangan di Era AI?",
+      "Apa Itu Homogeneous Database Migration?",
+      "Mengapa Homogeneous Migration Menjadi Pilihan Banyak Organisasi?",
+      "Perubahan aplikasi yang minimal",
+      "Kompatibilitas yang lebih tinggi",
+      "Implementasi yang lebih cepat",
+      "Mempercepat Modernisasi Database dengan Ekosistem Google Cloud",
+      "Cloud SQL untuk Modernisasi Database yang Lebih Sederhana"
+    ],
+    "pain_points": [
+      "Tantangan lainnya adalah keberadaan silo data. Ketika data tersebar di berbagai sistem dan lokasi, organisasi akan kesulitan memperoleh insight secara real-time. Padahal, AI...",
+      "Karena database engine tetap digunakan, aplikasi yang telah berjalan umumnya tidak memerlukan perubahan besar. Hal ini membantu organisasi meminimalkan risiko, mengurangi...",
+      "Dibandingkan proyek modernisasi yang mengharuskan perubahan besar pada aplikasi, homogeneous migration menawarkan pendekatan yang lebih praktis dengan tingkat risiko yang lebih..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Banyak organisasi saat ini berlomba mengadopsi Artificial Intelligence (AI) untuk meningkatkan efisiensi operasional, mempercepat inovasi, dan menghadirkan pengalaman pelanggan yang lebih baik. Namun di balik berbagai inisiatif tersebut, ada satu pertanyaan penting yang sering terlewat, apakah..."
+  },
+  {
+    "id": "wujudkan-ai-readiness-dalam-transformasi-digital-melalui-3-tahap-strategis-ini",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "3-Stage AI Readiness Strategic Advisory Framework",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [
+      "AI Readiness Assessment",
+      "Vertex AI",
+      "BigQuery"
+    ],
+    "all_products": [],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/wujudkan-ai-readiness-dalam-transformasi-digital-melalui-3-tahap-strategis-ini",
+    "key_subheadings": [
+      "Mengapa AI Readiness Jadi Kunci Transformasi Digital?",
+      "Infrastruktur Anda Adalah Penentu Utama Strategi AI Readiness",
+      "4 Hambatan yang Membuat AI Readiness Sulit Dicapai",
+      "1. Biaya Infrastruktur yang Menggerus Ruang Inovasi",
+      "2. Data yang Masih Tersebar di Banyak Sistem",
+      "3. Vendor Lock-In yang Membatasi Ruang Gerak",
+      "4. Nilai AI yang Belum Terhubung ke Bisnis",
+      "3 Tahap Strategis Menuju AI Readiness"
+    ],
+    "pain_points": [
+      "Pada tahap transformasi digital yang lebih matang, tantangan perusahaan mulai bergeser dari digitalisasi proses menuju kemampuan menjalankan AI secara aman, konsisten, dan...",
+      "AI readiness membantu perusahaan menata fondasi tersebut dengan prioritas yang lebih jelas. Saat cloud, data, aplikasi, security, dan workload mulai selaras, perusahaan dapat...",
+      "AI readiness akan sulit dibangun jika fondasi infrastruktur belum mampu mengikuti kebutuhan data, aplikasi, dan AI workload modern. Saat sistem masih kompleks, sulit diskalakan,..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Banyak perusahaan kini mulai membawa AI ke agenda bisnis, mulai dari otomasi pekerjaan, analisis data, hingga pengembangan layanan yang lebih responsif. AI mulai dilihat sebagai penggerak baru untuk mempercepat kerja, memperkuat keputusan berbasis data, dan membuat bisnis lebih adaptif terhadap..."
+  },
+  {
+    "id": "mengupas-alasan-ai-agents-retail-jadi-standar-baru-customer-experience",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Retail AI Agents & Modern Customer Experience",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [
+      "Vertex AI",
+      "Gemini",
+      "AI Agents"
+    ],
+    "all_products": [],
+    "target_industries": [
+      "Retail & E-Commerce"
+    ],
+    "source_url": "https://magnaglobal.id/articles/mengupas-alasan-ai-agents-retail-jadi-standar-baru-customer-experience",
+    "key_subheadings": [
+      "Apa Itu AI Agents dalam Retail?",
+      "Mengapa AI Agents Menjadi Game Changer dalam Industri Retail?",
+      "Personalisasi dalam Skala Besar",
+      "Customer Service yang Lebih Natural",
+      "Efisiensi Operasional yang Signifikan",
+      "Peningkatan Conversion dan Revenue",
+      "Use Case Nyata AI Agents yang Mengubah Customer Experience Retail",
+      "Ekosistem AI dari Google Cloud untuk Retail yang Lebih Cerdas"
+    ],
+    "pain_points": [
+      "AI-powered virtual assistant juga semakin umum digunakan untuk membantu customer, mulai dari menjawab pertanyaan hingga menyelesaikan masalah tanpa perlu intervensi..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Di era digital saat ini, harga bukan lagi satu-satunya faktor yang menentukan keputusan pembelian. Konsumen kini semakin mengutamakan pengalaman yang cepat, personal, dan seamless, baik saat berbelanja melalui layar smartphone maupun di toko fisik."
+  },
+  {
+    "id": "zero-trust-security-mengapa-firewall-tak-lagi-ampuh-lindungi-bisnis-anda",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Zero Trust Architecture: Identity & Context-Aware Perimeter",
+    "pillar": "Cybersecurity Suite",
+    "primary_products": [
+      "Zero Trust",
+      "IAM",
+      "BeyondCorp"
+    ],
+    "all_products": [
+      "Zero Trust"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/zero-trust-security-mengapa-firewall-tak-lagi-ampuh-lindungi-bisnis-anda",
+    "key_subheadings": [
+      "Apa Itu Zero Trust Security dan Prinsip “Never Trust, Always Verify”",
+      "Mengapa Zero Trust Security Menjadi Prioritas Strategi Cybersecurity Modern",
+      "Perbedaan Zero Trust Security dan Model Keamanan Berbasis Perimeter",
+      "Bagaimana Zero Trust Melindungi Identitas, Akses, dan Data Perusahaan?",
+      "Implementasi Zero Trust Security di Industri Retail",
+      "Tantangan Implementasi Zero Trust Security di Lingkungan Enterprise",
+      "Peran IT Security Management Solution dalam Implementasi Zero Trust",
+      "Membangun Arsitektur Zero Trust yang Terintegrasi bersama Smartnet Magna Global"
+    ],
+    "pain_points": [
+      "Di tengah ancaman siber yang semakin cepat dan canggih, banyak organisasi mulai menyadari bahwa cara lama menjaga keamanan sudah tidak lagi memadai. Perimeter, firewall, dan...",
+      "Pendekatan ini bukan berarti perusahaan tidak percaya pada karyawan. Justru sebaliknya, ini adalah cara realistis untuk menghadapi risiko keamanan yang tidak lagi bisa ditangani...",
+      "Model keamanan tradisional biasanya berbasis perimeter. Selama pengguna berada “di dalam jaringan”, mereka dianggap aman dengan firewall sebagai benteng utama. Masalahnya, jika..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Di tengah ancaman siber yang semakin cepat dan canggih, banyak organisasi mulai menyadari bahwa cara lama menjaga keamanan sudah tidak lagi memadai. Perimeter, firewall, dan sistem pertahanan di “gerbang depan” saja tidak cukup untuk melindungi bisnis modern."
+  },
+  {
+    "id": "mengapa-vmware-tak-lagi-relevan-dan-bagaimana-menyusun-exit-strategy-yang-tepat-bagi-bisnis-anda",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "VMware Exit Strategy & Workload Modernization ke Cloud / Kube",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "primary_products": [
+      "GCP",
+      "GKE",
+      "Anthos",
+      "Nutanix"
+    ],
+    "all_products": [
+      "VMware"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/mengapa-vmware-tak-lagi-relevan-dan-bagaimana-menyusun-exit-strategy-yang-tepat-bagi-bisnis-anda",
+    "key_subheadings": [
+      "Mengapa VMware Masih Sulit Ditinggalkan?",
+      "Stabilitas yang Sudah Teruji Waktu",
+      "Ekosistem yang Lengkap dan Matang",
+      "Kenyamanan Operasional bagi Tim IT",
+      "Kompatibilitas Aplikasi yang Luas",
+      "Dampak Perubahan Model Lisensi terhadap Infrastruktur",
+      "Biaya yang Tidak Lagi Mudah Diprediksi",
+      "Bundling Fitur yang Tidak Selalu Relevan"
+    ],
+    "pain_points": [
+      "VMware dikenal sebagai platform yang konsisten dan andal untuk menjalankan sistem penting bisnis. Bagi banyak perusahaan, stabilitas ini berarti risiko yang lebih rendah dalam...",
+      "VMware exit strategy tidak harus identik dengan migrasi masif yang penuh risiko. Justru, pendekatan yang paling efektif sering kali bersifat bertahap dan terencana. Dengan...",
+      "Dengan pilihan model lisensi yang lebih variatif, perusahaan dapat menyesuaikan investasi dengan kebutuhan nyata, mengurangi risiko vendor lock in, serta menyederhanakan..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Selama bertahun-tahun, VMware telah menjadi “zona nyaman” bagi banyak tim IT. Stabil, matang, dan terbukti mampu menangani workload kritikal, platform ini tumbuh bersama perkembangan bisnis di berbagai industri."
+  },
+  {
+    "id": "privileged-access-management-mengambil-kendali-atas-akses-kritis-di-infrastruktur-it",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Privileged Access Management (PAM) untuk Akses Kritis IT",
+    "pillar": "Cybersecurity Suite",
+    "primary_products": [
+      "PAM",
+      "IAM"
+    ],
+    "all_products": [
+      "Privileged Access Management"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/privileged-access-management-mengambil-kendali-atas-akses-kritis-di-infrastruktur-it",
+    "key_subheadings": [
+      "Apa itu Privileged Access Management?",
+      "Bagaimana Cara Kerja PAM dalam Mengontrol Akses Kritis?",
+      "Password Management",
+      "Access Control",
+      "Session Management",
+      "Mengapa PAM Krusial untuk Keamanan Aset IT?",
+      "Siap Mengamankan Akses Kritis di Lingkungan IT Anda? Mulai Bersama Smartnet Magna Global"
+    ],
+    "pain_points": [
+      "Namun pada praktiknya, pengelolaan akses kritikal ini sering kali belum mendapatkan perhatian yang sebanding dengan tingkat risikonya. Password admin kerap dibagi agar pekerjaan...",
+      "Akses dilakukan melalui mekanisme check out yang aman, lalu password diganti setelah sesi berakhir, sehingga risiko password statis, berbagi kredensial, atau pencatatan manual...",
+      "Setiap aktivitas selama sesi privileged tetap berada dalam pengawasan. Sesi dapat direkam, dimonitor secara real time, dan ditelusuri kembali jika terjadi insiden. Perintah..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Di setiap perusahaan, selalu ada segelintir akses yang memegang kendali penuh atas sistem IT. Akses admin ke server, database, aplikasi inti, hingga perangkat jaringan inilah yang menentukan apakah sistem tetap berjalan normal atau justru berhenti total."
+  },
+  {
+    "id": "benarkah-data-di-cloud-aman-kenalan-dengan-cloud-dlp-untuk-cegah-kebocoran",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Automated Cloud DLP untuk Pencegahan Kebocoran Data Sensitif",
+    "pillar": "Cybersecurity Suite",
+    "primary_products": [
+      "Cloud DLP",
+      "Sensitive Data Protection"
+    ],
+    "all_products": [
+      "Cloud DLP",
+      "DLP"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/benarkah-data-di-cloud-aman-kenalan-dengan-cloud-dlp-untuk-cegah-kebocoran",
+    "key_subheadings": [
+      "Apa itu Cloud Data Loss Prevention",
+      "Pentingnya Data Loss Prevention dalam Lingkungan Cloud",
+      "Jenis-Jenis Cloud Data Loss Prevention",
+      "Data in Use Protection",
+      "Data in Transit Protection",
+      "Data at Rest Protection",
+      "Endpoint DLP",
+      "Email & Collaboration DLP"
+    ],
+    "pain_points": [
+      "Banyak perusahaan menganggap data mereka otomatis aman setelah dipindahkan ke cloud. Namun faktanya, risiko justru sering muncul dari hal-hal yang tidak terduga, mulai dari...",
+      "Jawabannya adalah Cloud Data Loss Prevention (Cloud DLP). Teknologi ini membantu perusahaan tidak hanya mendeteksi ancaman, tetapi juga memahami, mengendalikan, dan melindungi...",
+      "Hampir semua bisnis kini mengandalkan cloud untuk menyimpan dan mengelola data sensitif, mulai dari KTP dan nomor kartu kredit hingga rekam medis dan dokumen internal. Namun,..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Banyak perusahaan menganggap data mereka otomatis aman setelah dipindahkan ke cloud. Namun faktanya, risiko justru sering muncul dari hal-hal yang tidak terduga, mulai dari kelalaian karyawan, akses tanpa kontrol, hingga konfigurasi cloud yang salah. Insiden semacam ini sering terjadi tanpa..."
+  },
+  {
+    "id": "awas-downtime-mengintai-cegah-dengan-cloud-monitoring",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Awas Downtime Mengintai! Cegah dengan Cloud Monitoring",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [
+      "Cloud Monitoring"
+    ],
+    "all_products": [
+      "Cloud Monitoring"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/awas-downtime-mengintai-cegah-dengan-cloud-monitoring",
+    "key_subheadings": [
+      "Apa itu Cloud Monitoring?",
+      "Mengapa Cloud Monitoring Penting Dilakukan?",
+      "1. Mencegah Downtime & Gangguan Layanan",
+      "2. Optimasi Biaya Cloud",
+      "3. Keamanan Sistem Lebih Terjaga",
+      "4. Memenuhi Standar Kepatuhan dan Audit",
+      "5. Meningkatkan Pengalaman Pengguna (UX)",
+      "6. Perencanaan Kapasitas & Skalabilitas"
+    ],
+    "pain_points": [
+      "Dalam era digital yang semakin bergantung pada infrastruktur cloud, stabilitas, keamanan, dan ketersediaan layanan menjadi faktor penentu kelangsungan bisnis. Namun, banyak...",
+      "Pengukuran real-time terhadap latensi dan error dapat memastikan aplikasi tetap responsif, deteksi dini masalah, mengurangi bug yang terlihat oleh pengguna, hingga mempertahankan...",
+      "Kombinasi metrics, log, dan traces mempersingkat waktu identifikasi penyebab utama masalah sehingga mitigasi dan perbaikan lebih..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Moderate technical / consultative context",
+    "summary_snippet": "Dalam era digital yang semakin bergantung pada infrastruktur cloud, stabilitas, keamanan, dan ketersediaan layanan menjadi faktor penentu kelangsungan bisnis. Namun, banyak organisasi masih belum menyadari bahwa tanpa mekanisme pemantauan yang baik, lingkungan cloud dapat berubah menjadi sumber..."
+  },
+  {
+    "id": "ndr-langkah-strategis-bfsi-dalam-menangkal-serangan-siber",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Network Detection and Response (NDR) untuk Sektor Perbankan (BFSI)",
+    "pillar": "Cybersecurity Suite",
+    "primary_products": [
+      "NDR",
+      "SIEM",
+      "SOC"
+    ],
+    "all_products": [
+      "NDR"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance"
+    ],
+    "source_url": "https://magnaglobal.id/articles/ndr-langkah-strategis-bfsi-dalam-menangkal-serangan-siber",
+    "key_subheadings": [
+      "Apa Itu Network Detection and Response (NDR)?",
+      "Kerentanan Digital di BFSI",
+      "Mengapa NDR Krusial bagi Keamanan Siber di BFSI?",
+      "Penerapan NDR di Sektor BFSI",
+      "Deteksi Pergerakan Lateral",
+      "Pemantauan Komunikasi C2",
+      "Pengawasan Traffic ATM dan Mobile Banking",
+      "Deteksi Eksfiltrasi Data"
+    ],
+    "pain_points": [
+      "Menghadapi ancaman yang kian kompleks, pertahanan konvensional saja tak lagi cukup. Dibutuhkan strategi...",
+      "Di sinilah Network Detection and Response (NDR) hadir sebagai “mata dan telinga” digital bagi lembaga BFSI—mendeteksi ancaman lebih cepat, merespons lebih tepat,...",
+      "Didukung teknologi AI dan machine learning, NDR mampu memahami pola komunikasi normal di jaringan dan mengenali setiap penyimpangan sekecil apa pun. Saat potensi ancaman..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Dalam beberapa tahun terakhir, serangan siber semakin mengguncang sektor banking, financial services, and insurance (BFSI). Laporan IBM Cost of a Data Breach 2024 mencatat bahwa perusahaan di sektor keuangan rata-rata menghabiskan USD 6,08 juta untuk menangani satu insiden kebocoran data —..."
+  },
+  {
+    "id": "kenali-lebih-dalam-hybrid-cloud-storage-untuk-cerdas-kelola-data-perusahaan",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Kenali Lebih Dalam Hybrid Cloud Storage untuk Cerdas Kelola Data Perusahaan",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [
+      "Cloud Storage",
+      "Hybrid Cloud"
+    ],
+    "all_products": [
+      "Cloud Storage",
+      "Hybrid Cloud"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/kenali-lebih-dalam-hybrid-cloud-storage-untuk-cerdas-kelola-data-perusahaan",
+    "key_subheadings": [
+      "Apa Itu Hybrid Cloud Storage dan Bagaimana Cara Kerjanya?",
+      "Mengapa Hybrid Cloud Storage Menjadi Pilihan Banyak Perusahaan?",
+      "Keunggulan Hybrid Cloud Storage Dibandingkan Model Lainnya",
+      "Fleksibilitas dalam Pengelolaan Data",
+      "Efisiensi Biaya",
+      "Keamanan dan Kepatuhan",
+      "Kinerja yang Tetap Optimal",
+      "Backup dan Disaster Recovery Lebih Baik"
+    ],
+    "pain_points": [
+      "Mengandalkan satu pendekatan saja sering kali tidak cukup. Menyimpan semua data di cloud memang memberi fleksibilitas, tetapi biaya dan isu keamanan bisa menjadi tantangan....",
+      "Dengan adanya salinan backup di cloud, perusahaan lebih siap menghadapi risiko kehilangan data akibat kerusakan hardware, serangan siber, atau bencana..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Specific tech products: Cloud Storage, Hybrid Cloud",
+    "summary_snippet": "Memasuki penghujung 2025, pasar global cloud storage terus tumbuh dan kini telah mencapai nilai sekitar USD 124 miliar, dengan tingkat pertumbuhan tahunan (CAGR) sekitar 15,1 persen. Di Indonesia, adopsi layanan cloud juga meningkat signifikan mencapai USD 2,46 miliar, dengan pertumbuhan 14,6..."
+  },
+  {
+    "id": "transformasi-keamanan-it-modernland-realty-bersama-smg-dengan-endpoint-security-next-generation-antivirus",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Case Study Modernland Realty: Modern Endpoint Security & NGAV",
+    "pillar": "Cybersecurity Suite",
+    "primary_products": [
+      "NGAV",
+      "EDR",
+      "Endpoint Security"
+    ],
+    "all_products": [],
+    "target_industries": [
+      "Real Estate & Property"
+    ],
+    "source_url": "https://magnaglobal.id/articles/transformasi-keamanan-it-modernland-realty-bersama-smg-dengan-endpoint-security-next-generation-antivirus",
+    "key_subheadings": [
+      "Menghadapi Kompleksitas Bisnis dan Standarisasi IT dalam Perkembangan Modernland Realty",
+      "Adopsi Endpoint Security & Next Generation Antivirus untuk Optimalkan Keamanan IT Modernland",
+      "Dampak Nyata Transformasi Keamanan IT Modernland melalui Endpoint Security & NGAV",
+      "Modernland Raih Keamanan IT yang Lebih Tangguh Menuju Masa Depan bersama SMG"
+    ],
+    "pain_points": [
+      "Diversifikasi lini bisnis menghadirkan tantangan tersendiri dalam pengelolaan IT di PT Modernland Realty Tbk. Setiap sektor memiliki alur operasional berbeda yang menuntut adanya...",
+      "“Dengan bisnis yang beragam, flow operasional kami juga ikut beragam. Tantangan terbesar ada pada standarisasi, baik dari laporan pekerjaan, penggunaan hardware, maupun software....",
+      "Untuk menjawab tantangan ini,  Modernland bermitra dengan Smartnet Magna Global (SMG) dan mengadopsi solusi Endpoint Security serta Next Generation Antivirus..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "PT Modernland Realty Tbk adalah perusahaan yang bergerak di bidang property, kawasan industri, dan hospitality dengan portfolio yang luas di Indonesia. Di sektor property, proyek unggulannya meliputi Kota Modern di Tangerang dan Jakarta Garden City yang dikenal sebagai kawasan hunian terpadu yang..."
+  },
+  {
+    "id": "hyperconverged-infrastructure-fondasi-digital-banking-yang-modern-dan-scalable",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Hyperconverged Infrastructure: Fondasi Digital Banking yang Modern dan Scalable",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "primary_products": [
+      "Hyperconverged Infrastructure"
+    ],
+    "all_products": [
+      "Hyperconverged Infrastructure"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance"
+    ],
+    "source_url": "https://magnaglobal.id/articles/hyperconverged-infrastructure-fondasi-digital-banking-yang-modern-dan-scalable",
+    "key_subheadings": [
+      "Apa itu Hyperconverged Infrastructure (HCI)?",
+      "HCI vs Infrastruktur Tradisional: Apa Bedanya?",
+      "Mengapa Bank Membutuhkan Hyperconverged Infrastructure?",
+      "Mulai Transformasi Infastruktur IT Bersama Smartnet Magna Global"
+    ],
+    "pain_points": [
+      "Sebaliknya, Hyperconverged Infrastructure (HCI) menyatukan semua komponen tersebut dalam satu platform software-defined. Dengan manajemen terpadu, bank dapat mempercepat..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Vertical focus: FSI / Banking & Multifinance",
+    "summary_snippet": "Industri perbankan kini menghadapi tekanan transformasi digital yang semakin kuat. Perusahaan fintech dan bank digital dituntut untuk hadir dengan layanan yang lebih cepat, lincah, dan efisien. Dikutip dari The Economic Times, Boston Consulting Group menunjukkan bahwa pendapatan bank-bank digital..."
+  },
+  {
+    "id": "cloud-banking-transformasi-perbankan-modern-dimulai-dari-sini",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Cloud Banking: Transformasi Perbankan Modern Dimulai Dari Sini!",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [],
+    "all_products": [],
+    "target_industries": [
+      "FSI / Banking & Multifinance"
+    ],
+    "source_url": "https://magnaglobal.id/articles/cloud-banking-transformasi-perbankan-modern-dimulai-dari-sini",
+    "key_subheadings": [
+      "Apa itu Cloud Banking?",
+      "Mengapa Cloud Banking Jadi Strategi Utama Perbankan",
+      "Keunggulan Cloud Banking Bagi Industri Keuangan",
+      "Tantangan yang Perlu Diantisipasi Dalam Cloud Banking",
+      "Google Cloud: Solusi Cerdas Untuk Perbankan Modern",
+      "Transformasi Cloud Banking Bersama Smartnet Magna Global"
+    ],
+    "pain_points": [
+      "Meski menjanjikan banyak manfaat, adopsi cloud banking memiliki risiko dan tantangan yang harus...",
+      "Dengan memahami tantangan tersebut sejak awal, institusi keuangan dapat menyusun strategi migrasi cloud yang lebih terencana, aman, dan selaras dengan kebutuhan bisnis jangka..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Vertical focus: FSI / Banking & Multifinance",
+    "summary_snippet": "Tahukah Anda, 79 persen bank di seluruh dunia masih berada di tahap awal adopsi hybrid cloud? (IBM Newsroom). Fakta ini menunjukkan bahwa sebagian besar institusi keuangan global belum sepenuhnya siap menghadapi percepatan digitalisasi. Sementara itu ekspektasi nasabah terus meningkat, menuntut..."
+  },
+  {
+    "id": "tingkatkan-visibilitas-dan-respons-keamanan-anda-dengan-siem-modern",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Tingkatkan Visibilitas dan Respons Keamanan Anda dengan SIEM Modern!",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [
+      "SIEM"
+    ],
+    "all_products": [
+      "SIEM"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/tingkatkan-visibilitas-dan-respons-keamanan-anda-dengan-siem-modern",
+    "key_subheadings": [
+      "Mengapa SIEM Konvensional Tak Lagi Cukup?",
+      "Google SecOps: Solusi Modern Security Operations dari Google",
+      "Fitur Unggulan Google SecOps",
+      "Manfaat Google SecOps Bagi Perusahaan",
+      "Dapatkan Google SecOps di Smarnet Magna Global"
+    ],
+    "pain_points": [
+      "Tahukah Anda, 61% analis keamanan menyatakan bahwa mereka tidak akan dapat mendeteksi pelanggaran tanpa bantuan teknologi AI? Bahkan, AI telah terbukti mampu mempercepat waktu...",
+      "Security Information and Event Management (SIEM) modern hadir sebagai solusi untuk menjawab tantangan tersebut. Dengan kemampuan monitoring real-time, korelasi log lintas sistem,...",
+      "Meskipun SIEM telah lama berperan besar dalam menjaga sistem keamanan IT perusahaan, pendekatan konvensionalnya sering kali menghadapi berbagai keterbatasan. Salah satu tantangan..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Moderate technical / consultative context",
+    "summary_snippet": "Tahukah Anda, 61% analis keamanan menyatakan bahwa mereka tidak akan dapat mendeteksi pelanggaran tanpa bantuan teknologi AI? Bahkan, AI telah terbukti mampu mempercepat waktu deteksi ancamaan hingga 90% dibandingkan metode tradisional (AIMultiple Research). Di era digital yang penuh sistem dan..."
+  },
+  {
+    "id": "rekam-medis-lambat-nyawa-jadi-taruhan-saatnya-pakai-all-flash-storage",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "High-Performance All-Flash Storage untuk Rekam Medis Rumah Sakit",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "primary_products": [
+      "All-Flash Storage",
+      "Hybrid Cloud Storage"
+    ],
+    "all_products": [],
+    "target_industries": [
+      "Healthcare"
+    ],
+    "source_url": "https://magnaglobal.id/articles/rekam-medis-lambat-nyawa-jadi-taruhan-saatnya-pakai-all-flash-storage",
+    "key_subheadings": [
+      "Apa itu All Flash Storage?",
+      "3 Keunggulan All Flash Storage",
+      "1. Performa Super Cepat",
+      "2. Keandalan Tinggi",
+      "3. Efisiensi Operasional",
+      "Contoh Penggunaan All Flash Storage di Industri Kesehatan",
+      "Sistem Informasi Rumah Sakit Terpadu",
+      "Pemrosesan Gambar Medis"
+    ],
+    "pain_points": [],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Pernah mendengar kasus seperti ini: Seorang dokter harus menunda penanganan pasien dalam kondisi gawat darurat karena rekam medisnya lambat terbuka? Tentu kita tidak ingin hal itu terjadi lagi. Karena dalam kondisi gawat darurat keterlambatan tidak hanya bikin semua frustasi, bagi pasien bisa..."
+  },
+  {
+    "id": "5-strategi-optimalkan-infrastruktur-hybrid-cloud-dengan-google-cloud-di-2025",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "5 Strategi Optimalkan Infrastruktur Hybrid Cloud dengan Google Cloud di 2025",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "primary_products": [
+      "Google Cloud",
+      "Hybrid Cloud"
+    ],
+    "all_products": [
+      "Google Cloud",
+      "Hybrid Cloud"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/5-strategi-optimalkan-infrastruktur-hybrid-cloud-dengan-google-cloud-di-2025",
+    "key_subheadings": [
+      "Infrastruktur Hybrid Cloud: Definisi dan Manfaatnya",
+      "5 Langkah Jitu Memaksimalkan Infrastruktur Hybrid Cloud dengan Google Cloud",
+      "Lakukan Assessment Infrastructure yang Komprehensif",
+      "Terapkan Arsitektur Modern dengan Kubernetes",
+      "Optimalkan Konektivitas Hybrid",
+      "Automasi Deployment dan Infrastruktur",
+      "Pastikan Keamanan End-to-End",
+      "Keunggulan Menggunakan Infrastruktur Hybrid Cloud"
+    ],
+    "pain_points": [
+      "Pernahkah Anda merasa sistem on-premise kurang fleksibel, tetapi migrasi penuh ke cloud terasa terlalu berisiko? Faktanya, 73% perusahaan global kini mengadopsi strategi...",
+      "Selain persiapan teknis, faktor sumber daya manusia juga perlu diperhatikan. Tim IT sebaiknya mendapatkan pelatihan terkait pengelolaan multi-environment dan penggunaan tool...",
+      "Transformasi digital yang efektif tidak lagi dapat mengandalkan satu jenis infrastruktur saja. Hybrid cloud menajdi pendekatan strategis yang memberikan keseimbangan antara..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Specific tech products: Google Cloud, Hybrid Cloud",
+    "summary_snippet": "Pernahkah Anda merasa sistem on-premise kurang fleksibel, tetapi migrasi penuh ke cloud terasa terlalu berisiko? Faktanya, 73% perusahaan global kini mengadopsi strategi infrastruktur hybrid cloud agar dapat mengikuti perkembangan dalam era transformasi digital (Flexera 2024 Report). Angka tersebut..."
+  },
+  {
+    "id": "endpoint-privilege-management-solusi-tepat-cegah-ancaman-internal",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Endpoint Privilege Management (EPM) & Least-Privilege Architecture",
+    "pillar": "Cybersecurity Suite",
+    "primary_products": [
+      "EPM",
+      "PAM",
+      "Endpoint Security"
+    ],
+    "all_products": [
+      "Endpoint Privilege Management"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/endpoint-privilege-management-solusi-tepat-cegah-ancaman-internal",
+    "key_subheadings": [
+      "Apa itu Endpoint Privilege Management?",
+      "Mengapa Menjaga Keamanan pada Perangkat Endpoint Penting?",
+      "Keuntungan Menggunakan Endpoint Privilege Management",
+      "Endpoint Privilege Management vs Endpoint Management",
+      "Solusi Endpoint Privilege Management dari Magna",
+      "6 Fitur Unggulan EPM Magna",
+      "Dapatkan Solusi Endpoint Privilege Management dari Smartnet Magna Global"
+    ],
+    "pain_points": [
+      "Tentu dalam hitungan menit, kejadian tersebut membuat sistem internal perusahaan disusupi, data penting bocor, dan memicu kerugian miliaran rupiah yang tak dapat terhindari....",
+      "Di balik itu semua, ternyata satu akar masalah utama yakni hak akses berlebihan di endpoint. Inilah yang menjadi alasan utama mengapa Endpoint Privilege Management (EPM) kini...",
+      "Ingat cerita karyawan baru tadi? Itu hanya satu contoh kecil dari bagaimana ancaman bisa masuk lewat endpoint. Sederhananya, endpoint adalah pintu-pintu kecil di seluruh..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Endpoint Privilege Management (EPM) kini menjadi salah satu pilar penting dalam strategi keamanan siber modern. Bayangkan! Bagaimana jika seorang karyawan baru di sebuah perusahaan teknologi besar tanpa sengaja menjalankan file asing menggunakan laptop kerja di hari pertamanya?"
+  },
+  {
+    "id": "jangan-biarkan-data-nasabah-bocor-ini-cara-cerdas-menghadapinya",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Jangan Biarkan Data Nasabah Bocor! Ini Cara Cerdas Menghadapinya",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [],
+    "all_products": [],
+    "target_industries": [
+      "FSI / Banking & Multifinance"
+    ],
+    "source_url": "https://magnaglobal.id/articles/jangan-biarkan-data-nasabah-bocor-ini-cara-cerdas-menghadapinya",
+    "key_subheadings": [
+      "Mengapa Perlindungan Data Nasabah Begitu Penting?",
+      "6 Strategi Keamanan untuk Lindungi Data Nasabah",
+      "1. Enkripsi Data",
+      "2. Multi-Factor Authentication (MFA)",
+      "3. Teknologi Tokenisasi",
+      "4. Pelatihan untuk Tim Teknis",
+      "5. Pengujian Sistem Secara Berkala",
+      "6. Transparansi kepada Nasabah"
+    ],
+    "pain_points": [
+      "Pertanyannya, sudah seberapa siap bisnis Anda menghadapi ancaman ini? Dalam artikel berikut kita akan membahas kenapa perlindungan data nasabah sangat krusial di sektor perbankan...",
+      "Data nasabah bukan sekadar deretan angka. Di baliknya ada informasi sensitif seperti identitas pribadi, nomor rekening bank, riwayat kredit, hingga catatan transaksi keuangan....",
+      "Yang lebih mengkhawatirkan, kepercayaan nasabah tidak bisa dibeli kembali. Sekali saja terjadi kebocoran, kerugian utamanya bukan cuma materi, tetapi hilangnya kepercayaan yang..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Vertical focus: FSI / Banking & Multifinance",
+    "summary_snippet": "Di tengah pesatnya digitalisasi layanan keuangan, data nasabah menjadi incaran utama  serangan siber. Taruhannya bukan cuma angka, tetapi soal kepercayaan yang susah dibangun kembali. Satu insiden kebocoran, bisa menghancurkan reputasi yang telah dibangun bertahun-tahun."
+  },
+  {
+    "id": "google-bigquery-x-gemini-ai-menyatukan-kekuatan-data-dan-kecerdasan-ai",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "BigQuery x Gemini AI: Generative Analytics & Enterprise BI",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [
+      "BigQuery",
+      "Gemini",
+      "Vertex AI"
+    ],
+    "all_products": [
+      "BigQuery",
+      "Gemini"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/google-bigquery-x-gemini-ai-menyatukan-kekuatan-data-dan-kecerdasan-ai",
+    "key_subheadings": [
+      "Google BigQuery Pondasi Kuat untuk Analitik Modern",
+      "Bagaimana Gemini AI Mengubah Cara Kita Berinteraksi dengan BigQuery?",
+      "Natural Language Query",
+      "Auto Code & Explanation",
+      "Visual Data Canvas",
+      "Query Optimization Suggestions",
+      "BigQuery & Gemini AI: Cara Cerdas Menjalankan Data dan AI",
+      "Optimalkan Data dan AI Anda Bersama SMG"
+    ],
+    "pain_points": [
+      "AI berkembang pesat—dan jika Anda masih ragu mengadopsinya, kemungkinan besar Anda akan tertinggal. Tapi masalahnya bukan hanya soal “perlu atau tidak,” melainkan bagaimana..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "AI berkembang pesat—dan jika Anda masih ragu mengadopsinya, kemungkinan besar Anda akan tertinggal. Tapi masalahnya bukan hanya soal “perlu atau tidak,” melainkan bagaimana menerapkan AI secara nyata, tepat sasaran, dan kontekstual dalam proses bisnis Anda."
+  },
+  {
+    "id": "5-manfaat-cloud-computing-yang-bisa-mengubah-bisnis-multifinance",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "5 Manfaat Cloud Computing yang Bisa Mengubah Bisnis Multifinance",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [],
+    "all_products": [],
+    "target_industries": [
+      "FSI / Banking & Multifinance"
+    ],
+    "source_url": "https://magnaglobal.id/articles/5-manfaat-cloud-computing-yang-bisa-mengubah-bisnis-multifinance",
+    "key_subheadings": [
+      "4 Tantangan Transformasi Digital di Industri Multifinance",
+      "1. Volume Data yang Besar",
+      "2. Kepatuhan Regulasi",
+      "3. Kebutuhan Layanan Real-Time",
+      "4. Skalabilitas yang Fleksibel",
+      "5 Manfaat Cloud Computing di Industri Multifinance",
+      "1. Digital Onboarding Nasabah",
+      "2. Analisis Data dan Prediksi Risiko"
+    ],
+    "pain_points": [
+      "Di era digital yang semakin berkembang, industri multifinance—termasuk perusahaan pembiayaan, leasing, dan fintech dihadapkan pada berbagai tantangan. Mulai dari pengelolaan data...",
+      "Sebelum membahas manfaatnya, penting untuk memahami beberapa tantangan utama dalam industri multifinance saat menghadapi transformasi digital. Berikut uraian...",
+      "Tantangan-tantangan di atas menunjukkan betapa pentingnya solusi teknologi yang tidak hanya andal, tetapi juga fleksibel. Lalu, bagaimana cloud computing bisa membantu industri..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Vertical focus: FSI / Banking & Multifinance",
+    "summary_snippet": "Di era digital yang semakin berkembang, industri multifinance—termasuk perusahaan pembiayaan, leasing, dan fintech dihadapkan pada berbagai tantangan. Mulai dari pengelolaan data dalam jumlah besar, kepatuhan terhadap regulasi, hingga tuntutan layanan real-time. Bagaimana solusi cloud computing..."
+  },
+  {
+    "id": "kenali-google-threat-intelligence-solusi-proaktif-keamanan-siber-berbasis-ai",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Google Threat Intelligence (GTI) Berbasis AI & Mandiant",
+    "pillar": "Cybersecurity Suite",
+    "primary_products": [
+      "Google Threat Intelligence",
+      "Mandiant Threat Intelligence"
+    ],
+    "all_products": [
+      "Google Threat Intelligence"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/kenali-google-threat-intelligence-solusi-proaktif-keamanan-siber-berbasis-ai",
+    "key_subheadings": [
+      "Apa itu Google Threat Intelligence?",
+      "Bagaimana Kemampuan Google Threat Intelligence untuk Hadapi Ancaman Siber?",
+      "Google Threat Insights",
+      "Frontline Intelligence",
+      "Human-Curated Threat Intelligence",
+      "Crowdsourced Threat Intelligence",
+      "Open-Source Threat Intelligence",
+      "Operasionalisasi Intelijen Ancaman Berbasis AI dengan Google Threat Intelligence"
+    ],
+    "pain_points": [
+      "Keamanan siber kini menjadi prioritas utama bagi setiap bisnis. Serangan siber yang semakin canggih memerlukan pendekatan baru yang lebih proaktif dan responsif. Google Threat...",
+      "Google Threat Intelligence adalah solusi keamanan terbaru dari Google yang dirancang untuk mengatasi dua tantangan utama dalam intelijen ancaman yakni pandangan yang terbatas...",
+      "Solusi ini menggabungkan keahlian Mandiant, jaringan global VirusTotal, serta visibilitas luas dari miliaran sinyal yang dimiliki Google. Dengan bantuan Gemini, solusi AI dari..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Keamanan siber kini menjadi prioritas utama bagi setiap bisnis. Serangan siber yang semakin canggih memerlukan pendekatan baru yang lebih proaktif dan responsif. Google Threat Intelligence, didukung oleh teknologi AI mutakhir, menawarkan perlindungan yang lebih baik dan tangguh untuk menjaga..."
+  },
+  {
+    "id": "mengenal-google-security-command-center-enterprise-untuk-kelola-keamanan-multicloud",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Mengenal Google Security Command Center Enterprise untuk Kelola Keamanan Multicloud",
+    "pillar": "Cybersecurity Suite",
+    "primary_products": [
+      "Security Command Center"
+    ],
+    "all_products": [
+      "Security Command Center"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/mengenal-google-security-command-center-enterprise-untuk-kelola-keamanan-multicloud",
+    "key_subheadings": [
+      "Pengertian Security Command Center Enterprise",
+      "Fitur Security Command Center Enterprise untuk Keamanan Lingkungan Multicloud",
+      "Dapatkan Security Command Center Enterprise dari Google Cloud di SMG"
+    ],
+    "pain_points": [
+      "Seiring dengan meningkatnya adopsi teknologi cloud, tantangan dalam mengelola keamanan dan risiko di lingkungan multi-cloud menjadi semakin kompleks. Untuk mengatasi hal ini,...",
+      "Security Command Center Enterprise (SCCE) adalah platform keamanan cloud yang dikembangkan oleh Google Cloud Platform (GCP) untuk membantu perusahaan mendeteksi, menyelidiki, dan...",
+      "SCCE hadir sebagai solusi atas meningkatnya risiko keamanan cloud dan keterbatasan Platform Perlindungan Aplikasi Cloud-Native (CNAPP). Dengan semakin banyaknya perusahaan yang..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Moderate technical / consultative context",
+    "summary_snippet": "Seiring dengan meningkatnya adopsi teknologi cloud, tantangan dalam mengelola keamanan dan risiko di lingkungan multi-cloud menjadi semakin kompleks. Untuk mengatasi hal ini, Google memperkenalkan Security Command Center Enterprise (SCCE), sebuah platform keamanan komprehensif yangmemberikan..."
+  },
+  {
+    "id": "apa-itu-config-connector-dan-keuntungannya-untuk-kelola-google-cloud",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Infrastructure-as-Code & Declarative Cloud Management dengan Config Connector",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "primary_products": [
+      "Config Connector",
+      "GKE",
+      "GCP"
+    ],
+    "all_products": [
+      "Google Cloud",
+      "Config Connector"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/apa-itu-config-connector-dan-keuntungannya-untuk-kelola-google-cloud",
+    "key_subheadings": [
+      "Apa itu Config Connector?",
+      "Keuntungan Penggunaan Config Connector bagi Developer",
+      "Integrasi dengan GKE dan Anthos Configuration",
+      "Rekonsiliasi Otomatis",
+      "Manajemen Konfigurasi Terpusat",
+      "Solusi Terkelola",
+      "Bagaimana Cara Setup Awal Config Connector di Google Cloud?",
+      "Permudah Pengaturan Infrastruktur di Google Cloud dengan Config Connector"
+    ],
+    "pain_points": [
+      "Anda dapat lebih mudah mengaudit operasi Config Connector dan status rekonsiliasi konfigurasi. Selain itu, developer juga dapat mengotomatiskan penanganan insiden dengan..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Config Connector menjadi solusi tepat untuk mengatasi kompleksnya pengelolaan Google Cloud. Config Connector memungkinkan pengguna dapat mengelola resource Google Cloud (GCP) melalui Kubernetes."
+  },
+  {
+    "id": "cloud-backup-pusat-data-nasional-down-backup-data-data-recovery",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Enterprise Cloud Backup & Disaster Recovery Pasca PDN Incident",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "primary_products": [
+      "Cloud Storage",
+      "Disaster Recovery",
+      "Cloud Backup"
+    ],
+    "all_products": [],
+    "target_industries": [
+      "Public Sector & BUMN"
+    ],
+    "source_url": "https://magnaglobal.id/articles/cloud-backup-pusat-data-nasional-down-backup-data-data-recovery",
+    "key_subheadings": [
+      "Asal Mula Penyebab Pusat Data Nasional Down",
+      "Peran Penting Cloud untuk Backup dan Data Recovery",
+      "Tips Melakukan Backup dan Recovery Pasca Terkena Ransomware",
+      "Pilih Tempat Backup yang Tepat",
+      "Pilih Layanan Backup yang Sesuai",
+      "Lakukan Pemeriksaan Keamanan pada Backup Sebelum Digunakan",
+      "Jenis Solusi Backup dan Recovery Data",
+      "Keuntungan Menggunakan Solusi Backup dan Data Recovery dari Smartnet Magna Global"
+    ],
+    "pain_points": [
+      "Data merupakan aset berharga bagi setiap organisasi dan bisnis. Namun, seiring dengan meningkatnya ketergantungan pada data, risiko keamanan siber juga meningkat. Salah satu...",
+      "Cloud backup menawarkan solusi komprehensif untuk melindungi data dari berbagai ancaman, termasuk ransomware. Dengan menyimpan data di cloud yang aman dan terenkripsi, organisasi...",
+      "Kasus PDN yang terkena ransomware menyoroti betapa pentingnya memiliki solusi backup dan recovery yang andal. Ransomware adalah jenis malware yang mengenkripsi data, membuatnya..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Data merupakan aset berharga bagi setiap organisasi dan bisnis. Namun, seiring dengan meningkatnya ketergantungan pada data, risiko keamanan siber juga meningkat. Salah satu contohnya adalah serangan ransomware yang baru-baru ini menyasar Pusat Data Nasional (PDN) pada Juni 2024."
+  },
+  {
+    "id": "pusat-data-nasional-down-dibobol-ransomware-ini-peran-penting-endpoint-security",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Pusat Data Nasional Down Dibobol Ransomware, Ini Peran Penting Endpoint Security",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [],
+    "all_products": [],
+    "target_industries": [
+      "Public Sector & BUMN"
+    ],
+    "source_url": "https://magnaglobal.id/articles/pusat-data-nasional-down-dibobol-ransomware-ini-peran-penting-endpoint-security",
+    "key_subheadings": [
+      "Bagaimana Kronologi Gangguan Pusat Data Nasional",
+      "Peran Endpoint Detection and Response (EDR) untuk Keamanan Data",
+      "Bagaimana Kerja EDR dan EPM?",
+      "Dapatkan Solusi Endpoint Security dari SMG Sekarang!"
+    ],
+    "pain_points": [
+      "EDR adalah sistem keamanan yang secara aktif memantau perangkat pengguna (endpoint) untuk mendeteksi dan menangani ancaman siber seperti ransomware dan malware. Beberapa...",
+      "Selain EDR, EPM adalah solusi keamanan penting lainnya. EPM membantu mengamankan data sensitif, memastikan kepatuhan, dan mengurangi risiko kebocoran data dengan mengatur...",
+      "Seperti yang dijelaskan di atas, EDR dan EPM adalah solusi keamanan yang digunakan untuk melindungi perangkat endpoint seperti laptop, desktop, dan server yang terhubung ke..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Vertical focus: Public Sector & BUMN",
+    "summary_snippet": "Berita nasional di penghujung Juni 2024 diramaikan dengan kabar Pusat Data Nasional Sementara (PNDS) mengalami downtime akibat serangan ransomware. Serangan ini melumpuhkan berbagai layanan penting, termasuk layanan keimigrasian dan sistem Kartu Indonesia Pintar Kuliah (KIP Kuliah)."
+  },
+  {
+    "id": "security-command-center-solusi-canggih-di-tengah-ancaman-siber-yang-kian-kompleks",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Security Command Center: Solusi Canggih di Tengah Ancaman Siber yang Kian Kompleks",
+    "pillar": "Cybersecurity Suite",
+    "primary_products": [
+      "Security Command Center"
+    ],
+    "all_products": [
+      "Security Command Center"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/security-command-center-solusi-canggih-di-tengah-ancaman-siber-yang-kian-kompleks",
+    "key_subheadings": [
+      "Apa itu Security Command Center?",
+      "Fitur Utama Google Security Command Center?",
+      "Security Posture Management",
+      "Security Insights",
+      "Key Integration",
+      "Compliance Reporting",
+      "Configuring Security Command Center",
+      "Bagaimana Cara Membuat Attack Path?"
+    ],
+    "pain_points": [
+      "Security Command Center (SCC) kini menjadi solusi penting untuk menjaga keamanan data perusahaan dari ancaman siber yang terus berkembang. Sebagai solusi manajemen risiko,...",
+      "Security Command Center adalah solusi manajemen risiko dan layanan pelaporan ancaman serta kerentanan terpusat dan kontrol terhadap infrastruktur untuk mendeteksi dan melaporkan...",
+      "Security Command Center merupakan solusi manajemen risiko tingkat enterprise yang menggabungkan keamanan cloud dan perusahaan, yang memungkinkan analis SOC, analis kerentanan dan..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Moderate technical / consultative context",
+    "summary_snippet": "Security Command Center (SCC) kini menjadi solusi penting untuk menjaga keamanan data perusahaan dari ancaman siber yang terus berkembang. Sebagai solusi manajemen risiko, Security Command Center menggabungkan operasional keamanan cloud sekaligus memberikan insights untuk memberikan perlindungan..."
+  },
+  {
+    "id": "penting-ini-5-alasan-bisnis-butuh-data-loss-prevention-dlp",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Penting! Ini 5 Alasan Bisnis Butuh Data Loss Prevention (DLP)",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [
+      "Data Loss Prevention",
+      "DLP"
+    ],
+    "all_products": [
+      "Data Loss Prevention",
+      "DLP"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/penting-ini-5-alasan-bisnis-butuh-data-loss-prevention-dlp",
+    "key_subheadings": [
+      "Apa itu Data Loss Prevention (DLP)?",
+      "Bagaimana Cara Kerja Data Loss Prevention (DLP)?",
+      "1. Identifikasi Data Sensitif",
+      "2. Pengklasifikasian Data",
+      "3. Penyaringan Data",
+      "4. Deteksi dan Analisis",
+      "5. Tindakan Penanganan",
+      "6. Laporan dan Audit"
+    ],
+    "pain_points": [
+      "Data Loss Prevention (DLP) telah menjadi kebutuhan vital bagi bisnis di era digital saat ini. Dengan semakin banyaknya data sensitif yang disimpan dan dibagikan secara digital,...",
+      "Sepanjang 2023, kasus kebocoran data semakin marak terjadi. Berdasarkan laporan dari Kominfo pada Q1, tercatat ada 35 kasus kebocoran data yang terjadi. Situasi ini memberikan...",
+      "Untuk menghindari risiko yang sama terjadi pada bisnis Anda, penting untuk memahami konsep DLP, manfaatnya, dan bagaimana penerapannya dapat membantu melindungi bisnis Anda. Simak..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Specific tech products: Data Loss Prevention, DLP",
+    "summary_snippet": "Data Loss Prevention (DLP) telah menjadi kebutuhan vital bagi bisnis di era digital saat ini. Dengan semakin banyaknya data sensitif yang disimpan dan dibagikan secara digital, risiko kebocoran data juga semakin besar. Oleh karena itu, DLP menjadi kunci utama dalam melindungi aset data yang..."
+  },
+  {
+    "id": "memahami-iam-fondasi-keamanan-dan-efisiensi-bisnis-modern",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Memahami IAM, Fondasi Keamanan dan Efisiensi Bisnis Modern",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [
+      "IAM"
+    ],
+    "all_products": [
+      "IAM"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/memahami-iam-fondasi-keamanan-dan-efisiensi-bisnis-modern",
+    "key_subheadings": [
+      "Apa itu Identity Access Management (IAM)?",
+      "Cara Kerja IAM",
+      "Identifikasi",
+      "Autentikasi",
+      "Monitoring dan Audit",
+      "Pemberian  dan Pencabutan Akses",
+      "Mengapa Bisnis Membutuhkan IAM?",
+      "Fungsi dan Manfaat IAM untuk Bisnis"
+    ],
+    "pain_points": [
+      "Perusahaan memiliki kontrol  lebih besar terhadap akses pengguna, sehingga dapat mengurangi risiko pelanggaran data baik dari dalam maupun...",
+      "IAM memegang peran krusial dalam tingkat keamanan bisnis atau organisasi. Namun, ketika sistem IAM mengalami masalah, berbagai dampak negatif dapat terjadi terhadap keamanan...",
+      "Pengguna yang tidak memiliki wewenang dapat dengan mudah memperoleh akses ke data sensitif, mengancam privasi dan keamanan data. Hal ini dapat mengakibatkan pelanggaran data,..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Moderate technical / consultative context",
+    "summary_snippet": "Anda mungkin pernah mendengar istilah IAM, tetapi apakah Anda tahu apa artinya dan mengapa penting bagi bisnis Anda? IAM adalah singkatan dari Identity and Access Management, yaitu solusi yang mengelola akses dan identitas pengguna terhadap sumber daya IT, seperti sistem, aplikasi, dan jaringan...."
+  },
+  {
+    "id": "google-firebase-platform-unggulan-untuk-pengembangan-aplikasi-modern",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Google Firebase: Platform Unggulan untuk Pengembangan Aplikasi Modern",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "primary_products": [
+      "Firebase"
+    ],
+    "all_products": [
+      "Firebase"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/google-firebase-platform-unggulan-untuk-pengembangan-aplikasi-modern",
+    "key_subheadings": [
+      "Apa itu Firebase?",
+      "8 Fitur Firebase untuk Mudahkan Pengembangan Aplikasi",
+      "1. Database",
+      "2. Authentification",
+      "3. Performance Monitoring",
+      "4. Messaging",
+      "5. Crashlytics",
+      "6. Test Lab"
+    ],
+    "pain_points": [
+      "Mulai dari penyimpanan data real-time hingga keamanan otentikasi pengguna, Firebase menyediakan layanan canggih yang mempermudah pengembangan aplikasi lintas platform. Dengan...",
+      "Monitoring semua jenis kesalahan (error) dan bisa segera memperbaikinya dengan fitur Crashlytics yang membantu menemukan, memecahkan, dan memperbaiki masalah yang memengaruhi..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Moderate technical / consultative context",
+    "summary_snippet": "Pengembangan aplikasi saat ini telah menjadi perhatian utama bagi banyak perusahaan dan developer dalam era transformasi digital. Namun demikian, dengan persaingan yang semakin ketat dan tingginya tuntutan pengguna diperlukan platform yang dapat memberikan solusi lengkap dan efisien."
+  },
+  {
+    "id": "otomatisasi-operasional-bisnis-anda-gak-ribet-lagi-dengan-vertex-ai",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Enterprise ML & AI Operations dengan Vertex AI",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [
+      "Vertex AI",
+      "Gemini"
+    ],
+    "all_products": [
+      "Vertex AI"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/otomatisasi-operasional-bisnis-anda-gak-ribet-lagi-dengan-vertex-ai",
+    "key_subheadings": [
+      "Apa itu Google Vertex AI?",
+      "8 Fitur Google Vertex AI",
+      "2. Pelatihan Kustom",
+      "3. Deployment Mudah",
+      "4. Monitoring dan Manajemen",
+      "5. Migrasi Model",
+      "6. Integrasi dengan Google Cloud",
+      "7. Reinforcement Learning"
+    ],
+    "pain_points": [
+      "Menyediakan tools untuk memantau dan mengelola model AI yang sudah di-deploy. Pengguna dapat melacak kinerja model, mengidentifikasi masalah, dan membuat perubahan jika..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Pemanfaatan Artificial Intelligence (AI) melalui platform seperti Vertex AI, telah membawa dampak yang sangat signifikan pada dunia bisnis. Perusahaan yang mampu mengintegrasikan Artificial Intelligence (AI) ke dalam operasional mereka telah mendapatemukan sejumlah keuntungan substansial."
+  },
+  {
+    "id": "bikin-aplikasi-jadi-cepat-dan-mudah-dengan-cloud-run",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Serverless Container Modernization dengan Cloud Run",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "primary_products": [
+      "Cloud Run",
+      "Serverless"
+    ],
+    "all_products": [
+      "Cloud Run"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/bikin-aplikasi-jadi-cepat-dan-mudah-dengan-cloud-run",
+    "key_subheadings": [
+      "Apa itu Cloud Run?",
+      "Bagaimana Cloud Run Membantu Startup dan Bisnis Kecil untuk Membuat Aplikasi?",
+      "Endpoint HTTPS Unik",
+      "Penskalaan Otomatis",
+      "Manajemen Trafik Terintegrasi",
+      "Layanan Public dan Private",
+      "Dukungan Layanan Cache",
+      "5 Manfaat Cloud Run untuk Bisnis Kecil dan Start up"
+    ],
+    "pain_points": [
+      "Dalam proses mengembangkan aplikasi, startup dan bisnis kecil sering menghadapi masalah operasional yang dapat memperlambat progres pengembangan. Untuk mengatasi kendala ini,...",
+      "Anda bisa mengarahkan trafik ke revisi baru atau sebelumnya, atau membagi trafik ke beberapa revisi untuk rollout bertahap. Ini membantu mengurangi risiko perubahan dengan memulai...",
+      "Dengan fitur-fitur ini, Google Cloud Run memberikan solusi yang kuat bagi startup dan bisnis kecil untuk mengatasi tantangan teknis dalam mengembangkan aplikasi. Ini memungkinkan..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Jika Anda ingin lepas dari kerumitan mengatur segala infrastruktur saat pengembangan aplikasi, maka Cloud Run adalah jawabannya. Solusi ini terbukti memiliki kemampuan untuk mempercepat proses pengembangan, mudah diskalakan sesuai kebutuhan bisnis, serta responsif terhadap perubahan atau lonjakan..."
+  },
+  {
+    "id": "waspada-5-tantangan-ini-sering-hantui-bisnis-e-commerce-di-indonesia",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Waspada! 5 Tantangan Ini Sering Hantui Bisnis E-commerce di Indonesia",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [],
+    "all_products": [],
+    "target_industries": [
+      "Retail & E-Commerce"
+    ],
+    "source_url": "https://magnaglobal.id/articles/waspada-5-tantangan-ini-sering-hantui-bisnis-e-commerce-di-indonesia",
+    "key_subheadings": [
+      "5 Tantangan E-commerce di Indonesia",
+      "Best User Experience",
+      "Performa Aplikasi dan Website",
+      "Agile Terhadap Perubahan Tren",
+      "Memahami Costumer",
+      "Menjaga Inventaris Perusahaan",
+      "Bagaimana Google Kubernetes Engine Bantu Hadapi Tantangan Bisnis E-commerce",
+      "8 Fitur Andalan Google Kubernetes Engine"
+    ],
+    "pain_points": [
+      "Tantangan menjalankan bisnis e-commerce tidak hanya soal bersaing dengan kompetitor tetapi juga memenuhi ekspetasi pelanggan. Saat berbelanja di e-commerce, pelanggan menyukai...",
+      "Lalu, apa saja tantangan yang dihadapi bisnis e-commerce dan bagaimana solusi terbaik untuk menghadapinya? Simak penjelasannya di artikel...",
+      "Electronic commerce atau e-commerce adalah proses terjadinya transaksi jual beli yang dilakukan secara online, tanpa perlu melakukan tatap muka, melalui media elektronik. Meski..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Vertical focus: Retail & E-Commerce",
+    "summary_snippet": "Tantangan menjalankan bisnis e-commerce tidak hanya soal bersaing dengan kompetitor tetapi juga memenuhi ekspetasi pelanggan. Saat berbelanja di e-commerce, pelanggan menyukai aplikasi atau website yang mudah diakses dengan cepat dan memiliki sedikit toleransi terhadap website yang lambat bahkan..."
+  },
+  {
+    "id": "cari-tahu-mengapa-google-kubernetes-engine-jadi-solusi-tepat-untuk-pengelolaan-aplikasi",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Google Kubernetes Engine (GKE) Enterprise Application Orchestration",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "primary_products": [
+      "Google Kubernetes Engine",
+      "GKE"
+    ],
+    "all_products": [
+      "Google Kubernetes Engine"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/cari-tahu-mengapa-google-kubernetes-engine-jadi-solusi-tepat-untuk-pengelolaan-aplikasi",
+    "key_subheadings": [
+      "Apa Itu Kubernetes?",
+      "Apakah Kubernetes Cocok Digunakan untuk Segala Jenis Industri?",
+      "Apa itu Google Kubernetes Engine?",
+      "6 Fitur Unggulan Google Kubernetes Engine",
+      "1. Perbaikan Otomatis",
+      "2. Peningkatan Otomatis",
+      "3. Penskalaan Otomatis",
+      "4. Cluster Autopilot"
+    ],
+    "pain_points": [
+      "Kubernetes juga dapat mengatasi masalah pada aplikasi dengan menggantikan container yang gagal secara otomatis. Dengan menggunakan Kubernetes, perusahan dapat mengelola aplikasi..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Anda pasti ingin pengelolaan aplikasi dapat selalu berjalan dengan baik. Tapi, kalau aplikasi yang Anda kelola jumlahnya menjadi semakin besar, bagaimana membuatnya tetap ringkas dan cepat? Google Kubernetes Engine (GKE) bisa jadi solusinya."
+  },
+  {
+    "id": "transformasi-digital-jadi-mudah-dan-aman-dengan-google-cloud-platform",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Transformasi Digital Jadi Mudah dan Aman dengan Google Cloud Platform",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "primary_products": [
+      "Google Cloud"
+    ],
+    "all_products": [
+      "Google Cloud"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/transformasi-digital-jadi-mudah-dan-aman-dengan-google-cloud-platform",
+    "key_subheadings": [
+      "Apa Itu Transformasi Digital?",
+      "Pentingnya Transformasi Digital dalam Bisnis Saat Ini",
+      "1. Meningkatkan  Efisiensi Operasional",
+      "2. Meningkatkan Keterlibatan Pelanggan",
+      "3. Meningkatkan Inovasi Produk dan Layanan",
+      "4. Meningkatkan  Keamanan Data",
+      "5. Meningkatkan Fleksibilitas Bisnis",
+      "Modernisasi Infrastruktur IT: Tantangan Transformasi Digital"
+    ],
+    "pain_points": [
+      "Transformasi digital menjadi salah satu tantangan besar dalam modernisasi infrastruktur IT. Hal ini disebabkan karena transformasi digital mengharuskan perusahaan untuk melakukan...",
+      "Setelah mengetahui beberapa tantangan transformasi digital, saatnya perusahaan Anda menyediakan modern IT infrastruktur seperti Google Cloud Platform yang menjadi platform...",
+      "Solusi manajemen operasi yang cerdas dan otomatis untuk infrastruktur IT perusahaan. Layanan ini mencakup fitur seperti analisis prediktif dan pencegahan masalah, pemantauan dan..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Moderate technical / consultative context",
+    "summary_snippet": "Simak artikel berikut untuk ketahui cara termudah dan aman untuk melakukan transformasi digital bisnis Anda menggunakan Google Cloud Platform."
+  },
+  {
+    "id": "google-bigquery-solusi-anti-ribet-kelola-data-karyawan",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Google BigQuery, Solusi Anti Ribet Kelola Data Karyawan",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [
+      "BigQuery"
+    ],
+    "all_products": [
+      "BigQuery"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/google-bigquery-solusi-anti-ribet-kelola-data-karyawan",
+    "key_subheadings": [
+      "Apa Itu BigQuery?",
+      "Bagaimana BigQuery Mengatasi Masalah dan Tantangan HRD?",
+      "Apa Saja Fitur BigQuery ML?",
+      "Supervised Learning",
+      "Unsupervised Learning",
+      "3 Keuntungan Menggunakan Google BigQuery ML",
+      "1. User Friendly",
+      "2. Interface yang Ringan"
+    ],
+    "pain_points": [
+      "Lantas, apa itu BigQuery dan bagaimana solusi ini mengatasi tantangan HRD? Lengkapnya, simak di artikel...",
+      "Seringkali, HRD kesulitan dalam menganalisa tentang penyebab karyawan keluar dari perusahaannya, seperti faktor-faktor apa saja yang membuat karyawan keluar, faktor yang paling..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Moderate technical / consultative context",
+    "summary_snippet": "Jika di era sebelumnya, Human Resource Department (HRD) hanya dapat menggunakan intuisi dan firasat dalam mengambil keputusan dan melakukan sesuatu. Sekarang, dengan bantuan teknologi BigQuery, HRD dapat mengambil keputusan lebih baik dan tepat berdasarkan data dan informasi yang ada."
+  },
+  {
+    "id": "wujudkan-kerja-kreatif-dan-kolaboratif-dengan-google-workspace",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Wujudkan Kerja Kreatif dan Kolaboratif dengan Google Workspace",
+    "pillar": "Network & Enterprise Workplace",
+    "primary_products": [
+      "Google Workspace"
+    ],
+    "all_products": [
+      "Google Workspace"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/wujudkan-kerja-kreatif-dan-kolaboratif-dengan-google-workspace",
+    "key_subheadings": [
+      "Apa Itu Google Workspace?",
+      "Apa Saja Fitur Google Workspace?",
+      "1. User Experience Terintegrasi",
+      "2. Sistem Keamanan Lebih Baik",
+      "3. Lebih Mudah Berkolaborasi",
+      "4. Review Dokumen Tanpa Harus Buka Tab Baru",
+      "5. CRM, Pengelolaan Project dan Solusi Admin",
+      "Manfaat Penggunaan Google Workspace"
+    ],
+    "pain_points": [
+      "Lewat bantuan aplikasi seperti Google Sheets, Google Drive, pekerja frontline bisa mendigitalisasikan dan menyederhanakan tugas mereka, seperti mengumpulkan data di lapangan,..."
+    ],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Moderate technical / consultative context",
+    "summary_snippet": "Meski teknologi semakin berkembang dan canggih, ternyata masih banyak bisnis yang belum mampu mengadopsinya secara optimal—khususnya dalam menunjang kolaborasi antar tim dan karyawan, serta memaksimalkan manajemen waktu yang ada. Apakah Anda mengalami hal serupa? Jika ya, berarti organisasi Anda..."
+  },
+  {
+    "id": "google-anthos-pilihan-tepat-terapkan-multicloud",
+    "tier": 2,
+    "status": "APPROVED_NICHE",
+    "title": "Google Anthos, Pilihan Tepat Terapkan Multicloud!",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "primary_products": [
+      "Anthos"
+    ],
+    "all_products": [
+      "Anthos"
+    ],
+    "target_industries": [
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/google-anthos-pilihan-tepat-terapkan-multicloud",
+    "key_subheadings": [
+      "Apa Itu Solusi Multicloud Google Anthos?",
+      "Apa Saja Manfaat Adopsi Google Anthos Multi Cloud untuk Bisnis?",
+      "Skalabilitas",
+      "3 Keunggulan Anthos Multi Cloud",
+      "1. Kelola Aplikasi di Mana Saja",
+      "2. Perangkat Lunak Lebih Cepat",
+      "3. Sistem Keamanan Terintegrasi",
+      "Dapatkan Solusi Multi Cloud Google Anthos di Smartnet Magna Global"
+    ],
+    "pain_points": [],
+    "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
+    "filter_reason": "Moderate technical / consultative context",
+    "summary_snippet": "Kemampuan untuk menggunakan aset yang ada dengan lebih baik dan memanfaatkan cara baru untuk menyimpan, mengelola, dan menganalisis data menjadi faktor utama yang mendorong perusahaan mengadopsi strategi multicloud. Masuk akal memang, karena berdasarkan survei yang dilakukan oleh Gartner, saat ini..."
+  }
+]
