@@ -7,29 +7,41 @@
 ## Tech Stack
 
 ### Frontend
-- **Framework**: Next.js 15 (App Router) + TypeScript
+- **Framework**: Next.js 16 (App Router) + React 19 + TypeScript
 - **Styling**: Tailwind CSS + shadcn/ui
 - **State Management**: TanStack Query (React Query)
 - **Forms**: React Hook Form + Zod validation
 - **Charts**: Recharts
+- **DnD**: @hello-pangea/dnd (Kanban board)
+- **Notifications UI**: Sonner (toast)
 
 ### Backend
 - **Framework**: FastAPI (Python 3.11+)
 - **Database**: PostgreSQL 16 + SQLAlchemy ORM (UUID Primary Keys) + Alembic migrations
 - **Task Queue**: Celery + Redis for background jobs
 - **AI Orchestration**: LangGraph + LangChain
-- **Vector Store**: pgvector / ChromaDB for RAG
+- **RAG Strategy**: Prompt Context Injection — built-in Smartnet Magna solutions catalog hardcoded in KYC pipeline prompt + Google Search Grounding for live web citations (no vector DB in production)
 
 ### External Services
-- **LLM**: Google AI Studio (Gemini 3.6 Flash / Gemma 4 via langchain-google-genai)
-- **Web Search**: Tavily API / Google Search API
-- **Crawling**: Firecrawl / Crawl4AI
+- **LLM (Dual Provider via Unified Factory `app/core/llm.py`)**:
+  - **Google**: Google AI Studio — Gemma 4 (`gemma-4-26b-a4b-it`) / Gemini (`gemini-2.5-flash`) via `langchain-google-genai` + native `google-genai` SDK
+  - **OpenAI-Compatible**: CosmosHub / DeepSeek / GLM via `langchain-openai` (default `glm-4-plus`, base `https://api.cosmoshub.tech/v1`)
+  - Provider & model selectable at runtime via `system_settings` DB table
+- **Web Search**: Tavily API + Google Search Grounding (switchable via `system_settings.search_provider`)
+- **Web Crawling**: `httpx` + `BeautifulSoup4` with SSRF protection (IP validation against private/loopback/link-local ranges)
+- **LinkedIn Intelligence**: LinkedIn Voyager API client (`linkedin_service.py`) for company search, executives, posts, people, and KYC enrichment
 - **Authentication**: Google OAuth 2.0 (Workspace) + Dev Username/Password Login
 - **Email/Calendar**: Gmail API, Google Calendar API
 
 ---
 
 ## API Endpoints
+
+### System (`/api`)
+| Method | Path | Description | Auth Required |
+|--------|------|-------------|---------------|
+| GET | `/health` | Health check (returns `{ status, version }`) | No |
+| GET | `/config` | Public config (returns `google_client_id`) | No |
 
 ### Authentication (`/api/auth`)
 | Method | Path | Description | Auth Required |
@@ -38,17 +50,23 @@
 | POST | `/login` | Dev username/password login | No |
 | GET | `/me` | Get current user profile | Yes |
 
+### Users (`/api/users`)
+| Method | Path | Description | Auth Required |
+|--------|------|-------------|---------------|
+| GET | `/` | List active users (optional `role` query filter for assignment dropdowns) | Yes |
+
 ### Opportunities (`/api/opportunities`)
 | Method | Path | Description | Auth Required |
 |--------|------|-------------|---------------|
 | GET | `/` | List opportunities (paginated) | Yes |
 | POST | `/` | Create opportunity | Yes |
+| POST | `/import` | Bulk import opportunities from CSV/Excel file | Yes (create_edit) |
 | GET | `/search/global` | Global search across opportunities | Yes |
 | GET | `/{opportunity_id}` | Get opportunity detail | Yes |
 | PATCH | `/{opportunity_id}` | Update opportunity | Yes |
 | DELETE | `/{opportunity_id}` | Delete opportunity | Yes |
-| GET | `/{opportunity_id}/chat` | Get RAG chat history for opportunity | Yes |
-| POST | `/{opportunity_id}/chat` | Send message / RAG chat streaming | Yes |
+| GET | `/{opportunity_id}/chat` | Get chat history for opportunity | Yes |
+| POST | `/{opportunity_id}/chat` | Send message / AI chat streaming | Yes |
 | GET | `/{opportunity_id}/documents` | List opportunity resources/documents | Yes |
 | POST | `/{opportunity_id}/documents` | Add opportunity resource/document | Yes |
 | PATCH | `/{opportunity_id}/documents/{document_id}` | Update opportunity document | Yes |
@@ -65,7 +83,7 @@
 | Method | Path | Description | Auth Required |
 |--------|------|-------------|---------------|
 | GET | `/` | List all saved personas for opportunity | Yes |
-| GET | `/{seniority}/{department}` | Get or generate persona questions | Yes |
+| GET | `/detail?seniority=...&department=...` | Get persona playbook by seniority and department (query params) | Yes |
 | POST | `/generate` | Force generate / regenerate persona questions | Yes |
 
 ### KYC Reports (`/api/opportunities/{opportunity_id}/kyc`)
@@ -74,7 +92,7 @@
 | GET | `/` | Get latest KYC report | Yes |
 | GET | `/versions` | List all KYC versions | Yes |
 | GET | `/{report_id}` | Get specific KYC report | Yes |
-| POST | `/regenerate` | Trigger KYC regeneration | Yes |
+| POST | `/regenerate` | Trigger KYC regeneration (202 Accepted, runs async via Celery) | Yes |
 | PATCH | `/{report_id}` | Edit KYC report | Yes |
 
 ### Meetings (`/api/meetings`)
@@ -99,6 +117,16 @@
 |--------|------|-------------|---------------|
 | POST | `/validate` | Validate AI generated info, reasoning consistency & URL veracity | Yes |
 
+### LinkedIn Intelligence (`/api/linkedin`)
+| Method | Path | Description | Auth Required |
+|--------|------|-------------|---------------|
+| POST | `/company/search` | Search LinkedIn for company details, headcount, specialties | Yes |
+| POST | `/company/posts` | Get recent company posts and updates | Yes |
+| POST | `/company/executives` | Get key executives and decision makers | Yes |
+| POST | `/company/people` | Search employees by optional title filter | Yes |
+| POST | `/person/profile` | Get detailed background & presales briefing for a participant | Yes |
+| POST | `/enrich/{opportunity_id}` | Enrich opportunity KYC report with LinkedIn insights | Yes |
+
 ### Admin (`/api/admin`)
 | Method | Path | Description | Auth Required |
 |--------|------|-------------|---------------|
@@ -109,8 +137,9 @@
 | PATCH | `/users/{user_id}` | Update user role and capabilities | Yes (Admin) |
 | GET | `/master-data` | Get master data options | Yes (Admin) |
 | POST | `/master-data` | Update master data options | Yes (Admin) |
-| GET | `/settings` | Get system settings (search provider, LLM models) | Yes (Admin) |
-| PUT | `/settings` | Update system settings | Yes (Admin) |
+| GET | `/settings` | Get system settings (search provider, LLM models, API keys) | Yes (Superadmin) |
+| PATCH | `/settings` | Update system settings | Yes (Superadmin) |
+| POST | `/settings/test-connection` | Test LLM API key connectivity and model validity | Yes (Superadmin) |
 | GET | `/ai/metrics` | AI Token usage summary, costs (USD/IDR), 14-day trend & distribution | Yes (Superadmin) |
 | GET | `/ai/usage/by-opportunity` | Aggregated AI token & cost breakdown per opportunity | Yes (Superadmin) |
 | GET | `/ai/usage/by-user` | Aggregated AI token & cost breakdown per user (abuse prevention) | Yes (Superadmin) |
@@ -224,17 +253,28 @@
 |-------|------|-------------|
 | id | UUID | Primary key |
 | opportunity_id | UUID | FK to Opportunities |
-| version | Integer | Version number |
-| executive_summary | JSONB | Executive summary data |
-| company_overview | JSONB | Company overview data |
-| industry_analysis | JSONB | Industry analysis data |
-| competitor_analysis | JSONB | Competitor analysis data |
-| pain_points | JSONB | Pain points data |
-| use_cases | JSONB | Use cases data |
+| version | Integer | Report version number (default 1) |
+| status | String(50) | `pending`, `running`, `completed`, `failed` |
+| executive_summary | Text | Executive summary |
+| company_overview | JSONB | Company overview |
+| industry_analysis | Text | Industry analysis |
+| competitor_analysis | JSONB | Competitor analysis |
+| business_model | Text | Business model analysis |
+| company_location | Text | Company location |
+| customer_need_summary | Text | Customer need summary |
+| potential_pain_points | JSONB | Pain points |
+| use_cases | JSONB | Use cases and solution mapping |
 | meeting_objectives | JSONB | Meeting objectives |
+| recommended_questions | JSONB | Recommended discovery questions |
 | preparation_checklist | JSONB | Preparation items |
-| raw_content | Text | Full raw AI output |
+| references | JSONB | Source references and citations |
+| progress_step | String(50) | Current pipeline step (default `pending`) |
+| progress_percent | Integer | Pipeline progress percentage (0-100) |
+| source_type | String(50) | `automatic`, `manual_regenerate`, `engineer_edited` |
+| error_message | Text | Error details if pipeline failed |
+| created_by | UUID | FK to Users |
 | created_at | DateTime | Creation timestamp |
+| completed_at | DateTime | Pipeline completion timestamp |
 
 ### Meetings (`meetings`)
 | Field | Type | Description |
@@ -242,12 +282,16 @@
 | id | UUID | Primary key |
 | opportunity_id | UUID | FK to Opportunities |
 | title | String(255) | Meeting title |
-| scheduled_at | DateTime | Meeting time |
-| agenda | Text | Meeting agenda |
+| date | DateTime(tz) | Meeting date and time |
+| location | String(255) | Zoom, Google Meet, Office, etc. |
+| participants | JSON | List of participant names/emails |
+| agenda | JSON | List of agenda items |
 | notes | Text | Meeting notes |
 | action_items | JSON | List of action items |
-| participants | JSON | List of participants |
-| status | String(50) | scheduled, completed, cancelled |
+| attachments | JSON | List of attachment URLs/metadata |
+| created_by | UUID | FK to Users |
+| created_at | DateTime | Creation timestamp |
+| updated_at | DateTime | Last update timestamp |
 
 ### Notifications (`notifications`)
 | Field | Type | Description |
@@ -255,10 +299,11 @@
 | id | UUID | Primary key |
 | user_id | UUID | FK to Users |
 | opportunity_id | UUID | FK to Opportunities (optional) |
-| type | String(50) | Notification type |
+| type | String(50) | opportunity_created, kyc_completed, status_changed, meeting_reminder, follow_up |
 | title | String(255) | Notification title |
 | message | Text | Notification message |
 | is_read | Boolean | Read status |
+| metadata | Text | JSON string for extra data (column alias `metadata_json`) |
 | created_at | DateTime | Creation timestamp |
 
 ### Timeline Events (`timeline_events`)
@@ -322,12 +367,30 @@
 ## Backend Services
 
 ### KYC Pipeline Service (`backend/app/services/kyc_pipeline.py`)
+**Architecture**: LangGraph 2-node StateGraph (`research_node` → `analysis_node`)
+- `research_node` — Web research phase: Tavily search + Google Grounding + website crawling via `WebCrawlerService`
+- `analysis_node` — LLM analysis phase: generates all KYC sections from research context + Smartnet Magna catalog (prompt-injected)
+- `generate_kyc_report(opportunity_id, source_type, db)` — Main entry point, invokes LangGraph pipeline
+
+### Web Crawler Service (`backend/app/services/web_crawler_service.py`)
 **Functions:**
-- `generate_kyc_report(opportunity_id: UUID)` - Main entry point for KYC generation
-- `crawl_company_website(url: str)` - Crawl company website for data
-- `extract_company_info(content: str)` - Extract structured info from crawled content
-- `generate_executive_summary(data: dict)` - Generate executive summary via LLM
-- `generate_use_cases(company_data: dict, solutions: list)` - Generate use cases with RAG
+- `crawl_url(url)` — Fetch and extract text from URL using `httpx` + `BeautifulSoup4` with SSRF protection (blocks private/loopback/link-local IPs)
+
+### Web Search Service (`backend/app/services/web_search_service.py`)
+**Functions:**
+- `search(query, max_results)` — Web search via Tavily API or Google Grounding (provider switchable via `system_settings.search_provider`)
+
+### Google Grounding Service (`backend/app/services/google_grounding_service.py`)
+**Functions:**
+- `search_and_ground(prompt, model_name, db)` — Query Gemini with native Google Search Grounding tool for live web citations
+
+### LinkedIn Service (`backend/app/services/linkedin_service.py`)
+**Functions:**
+- `search_company(company_name)` — LinkedIn Voyager API company search
+- `get_company_updates(company_name)` — Recent company posts
+- `get_company_executives(company_name)` — Key executives and decision makers
+- `get_company_people(company_name, title_filter)` — Employee search with optional title filter
+- `get_person_profile(full_name, company_name)` — Individual profile + presales briefing
 
 ### Target Persona Service (`backend/app/services/persona_service.py`)
 **Functions:**
@@ -354,11 +417,14 @@
 **Functions:**
 - `log_change(entity_type: str, entity_id: UUID, user_id: UUID, action: str, old_value: dict, new_value: dict)` - Log entity changes
 
-### Notification Task / Helper
-**Functions:**
-- `send_opportunity_created_notification` - Notify team of new opportunity
-- `send_status_changed_notification` - Notify assigned engineer on status changes
-- `run_kyc_pipeline_task` - Celery task for running KYC research pipeline
+### Notification Task / Helper (`backend/app/tasks.py`)
+**Celery Tasks:**
+- `send_opportunity_created_notification` — Notify team of new opportunity
+- `send_kyc_completed_notification` — Notify when KYC pipeline completes
+- `send_status_changed_notification` — Notify assigned engineer on status changes
+- `create_calendar_event` — Create Google Calendar event for meeting
+- `run_kyc_pipeline_task` — Async KYC research pipeline execution
+- `send_meeting_reminder` — Meeting reminder notifications (h1, h24 types)
 
 ---
 
@@ -408,12 +474,16 @@
 - `DashboardMetrics.tsx` - KPI cards
 - `StatusChart.tsx` - Status distribution chart
 - `TrendChart.tsx` - Opportunity trend line chart
+- `IndustryDistributionChart.tsx` - Industry distribution chart
+- `PipelineFunnelChart.tsx` - Pipeline funnel chart
+- `SolutionDistributionChart.tsx` - Solution distribution chart
 
 **Opportunities (`components/domains/opportunities/`):**
-- `OpportunityChatSidebar.tsx` - AI RAG Chat assistant sidebar for opportunity
-- `OpportunityDetailHeader.tsx` - Header info & action buttons
-- `OpportunityTimeline.tsx` - Activity log timeline
+- `OpportunityChatSidebar.tsx` - AI Chat assistant sidebar for opportunity
 - `EditOpportunityDialog.tsx` - Modal to edit opportunity details
+- `KanbanBoard.tsx` - Kanban board view for opportunities
+- `KanbanCard.tsx` - Individual Kanban card component
+- `KanbanColumn.tsx` - Kanban column component
 
 **Target Persona (`components/domains/personas/`):**
 - `TargetPersonaTab.tsx` - Persona selection matrix, AI questions generator, and playbook view
@@ -435,6 +505,10 @@
 
 **Admin & User Management (`components/domains/admin/`):**
 - `UserActivityDrawer.tsx` - Slide-over drawer with user telemetry KPIs, filters, and granular chronological activity audit trail
+- `AITokenMonitoringTab.tsx` - AI token usage monitoring dashboard with charts and cost tracking
+
+**Notifications (`components/domains/notifications/`):**
+- `NotificationDropdown.tsx` - Notification dropdown in top nav
 
 **Layout (`components/layout/`):**
 - `Sidebar.tsx` - Navigation sidebar with role capabilities & dynamic localization
@@ -454,24 +528,24 @@
 
 **Shared (`components/shared/`):**
 - `StatusBadge.tsx` - Status badge component
-- `LoadingSpinner.tsx` - Loading indicator
-- `EmptyState.tsx` - Empty state placeholder
 
 ---
 
 ## Frontend API Client & State (`frontend/src/`)
 
 ### Modular API & Hooks
-- `src/lib/api.ts` - Axios instance (`api`) with Bearer Token interceptor & `meetingApi`
-- `src/lib/api/dashboard.ts` - Dashboard metrics API helper (`getDashboardMetrics`)
-- `src/lib/master-data.ts` - Admin master data API client
-- `src/hooks/use-opportunities.ts` - React Query hooks (`useOpportunities`, `useOpportunity`, `useCreateOpportunity`, `useUpdateOpportunity`, `useDeleteOpportunity`)
-- `src/hooks/use-kyc.ts` - React Query hooks (`useKYCReport`, `useKYCVersions`, `useRegenerateKYC`, `useUpdateKYCReport`)
-- `src/hooks/use-notifications.ts` - React Query hooks (`useNotifications`, `useUnreadNotificationsCount`, `useMarkNotificationAsRead`, `useMarkAllNotificationsAsRead`)
-
-### Error Handling
-- `handleApiError(error: unknown): string` - Standardized error message extraction
-- Defined in `frontend/src/lib/error-utils.ts`
+- `src/lib/api.ts` — Axios instance (`api`) with Bearer Token interceptor & `meetingApi`
+- `src/lib/api/dashboard.ts` — Dashboard metrics API helper (`getDashboardMetrics`)
+- `src/lib/api/personas.ts` — Persona API client (`personaApi`)
+- `src/lib/master-data.ts` — Admin master data API client
+- `src/lib/clipboard-formatters.ts` — Clipboard copy formatters
+- `src/lib/error-utils.ts` — Standardized error message extraction (`handleApiError`)
+- `src/hooks/use-opportunities.ts` — React Query hooks (`useOpportunities`, `useOpportunity`, `useCreateOpportunity`, `useUpdateOpportunity`, `useDeleteOpportunity`)
+- `src/hooks/use-kyc.ts` — React Query hooks (`useKYCReport`, `useKYCVersions`, `useRegenerateKYC`, `useUpdateKYCReport`)
+- `src/hooks/use-notifications.ts` — React Query hooks (`useNotifications`, `useUnreadNotificationsCount`, `useMarkNotificationAsRead`, `useMarkAllNotificationsAsRead`)
+- `src/hooks/use-meetings.ts` — React Query hooks (`useMeetings`, `useMeeting`, `useCreateMeeting`, `useUpdateMeeting`, `useDeleteMeeting`)
+- `src/hooks/use-personas.ts` — React Query hooks (`usePersonasList`, `usePersonaDetail`, `useGeneratePersona`)
+- `src/hooks/use-users.ts` — React Query hooks (`useUsers` with optional role filter)
 
 ---
 
@@ -496,16 +570,16 @@ type MeetingStatus = 'scheduled' | 'completed' | 'cancelled'
 
 ### KYC Generation Task
 - **Task Name**: `run_kyc_pipeline_task`
-- **Trigger**: POST `/api/opportunities/{id}/kyc/regenerate` or status change to `KYC Running`
+- **Trigger**: POST `/api/opportunities/{id}/kyc/regenerate` (returns 202) or auto on opportunity creation
+- **Architecture**: LangGraph StateGraph with 2 nodes
 - **Process**:
-  1. Update opportunity status to `KYC Running`
-  2. Crawl company website + Google Search
-  3. Extract structured data
-  4. Generate sections via LLM
-  5. Query RAG for Smartnet Magna solutions
-  6. Compile final report
-  7. Update opportunity status to `Ready Meeting` (or `KYC Completed`)
-  8. Create notification for assigned engineer / creator
+  1. Update opportunity status to `KYC Running`, create `kyc_reports` record with `status=running`
+  2. **research_node**: Tavily web search + Google Search Grounding + website crawling (`httpx`+`BeautifulSoup4`)
+  3. **analysis_node**: LLM generates all 13 KYC sections from research context + Smartnet Magna catalog (prompt-injected)
+  4. Parse JSON output, persist to `kyc_reports` columns
+  5. Update `kyc_reports.status=completed`, `progress_percent=100`
+  6. Update opportunity status to `Ready Meeting`
+  7. Send notification via `send_kyc_completed_notification` task
 
 ### KYC Process Possible Errors & Failure Points
 1. **API & Authentication Layer**:
@@ -546,7 +620,7 @@ type MeetingStatus = 'scheduled' | 'completed' | 'cancelled'
 ### Frontend (Vercel)
 - **Hosting**: Deployed separately on **Vercel** (connected to the GitHub repository).
 - **Auto-Deployment**: Automatically triggers build & deployment on push to `main`.
-- **Environment**: Next.js 15 (App Router).
+- **Environment**: Next.js 16 (App Router).
 - **API Connection**: Points to the backend server via `NEXT_PUBLIC_API_URL`.
 
 ### Backend & Services (Docker / Self-Hosted VPS)
@@ -565,11 +639,11 @@ type MeetingStatus = 'scheduled' | 'completed' | 'cancelled'
 ### docker-compose.yml
 | Service | Image | Port | Purpose | Deployment Location |
 |---------|-------|------|---------|---------------------|
-| postgres | postgres:16-alpine | 5432 | Primary database (pgvector enabled) | VPS Docker |
+| postgres | postgres:16-alpine | 5435→5432 | Primary database | VPS Docker |
 | redis | redis:7-alpine | 6379 | Celery broker | VPS Docker |
-| backend | Python 3.11 | 8000 | FastAPI app | VPS Docker |
+| backend | Python 3.11 | 8009→8000 | FastAPI app | VPS Docker |
 | celery | Python 3.11 | - | Background worker | VPS Docker |
-| frontend | Node 20 | 3000 | Next.js app | **Vercel** (Production) / Docker (Local Dev only) |
+| frontend | Node 20 | 3009→3000 | Next.js app | **Vercel** (Production) / Docker (Local Dev only) |
 
 ---
 
