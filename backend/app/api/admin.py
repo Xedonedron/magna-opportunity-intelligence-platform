@@ -2,7 +2,7 @@ from typing import Optional
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_
 import uuid
 
 from app.core.database import get_db
@@ -11,6 +11,14 @@ from app.models.audit_log import AuditLog
 from app.models.opportunity import Opportunity
 from app.models.meeting import Meeting
 from app.models.kyc_report import KYCReport
+from app.models.master_solution import MasterSolution
+from app.schemas.master_solution import (
+    MasterSolutionCreate,
+    MasterSolutionUpdate,
+    MasterSolutionResponse,
+    MasterSolutionListResponse,
+)
+from app.core.solutions_catalog import solutions_catalog
 from app.core.security import get_current_user, require_superadmin
 from app.services.audit_service import AuditService
 
@@ -627,6 +635,140 @@ def get_ai_assistant_queries_audit(
         page=page,
         page_size=page_size,
     )
+
+
+# =========================================================================
+# Master Solutions Catalog Endpoints
+# =========================================================================
+
+@router.get("/solutions", response_model=MasterSolutionListResponse)
+def list_master_solutions(
+    pillar: Optional[str] = None,
+    tier: Optional[int] = None,
+    search: Optional[str] = None,
+    is_active: Optional[bool] = None,
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
+):
+    """List all master solutions with filtering."""
+    query = db.query(MasterSolution)
+
+    if pillar and pillar.lower() != "all":
+        query = query.filter(MasterSolution.pillar.ilike(f"%{pillar.strip()}%"))
+    if tier is not None:
+        query = query.filter(MasterSolution.tier == tier)
+    if is_active is not None:
+        query = query.filter(MasterSolution.is_active == is_active)
+    if search:
+        s = f"%{search.strip()}%"
+        query = query.filter(
+            or_(
+                MasterSolution.title.ilike(s),
+                MasterSolution.business_impact.ilike(s),
+                MasterSolution.summary_snippet.ilike(s),
+            )
+        )
+
+    total = query.count()
+    items = query.order_by(MasterSolution.tier.asc(), MasterSolution.title.asc()).all()
+
+    # Get distinct pillars
+    raw_pillars = [p[0] for p in db.query(MasterSolution.pillar).distinct().all() if p[0]]
+    pillars = raw_pillars if raw_pillars else [
+        "Cloud Infrastructure & Modernization",
+        "Data Analytics & AI",
+        "Cybersecurity Suite",
+        "Network & Enterprise Workplace",
+    ]
+
+    return {
+        "items": items,
+        "total": total,
+        "pillars": pillars,
+    }
+
+
+@router.post("/solutions", response_model=MasterSolutionResponse, status_code=status.HTTP_201_CREATED)
+def create_master_solution(
+    payload: MasterSolutionCreate,
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_superadmin),
+):
+    """Create a new solution card in the master catalog."""
+    new_solution = MasterSolution(
+        title=payload.title.strip(),
+        slug=payload.slug or payload.title.lower().replace(" ", "-")[:100],
+        pillar=payload.pillar.strip(),
+        tier=payload.tier,
+        primary_products=payload.primary_products or [],
+        all_products=payload.all_products or [],
+        target_industries=payload.target_industries or ["Enterprise General"],
+        key_subheadings=payload.key_subheadings or [],
+        pain_points=payload.pain_points or [],
+        business_impact=payload.business_impact,
+        summary_snippet=payload.summary_snippet,
+        source_url=payload.source_url,
+        is_active=payload.is_active,
+    )
+    db.add(new_solution)
+    db.commit()
+    db.refresh(new_solution)
+
+    try:
+        solutions_catalog.reload()
+    except Exception:
+        pass
+
+    return new_solution
+
+
+@router.put("/solutions/{solution_id}", response_model=MasterSolutionResponse)
+def update_master_solution(
+    solution_id: uuid.UUID,
+    payload: MasterSolutionUpdate,
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_superadmin),
+):
+    """Update an existing solution card."""
+    solution = db.query(MasterSolution).filter(MasterSolution.id == solution_id).first()
+    if not solution:
+        raise HTTPException(status_code=404, detail="Solution not found")
+
+    update_data = payload.dict(exclude_unset=True)
+    for field, val in update_data.items():
+        setattr(solution, field, val)
+
+    db.commit()
+    db.refresh(solution)
+
+    try:
+        solutions_catalog.reload()
+    except Exception:
+        pass
+
+    return solution
+
+
+@router.delete("/solutions/{solution_id}", status_code=status.HTTP_200_OK)
+def delete_master_solution(
+    solution_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_superadmin),
+):
+    """Delete a solution card from the master catalog."""
+    solution = db.query(MasterSolution).filter(MasterSolution.id == solution_id).first()
+    if not solution:
+        raise HTTPException(status_code=404, detail="Solution not found")
+
+    db.delete(solution)
+    db.commit()
+
+    try:
+        solutions_catalog.reload()
+    except Exception:
+        pass
+
+    return {"status": "success", "message": f"Solution '{solution.title}' deleted"}
 
 
 

@@ -7,6 +7,7 @@ from app.models.kyc_report import KYCReport
 from app.models.audit_log import AuditLog
 from app.models.system_setting import SystemSetting
 from app.models.ai_token_usage import AITokenUsage
+from app.models.master_solution import MasterSolution
 
 __all__ = [
     "User",
@@ -20,4 +21,5 @@ __all__ = [
     "AuditLog",
     "SystemSetting",
     "AITokenUsage",
+    "MasterSolution",
 ]
