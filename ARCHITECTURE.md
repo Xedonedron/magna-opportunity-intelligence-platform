@@ -618,6 +618,7 @@ erDiagram
 | 10 | `ai_token_usages` | `AITokenUsage` | `metadata_json` |
 | 11 | `audit_logs` | `AuditLog` | `old_value`, `new_value`, `extra_data` |
 | 12 | `system_settings` | `SystemSetting` | — |
+| 13 | `master_solutions` | `MasterSolution` | `primary_products`, `all_products`, `target_industries`, `key_subheadings`, `pain_points` |
 
 ### 5.3 Unique Constraints & Indexes
 
@@ -629,6 +630,7 @@ erDiagram
 | `ai_token_usages` | Index | `created_at`, `user_id`, `opportunity_id`, `feature`, `model_name` |
 | `audit_logs` | Index | `(entity_type, entity_id)`, `user_id`, `created_at`, `action` |
 | `system_settings` | Unique + Index | `key` |
+| `master_solutions` | Unique / Index | `slug` (Unique), `title`, `pillar`, `is_active` |
 
 
 ---
@@ -735,16 +737,67 @@ Implementasi: `socket.gethostbyname()` → `ipaddress.ip_address()` → check `.
 │  Input: company_name, website, industry, customer_needs, etc.  │
 │  Output: 13 KYC sections + references                          │
 └────────────────────────────────────────────────────────────────┘
+### 7.2 RAG Strategy & Grounding Engine: Dynamic Solutions Injection
+
+MOIP **tidak memerlukan vector database** di lingkungan produksi. Sebagai gantinya, MOIP mengadopsi pendekatan **Centralized In-Memory & Database-Backed Solutions Grounding Engine** dengan **Dynamic Relevance Scoring**:
+
+```mermaid
+graph TD
+    subgraph "Master Data Storage & UI"
+        DB[(PostgreSQL\nmaster_solutions)]
+        ADMIN_UI[Settings UI\nSolutionsCatalogTab]
+        ADMIN_UI -- "CRUD (POST/PUT/DELETE)" --> API[/api/admin/solutions]
+        API -- "Persist & Seed" --> DB
+    end
+
+    subgraph "Core Grounding Engine (solutions_catalog.py)"
+        CATALOG[SolutionsCatalog Singleton\nActive Memory Cache]
+        DB -. "Loaded on startup & reload()" .-> CATALOG
+        SCORER["Dynamic Relevance Scorer\n- Industry Match (+5)\n- Product Match (+6)\n- Needs Keywords (+4)\n- Tier 1 Priority (+2)"]
+    end
+
+    subgraph "Consumer Pipelines"
+        OPP[Opportunity Context\nIndustry, Product, Needs]
+        KYC[KYC Pipeline\nanalysis_node]
+        CHAT[AI Pre-Sales Chat\nopportunities.py]
+    end
+
+    OPP --> SCORER
+    CATALOG --> SCORER
+    SCORER -- "Top 3-4 Solution Cards\n(~800-1,200 tokens)" --> KYC
+    SCORER -- "Top Solution Cards +\nPillar Overview" --> CHAT
 ```
 
-### 7.2 RAG Strategy: Prompt Context Injection
+#### Alur & Mekanisme Kerja:
+1. **Single Source of Truth (`master_solutions`)**:
+   - 40 solusi resmi SMG dikurasi dari artikel teknis dan studi kasus nyata, terbagi atas Tier 1 (Solusi Konkret & Produk Inti GCP/Security) dan Tier 2 (Framework & Niche Architecture).
+   - Seluruh solusi dikelola langsung oleh Admin via UI Settings. Setiap perubahan memicu `solutions_catalog.reload()` untuk memperbarui cache memori tanpa restart container.
+2. **Algoritma Dynamic Relevance Matching**:
+   - Menghindari pemborosan token (tidak menjejalkan 40 solusi sekaligus ke prompt yang bisa menghabiskan >10.000 token).
+   - Menghitung skor relevansi per kartu terhadap parameter opportunity:
+     * **Industry Match (+5 poin)**: Kecocokan industri klien (e.g. *FSI / Banking*, *Property*, *Healthcare*, *Retail*).
+     * **Product Match (+6 poin)**: Kecocokan stack produk yang dipilih (e.g. *BigQuery*, *GKE*, *NGAV*, *Cloud Run*).
+     * **Customer Needs Match (+4 poin)**: Deteksi kata kunci pada deskripsi kebutuhan klien (e.g. *fraud*, *ransomware*, *database migration*).
+     * **Tier 1 Boost (+2 poin)**: Prioritaskan solusi dengan studi kasus nyata & implementasi terbukti.
+3. **Prompt Injection Terstruktur**:
+   - Menyuntikkan Top 3–4 kartu solusi paling relevan (~800–1.200 token) langsung ke instruksi sistem LLM:
+     * **Pilar & Tingkat**: Kategori resmi SMG & status tier.
+     * **Produk & Arsitektur**: Komponen teknis (e.g. Pub/Sub, Dataflow, BigQuery ML, Looker).
+     * **Kendala & Solusi**: Pain points yang diselesaikan dan dampak bisnis terukur.
+     * **Referensi URL**: Tautan resmi ke artikel/studi kasus di `magnaglobal.id` untuk sitasi otomatis.
+4. **Live Research & Opportunity Context**:
+   - **Tavily / Google Search Grounding**: Menginjeksikan snippets live web research dan kutipan eksternal.
+   - **Website Crawling**: Ekstraksi teks halaman utama klien via `httpx` + `BeautifulSoup4` dengan proteksi SSRF.
+   - **Pre-Sales Chat**: Menginjeksikan ringkasan katalog resmi SMG dan kartu solusi relevan pada sesi obrolan interaktif.
 
-MOIP **tidak menggunakan vector database** di produksi. Strategi RAG:
+#### Perbandingan Efisiensi & Kualitas:
 
-1. **Smartnet Magna Solutions Catalog** — hardcoded dalam prompt KYC pipeline sebagai inline context. 5 kategori solusi: GCP Infra, Data & AI, Cybersecurity, Network, Managed Services.
-2. **Live Web Data** — Tavily search + Google Search Grounding menghasilkan snippets dan citations yang di-inject sebagai research context.
-3. **Website Content** — Crawled via `httpx` + `BeautifulSoup4`, dimuat langsung ke prompt.
-4. **Opportunity Context** — Data opportunity + KYC report di-inject ke system prompt untuk AI Chat.
+| Parameter | Arsitektur Lama (Before) | Arsitektur Baru (After) |
+|---|---|---|
+| **Konteks Solusi** | Hardcoded 5 baris kategori umum di file `.py` | 40 solusi terstruktur di database PostgreSQL (`master_solutions`) |
+| **Spesifikasi Teknis** | Tidak ada detail arsitektur atau studi kasus nyata | Arsitektur GCP lengkap (Dataflow, BigQuery ML, GKE, EPM, dsb.) |
+| **Token Usage** | ~50 token (minim info, memicu halusinasi) | ~800–1.200 token (terarah, relevan, optimal untuk output tajam) |
+| **Pemeliharaan** | Kaku (harus ubah kode & deploy ulang VPS) | Dinamis (Admin dapat menambah/mengubah langsung di UI Settings) |
 
 ### 7.3 KYC Output Sections — 13 bagian
 
@@ -969,6 +1022,10 @@ docker compose exec -T backend alembic upgrade head
 | GET | `/ai/usage/by-opportunity` | Admin | AI cost per opportunity |
 | GET | `/ai/usage/by-user` | Admin | AI cost per user |
 | GET | `/ai/assistant-queries` | Admin | Prompt audit log |
+| GET | `/solutions` | Auth | List master solutions catalog with filters |
+| POST | `/solutions` | Admin | Create new solution in master catalog |
+| PUT | `/solutions/{id}` | Admin | Update existing solution |
+| DELETE | `/solutions/{id}` | Admin | Delete solution from catalog |
 
 ### Dashboard — `/api/dashboard`
 

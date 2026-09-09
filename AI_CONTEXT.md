@@ -391,9 +391,18 @@
 ## Backend Services
 
 ### Solutions Catalog Engine (`backend/app/core/solutions_catalog.py`)
-- Centralized knowledge grounding provider for PT Smartnet Magna Global offerings.
-- Dynamically queries active solutions from the `master_solutions` database table (with automatic fallback to curated JSON and in-memory presets).
-- Generates categorized system prompt context for KYC pipeline analysis and Opportunity AI Pre-Sales Chat.
+- **Centralized Grounding Provider**: Single Source of Truth for PT Smartnet Magna Global official product offerings, architectures, and case studies.
+- **Database & Memory Caching**: Dynamically loads active solutions from PostgreSQL `master_solutions` table via `SessionLocal` with fallback to `backend/app/data/curated_solutions.json` and in-memory presets. Auto-reloads in memory on admin mutations (`POST /api/admin/solutions`, `PUT`, `DELETE`).
+- **Dynamic Relevance Matching Algorithm (`get_solutions_for_prompt`)**:
+  - Scores solution cards dynamically against the target Opportunity context without context dilution or token bloating:
+    * **Industry Match (+5 points)**: Matches client industry against `target_industries`.
+    * **Product Match (+6 points)**: Matches presales product against `primary_products` / `all_products`.
+    * **Needs Keyword Match (+4 points)**: Matches terms in `customer_needs` (e.g., "fraud", "ransomware", "migration") against titles and `pain_points`.
+    * **Tier 1 Priority Boost (+2 points)**: Prioritizes concrete product/case study solutions over conceptual frameworks.
+  - Returns top `limit` cards (default 3–4, ~800–1,200 tokens) with structured subheadings, products, pain points, quantifiable business impact, and reference URLs.
+- **Dual Pipeline Integration**:
+  1. **KYC Pipeline** (`analysis_node` in `kyc_pipeline.py`): Replaces static 5-bullet placeholder with contextualized solution cards so recommended use cases cite actual GCP stacks and SMG architectures.
+  2. **Opportunity AI Chat** (`opportunities.py`): Injects official pillar summary overview + top matching solution cards directly into the Pre-Sales Assistant system prompt.
 
 ### KYC Pipeline Service (`backend/app/services/kyc_pipeline.py`)
 **Architecture**: LangGraph 2-node StateGraph (`research_node` → `analysis_node`)

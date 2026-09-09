@@ -200,6 +200,10 @@ Buka halaman detail opportunity → tab **KYC Report**. Laporan terdiri dari:
 | **Preparation Checklist** | Daftar item persiapan sebelum rapat |
 | **References** | Sumber URL riset yang valid dan dapat diverifikasi |
 
+> [!TIP]
+> **Mekanisme Grounding Cerdas (Dynamic Solution Grounding)**:  
+> AI tidak merekomendasikan solusi generik atau berhalusinasi. Sistem mencocokkan industri (*industry*), produk yang dipilih (*product*), dan deskripsi kebutuhan (*customer needs*) klien dengan **Katalog Solusi Resmi PT Smartnet Magna Global** di database. Hasilnya, bab *Use Cases & Solution Mapping* langsung memetakan arsitektur konkret (seperti *Pub/Sub → Dataflow → BigQuery ML*, *Modern Endpoint Security NGAV*, atau *Homogeneous Database Migration ke Cloud SQL*) lengkap dengan studi kasus terbukti dan tautan artikel resmi.
+
 ### 4.3 Regenerasi & Editing KYC
 
 - **Regenerate KYC**: Klik tombol **Regenerate** (memerlukan kapabilitas *Generate KYC*). Berguna jika ada update data klien, kebutuhan berubah, atau riset awal dirasa kurang lengkap. Ini menghasilkan versi baru.
@@ -322,6 +326,7 @@ Dari halaman detail opportunity, klik tombol **Chat with AI** di header. Panel s
 - **Streaming Output**: Jawaban AI mengalir secara langsung (real-time), bukan menunggu seluruh respons selesai.
 - **Saran Pertanyaan**: Panel menampilkan rekomendasi pertanyaan relevan di awal sesi untuk membantu memulai percakapan.
 - **Resize Panel**: Tombol *Maximize/Minimize* untuk memperlebar (650px) atau mempersempit (400px) panel.
+- **Grounding Solusi Resmi PT SMG**: Asisten AI secara otomatis disuntikkan ringkasan katalog solusi dan arsitektur produk yang relevan dengan opportunity saat ini. Anda dapat meminta saran arsitektur teknis atau diferensiasi produk tanpa takut AI berhalusinasi.
 - **Retensi Riwayat**: Riwayat obrolan disimpan di database dan otomatis dihapus setelah **7 hari**.
 
 ### 7.3 Contoh Prompt yang Berguna
@@ -512,10 +517,18 @@ Tab **AI Token Monitoring** menampilkan:
 Tab **Magna Solutions Catalog** memungkinkan seluruh tim meninjau dan Administrator mengelola referensi solusi pre-sales resmi PT Smartnet Magna Global:
 - **Filter Berdasarkan Pilar**: Cloud & Infra, Data & AI, Cybersecurity, Network & Workplace.
 - **Filter Tingkat (Tier)**:
-  - **Tier 1 (Core Products & Case Studies)**: Solusi konkret dengan bukti implementasi (contoh: Fraud Detection BigQuery ML, Modernland Realty NGAV, VMware Exit Migration).
-  - **Tier 2 (Niche Concepts & Architectures)**: Kerangka kerja dan arsitektur spesifik industri (contoh: Zero Trust BeyondCorp, All-Flash Storage Rekam Medis RS, NDR BFSI).
-- **Pencarian Cepat**: Temukan solusi berdasarkan nama produk (e.g. *BigQuery*, *GKE*), pain points klien, atau industri target.
-- **Manajemen Mandiri (CRUD)**: Admin dapat menambahkan solusi baru, memperbarui produk/metrik bisnis, mengaktifkan/menonaktifkan, atau menghapus solusi langsung dari UI. Perubahan di katalog ini langsung digunakan sebagai *knowledge grounding* otomatis pada KYC Pipeline dan AI Pre-Sales Chat.
+  - **Tier 1 (Core Products & Case Studies)**: Solusi konkret dengan bukti implementasi dan produk nyata (contoh: *Fraud Detection BigQuery ML*, *Modernland Realty NGAV Case Study*, *VMware Exit Strategy ke GKE*, *Serverless Cloud Run*).
+  - **Tier 2 (Niche Concepts & Architectures)**: Kerangka kerja strategis dan arsitektur spesifik industri (contoh: *Zero Trust BeyondCorp*, *All-Flash Storage Rekam Medis RS*, *NDR untuk BFSI*, *Cloud Backup Pasca Insiden PDN*).
+- **Pencarian Cepat**: Temukan solusi secara instan berdasarkan nama produk (e.g. *BigQuery*, *GKE*, *Palo Alto*), pain points klien, atau industri target.
+- **Tautan Langsung ke Artikel**: Klik ikon tautan eksternal pada kartu solusi untuk membuka artikel referensi teknis asli di situs `magnaglobal.id`.
+- **Manajemen Mandiri (CRUD untuk Admin)**:
+  - **Tambah Solusi**: Klik tombol **+ Tambah Solusi** untuk mendaftarkan use case atau arsitektur produk baru.
+  - **Edit & Nonaktifkan**: Admin dapat memperbarui produk terkait, target vertikal industri, kendala yang diselesaikan, dampak bisnis, atau menonaktifkan solusi sementara waktu tanpa menghapusnya.
+  - **Hapus**: Menghapus kartu solusi yang sudah tidak relevan.
+  - **Sinkronisasi Otomatis**: Setiap perubahan (tambah/edit/hapus) langsung memicu pembaruan memori di backend (*real-time cache reload*). AI KYC Pipeline dan AI Pre-Sales Chat detik itu juga langsung mengenali data terbaru tanpa perlu deploy ulang sistem.
+
+> [!TIP]
+> **Tips bagi Pre-Sales & Admin**: Saat menambahkan solusi baru, pastikan mencantumkan **Produk Utama** yang spesifik (misal: *BigQuery, Vertex AI, Dataflow*) dan **Kendala Klien** secara gamblang. Algoritma pencocokan AI MOIP akan menggunakan kata kunci tersebut untuk menyelaraskan rekomendasi solusi secara otomatis saat opportunity baru dibuat!
 
 
 
