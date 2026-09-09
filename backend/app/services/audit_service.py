@@ -142,22 +142,45 @@ class AuditService:
         self,
         action: str,
         entity_type: str,
-        entity_id: uuid.UUID,
+        entity_id: Optional[uuid.UUID],
         user_id: Optional[uuid.UUID] = None,
         old_value: Optional[dict[str, Any]] = None,
         new_value: Optional[dict[str, Any]] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
         extra_data: Optional[dict[str, Any]] = None,
-    ) -> AuditLog:
+    ) -> Optional[AuditLog]:
         """
         Create an audit log entry and touch user's last_active_at.
+        Safely validates that entity_id is not null before inserting.
         """
+        resolved_entity_id = entity_id
+        if resolved_entity_id is None:
+            # Attempt to recover entity_id from new_value or extra_data if available
+            recovered = None
+            if new_value and isinstance(new_value, dict):
+                recovered = new_value.get("opportunity_id") or new_value.get("id") or new_value.get("kyc_report_id")
+            if not recovered and extra_data and isinstance(extra_data, dict):
+                recovered = extra_data.get("opportunity_id") or extra_data.get("id") or extra_data.get("entity_id")
+
+            if recovered:
+                try:
+                    resolved_entity_id = uuid.UUID(str(recovered))
+                except Exception:
+                    resolved_entity_id = None
+
+            if resolved_entity_id is None:
+                logger.warning(
+                    f"[AuditService] entity_id is None for action='{action}', entity_type='{entity_type}'. "
+                    "Skipping audit log insert to avoid violating NOT NULL constraint."
+                )
+                return None
+
         audit_log = AuditLog(
             user_id=user_id,
             action=action,
             entity_type=entity_type,
-            entity_id=entity_id,
+            entity_id=resolved_entity_id,
             old_value=old_value,
             new_value=new_value,
             ip_address=ip_address,
@@ -254,7 +277,7 @@ class AuditService:
 
     def log_kyc_create(
         self,
-        kyc_report_id: uuid.UUID,
+        kyc_report_id: Optional[uuid.UUID],
         opportunity_id: uuid.UUID,
         user_id: Optional[uuid.UUID],
         version: int,
@@ -262,7 +285,7 @@ class AuditService:
         company_name: Optional[str] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
-    ) -> AuditLog:
+    ) -> Optional[AuditLog]:
         """Log KYC report creation."""
         extra = {}
         if company_name:
@@ -270,7 +293,7 @@ class AuditService:
         return self.log(
             action="kyc_create",
             entity_type="KYCReport",
-            entity_id=kyc_report_id,
+            entity_id=kyc_report_id or opportunity_id,
             user_id=user_id,
             new_value={
                 "opportunity_id": str(opportunity_id),
@@ -284,14 +307,14 @@ class AuditService:
 
     def log_kyc_edit(
         self,
-        kyc_report_id: uuid.UUID,
+        kyc_report_id: Optional[uuid.UUID],
         user_id: uuid.UUID,
         old_value: dict[str, Any],
         new_value: dict[str, Any],
         company_name: Optional[str] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
-    ) -> AuditLog:
+    ) -> Optional[AuditLog]:
         """Log KYC report edit."""
         extra = {}
         if company_name:
@@ -310,14 +333,14 @@ class AuditService:
 
     def log_meeting_create(
         self,
-        meeting_id: uuid.UUID,
+        meeting_id: Optional[uuid.UUID],
         opportunity_id: uuid.UUID,
         user_id: uuid.UUID,
         meeting_data: dict[str, Any],
         company_name: Optional[str] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
-    ) -> AuditLog:
+    ) -> Optional[AuditLog]:
         """Log meeting creation."""
         extra = {}
         if company_name:
@@ -327,7 +350,7 @@ class AuditService:
         return self.log(
             action="meeting_create",
             entity_type="Meeting",
-            entity_id=meeting_id,
+            entity_id=meeting_id or opportunity_id,
             user_id=user_id,
             new_value={"opportunity_id": str(opportunity_id), **meeting_data},
             ip_address=ip_address,

@@ -141,6 +141,7 @@ async def generate_or_get_persona(
         persona_record = existing_persona
     else:
         persona_record = OpportunityPersona(
+            id=uuid.uuid4(),
             opportunity_id=opportunity_id,
             seniority=payload.seniority,
             department=payload.department,
@@ -150,6 +151,7 @@ async def generate_or_get_persona(
             objection_handling=playbook_data.get("objection_handling", []),
         )
         db.add(persona_record)
+        db.flush()
 
     # Add timeline event
     timeline = TimelineEvent(

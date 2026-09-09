@@ -82,6 +82,7 @@ def create_meeting(
         raise HTTPException(status_code=404, detail="Opportunity not found")
 
     meeting = Meeting(
+        id=uuid.uuid4(),
         opportunity_id=payload.opportunity_id,
         title=payload.title,
         date=payload.date,
@@ -94,6 +95,7 @@ def create_meeting(
         created_by=current_user.id,
     )
     db.add(meeting)
+    db.flush()
 
     from datetime import datetime, timezone
     now = datetime.now(timezone.utc)

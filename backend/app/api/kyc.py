@@ -119,12 +119,14 @@ async def regenerate_kyc_report(
 
     # Create a placeholder report with 'running' status
     report = KYCReport(
+        id=uuid.uuid4(),
         opportunity_id=opportunity.id,
         version=next_version,
         status="running",
         source_type=source_type,
     )
     db.add(report)
+    db.flush()
 
     # Log timeline event
     timeline_event = TimelineEvent(

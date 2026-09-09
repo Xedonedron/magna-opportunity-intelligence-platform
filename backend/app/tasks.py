@@ -5,6 +5,7 @@ Handles async email sending and calendar event creation.
 """
 
 import logging
+import uuid
 from datetime import datetime, timedelta
 
 from app.core.celery_app import celery_app
@@ -243,12 +244,14 @@ def run_kyc_pipeline_task(opportunity_id: str, source_type: str = "automatic") -
 
             # Create KYC report record
             kyc_report = KYCReport(
+                id=uuid.uuid4(),
                 opportunity_id=opportunity.id,
                 version=next_version,
                 status="running",
                 source_type=source_type,
             )
             db.add(kyc_report)
+            db.flush()
 
         # Update opportunity status
         old_status = opportunity.status
