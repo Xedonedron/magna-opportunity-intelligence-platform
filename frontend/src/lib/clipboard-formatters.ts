@@ -102,7 +102,11 @@ export function formatKYCToMarkdown(report: KYCReport, companyName?: string): st
     // 8. Recommended Solutions & Use Cases
     if (report.use_cases && report.use_cases.length > 0) {
         lines.push("## 8. Rekomendasi Solusi & Use Cases");
-        report.use_cases.forEach((uc, idx) => {
+        const impactOrder: Record<string, number> = { High: 0, Medium: 1, Low: 2 };
+        const sortedUseCases = [...report.use_cases].sort(
+            (a, b) => (impactOrder[a.impact_level] ?? 99) - (impactOrder[b.impact_level] ?? 99)
+        );
+        sortedUseCases.forEach((uc, idx) => {
             lines.push(`### ${idx + 1}. ${uc.title} (Impact: ${uc.impact_level || "High"})`);
             if (uc.description) lines.push(`- **Deskripsi**: ${uc.description}`);
             if (uc.problem_solved) lines.push(`- **Masalah yang Diselesaikan**: ${uc.problem_solved}`);

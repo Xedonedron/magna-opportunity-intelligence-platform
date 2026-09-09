@@ -33,6 +33,8 @@ class KYCState(TypedDict):
     product: Optional[str]
     opportunity_id: Optional[str]
     user_id: Optional[str]
+    kyc_version: Optional[int]
+    source_type: Optional[str]
 
     # Intermediate results
     search_results: dict
@@ -295,7 +297,7 @@ CRITICAL ALIGNMENT INSTRUCTION: Seluruh laporan yang dihasilkan (termasuk execut
 
 CRITICAL LINK INSTRUCTION: Untuk array "references", Anda HANYA BOLEH menyertakan URL nyata yang secara eksplisit tersedia pada bagian Data Riset di atas. DILARANG membuat, merekayasa, atau menebak URL.
 
-PANDUAN SOLUSI & USE CASE: Saat menyusun use_cases, rujuk bagian Referensi Riset dan Katalog Solusi Smartnet Magna Global di atas. Masukkan solusi nyata dari katalog Smartnet Magna pada field "smartnet_solutions" dan produk Google Cloud pada field "google_products". Nilai "impact_level" harus salah satu dari: "High", "Medium", atau "Low".
+PANDUAN SOLUSI & USE CASE: Saat menyusun use_cases, rujuk bagian Referensi Riset dan Katalog Solusi Smartnet Magna Global di atas. Masukkan solusi nyata dari katalog Smartnet Magna pada field "smartnet_solutions" dan produk Google Cloud pada field "google_products". Nilai "impact_level" harus salah satu dari: "High", "Medium", atau "Low". Wajib urutkan daftar "use_cases" secara berurutan berdasarkan nilai "impact_level": dimulai dari "High", lalu "Medium", kemudian "Low".
 
 Format output HARUS berupa JSON valid dengan struktur kunci (keys) persis berikut:
 {{
@@ -324,7 +326,7 @@ Format output HARUS berupa JSON valid dengan struktur kunci (keys) persis beriku
     "potential_pain_points": ["Kendala operasional / teknis 1", "Pain point integrasi / infrastruktur 2", "Tantangan skalabilitas / keamanan 3"],
     "use_cases": [
         {{
-            "title": "Judul use case / skenario solusi",
+            "title": "Judul use case / skenario solusi (Prioritas Tinggi)",
             "description": "Deskripsi singkat implementasi use case",
             "problem_solved": "Masalah spesifik yang diselesaikan oleh solusi ini",
             "how_it_works": "Bagaimana arsitektur dan alur kerja solusi ini diimplementasikan",
@@ -332,6 +334,26 @@ Format output HARUS berupa JSON valid dengan struktur kunci (keys) persis beriku
             "google_products": ["Produk Google Cloud yang relevan (misal: BigQuery, Vertex AI, GKE)"],
             "smartnet_solutions": ["Solusi spesifik dari katalog Smartnet Magna"],
             "impact_level": "High"
+        }},
+        {{
+            "title": "Judul use case / skenario solusi (Prioritas Menengah)",
+            "description": "Deskripsi singkat implementasi use case",
+            "problem_solved": "Masalah spesifik yang diselesaikan oleh solusi ini",
+            "how_it_works": "Bagaimana arsitektur dan alur kerja solusi ini diimplementasikan",
+            "business_impact": "Dampak bisnis terukur atau optimasi operasional",
+            "google_products": ["Produk Google Cloud yang relevan"],
+            "smartnet_solutions": ["Solusi spesifik dari katalog Smartnet Magna"],
+            "impact_level": "Medium"
+        }},
+        {{
+            "title": "Judul use case / skenario solusi (Prioritas Tambahan)",
+            "description": "Deskripsi singkat implementasi use case",
+            "problem_solved": "Masalah spesifik yang diselesaikan oleh solusi ini",
+            "how_it_works": "Bagaimana arsitektur dan alur kerja solusi ini diimplementasikan",
+            "business_impact": "Penyempurnaan tata kelola atau efisiensi pendukung",
+            "google_products": ["Produk Google Cloud yang relevan"],
+            "smartnet_solutions": ["Solusi spesifik dari katalog Smartnet Magna"],
+            "impact_level": "Low"
         }}
     ],
     "meeting_objectives": ["Tujuan strategis meeting 1", "Tujuan teknis meeting 2", "Target kesepakatan langkah berikutnya (Next Steps)"],
@@ -378,6 +400,9 @@ Kembalikan HANYA JSON yang valid, tanpa teks pengantar atau penutup di luar JSON
                 model_name = getattr(current_llm, "model_name", None) or getattr(current_llm, "model", "gemini-2.5-flash")
                 provider = "google" if "google" in current_llm.__class__.__name__.lower() else "openai"
 
+                k_ver = state.get("kyc_version") or 1
+                s_type = state.get("source_type") or "automatic"
+
                 record_ai_usage(
                     db=None,
                     user_id=usr_uuid,
@@ -387,8 +412,9 @@ Kembalikan HANYA JSON yang valid, tanpa teks pengantar atau penutup di luar JSON
                     provider=provider,
                     prompt_tokens=int(p_tokens),
                     completion_tokens=int(c_tokens),
-                    query_prompt=f"KYC Pipeline Synthesis for {state.get('company_name')}",
+                    query_prompt=f"KYC Pipeline Synthesis (v{k_ver} - {s_type}) for {state.get('company_name')}",
                     response_preview=str(response.content)[:1000] if response.content else None,
+                    metadata_json={"kyc_version": k_ver, "source_type": s_type},
                     status="success",
                 )
             except Exception as usage_err:
@@ -434,6 +460,19 @@ Kembalikan HANYA JSON yang valid, tanpa teks pengantar atau penutup di luar JSON
             timeout=3.0,
         )
 
+        # Sort use_cases deterministically by impact_level: High -> Medium -> Low
+        impact_order = {"High": 0, "Medium": 1, "Low": 2}
+        raw_use_cases = result.get("use_cases", [])
+        if isinstance(raw_use_cases, list):
+            sorted_use_cases = sorted(
+                raw_use_cases,
+                key=lambda uc: impact_order.get(
+                    uc.get("impact_level", "Medium") if isinstance(uc, dict) else "Medium", 99
+                )
+            )
+        else:
+            sorted_use_cases = []
+
         return {
             "executive_summary": result.get("executive_summary", ""),
             "company_overview": result.get("company_overview", {}),
@@ -443,7 +482,7 @@ Kembalikan HANYA JSON yang valid, tanpa teks pengantar atau penutup di luar JSON
             "company_location": result.get("company_location", ""),
             "customer_need_summary": result.get("customer_need_summary", ""),
             "potential_pain_points": result.get("potential_pain_points", []),
-            "use_cases": result.get("use_cases", []),
+            "use_cases": sorted_use_cases,
             "meeting_objectives": result.get("meeting_objectives", []),
             "recommended_questions": result.get("recommended_questions", []),
             "preparation_checklist": result.get("preparation_checklist", []),
@@ -485,12 +524,14 @@ async def run_kyc_pipeline(
     on_progress: Optional[Callable[[str, int], Any]] = None,
     opportunity_id: Optional[str] = None,
     user_id: Optional[str] = None,
+    kyc_version: int = 1,
+    source_type: str = "automatic",
 ) -> dict[str, Any]:
     """Run the full KYC pipeline and return the report data.
 
     Returns a dict with all KYC sections or an error.
     """
-    logger.info(f"[KYC Pipeline] Starting KYC for: {company_name}")
+    logger.info(f"[KYC Pipeline] Starting KYC for: {company_name} (v{kyc_version} - {source_type})")
 
     if not has_active_llm_key():
         return {
@@ -507,6 +548,8 @@ async def run_kyc_pipeline(
         "product": product,
         "opportunity_id": opportunity_id,
         "user_id": user_id,
+        "kyc_version": kyc_version,
+        "source_type": source_type,
         "search_results": {},
         "website_content": None,
         "industry_use_cases": [],

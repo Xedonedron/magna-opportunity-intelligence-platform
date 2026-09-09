@@ -20,7 +20,7 @@ class UseCaseItem(BaseModel):
     business_impact: str
     google_products: list[str] = []
     smartnet_solutions: list[str] = []
-    impact_level: str = "Medium"  # High, Medium, Low
+    impact_level: str = "High"  # High, Medium, Low
 
 
 class KYCReportResponse(BaseModel):

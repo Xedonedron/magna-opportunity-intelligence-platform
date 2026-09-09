@@ -21,3 +21,4 @@ graphify-out/
 frontend/src/graphify-out/
 .graphify*/
 NUL
+*.tsbuildinfo

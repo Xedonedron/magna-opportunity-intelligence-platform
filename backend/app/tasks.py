@@ -299,6 +299,8 @@ def run_kyc_pipeline_task(opportunity_id: str, source_type: str = "automatic") -
                 on_progress=update_progress,
                 opportunity_id=str(opportunity.id),
                 user_id=str(opportunity.created_by) if opportunity.created_by else None,
+                kyc_version=next_version,
+                source_type=source_type,
             )
         )
 

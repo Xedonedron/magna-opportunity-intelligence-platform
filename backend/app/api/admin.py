@@ -325,6 +325,7 @@ class SystemSettingsPayload(BaseModel):
     openai_api_base: Optional[str] = None
     google_models: Optional[list[str]] = None
     openai_models: Optional[list[str]] = None
+    usd_to_idr_rate: Optional[float] = None
 
 
 class TestConnectionPayload(BaseModel):
@@ -405,6 +406,7 @@ def get_system_settings_api(
         "openai_api_base": kv.get("openai_api_base") or settings.OPENAI_API_BASE,
         "google_models": google_models,
         "openai_models": openai_models,
+        "usd_to_idr_rate": float(kv.get("usd_to_idr_rate", 16200.0)),
     }
 
 
@@ -456,6 +458,9 @@ def update_system_settings_api(
     if payload.openai_models is not None:
         cleaned_o = [m.strip() for m in payload.openai_models if isinstance(m, str) and m.strip()]
         updates["openai_models"] = json.dumps(cleaned_o)
+
+    if payload.usd_to_idr_rate is not None:
+        updates["usd_to_idr_rate"] = str(float(payload.usd_to_idr_rate))
 
     for k, v in updates.items():
         row = db.query(SystemSetting).filter(SystemSetting.key == k).first()
@@ -606,6 +611,7 @@ def get_ai_usage_by_user(
 @router.get("/ai/assistant-queries")
 def get_ai_assistant_queries_audit(
     search: Optional[str] = None,
+    feature: Optional[str] = None,
     user_id: Optional[uuid.UUID] = None,
     opportunity_id: Optional[uuid.UUID] = None,
     date_from: Optional[str] = None,
@@ -629,6 +635,7 @@ def get_ai_assistant_queries_audit(
         db=db,
         user_id=user_id,
         opportunity_id=opportunity_id,
+        feature=feature,
         search=search,
         date_from=d_from,
         date_to=d_to,

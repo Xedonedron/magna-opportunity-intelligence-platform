@@ -391,7 +391,7 @@ function UseCasesInput({
                 business_impact: "",
                 google_products: [],
                 smartnet_solutions: [],
-                impact_level: "Medium",
+                impact_level: "High",
             },
         ]);
     };

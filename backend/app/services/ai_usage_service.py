@@ -11,8 +11,8 @@ import logging
 import uuid
 from datetime import datetime, timezone, timedelta, date
 from typing import Optional, Any, Tuple, Dict, List
-from sqlalchemy.orm import Session
-from sqlalchemy import func, desc, or_
+from sqlalchemy.orm import Session, aliased
+from sqlalchemy import func, desc, or_, and_
 
 from app.models.ai_token_usage import AITokenUsage
 from app.models.opportunity import Opportunity
@@ -67,16 +67,40 @@ def get_model_rate(model_name: Optional[str]) -> Tuple[float, float]:
     return MODEL_RATES["default"]
 
 
+def get_current_usd_to_idr_rate(db: Optional[Session] = None) -> float:
+    """Retrieve current configured USD to IDR exchange rate from system_settings or default."""
+    try:
+        from app.models.system_setting import SystemSetting
+        close_session = False
+        session = db
+        if session is None:
+            session = SessionLocal()
+            close_session = True
+        try:
+            row = session.query(SystemSetting).filter(SystemSetting.key == "usd_to_idr_rate").first()
+            if row and row.value:
+                return float(row.value)
+        finally:
+            if close_session:
+                session.close()
+    except Exception as e:
+        logger.debug(f"[AI Usage Service] Failed to read usd_to_idr_rate from settings: {e}")
+    return DEFAULT_USD_TO_IDR
+
+
 def calculate_cost(
     model_name: Optional[str],
     prompt_tokens: int,
     completion_tokens: int,
-    usd_to_idr_rate: float = DEFAULT_USD_TO_IDR,
+    usd_to_idr_rate: Optional[float] = None,
 ) -> Tuple[float, float]:
     """
     Calculate estimated cost in (USD, IDR).
     Cost = (Prompt Tokens * Input Rate + Completion Tokens * Output Rate) / 1,000,000
     """
+    if usd_to_idr_rate is None:
+        usd_to_idr_rate = DEFAULT_USD_TO_IDR
+
     input_rate, output_rate = get_model_rate(model_name)
     
     cost_usd = (
@@ -119,14 +143,15 @@ def record_ai_usage(
     Persist an AI interaction log to the database safely.
     Handles session lifecycle if db is not supplied.
     """
-    total_tokens = prompt_tokens + completion_tokens
-    cost_usd, cost_idr = calculate_cost(model_name, prompt_tokens, completion_tokens)
-    
     close_db = False
     session = db
     if session is None:
         session = SessionLocal()
         close_db = True
+
+    active_rate = get_current_usd_to_idr_rate(session)
+    total_tokens = prompt_tokens + completion_tokens
+    cost_usd, cost_idr = calculate_cost(model_name, prompt_tokens, completion_tokens, usd_to_idr_rate=active_rate)
 
     try:
         usage_record = AITokenUsage(
@@ -315,6 +340,7 @@ def get_metrics_summary(db: Session) -> Dict[str, Any]:
         "model_breakdown": model_breakdown,
         "feature_breakdown": feature_breakdown,
         "daily_trend": daily_trend,
+        "usd_to_idr_rate": get_current_usd_to_idr_rate(db),
     }
 
 
@@ -493,6 +519,7 @@ def get_assistant_queries_audit(
     db: Session,
     user_id: Optional[uuid.UUID] = None,
     opportunity_id: Optional[uuid.UUID] = None,
+    feature: Optional[str] = None,
     search: Optional[str] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
@@ -502,7 +529,37 @@ def get_assistant_queries_audit(
     """
     Granular prompt & query audit trail for Superadmin.
     Shows the exact prompt user submitted, model used, response preview, tokens, and cost.
+    Filters out automatic / v1 KYC synthesis to prevent cluttering the user prompt audit,
+    and only includes KYC regenerations (v2+) that are the latest version per opportunity.
     """
+    LaterUsage = aliased(AITokenUsage)
+
+    has_newer_kyc = (
+        db.query(LaterUsage.id)
+        .filter(
+            LaterUsage.opportunity_id == AITokenUsage.opportunity_id,
+            LaterUsage.feature == "kyc_generation",
+            or_(
+                LaterUsage.created_at > AITokenUsage.created_at,
+                and_(
+                    LaterUsage.created_at == AITokenUsage.created_at,
+                    LaterUsage.id != AITokenUsage.id,
+                    LaterUsage.query_prompt > AITokenUsage.query_prompt,
+                ),
+            ),
+        )
+        .exists()
+    )
+
+    # Valid KYC condition: Must be versioned >= v2 (not legacy or v1), not automatic, and latest per oppty
+    valid_kyc_condition = and_(
+        AITokenUsage.feature == "kyc_generation",
+        AITokenUsage.query_prompt.like("KYC Pipeline Synthesis (v%"),
+        ~AITokenUsage.query_prompt.like("KYC Pipeline Synthesis (v1 %"),
+        ~AITokenUsage.query_prompt.like("%automatic%"),
+        ~has_newer_kyc,
+    )
+
     query = db.query(
         AITokenUsage,
         User.full_name.label("user_name"),
@@ -511,6 +568,26 @@ def get_assistant_queries_audit(
         Opportunity.company_name.label("company_name"),
     ).outerjoin(User, AITokenUsage.user_id == User.id)\
      .outerjoin(Opportunity, AITokenUsage.opportunity_id == Opportunity.id)
+
+    # Feature filtering
+    if feature:
+        f_clean = feature.strip().lower()
+        if f_clean in ("chat", "opportunity_chat"):
+            query = query.filter(AITokenUsage.feature == "opportunity_chat")
+        elif f_clean in ("kyc", "kyc_generation"):
+            query = query.filter(valid_kyc_condition)
+        elif f_clean in ("persona", "persona_generation"):
+            query = query.filter(AITokenUsage.feature == "persona_generation")
+        else:
+            query = query.filter(AITokenUsage.feature == feature)
+    else:
+        # Default: Exclude automatic v1 KYC generation from prompt audit trail
+        query = query.filter(
+            or_(
+                AITokenUsage.feature != "kyc_generation",
+                valid_kyc_condition,
+            )
+        )
 
     if user_id:
         query = query.filter(AITokenUsage.user_id == user_id)
@@ -561,6 +638,7 @@ def get_assistant_queries_audit(
             "status": usage.status,
             "error_message": usage.error_message,
             "duration_ms": usage.duration_ms,
+            "metadata_json": usage.metadata_json or {},
             "user": {
                 "id": str(usage.user_id) if usage.user_id else None,
                 "full_name": u_name or "System / Background",

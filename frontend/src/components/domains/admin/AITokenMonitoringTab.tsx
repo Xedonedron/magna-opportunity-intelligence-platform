@@ -29,11 +29,13 @@ import {
     Loader2,
     DollarSign,
     Terminal,
+    Save,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { api } from "@/lib/api";
+import { toast } from "sonner";
 import {
     AreaChart,
     Area,
@@ -84,6 +86,10 @@ export function formatRelativeTime(dateStr?: string | null): string {
 export function AITokenMonitoringTab() {
     const [subTab, setSubTab] = useState<"overview" | "oppty" | "users" | "audit">("overview");
 
+    // Dynamic Currency Exchange Rate state (Default 16,200)
+    const [usdToIdrRate, setUsdToIdrRate] = useState<number>(16200);
+    const [savingRate, setSavingRate] = useState(false);
+
     // Metrics state
     const [metrics, setMetrics] = useState<any>(null);
     const [loadingMetrics, setLoadingMetrics] = useState(false);
@@ -104,6 +110,7 @@ export function AITokenMonitoringTab() {
     // Audit Queries state
     const [auditData, setAuditData] = useState<any>({ items: [], total: 0, page: 1, total_pages: 1 });
     const [auditSearch, setAuditSearch] = useState("");
+    const [auditFeature, setAuditFeature] = useState<string>("all");
     const [auditUserId, setAuditUserId] = useState<string>("");
     const [auditOpptyId, setAuditOpptyId] = useState<string>("");
     const [auditPage, setAuditPage] = useState(1);
@@ -118,18 +125,48 @@ export function AITokenMonitoringTab() {
         setTimeout(() => setCopiedId(null), 2000);
     };
 
+    // Reactive dynamic currency helper
+    const formatDynamicIDR = useCallback((costUsd?: number, fallbackIdr?: number): string => {
+        if (costUsd !== undefined && costUsd !== null) {
+            const rate = usdToIdrRate > 0 ? usdToIdrRate : 16200;
+            return `Rp ${Math.round(costUsd * rate).toLocaleString("id-ID")}`;
+        }
+        if (fallbackIdr !== undefined && fallbackIdr !== null) {
+            return `Rp ${Math.round(fallbackIdr).toLocaleString("id-ID")}`;
+        }
+        return "Rp 0";
+    }, [usdToIdrRate]);
+
     // 1. Fetch Metrics
     const fetchMetrics = useCallback(async () => {
         setLoadingMetrics(true);
         try {
             const res = await api.get("/api/admin/ai/metrics");
             setMetrics(res.data);
+            if (res.data?.usd_to_idr_rate) {
+                setUsdToIdrRate(Number(res.data.usd_to_idr_rate));
+            }
         } catch (e) {
             console.error("Failed to load AI metrics", e);
         } finally {
             setLoadingMetrics(false);
         }
     }, []);
+
+    // Save currency rate to backend system settings
+    const handleSaveRate = async () => {
+        if (usdToIdrRate <= 0) return;
+        setSavingRate(true);
+        try {
+            await api.patch("/api/admin/settings", { usd_to_idr_rate: usdToIdrRate });
+            toast.success(`Kurs Rupiah berhasil disimpan: 1 USD = Rp ${usdToIdrRate.toLocaleString("id-ID")}`);
+        } catch (e) {
+            console.error("Failed to save currency rate", e);
+            toast.error("Gagal menyimpan kurs ke sistem settings");
+        } finally {
+            setSavingRate(false);
+        }
+    };
 
     // 2. Fetch Oppty Usage
     const fetchOpptyUsage = useCallback(async () => {
@@ -170,6 +207,7 @@ export function AITokenMonitoringTab() {
             if (auditSearch.trim()) params.search = auditSearch.trim();
             if (auditUserId) params.user_id = auditUserId;
             if (auditOpptyId) params.opportunity_id = auditOpptyId;
+            if (auditFeature !== "all") params.feature = auditFeature;
             const res = await api.get("/api/admin/ai/assistant-queries", { params });
             setAuditData(res.data);
         } catch (e) {
@@ -177,7 +215,7 @@ export function AITokenMonitoringTab() {
         } finally {
             setLoadingAudit(false);
         }
-    }, [auditPage, auditSearch, auditUserId, auditOpptyId]);
+    }, [auditPage, auditSearch, auditUserId, auditOpptyId, auditFeature]);
 
     // Initial load
     useEffect(() => {
@@ -213,8 +251,8 @@ export function AITokenMonitoringTab() {
 
     return (
         <div className="space-y-6">
-            {/* Header Title & Refresh */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-zinc-200 dark:border-zinc-800">
+            {/* Header Title, Currency Control & Refresh */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-zinc-200 dark:border-zinc-800">
                 <div>
                     <div className="flex items-center gap-2">
                         <Cpu className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
@@ -226,7 +264,37 @@ export function AITokenMonitoringTab() {
                         Pemantauan penggunaan token internal mandiri, estimasi biaya pricing, atribusi per peluang & user, serta audit transparansi query AI Assistant.
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                    {/* Kurs USD -> IDR Dinamis Input Group */}
+                    <div className="flex items-center gap-1.5 sm:gap-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-2.5 py-1 shadow-xs">
+                        <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
+                            Kurs 1 USD = Rp
+                        </span>
+                        <input
+                            type="number"
+                            min={1000}
+                            step={100}
+                            value={usdToIdrRate || ""}
+                            onChange={(e) => {
+                                const val = parseFloat(e.target.value);
+                                setUsdToIdrRate(isNaN(val) ? 0 : val);
+                            }}
+                            className="w-20 sm:w-24 h-7 text-xs font-mono font-bold text-zinc-900 dark:text-zinc-100 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded px-2 text-right focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            title="Ubah kurs Rupiah untuk simulasi perhitungan biaya secara dinamis"
+                        />
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={savingRate || usdToIdrRate <= 0}
+                            onClick={handleSaveRate}
+                            className="h-7 px-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
+                            title="Simpan kurs ini ke Pengaturan Sistem"
+                        >
+                            {savingRate ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                        </Button>
+                    </div>
+
                     <Button
                         variant="outline"
                         size="sm"
@@ -236,7 +304,7 @@ export function AITokenMonitoringTab() {
                             if (subTab === "users") fetchUserUsage();
                             if (subTab === "audit") fetchAuditQueries();
                         }}
-                        className="text-xs flex items-center gap-1.5 h-8"
+                        className="text-xs flex items-center gap-1.5 h-8 shrink-0"
                     >
                         <RefreshCw className={`w-3.5 h-3.5 ${loadingMetrics ? "animate-spin" : ""}`} />
                         Segarkan
@@ -285,9 +353,9 @@ export function AITokenMonitoringTab() {
                             {formatUSD(metrics?.today?.cost_usd)}
                         </div>
                         <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 font-medium">
-                            ≈ {formatIDR(metrics?.today?.cost_idr)}
+                            ≈ {formatDynamicIDR(metrics?.today?.cost_usd, metrics?.today?.cost_idr)}
                             <span className="text-zinc-400 dark:text-zinc-500 ml-1.5 font-normal">
-                                (All-time: {formatUSD(metrics?.all_time?.cost_usd)})
+                                (All-time: {formatUSD(metrics?.all_time?.cost_usd)} ≈ {formatDynamicIDR(metrics?.all_time?.cost_usd, metrics?.all_time?.cost_idr)})
                             </span>
                         </div>
                     </div>
@@ -333,13 +401,13 @@ export function AITokenMonitoringTab() {
             </div>
 
             {/* Sub-Tabs Navigation */}
-            <div className="border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-1 sm:gap-2">
+            <div className="mt-6 mb-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-3 sm:gap-6 overflow-x-auto scrollbar-none">
                 <button
                     onClick={() => setSubTab("overview")}
-                    className={`pb-3 text-xs sm:text-sm font-medium flex items-center gap-2 border-b-2 transition-all ${
+                    className={`px-3.5 sm:px-4 py-2.5 pb-3 text-xs sm:text-sm font-medium flex items-center gap-2 border-b-2 transition-all cursor-pointer whitespace-nowrap ${
                         subTab === "overview"
-                            ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 font-semibold"
-                            : "border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+                            ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 font-semibold bg-indigo-50/40 dark:bg-indigo-950/20 rounded-t-lg"
+                            : "border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 rounded-t-lg"
                     }`}
                 >
                     <TrendingUp className="w-4 h-4" />
@@ -347,10 +415,10 @@ export function AITokenMonitoringTab() {
                 </button>
                 <button
                     onClick={() => setSubTab("oppty")}
-                    className={`pb-3 text-xs sm:text-sm font-medium flex items-center gap-2 border-b-2 transition-all ${
+                    className={`px-3.5 sm:px-4 py-2.5 pb-3 text-xs sm:text-sm font-medium flex items-center gap-2 border-b-2 transition-all cursor-pointer whitespace-nowrap ${
                         subTab === "oppty"
-                            ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 font-semibold"
-                            : "border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+                            ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 font-semibold bg-indigo-50/40 dark:bg-indigo-950/20 rounded-t-lg"
+                            : "border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 rounded-t-lg"
                     }`}
                 >
                     <Briefcase className="w-4 h-4" />
@@ -358,10 +426,10 @@ export function AITokenMonitoringTab() {
                 </button>
                 <button
                     onClick={() => setSubTab("users")}
-                    className={`pb-3 text-xs sm:text-sm font-medium flex items-center gap-2 border-b-2 transition-all ${
+                    className={`px-3.5 sm:px-4 py-2.5 pb-3 text-xs sm:text-sm font-medium flex items-center gap-2 border-b-2 transition-all cursor-pointer whitespace-nowrap ${
                         subTab === "users"
-                            ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 font-semibold"
-                            : "border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+                            ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 font-semibold bg-indigo-50/40 dark:bg-indigo-950/20 rounded-t-lg"
+                            : "border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 rounded-t-lg"
                     }`}
                 >
                     <User className="w-4 h-4" />
@@ -369,10 +437,10 @@ export function AITokenMonitoringTab() {
                 </button>
                 <button
                     onClick={() => setSubTab("audit")}
-                    className={`pb-3 text-xs sm:text-sm font-medium flex items-center gap-2 border-b-2 transition-all ${
+                    className={`px-3.5 sm:px-4 py-2.5 pb-3 text-xs sm:text-sm font-medium flex items-center gap-2 border-b-2 transition-all cursor-pointer whitespace-nowrap ${
                         subTab === "audit"
-                            ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 font-semibold"
-                            : "border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+                            ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 font-semibold bg-indigo-50/40 dark:bg-indigo-950/20 rounded-t-lg"
+                            : "border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 rounded-t-lg"
                     }`}
                 >
                     <Terminal className="w-4 h-4" />
@@ -509,7 +577,7 @@ export function AITokenMonitoringTab() {
                                                         {formatNumber(f.total_tokens)} token
                                                     </div>
                                                     <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-mono">
-                                                        {formatUSD(f.cost_usd)} ({formatIDR(f.cost_idr)})
+                                                        {formatUSD(f.cost_usd)} ({formatDynamicIDR(f.cost_usd, f.cost_idr)})
                                                     </div>
                                                 </div>
                                             </div>
@@ -620,7 +688,7 @@ export function AITokenMonitoringTab() {
                                                     {formatUSD(item.cost_usd)}
                                                 </div>
                                                 <div className="text-[10px] text-zinc-500">
-                                                    {formatIDR(item.cost_idr)}
+                                                    {formatDynamicIDR(item.cost_usd, item.cost_idr)}
                                                 </div>
                                             </td>
                                             <td className="py-3 px-3 text-center">
@@ -794,7 +862,7 @@ export function AITokenMonitoringTab() {
                                                         {formatUSD(u.cost_usd)}
                                                     </div>
                                                     <div className="text-[10px] text-zinc-500">
-                                                        {formatIDR(u.cost_idr)}
+                                                        {formatDynamicIDR(u.cost_usd, u.cost_idr)}
                                                     </div>
                                                 </td>
                                                 <td className="py-3 px-3 text-zinc-500 dark:text-zinc-400 text-[11px]">
@@ -885,8 +953,8 @@ export function AITokenMonitoringTab() {
                     </div>
 
                     {/* Filter Bar */}
-                    <div className="flex items-center gap-3">
-                        <div className="relative flex-1">
+                    <div className="flex flex-col sm:flex-row items-center gap-3">
+                        <div className="relative flex-1 w-full">
                             <Search className="w-4 h-4 absolute left-3 top-2.5 text-zinc-400" />
                             <Input
                                 value={auditSearch}
@@ -897,6 +965,22 @@ export function AITokenMonitoringTab() {
                                 placeholder="Cari isi prompt, nama pengguna, atau peluang..."
                                 className="pl-9 h-9 text-xs"
                             />
+                        </div>
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <Filter className="w-4 h-4 text-zinc-400 shrink-0" />
+                            <select
+                                value={auditFeature}
+                                onChange={(e) => {
+                                    setAuditFeature(e.target.value);
+                                    setAuditPage(1);
+                                }}
+                                className="h-9 text-xs bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md px-3 text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full sm:w-auto"
+                            >
+                                <option value="all">Semua Tipe Aktivitas</option>
+                                <option value="opportunity_chat">Chat Asisten (Prompt User)</option>
+                                <option value="kyc_generation">Sintesis KYC (Regenerasi v2+)</option>
+                                <option value="persona_generation">Persona Playbook</option>
+                            </select>
                         </div>
                     </div>
 
@@ -920,12 +1004,16 @@ export function AITokenMonitoringTab() {
                         ) : (
                             auditData.items.map((log: any) => {
                                 const isExpanded = expandedPromptId === log.id;
+                                const isKyc = log.feature === "kyc_generation";
+                                const isPersona = log.feature === "persona_generation";
+                                const kycVer = log.metadata_json?.kyc_version;
+
                                 return (
                                     <div
                                         key={log.id}
                                         className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/80 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all space-y-3"
                                     >
-                                        {/* Row Header: User, Opportunity, Timestamp */}
+                                        {/* Row Header: User, Opportunity, Timestamp & Feature Badge */}
                                         <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                                             <div className="flex items-center gap-2 flex-wrap">
                                                 <div className="flex items-center gap-1.5 font-bold text-zinc-900 dark:text-zinc-100">
@@ -949,7 +1037,25 @@ export function AITokenMonitoringTab() {
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                {/* Feature Category Badge */}
+                                                {isKyc ? (
+                                                    <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center gap-1">
+                                                        <Cpu className="w-3 h-3 text-purple-500" />
+                                                        Sintesis KYC {kycVer ? `v${kycVer}` : "v2+"}
+                                                    </span>
+                                                ) : isPersona ? (
+                                                    <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 flex items-center gap-1">
+                                                        <Sparkles className="w-3 h-3 text-blue-500" />
+                                                        Persona Playbook
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                                                        <MessageSquare className="w-3 h-3 text-emerald-500" />
+                                                        Chat Asisten
+                                                    </span>
+                                                )}
+
                                                 <span className="font-mono text-[11px] text-zinc-400">
                                                     {new Date(log.created_at).toLocaleString("id-ID", {
                                                         day: "2-digit",
@@ -959,18 +1065,35 @@ export function AITokenMonitoringTab() {
                                                         second: "2-digit",
                                                     })}
                                                 </span>
-                                                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
+                                                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
                                                     {log.model_name}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        {/* Prompt Content Box (The exact query sent by user!) */}
+                                        {/* Prompt Content Box (The exact query sent by user or AI task) */}
                                         <div className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80 text-xs">
-                                            <div className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider flex items-center gap-1 mb-1">
-                                                <MessageSquare className="w-3 h-3 text-indigo-500" />
-                                                Prompt / Pertanyaan User:
-                                            </div>
+                                            {isKyc ? (
+                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5 pb-1 border-b border-zinc-200/50 dark:border-zinc-800/50">
+                                                    <div className="text-[10px] uppercase font-bold text-purple-600 dark:text-purple-400 tracking-wider flex items-center gap-1">
+                                                        <Cpu className="w-3 h-3 text-purple-500" />
+                                                        Sintesis Pipeline KYC {kycVer ? `(v${kycVer})` : "(Regenerasi v2+)"}
+                                                    </div>
+                                                    <span className="text-[10px] text-zinc-400 italic">
+                                                        Automated Intelligence Task (Bukan Pertanyaan User)
+                                                    </span>
+                                                </div>
+                                            ) : isPersona ? (
+                                                <div className="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400 tracking-wider flex items-center gap-1 mb-1">
+                                                    <Sparkles className="w-3 h-3 text-blue-500" />
+                                                    AI Persona Playbook Generation:
+                                                </div>
+                                            ) : (
+                                                <div className="text-[10px] uppercase font-bold text-indigo-600 dark:text-indigo-400 tracking-wider flex items-center gap-1 mb-1">
+                                                    <MessageSquare className="w-3 h-3 text-indigo-500" />
+                                                    Prompt / Pertanyaan User:
+                                                </div>
+                                            )}
                                             <div className="font-mono text-zinc-900 dark:text-zinc-100 whitespace-pre-wrap leading-relaxed">
                                                 {log.query_prompt || "<Tidak ada rekaman teks prompt>"}
                                             </div>
@@ -980,7 +1103,7 @@ export function AITokenMonitoringTab() {
                                         <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
                                             <div className="flex items-center gap-3 text-[11px] font-mono text-zinc-500">
                                                 <span>Total Token: <strong className="text-zinc-800 dark:text-zinc-200">{formatNumber(log.total_tokens)}</strong> ({log.prompt_tokens} in / {log.completion_tokens} out)</span>
-                                                <span>Biaya: <strong className="text-emerald-600 dark:text-emerald-400">{formatUSD(log.cost_usd)}</strong> ({formatIDR(log.cost_idr)})</span>
+                                                <span>Biaya: <strong className="text-emerald-600 dark:text-emerald-400">{formatUSD(log.cost_usd)}</strong> ({formatDynamicIDR(log.cost_usd, log.cost_idr)})</span>
                                                 {log.duration_ms && (
                                                     <span>Durasi: <strong className="text-zinc-700 dark:text-zinc-300">{(log.duration_ms / 1000).toFixed(1)}s</strong></span>
                                                 )}
@@ -992,9 +1115,9 @@ export function AITokenMonitoringTab() {
                                                     className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-medium"
                                                 >
                                                     {isExpanded ? (
-                                                        <>Tutup Respons AI <ChevronUp className="w-3.5 h-3.5" /></>
+                                                        <>Tutup {isKyc ? "Hasil Sintesis" : "Jawaban AI"} <ChevronUp className="w-3.5 h-3.5" /></>
                                                     ) : (
-                                                        <>Lihat Jawaban AI <ChevronDown className="w-3.5 h-3.5" /></>
+                                                        <>{isKyc ? "Lihat Hasil Sintesis AI" : "Lihat Jawaban AI"} <ChevronDown className="w-3.5 h-3.5" /></>
                                                     )}
                                                 </button>
                                             )}
@@ -1005,7 +1128,7 @@ export function AITokenMonitoringTab() {
                                             <div className="p-3 rounded-lg bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40 text-xs mt-2 animate-in fade-in-50">
                                                 <div className="text-[10px] uppercase font-bold text-indigo-600 dark:text-indigo-400 tracking-wider flex items-center gap-1 mb-1">
                                                     <Sparkles className="w-3 h-3 text-indigo-500" />
-                                                    Jawaban Asisten AI:
+                                                    {isKyc ? "Ringkasan Hasil Sintesis KYC:" : "Jawaban Asisten AI:"}
                                                 </div>
                                                 <div className="text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto pr-1">
                                                     {log.response_preview}

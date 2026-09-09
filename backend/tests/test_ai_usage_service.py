@@ -57,6 +57,7 @@ def test_record_ai_usage_and_aggregations(db: Session):
         id=uuid.uuid4(),
         company_name="PT Teknologi Maju",
         customer_needs="Modernisasi infrastruktur cloud",
+        created_by=user.id,
     )
     db.add_all([user, opp])
     db.commit()
@@ -120,9 +121,73 @@ def test_record_ai_usage_and_aggregations(db: Session):
     assert user_summary["items"][0]["total_tokens"] == 4250
     assert user_summary["items"][0]["chat_count"] == 1
 
-    # Test Assistant Queries Audit
+    # Test Assistant Queries Audit (Verify v1 automatic KYC is excluded)
+    # Notice usage2 was legacy/automatic v1 ("KYC Pipeline Synthesis for PT Teknologi Maju"),
+    # so it should NOT be included in audit logs. Only usage1 (Chat) should appear!
+    all_audit_logs = get_assistant_queries_audit(db)
+    assert all_audit_logs["total"] == 1
+    assert all_audit_logs["items"][0]["feature"] == "opportunity_chat"
+
     audit_logs = get_assistant_queries_audit(db, search="BigQuery")
     assert audit_logs["total"] == 1
     assert "BigQuery" in audit_logs["items"][0]["query_prompt"]
     assert audit_logs["items"][0]["user"]["full_name"] == "Super Admin Test"
     assert audit_logs["items"][0]["opportunity"]["company_name"] == "PT Teknologi Maju"
+
+    # Now add KYC v2 manual regeneration
+    usage3 = record_ai_usage(
+        db=db,
+        user_id=user.id,
+        opportunity_id=opp.id,
+        feature="kyc_generation",
+        model_name="gemini-2.5-flash",
+        provider="google",
+        prompt_tokens=2200,
+        completion_tokens=1600,
+        query_prompt="KYC Pipeline Synthesis (v2 - manual_regenerate) for PT Teknologi Maju",
+        metadata_json={"kyc_version": 2, "source_type": "manual_regenerate"},
+        status="success",
+        duration_ms=4800,
+    )
+    assert usage3 is not None
+
+    # Audit query should now include Chat and KYC v2
+    updated_logs = get_assistant_queries_audit(db)
+    assert updated_logs["total"] == 2
+    prompts = [item["query_prompt"] for item in updated_logs["items"]]
+    assert any("v2 - manual_regenerate" in p for p in prompts)
+
+    # Now add KYC v3 manual regeneration for same opportunity (should supersede v2, keeping only latest)
+    import time
+    time.sleep(0.01)
+    usage4 = record_ai_usage(
+        db=db,
+        user_id=user.id,
+        opportunity_id=opp.id,
+        feature="kyc_generation",
+        model_name="gemini-2.5-flash",
+        provider="google",
+        prompt_tokens=2300,
+        completion_tokens=1700,
+        query_prompt="KYC Pipeline Synthesis (v3 - manual_regenerate) for PT Teknologi Maju",
+        metadata_json={"kyc_version": 3, "source_type": "manual_regenerate"},
+        status="success",
+        duration_ms=5000,
+    )
+    assert usage4 is not None
+
+    latest_logs = get_assistant_queries_audit(db)
+    # Total should still be 2 (1 Chat + 1 latest KYC v3)
+    assert latest_logs["total"] == 2
+    latest_prompts = [item["query_prompt"] for item in latest_logs["items"]]
+    assert any("v3 - manual_regenerate" in p for p in latest_prompts)
+    assert not any("v2 - manual_regenerate" in p for p in latest_prompts)
+
+    # Feature filter test
+    chat_only = get_assistant_queries_audit(db, feature="chat")
+    assert chat_only["total"] == 1
+    assert chat_only["items"][0]["feature"] == "opportunity_chat"
+
+    kyc_only = get_assistant_queries_audit(db, feature="kyc")
+    assert kyc_only["total"] == 1
+    assert "v3" in kyc_only["items"][0]["query_prompt"]

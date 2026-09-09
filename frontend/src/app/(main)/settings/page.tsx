@@ -25,6 +25,7 @@ import {
     Calendar,
     Activity,
     Cpu,
+    DollarSign,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -61,6 +62,7 @@ export default function SettingsPage() {
     const [openaiApiBase, setOpenaiApiBase] = useState("https://api.cosmoshub.tech/v1");
     const [maskedGeminiKey, setMaskedGeminiKey] = useState("");
     const [maskedOpenaiKey, setMaskedOpenaiKey] = useState("");
+    const [usdToIdrRate, setUsdToIdrRate] = useState(16200);
     const [savingAiSettings, setSavingAiSettings] = useState(false);
     const [testingConnection, setTestingConnection] = useState(false);
     const [testResult, setTestResult] = useState<{ status: string; message: string; warning?: string } | null>(null);
@@ -131,6 +133,9 @@ export default function SettingsPage() {
                 setMaskedGeminiKey(data.masked_gemini_key || "");
                 setMaskedOpenaiKey(data.masked_openai_key || "");
                 setOpenaiApiBase(data.openai_api_base || "https://api.cosmoshub.tech/v1");
+                if (data.usd_to_idr_rate !== undefined && data.usd_to_idr_rate !== null) {
+                    setUsdToIdrRate(data.usd_to_idr_rate);
+                }
                 if (Array.isArray(data.google_models)) {
                     setGoogleModels(data.google_models);
                 } else {
@@ -406,6 +411,7 @@ export default function SettingsPage() {
                 search_depth: searchDepth,
                 max_results: maxResults,
                 hide_financial_numbers: hideFinancialNumbers,
+                usd_to_idr_rate: usdToIdrRate,
                 gemini_api_key: geminiApiKey.trim() || undefined,
                 openai_api_key: openaiApiKey.trim() || undefined,
                 openai_api_base: openaiApiBase.trim() || undefined,
@@ -1037,6 +1043,36 @@ export default function SettingsPage() {
                                         />
                                         <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-zinc-900"></div>
                                     </label>
+                                </div>
+                            </div>
+
+                            {/* Currency & Exchange Rate Settings */}
+                            <div className="border-t border-zinc-100 pt-6 space-y-4">
+                                <h4 className="text-sm font-semibold text-zinc-900 flex items-center gap-1.5">
+                                    <DollarSign className="w-4 h-4 text-emerald-600" /> Kurs Valuta AI Token & Cost Monitoring (USD ke IDR)
+                                </h4>
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-zinc-200 rounded-lg bg-zinc-50/50 gap-3">
+                                    <div className="pr-4">
+                                        <h5 className="text-sm font-medium text-zinc-900">Nilai Tukar Default (1 USD dalam IDR)</h5>
+                                        <p className="text-xs text-zinc-500 mt-0.5">
+                                            Digunakan untuk menghitung estimasi biaya token model AI dari USD ke Rupiah secara dinamis di seluruh sistem dan dasbor monitoring.
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <span className="text-xs font-medium text-zinc-500">Rp</span>
+                                        <Input
+                                            type="number"
+                                            disabled={!isSuperAdmin}
+                                            min={1000}
+                                            step={100}
+                                            value={usdToIdrRate || ""}
+                                            onChange={(e) => {
+                                                const val = parseFloat(e.target.value);
+                                                setUsdToIdrRate(isNaN(val) ? 0 : val);
+                                            }}
+                                            className="w-32 font-mono text-sm font-bold text-right"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>

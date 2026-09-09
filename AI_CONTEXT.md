@@ -267,7 +267,7 @@
 | company_location | Text | Company location |
 | customer_need_summary | Text | Customer need summary |
 | potential_pain_points | JSONB | Pain points |
-| use_cases | JSONB | Use cases and solution mapping |
+| use_cases | JSONB | Recommended use cases & solution mapping (ordered by impact_level: "High" -> "Medium" -> "Low") |
 | meeting_objectives | JSONB | Meeting objectives |
 | recommended_questions | JSONB | Recommended discovery questions |
 | preparation_checklist | JSONB | Preparation items |
@@ -444,12 +444,13 @@
 
 ### AI Usage & Pricing Service (`backend/app/services/ai_usage_service.py`)
 **Functions:**
-- `calculate_cost(...)` - Compute estimated costs in USD and IDR based on model catalog rate cards
-- `record_ai_usage(...)` - Persist token counts, latency, acting user, opportunity, and query prompt
-- `get_metrics_summary(...)` - KPIs summary (today, yesterday, all-time, daily trend, model breakdown)
+- `get_current_usd_to_idr_rate(...)` - Fetch dynamic USD to IDR currency exchange rate from `system_settings` (default: Rp 16.200)
+- `calculate_cost(...)` - Compute estimated costs in USD and IDR based on model catalog rate cards and dynamic exchange rate
+- `record_ai_usage(...)` - Persist token counts, latency, acting user, opportunity, query prompt, and metadata snapshots
+- `get_metrics_summary(...)` - KPIs summary (today, yesterday, all-time, daily trend, model breakdown, current exchange rate)
 - `get_usage_by_opportunity(...)` - Aggregated AI consumption per opportunity
 - `get_usage_by_user(...)` - Aggregated AI consumption per user for abuse monitoring
-- `get_assistant_queries_audit(...)` - Transparent granular query/prompt audit trail
+- `get_assistant_queries_audit(...)` - Transparent granular prompt & synthesis audit trail. Filters out automated v1 KYC to prevent clutter, keeping only manual regenerations (v2+) and deduplicating to the latest KYC run per opportunity. Supports filtering by feature (`opportunity_chat`, `kyc_generation`, `persona_generation`).
 
 ### Audit Service (`backend/app/services/audit_service.py`)
 **Functions:**

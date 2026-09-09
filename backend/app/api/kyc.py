@@ -188,6 +188,15 @@ async def update_kyc_report(
         raise HTTPException(status_code=404, detail="KYC report not found")
 
     update_data = data.model_dump(exclude_unset=True)
+    if "use_cases" in update_data and isinstance(update_data["use_cases"], list):
+        impact_order = {"High": 0, "Medium": 1, "Low": 2}
+        update_data["use_cases"] = sorted(
+            update_data["use_cases"],
+            key=lambda uc: impact_order.get(
+                uc.get("impact_level", "Medium") if isinstance(uc, dict) else "Medium", 99
+            )
+        )
+
     for field, value in update_data.items():
         setattr(report, field, value)
 

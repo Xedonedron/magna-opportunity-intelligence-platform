@@ -1,23 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ChevronDown, Target, Lightbulb, Settings, TrendingUp, Package, Building2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";
 import type { KYCUseCase } from "@/types/kyc";
 
+const IMPACT_ORDER: Record<string, number> = {
+    High: 0,
+    Medium: 1,
+    Low: 2,
+};
+
 const impactStyles: Record<string, string> = {
-    High: "bg-green-50 text-green-700 border-green-200",
-    Medium: "bg-yellow-50 text-yellow-700 border-yellow-200",
-    Low: "bg-zinc-50 text-zinc-600 border-zinc-200",
+    High: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-900",
+    Medium: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-300 dark:border-yellow-900",
+    Low: "bg-zinc-50 text-zinc-600 border-zinc-200 dark:bg-zinc-800/40 dark:text-zinc-400 dark:border-zinc-700",
 };
 
 export function UseCaseAccordion({ useCases }: { useCases: KYCUseCase[] }) {
     const { t } = useLanguage();
     const details = t.opportunityDetail.kyc.sections.useCaseDetails;
-    const [openId, setOpenId] = useState<string | null>(useCases[0]?.title || null);
 
-    if (!useCases || useCases.length === 0) {
+    const sortedUseCases = useMemo(() => {
+        if (!useCases) return [];
+        return [...useCases].sort((a, b) => {
+            const orderA = IMPACT_ORDER[a.impact_level] ?? 99;
+            const orderB = IMPACT_ORDER[b.impact_level] ?? 99;
+            return orderA - orderB;
+        });
+    }, [useCases]);
+
+    const [openId, setOpenId] = useState<string | null>(sortedUseCases[0]?.title || null);
+
+    if (!sortedUseCases || sortedUseCases.length === 0) {
         return (
             <Card className="p-12 text-center text-zinc-500">
                 <Target className="w-12 h-12 mx-auto mb-4 opacity-20" />
@@ -28,7 +44,7 @@ export function UseCaseAccordion({ useCases }: { useCases: KYCUseCase[] }) {
 
     return (
         <div className="space-y-3">
-            {useCases.map((uc, idx) => {
+            {sortedUseCases.map((uc, idx) => {
                 const id = uc.title || `uc-${idx}`;
                 const isOpen = openId === id;
                 return (
