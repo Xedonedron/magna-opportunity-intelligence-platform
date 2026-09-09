@@ -16,6 +16,7 @@ from app.core.llm import get_chat_llm, has_active_llm_key, get_db_setting
 from app.services.web_search_service import web_search_service
 from app.services.web_crawler_service import web_crawler_service
 from app.services.link_verifier import link_verifier_service
+from app.core.solutions_catalog import solutions_catalog
 
 logger = logging.getLogger(__name__)
 
@@ -257,16 +258,13 @@ async def analysis_node(state: KYCState, config: Optional[RunnableConfig] = None
             use_cases_lines.append(f"{i}. {uc.get('title', 'N/A')}: {uc.get('content', '')[:300]}")
         use_cases_context = "\n".join(use_cases_lines)
 
-    # Built-in Smartnet Magna Global Profile
-    solutions_context = """
-## Profil Perusahaan & Katalog Solusi PT Smartnet Magna Global
-Anda mewakili PT Smartnet Magna Global (SMG), penyedia solusi dan konsultan IT enterprise terkemuka yang berspesialisasi dalam:
-1. Google Cloud Infrastructure & Modernization (GCP, GKE, Serverless, Cloud Migration)
-2. Data Analytics & AI (BigQuery, Looker, Vertex AI, Predictive/Generative AI)
-3. Cybersecurity Suite (Zero Trust, Cloud Security, SIEM, SOC, Penetration Testing)
-4. Network Solutions (SD-WAN, Enterprise Networking, SASE)
-5. Managed Services & Support
-"""
+    # Built-in Smartnet Magna Global Profile & Curated Solutions Grounding
+    solutions_context = solutions_catalog.get_solutions_for_prompt(
+        industry=state.get("industry"),
+        product=state.get("product"),
+        customer_needs=state.get("customer_needs"),
+        limit=4,
+    )
 
     # Generate comprehensive KYC report
     prompt = f"""Anda adalah seorang Principal Business Analyst dan Enterprise Solutions Consultant yang sedang menyusun laporan intelijen KYC (Know Your Customer) komprehensif untuk persiapan meeting presales engineering di PT Smartnet Magna Global.

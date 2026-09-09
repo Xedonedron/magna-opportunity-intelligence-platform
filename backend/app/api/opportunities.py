@@ -27,6 +27,7 @@ from app.tasks import (
     run_kyc_pipeline_task,
 )
 from app.models.notification import Notification
+from app.core.solutions_catalog import solutions_catalog
 
 router = APIRouter(prefix="/api/opportunities", tags=["opportunities"])
 
@@ -498,16 +499,22 @@ async def chat_with_opportunity(
 
     context_str = "\n".join(context_lines)
 
-    # 6. Build system instruction
+    # 6. Build system instruction with centralized SMG solutions grounding
+    catalog_overview = solutions_catalog.get_summary_overview()
+    targeted_solutions = solutions_catalog.get_solutions_for_prompt(
+        industry=opp.industry,
+        product=opp.product,
+        customer_needs=opp.customer_needs,
+        limit=3,
+    )
+
     system_prompt = f"""You are a professional Pre-sales Engineer and Solutions Architect at PT Smartnet Magna Global (SMG).
 Your job is to help the pre-sales team brainstorm, prepare for client meetings, design matching cloud/data/cybersecurity architectures, and answer questions.
 
-Use the following Opportunity & KYC Context to inform your answers. Always align your recommendations with PT Smartnet Magna Global's solutions catalog:
-1. Google Cloud Infrastructure & Modernization (GCP, GKE, Serverless, Cloud Migration)
-2. Data Analytics & AI (BigQuery, Looker, Vertex AI, Predictive/Generative AI)
-3. Cybersecurity Suite (Zero Trust, Cloud Security, SIEM, SOC, Penetration Testing)
-4. Network Solutions (SD-WAN, Enterprise Networking, SASE)
-5. Managed Services & Support
+Always align your recommendations with PT Smartnet Magna Global's official solutions catalog:
+{catalog_overview}
+
+{targeted_solutions}
 
 Be specific, professional, and actionable. Keep your tone helpful and advisory.
 
