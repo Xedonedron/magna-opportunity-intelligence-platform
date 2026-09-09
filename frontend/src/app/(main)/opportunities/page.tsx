@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Search, ChevronRight, ChevronLeft, Trash2, LayoutGrid, List, Upload } from "lucide-react";
+import { Plus, Search, ChevronRight, ChevronLeft, Trash2, LayoutGrid, List, Upload, X } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -20,11 +20,19 @@ export default function OpportunitiesPage() {
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("");
+    const [engineerFilter, setEngineerFilter] = useState<string>("");
     const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
     const [user, setUser] = useState<any>(null);
     const [hideFinancialNumbers, setHideFinancialNumbers] = useState(false);
 
     useEffect(() => {
+        if (typeof window !== "undefined") {
+            const urlParams = new URLSearchParams(window.location.search);
+            const eng = urlParams.get("assigned_engineer");
+            if (eng) {
+                setEngineerFilter(eng);
+            }
+        }
         const storedUser = localStorage.getItem("moip_user");
         if (storedUser) {
             try {
@@ -58,6 +66,7 @@ export default function OpportunitiesPage() {
         page_size: viewMode === "kanban" ? 100 : 20,
         search: search || undefined,
         status: statusFilter || undefined,
+        assigned_engineer: engineerFilter || undefined,
     });
 
     const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
@@ -136,6 +145,28 @@ export default function OpportunitiesPage() {
                                 </option>
                             ))}
                         </select>
+
+                        {engineerFilter && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                Pre-Sales: <strong className="font-semibold">{engineerFilter}</strong>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEngineerFilter("");
+                                        setPage(1);
+                                        if (typeof window !== "undefined") {
+                                            const url = new URL(window.location.href);
+                                            url.searchParams.delete("assigned_engineer");
+                                            window.history.replaceState({}, "", url.pathname);
+                                        }
+                                    }}
+                                    className="hover:text-blue-900 dark:hover:text-blue-100 ml-1 transition-colors"
+                                    title="Clear Pre-Sales filter"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            </span>
+                        )}
                     </div>
 
                     {/* View Switcher Toggle Buttons */}

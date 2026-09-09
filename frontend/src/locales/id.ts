@@ -102,6 +102,11 @@ export const id: Translations = {
             last30Days: "30 Hari Terakhir",
             lastQuarter: "Kuartal Terakhir",
             thisYear: "Tahun Ini",
+            presales: "Pre-Sales",
+            allPresales: "Semua Pre-Sales",
+            filterByPresales: "Filter Pre-Sales",
+            viewingOpportunitiesFor: "Menampilkan peluang untuk Pre-Sales",
+            clearPresalesFilter: "Hapus filter Pre-Sales",
         },
     },
     opportunities: {

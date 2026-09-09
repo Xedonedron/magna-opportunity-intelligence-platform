@@ -102,6 +102,11 @@ export const en = {
             last30Days: "Last 30 Days",
             lastQuarter: "Last Quarter",
             thisYear: "This Year",
+            presales: "Pre-Sales",
+            allPresales: "All Pre-Sales",
+            filterByPresales: "Filter by Pre-Sales",
+            viewingOpportunitiesFor: "Viewing pipeline for Pre-Sales",
+            clearPresalesFilter: "Clear Pre-Sales filter",
         },
     },
     opportunities: {

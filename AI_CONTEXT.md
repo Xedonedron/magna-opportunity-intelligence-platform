@@ -114,9 +114,13 @@
 ### Dashboard (`/api/dashboard`)
 | Method | Path | Description | Auth Required |
 |--------|------|-------------|---------------|
-| GET | `/metrics` | Get dashboard metrics | Yes |
-| GET | `/status-chart` | Get status distribution | Yes |
-| GET | `/trend` | Get opportunity trend | Yes |
+| GET | `/metrics` | Get dashboard metrics (KPIs, status, trend, recent opportunities, upcoming meetings) | Yes |
+
+**Query Parameters (GET /metrics):**
+- `status` (str): Filter by opportunity status
+- `engineer_name` (str): Filter metrics by assigned pre-sales engineer name (e.g. "Devi", "Bayu", "Gerry")
+- `date_from` (date): Start date range
+- `date_to` (date): End date range
 
 ---
 

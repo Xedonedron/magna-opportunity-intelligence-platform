@@ -8,6 +8,7 @@ class DashboardFilters(BaseModel):
     """Filters for dashboard data."""
     status: Optional[str] = None
     engineer_id: Optional[str] = None
+    engineer_name: Optional[str] = None
     date_from: Optional[str] = None
     date_to: Optional[str] = None
 

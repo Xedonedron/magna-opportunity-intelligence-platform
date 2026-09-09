@@ -97,6 +97,8 @@ export default function DashboardPage() {
         );
     }
 
+    const activeEngineer = filters.engineer_name || filters.engineer_id;
+
     return (
         <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 sm:space-y-8">
             <div>
@@ -107,6 +109,27 @@ export default function DashboardPage() {
                     Here is what&apos;s happening with your pipeline today.
                 </p>
             </div>
+
+            {activeEngineer && (
+                <div className="flex items-center justify-between bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-lg px-4 py-2.5 text-sm text-blue-900 dark:text-blue-200 animate-in fade-in duration-200">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-zinc-600 dark:text-zinc-400">Filtering pipeline for Pre-Sales:</span>
+                        <span className="font-semibold text-blue-700 dark:text-blue-300 bg-white dark:bg-blue-900/60 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800">
+                            {activeEngineer}
+                        </span>
+                        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                            (Displaying metrics & opportunities for {activeEngineer})
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setFilters({ ...filters, engineer_name: undefined, engineer_id: undefined })}
+                        className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium underline transition-colors"
+                    >
+                        Show All Pre-Sales
+                    </button>
+                </div>
+            )}
 
             <DashboardMetrics
                 totalOpportunities={metrics.total_opportunities}
@@ -133,32 +156,87 @@ export default function DashboardPage() {
                 <IndustryDistributionChart data={metrics.by_industry} />
             </div>
 
-            {/* Engineer Performance (admin/manager only) */}
+            {/* Presales Performance (Interactive) */}
             {metrics.by_engineer.length > 0 && (
                 <Card className="p-0">
-                    <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
-                        <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                            Presales Performance
-                        </h2>
+                    <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                        <div>
+                            <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                                Presales Performance
+                            </h2>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                                Click a pre-sales engineer to focus dashboard data
+                            </p>
+                        </div>
+                        {activeEngineer && (
+                            <button
+                                type="button"
+                                onClick={() => setFilters({ ...filters, engineer_name: undefined, engineer_id: undefined })}
+                                className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 hover:underline font-medium"
+                            >
+                                Reset Filter
+                            </button>
+                        )}
                     </div>
                     <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                        {metrics.by_engineer.map((eng) => (
-                            <div
-                                key={eng.engineer_id}
-                                className="p-4 flex items-center justify-between hover:bg-zinc-50/50 dark:hover:bg-zinc-800/40"
-                            >
-                                <div>
-                                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                        {eng.engineer_name}
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                                        {eng.count} opportunities
-                                    </span>
-                                </div>
-                            </div>
-                        ))}
+                        {metrics.by_engineer.map((eng) => {
+                            const isSelected = activeEngineer === eng.engineer_name;
+                            return (
+                                <button
+                                    key={eng.engineer_id}
+                                    type="button"
+                                    onClick={() => {
+                                        setFilters({
+                                            ...filters,
+                                            engineer_name: isSelected ? undefined : eng.engineer_name,
+                                            engineer_id: undefined,
+                                        });
+                                    }}
+                                    className={`w-full p-4 flex items-center justify-between text-left transition-colors ${
+                                        isSelected
+                                            ? "bg-blue-50/80 dark:bg-blue-950/40 border-l-4 border-blue-600 dark:border-blue-400"
+                                            : "hover:bg-zinc-50/50 dark:hover:bg-zinc-800/40"
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2.5">
+                                        <div
+                                            className={`w-2 h-2 rounded-full ${
+                                                isSelected
+                                                    ? "bg-blue-600 dark:bg-blue-400 ring-2 ring-blue-400/30"
+                                                    : "bg-zinc-300 dark:bg-zinc-700"
+                                            }`}
+                                        />
+                                        <div>
+                                            <p
+                                                className={`text-sm ${
+                                                    isSelected
+                                                        ? "font-semibold text-blue-900 dark:text-blue-100"
+                                                        : "font-medium text-zinc-900 dark:text-zinc-100"
+                                                }`}
+                                            >
+                                                {eng.engineer_name}
+                                            </p>
+                                        </div>
+                                        {isSelected && (
+                                            <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200 ml-1">
+                                                Active
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <span
+                                            className={`text-sm ${
+                                                isSelected
+                                                    ? "font-semibold text-blue-700 dark:text-blue-300"
+                                                    : "text-zinc-500 dark:text-zinc-400"
+                                            }`}
+                                        >
+                                            {eng.count} opportunities
+                                        </span>
+                                    </div>
+                                </button>
+                            );
+                        })}
                     </div>
                 </Card>
             )}
@@ -171,7 +249,7 @@ export default function DashboardPage() {
                                 Recent Opportunities
                             </h2>
                             <a
-                                href="/opportunities"
+                                href={activeEngineer ? `/opportunities?assigned_engineer=${encodeURIComponent(activeEngineer)}` : "/opportunities"}
                                 className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
                             >
                                 View All

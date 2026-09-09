@@ -19,6 +19,7 @@ export function useOpportunities(params?: {
     page_size?: number;
     search?: string;
     status?: string;
+    assigned_engineer?: string;
 }) {
     return useQuery({
         queryKey: ["opportunities", params],
