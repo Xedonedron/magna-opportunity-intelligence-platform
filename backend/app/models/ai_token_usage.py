@@ -10,6 +10,8 @@ from sqlalchemy import String, Integer, Numeric, Text, DateTime, ForeignKey, fun
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
+from app.models.user import User  # noqa: F401
+from app.models.opportunity import Opportunity  # noqa: F401
 
 
 class AITokenUsage(Base):
