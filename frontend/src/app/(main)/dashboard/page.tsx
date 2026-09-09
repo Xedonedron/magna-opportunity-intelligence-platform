@@ -110,15 +110,19 @@ export default function DashboardPage() {
                 </p>
             </div>
 
+            {/* Always-visible Pre-Sales & Pipeline Filter Controls */}
+            <DashboardFilters
+                onFilterChange={setFilters}
+                userRole={metrics.user_role}
+                currentFilters={filters}
+            />
+
             {activeEngineer && (
-                <div className="flex items-center justify-between bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-lg px-4 py-2.5 text-sm text-blue-900 dark:text-blue-200 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-lg px-4 py-2 text-sm text-blue-900 dark:text-blue-200 animate-in fade-in duration-200">
                     <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-zinc-600 dark:text-zinc-400">Filtering pipeline for Pre-Sales:</span>
-                        <span className="font-semibold text-blue-700 dark:text-blue-300 bg-white dark:bg-blue-900/60 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800">
+                        <span className="text-zinc-600 dark:text-zinc-400">Menampilkan analitik khusus Pre-Sales:</span>
+                        <span className="font-semibold text-blue-700 dark:text-blue-300 bg-white dark:bg-blue-900/60 px-2.5 py-0.5 rounded-md border border-blue-200 dark:border-blue-800">
                             {activeEngineer}
-                        </span>
-                        <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                            (Displaying metrics & opportunities for {activeEngineer})
                         </span>
                     </div>
                     <button
@@ -126,7 +130,7 @@ export default function DashboardPage() {
                         onClick={() => setFilters({ ...filters, engineer_name: undefined, engineer_id: undefined })}
                         className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium underline transition-colors"
                     >
-                        Show All Pre-Sales
+                        Tampilkan Semua Pre-Sales
                     </button>
                 </div>
             )}
@@ -138,12 +142,6 @@ export default function DashboardPage() {
                 needFollowUp={metrics.need_follow_up}
                 activeCount={metrics.active_count}
                 userRole={metrics.user_role}
-            />
-
-            <DashboardFilters
-                onFilterChange={setFilters}
-                userRole={metrics.user_role}
-                currentFilters={filters}
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
