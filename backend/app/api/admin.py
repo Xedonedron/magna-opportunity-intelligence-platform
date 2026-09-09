@@ -213,12 +213,12 @@ def update_master_data(
 
 # System & AI Settings Configuration
 class SystemSettingsPayload(BaseModel):
-    llm_provider: str  # "google" | "openai"
-    ai_model: str
-    temperature: float = 0.0
-    search_depth: str = "advanced"
-    max_results: int = 5
-    hide_financial_numbers: Optional[bool] = False
+    llm_provider: Optional[str] = None  # "google" | "openai"
+    ai_model: Optional[str] = None
+    temperature: Optional[float] = None
+    search_depth: Optional[str] = None
+    max_results: Optional[int] = None
+    hide_financial_numbers: Optional[bool] = None
     gemini_api_key: Optional[str] = None
     openai_api_key: Optional[str] = None
     openai_api_base: Optional[str] = None
@@ -241,21 +241,8 @@ def mask_key(key: Optional[str]) -> str:
     return f"{key[:4]}...{key[-4:]}"
 
 
-DEFAULT_GOOGLE_MODELS = [
-    "gemma-4-26b-a4b-it",
-    "gemini-2.5-flash",
-    "gemini-1.5-flash",
-    "gemini-1.5-pro",
-]
-
-DEFAULT_OPENAI_MODELS = [
-    "glm-4-plus",
-    "glm-4",
-    "deepseek-chat",
-    "deepseek-reasoner",
-    "gpt-4o",
-    "gpt-4o-mini",
-]
+DEFAULT_GOOGLE_MODELS: list[str] = []
+DEFAULT_OPENAI_MODELS: list[str] = []
 
 
 @router.get("/settings")
@@ -282,29 +269,29 @@ def get_system_settings_api(
         db.merge(SystemSetting(key="openai_api_key", value=settings.OPENAI_API_KEY))
         db.commit()
 
-    google_models = list(DEFAULT_GOOGLE_MODELS)
+    google_models = []
     if kv.get("google_models"):
         try:
-            google_models = json.loads(kv["google_models"])
+            parsed_g = json.loads(kv["google_models"])
+            if isinstance(parsed_g, list):
+                google_models = [m.strip() for m in parsed_g if isinstance(m, str) and m.strip()]
         except Exception:
-            google_models = list(DEFAULT_GOOGLE_MODELS)
+            google_models = []
 
-    openai_models = list(DEFAULT_OPENAI_MODELS)
+    openai_models = []
     if kv.get("openai_models"):
         try:
-            openai_models = json.loads(kv["openai_models"])
+            parsed_o = json.loads(kv["openai_models"])
+            if isinstance(parsed_o, list):
+                openai_models = [m.strip() for m in parsed_o if isinstance(m, str) and m.strip()]
         except Exception:
-            openai_models = list(DEFAULT_OPENAI_MODELS)
+            openai_models = []
 
-    current_model = kv.get("ai_model") or settings.OPENAI_MODEL
+    current_model = kv.get("ai_model") or ""
     current_provider = kv.get("llm_provider") or settings.LLM_PROVIDER
-    if current_provider == "google" and current_model and current_model not in google_models:
-        google_models.append(current_model)
-    elif current_provider == "openai" and current_model and current_model not in openai_models:
-        openai_models.append(current_model)
 
     return {
-        "llm_provider": kv.get("llm_provider") or settings.LLM_PROVIDER,
+        "llm_provider": current_provider,
         "ai_model": current_model,
         "temperature": float(kv.get("temperature", 0.0)),
         "search_depth": kv.get("search_depth", "advanced"),
@@ -330,13 +317,22 @@ def update_system_settings_api(
     import json
     from app.models.system_setting import SystemSetting
 
-    updates = {
-        "llm_provider": payload.llm_provider,
-        "ai_model": payload.ai_model,
-        "temperature": str(payload.temperature),
-        "search_depth": payload.search_depth,
-        "max_results": str(payload.max_results),
-    }
+    updates = {}
+
+    if payload.llm_provider is not None:
+        updates["llm_provider"] = payload.llm_provider
+
+    if payload.ai_model is not None:
+        updates["ai_model"] = payload.ai_model.strip()
+
+    if payload.temperature is not None:
+        updates["temperature"] = str(payload.temperature)
+
+    if payload.search_depth is not None:
+        updates["search_depth"] = payload.search_depth
+
+    if payload.max_results is not None:
+        updates["max_results"] = str(payload.max_results)
 
     if payload.hide_financial_numbers is not None:
         updates["hide_financial_numbers"] = "true" if payload.hide_financial_numbers else "false"
@@ -350,37 +346,15 @@ def update_system_settings_api(
     if payload.openai_api_base is not None:
         updates["openai_api_base"] = payload.openai_api_base.strip()
 
-    # Handle google_models persistence
+    # Handle google_models persistence without forcing auto-appends
     if payload.google_models is not None:
-        cleaned_g = [m.strip() for m in payload.google_models if m.strip()]
-        if payload.llm_provider == "google" and payload.ai_model and payload.ai_model.strip() not in cleaned_g:
-            cleaned_g.append(payload.ai_model.strip())
+        cleaned_g = [m.strip() for m in payload.google_models if isinstance(m, str) and m.strip()]
         updates["google_models"] = json.dumps(cleaned_g)
-    elif payload.llm_provider == "google" and payload.ai_model:
-        existing = db.query(SystemSetting).filter(SystemSetting.key == "google_models").first()
-        try:
-            g_list = json.loads(existing.value) if existing and existing.value else list(DEFAULT_GOOGLE_MODELS)
-        except Exception:
-            g_list = list(DEFAULT_GOOGLE_MODELS)
-        if payload.ai_model.strip() not in g_list:
-            g_list.append(payload.ai_model.strip())
-            updates["google_models"] = json.dumps(g_list)
 
-    # Handle openai_models persistence
+    # Handle openai_models persistence without forcing auto-appends
     if payload.openai_models is not None:
-        cleaned_o = [m.strip() for m in payload.openai_models if m.strip()]
-        if payload.llm_provider == "openai" and payload.ai_model and payload.ai_model.strip() not in cleaned_o:
-            cleaned_o.append(payload.ai_model.strip())
+        cleaned_o = [m.strip() for m in payload.openai_models if isinstance(m, str) and m.strip()]
         updates["openai_models"] = json.dumps(cleaned_o)
-    elif payload.llm_provider == "openai" and payload.ai_model:
-        existing = db.query(SystemSetting).filter(SystemSetting.key == "openai_models").first()
-        try:
-            o_list = json.loads(existing.value) if existing and existing.value else list(DEFAULT_OPENAI_MODELS)
-        except Exception:
-            o_list = list(DEFAULT_OPENAI_MODELS)
-        if payload.ai_model.strip() not in o_list:
-            o_list.append(payload.ai_model.strip())
-            updates["openai_models"] = json.dumps(o_list)
 
     for k, v in updates.items():
         row = db.query(SystemSetting).filter(SystemSetting.key == k).first()
