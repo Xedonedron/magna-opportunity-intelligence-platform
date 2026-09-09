@@ -62,7 +62,7 @@ export default function SettingsPage() {
     const [maskedOpenaiKey, setMaskedOpenaiKey] = useState("");
     const [savingAiSettings, setSavingAiSettings] = useState(false);
     const [testingConnection, setTestingConnection] = useState(false);
-    const [testResult, setTestResult] = useState<{ status: string; message: string } | null>(null);
+    const [testResult, setTestResult] = useState<{ status: string; message: string; warning?: string } | null>(null);
 
     // Dynamic AI Models State (No hardcoded default models)
     const [googleModels, setGoogleModels] = useState<string[]>([]);
