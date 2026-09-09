@@ -258,6 +258,8 @@
 | id | UUID | Primary key |
 | opportunity_id | UUID | FK to Opportunities |
 | version | Integer | Report version number (default 1) |
+| title | String(255) | Brief version title / label (e.g. `v2 - Penambahan konteks core switch`) |
+| focus_notes | Text | Specific focus instructions provided during version regeneration |
 | status | String(50) | `pending`, `running`, `completed`, `failed` |
 | executive_summary | Text | Executive summary |
 | company_overview | JSONB | Company overview |
