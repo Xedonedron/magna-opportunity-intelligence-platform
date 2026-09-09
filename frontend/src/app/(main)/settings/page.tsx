@@ -33,6 +33,7 @@ import { api } from "@/lib/api";
 import { fetchMasterData, updateMasterData, getMasterIndustries, getMasterPresales } from "@/lib/master-data";
 import { UserActivityDrawer, formatRelativeTime } from "@/components/domains/admin/UserActivityDrawer";
 import { AITokenMonitoringTab } from "@/components/domains/admin/AITokenMonitoringTab";
+import { SolutionsCatalogTab } from "@/components/domains/admin/SolutionsCatalogTab";
 
 const tabs = [
     { id: "profile", label: "User Profile", icon: User },
@@ -1058,79 +1059,7 @@ export default function SettingsPage() {
 
                 {/* 3. Catalog Tab */}
                 {activeTab === "catalog" && (
-                    <div className="space-y-6">
-                        <div className="bg-zinc-50 border border-zinc-200 p-4 rounded-lg flex items-start gap-3">
-                            <Info className="w-5 h-5 text-zinc-600 shrink-0 mt-0.5" />
-                            <div className="text-xs text-zinc-600 leading-relaxed">
-                                <p className="font-semibold text-zinc-800">Katalog Solusi Pre-Sales Smartnet Magna Global</p>
-                                <p className="mt-0.5">
-                                    Daftar solusi berikut adalah referensi resmi yang digunakan oleh AI KYC Pipeline saat merumuskan rekomendasi produk pada modul KYC Report. Penyuntingan katalog ini dapat dilakukan oleh Administrator di sistem utama.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Google Cloud */}
-                            <Card className="p-5 bg-white border border-zinc-200 hover:border-zinc-300 hover:shadow-sm transition-all space-y-3">
-                                <div className="flex items-center gap-2 text-zinc-900 font-semibold">
-                                    <Cloud className="w-5 h-5 text-blue-600" /> Cloud & Infrastructure
-                                </div>
-                                <p className="text-xs text-zinc-500 leading-relaxed">
-                                    Solusi migrasi, tata kelola, dan modernisasi sistem berbasis Google Cloud (GCP, GKE, Serverless, Compute Engine, Cloud Run).
-                                </p>
-                                <div className="flex flex-wrap gap-1.5 pt-1">
-                                    <span className="text-[10px] bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full font-medium">GCP Migration</span>
-                                    <span className="text-[10px] bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full font-medium">GKE</span>
-                                    <span className="text-[10px] bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full font-medium">Kubernetes</span>
-                                </div>
-                            </Card>
-
-                            {/* Data & AI */}
-                            <Card className="p-5 bg-white border border-zinc-200 hover:border-zinc-300 hover:shadow-sm transition-all space-y-3">
-                                <div className="flex items-center gap-2 text-zinc-900 font-semibold">
-                                    <Database className="w-5 h-5 text-violet-600" /> Data Analytics & AI
-                                </div>
-                                <p className="text-xs text-zinc-500 leading-relaxed">
-                                    Arsitektur data modern (BigQuery Data Warehouse), visualisasi visual (Looker Studio, Power BI), dan pemodelan prediktif (Vertex AI).
-                                </p>
-                                <div className="flex flex-wrap gap-1.5 pt-1">
-                                    <span className="text-[10px] bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full font-medium">BigQuery</span>
-                                    <span className="text-[10px] bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full font-medium">Looker</span>
-                                    <span className="text-[10px] bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full font-medium">Vertex AI</span>
-                                </div>
-                            </Card>
-
-                            {/* Cybersecurity */}
-                            <Card className="p-5 bg-white border border-zinc-200 hover:border-zinc-300 hover:shadow-sm transition-all space-y-3">
-                                <div className="flex items-center gap-2 text-zinc-900 font-semibold">
-                                    <Shield className="w-5 h-5 text-emerald-600" /> Cybersecurity Suite
-                                </div>
-                                <p className="text-xs text-zinc-500 leading-relaxed">
-                                    Sistem keamanan korporat menyeluruh (Zero Trust, SIEM/SOC, Penetration Testing, Audit Kepatuhan, Keamanan Awan).
-                                </p>
-                                <div className="flex flex-wrap gap-1.5 pt-1">
-                                    <span className="text-[10px] bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full font-medium">Zero Trust</span>
-                                    <span className="text-[10px] bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full font-medium">SIEM</span>
-                                    <span className="text-[10px] bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full font-medium">Pen Testing</span>
-                                </div>
-                            </Card>
-
-                            {/* Network */}
-                            <Card className="p-5 bg-white border border-zinc-200 hover:border-zinc-300 hover:shadow-sm transition-all space-y-3">
-                                <div className="flex items-center gap-2 text-zinc-900 font-semibold">
-                                    <Network className="w-5 h-5 text-amber-600" /> Network Solutions
-                                </div>
-                                <p className="text-xs text-zinc-500 leading-relaxed">
-                                    Infrastruktur jaringan korporat terdistribusi yang aman dan andal (SD-WAN integration, Enterprise Networking, SASE).
-                                </p>
-                                <div className="flex flex-wrap gap-1.5 pt-1">
-                                    <span className="text-[10px] bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full font-medium">SD-WAN</span>
-                                    <span className="text-[10px] bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full font-medium">SASE</span>
-                                    <span className="text-[10px] bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full font-medium">Routing</span>
-                                </div>
-                            </Card>
-                        </div>
-                    </div>
+                    <SolutionsCatalogTab />
                 )}
 
                 {/* Master Data Management Tab (Superadmin Only) */}
