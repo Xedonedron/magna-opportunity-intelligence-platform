@@ -97,6 +97,18 @@ def parse_args():
         help="Delay seconds between model tests (default: 3.0)",
     )
     parser.add_argument(
+        "--from-top",
+        action="store_true",
+        default=False,
+        help="Pick opportunities from the top (earliest created) instead of the bottom",
+    )
+    parser.add_argument(
+        "--reverse",
+        action="store_true",
+        default=False,
+        help="Reverse order of selected bottom opportunities (e.g. from bottom-most [26] upwards)",
+    )
+    parser.add_argument(
         "--output-dir",
         type=str,
         default=None,
@@ -355,13 +367,28 @@ def main():
             query = db.query(Opportunity).order_by(Opportunity.created_at.asc())
             if not args.include_closed:
                 query = query.filter(~Opportunity.status.in_(["Won", "Lost"]))
-            oppties = query.limit(limit).all()
+            all_oppties = query.all()
 
-            if not oppties:
+            if not all_oppties:
                 print("[-] No opportunities available for testing.", file=sys.stderr)
                 return
 
-            print(f"[*] Found {len(oppties)} opportunities in database.")
+            print(f"[*] Found {len(all_oppties)} total active opportunities in database.")
+
+            if args.from_top:
+                oppties = all_oppties[:limit]
+                print(f"[*] Selected top {len(oppties)} opportunities (from start: [1/{len(all_oppties)}] to [{len(oppties)}/{len(all_oppties)}]).")
+            else:
+                # Default: Ambil dari paling bawah (bottom N opportunities)
+                oppties = all_oppties[-limit:]
+                start_idx = len(all_oppties) - len(oppties) + 1
+                end_idx = len(all_oppties)
+                print(f"[*] Selected bottom {len(oppties)} opportunities (from end: [{start_idx}/{end_idx}] to [{end_idx}/{end_idx}]).")
+
+            if args.reverse:
+                oppties = list(reversed(oppties))
+                print(f"[*] Reversed order: Starting from bottom-most [{len(all_oppties)}/{len(all_oppties)}] upwards.")
+
             for idx, m in enumerate(models):
                 opp = oppties[idx % len(oppties)]
                 test_pairs.append((m, opp))
