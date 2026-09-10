@@ -18,6 +18,9 @@ class ThinkingValidationRequest(BaseModel):
     check_links: bool = Field(True, description="Whether to verify all links present in information")
 
 
+AIValidationRequest = ThinkingValidationRequest
+
+
 class ValidationIssue(BaseModel):
     category: str = Field(..., description="Category of issue: hallucination, inconsistency, broken_link, logical_fallacy")
     description: str = Field(..., description="Detailed description of the discrepancy or error")

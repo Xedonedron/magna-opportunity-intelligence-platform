@@ -217,9 +217,10 @@ export default function SettingsPage() {
                 industries: masterIndustries,
                 presales: masterPresales,
             });
-            showToast("Master Data (Pre-Sales & Industry) berhasil disimpan!");
-        } catch (e) {
-            showToast("Gagal menyimpan Master Data.");
+            showToast("Master Data (Pre-Sales & Industry) berhasil disimpan permanen ke server!");
+        } catch (e: any) {
+            const msg = e?.response?.data?.detail || "Gagal menyimpan Master Data ke server.";
+            showToast(msg);
         } finally {
             setSavingMasterData(false);
         }
@@ -1140,7 +1141,7 @@ export default function SettingsPage() {
 
                             <div className="flex items-center gap-2 max-w-sm pt-2">
                                 <Input
-                                    placeholder="Tambah nama presales baru (e.g. Devi, Bayu, Gerry)"
+                                    placeholder="Tambah nama presales baru (e.g. Farhan, Atthur, Rian)"
                                     value={newPresales}
                                     onChange={(e) => setNewPresales(e.target.value)}
                                     onKeyDown={(e) => {

@@ -259,6 +259,10 @@ MASTER_DATA = {
         "Devi",
         "Bayu",
         "Gerry",
+        "Farhan",
+        "Atthur",
+        "Rian",
+        "Syamsul",
     ],
     "document_labels": [
         "MoM",
@@ -277,9 +281,76 @@ class MasterDataPayload(BaseModel):
 
 
 @router.get("/master-data")
-def get_master_data(_user: User = Depends(get_current_user)):
-    """Retrieve master data options (Industries, Pre-Sales & Document Labels)."""
-    return MASTER_DATA
+def get_master_data(
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user)
+):
+    """Retrieve master data options (Industries, Pre-Sales & Document Labels) from PostgreSQL."""
+    import json
+    from app.models.system_setting import SystemSetting
+
+    settings_rows = db.query(SystemSetting).filter(
+        SystemSetting.key.in_([
+            "master_data_presales",
+            "master_data_industries",
+            "master_data_document_labels",
+        ])
+    ).all()
+    kv = {s.key: s.value for s in settings_rows if s.value is not None}
+
+    result = {
+        "industries": list(MASTER_DATA["industries"]),
+        "presales": list(MASTER_DATA["presales"]),
+        "document_labels": list(MASTER_DATA["document_labels"]),
+    }
+
+    needs_seed = False
+
+    if "master_data_presales" in kv:
+        try:
+            parsed = json.loads(kv["master_data_presales"])
+            if isinstance(parsed, list) and parsed:
+                result["presales"] = [p.strip() for p in parsed if isinstance(p, str) and p.strip()]
+        except Exception:
+            pass
+    else:
+        db.merge(SystemSetting(key="master_data_presales", value=json.dumps(result["presales"]), description="Predefined Pre-Sales team member names"))
+        needs_seed = True
+
+    if "master_data_industries" in kv:
+        try:
+            parsed = json.loads(kv["master_data_industries"])
+            if isinstance(parsed, list) and parsed:
+                result["industries"] = [i.strip() for i in parsed if isinstance(i, str) and i.strip()]
+        except Exception:
+            pass
+    else:
+        db.merge(SystemSetting(key="master_data_industries", value=json.dumps(result["industries"]), description="Predefined industry sectors"))
+        needs_seed = True
+
+    if "master_data_document_labels" in kv:
+        try:
+            parsed = json.loads(kv["master_data_document_labels"])
+            if isinstance(parsed, list) and parsed:
+                result["document_labels"] = [l.strip() for l in parsed if isinstance(l, str) and l.strip()]
+        except Exception:
+            pass
+    else:
+        db.merge(SystemSetting(key="master_data_document_labels", value=json.dumps(result["document_labels"]), description="Predefined opportunity document labels"))
+        needs_seed = True
+
+    if needs_seed:
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+
+    # Update in-memory cache
+    MASTER_DATA["industries"] = result["industries"]
+    MASTER_DATA["presales"] = result["presales"]
+    MASTER_DATA["document_labels"] = result["document_labels"]
+
+    return result
 
 
 @router.post("/master-data")
@@ -288,11 +359,37 @@ def update_master_data(
     db: Session = Depends(get_db),
     _admin: User = Depends(require_superadmin)
 ):
-    """Update master data options (Super Admin only)."""
-    MASTER_DATA["industries"] = [i.strip() for i in payload.industries if i.strip()]
-    MASTER_DATA["presales"] = [p.strip() for p in payload.presales if p.strip()]
+    """Update master data options and persist permanently to PostgreSQL system_settings."""
+    import json
+    from app.models.system_setting import SystemSetting
+
+    cleaned_industries = [i.strip() for i in payload.industries if i.strip()]
+    cleaned_presales = [p.strip() for p in payload.presales if p.strip()]
+    cleaned_doc_labels = (
+        [l.strip() for l in payload.document_labels if l.strip()]
+        if payload.document_labels is not None
+        else MASTER_DATA.get("document_labels", [])
+    )
+
+    def _upsert_setting(key: str, value: str, description: str):
+        row = db.query(SystemSetting).filter(SystemSetting.key == key).first()
+        if not row:
+            row = SystemSetting(key=key, value=value, description=description)
+            db.add(row)
+        else:
+            row.value = value
+            row.description = description
+
+    _upsert_setting("master_data_industries", json.dumps(cleaned_industries), "Predefined industry sectors")
+    _upsert_setting("master_data_presales", json.dumps(cleaned_presales), "Predefined Pre-Sales team member names")
     if payload.document_labels is not None:
-        MASTER_DATA["document_labels"] = [l.strip() for l in payload.document_labels if l.strip()]
+        _upsert_setting("master_data_document_labels", json.dumps(cleaned_doc_labels), "Predefined opportunity document labels")
+
+    # Update in-memory cache
+    MASTER_DATA["industries"] = cleaned_industries
+    MASTER_DATA["presales"] = cleaned_presales
+    if payload.document_labels is not None:
+        MASTER_DATA["document_labels"] = cleaned_doc_labels
 
     try:
         AuditService(db).log(
@@ -301,13 +398,18 @@ def update_master_data(
             entity_id=_admin.id,
             user_id=_admin.id,
             extra_data={
-                "industries_count": len(MASTER_DATA["industries"]),
-                "presales_count": len(MASTER_DATA["presales"]),
+                "industries_count": len(cleaned_industries),
+                "presales_count": len(cleaned_presales),
+                "presales_sample": cleaned_presales[:7],
             },
         )
         db.commit()
-    except Exception:
-        pass
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Gagal menyimpan master data ke database: {str(e)}"
+        )
 
     return {"status": "success", "master_data": MASTER_DATA}
 

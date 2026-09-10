@@ -99,10 +99,10 @@ def require_capability(capability: str):
 
 
 def require_superadmin(current_user: User = Depends(get_current_user)):
-    """Dependency helper to require superadmin role."""
-    if current_user.role != "superadmin":
+    """Dependency helper to require superadmin or admin role."""
+    if current_user.role not in ("superadmin", "admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Hanya superadmin yang memiliki akses ke halaman operasional ini.",
+            detail="Hanya administrator yang memiliki akses ke halaman operasional ini.",
         )
     return current_user

@@ -41,6 +41,10 @@ export const DEFAULT_PRESALES = [
     "Devi",
     "Bayu",
     "Gerry",
+    "Farhan",
+    "Atthur",
+    "Rian",
+    "Syamsul",
 ];
 
 export const DEFAULT_DOCUMENT_LABELS = [
@@ -127,14 +131,19 @@ export async function fetchMasterData(): Promise<{ industries: string[]; presale
 export async function updateMasterData(payload: {
     industries: string[];
     presales: string[];
+    document_labels?: string[];
 }): Promise<void> {
     if (typeof window !== "undefined") {
         localStorage.setItem("moip_master_industries", JSON.stringify(payload.industries));
         localStorage.setItem("moip_master_presales", JSON.stringify(payload.presales));
+        if (payload.document_labels) {
+            localStorage.setItem("moip_master_document_labels", JSON.stringify(payload.document_labels));
+        }
     }
     try {
         await api.post("/api/admin/master-data", payload);
     } catch (e) {
-        console.warn("Backend update failed, saved to local storage", e);
+        console.error("Backend update failed, saved only to local storage", e);
+        throw e;
     }
 }
