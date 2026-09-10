@@ -38,35 +38,57 @@ Laporan KYC dipecah menjadi beberapa node generasi modular yang dapat berjalan s
 graph TD
     Start[Input Opportunity Data & Research Context] --> Branch
     
-    subgraph Parallel Stage 1: Intelijen Korporat & Pasar
-        Branch --> Node1[Section A: Executive Summary & Company Profile]
-        Branch --> Node2[Section B: Industry Analysis & Competitor Benchmarking]
+### 1.3 Arsitektur *Sectional Generation Pipeline* & Granular Auto-Retry
+
+#### A. Urutan Alur Generasi: *Executive Summary* sebagai Sintesis Terakhir
+Dalam praktik konsultan bisnis enterprise, **Executive Summary selalu ditulis paling akhir**. Executive Summary yang bernilai tinggi bukan sekadar ringkasan profil perusahaan, melainkan sintesis strategis yang merangkum:
+1. Konteks bisnis dan posisi industri klien.
+2. Akar permasalahan teknis (*pain points*) yang mendesak.
+3. Rekap portofolio solusi SMG yang diajukan beserta justifikasi arsitekturnya.
+4. Urgensi bisnis dan target pencapaian pada meeting presales mendatang.
+
+Oleh karena itu, alur eksekusi generasi dibagi menjadi 3 fase bertingkat:
+
+```mermaid
+graph TD
+    Start[Input Opportunity Data & Research Context] --> Phase1
+    
+    subgraph Phase 1: Analisis Fondasi (Paralel)
+        Phase1[Dispatcher Stage 1] --> SecA[1. Profil & Model Bisnis Perusahaan]
+        Phase1 --> SecB[2. Lanskap Industri & Analisis Kompetitor]
+        Phase1 --> SecC[3. Customer Needs & Operational Pain Points]
     end
 
-    subgraph Parallel Stage 2: Kebutuhan Teknis & Solusi
-        Branch --> Node3[Section C: Customer Needs & Operational Pain Points]
-        Branch --> Node4[Section D: Presales Architecture & Solution Use Cases]
+    subgraph Phase 2: Solusi Teknis & Eksekusi Presales (Paralel)
+        SecC --> Phase2[Dispatcher Stage 2]
+        Phase2 --> SecD[4. Arsitektur Solusi SMG & Presales Use Cases]
+        Phase2 --> SecE[5. Meeting Objectives, Discovery Questions & Checklist]
     end
 
-    subgraph Final Stage: Strategi Presales
-        Node3 & Node4 --> Node5[Section E: Meeting Strategy, Discovery Questions & Checklist]
+    subgraph Phase 3: Sintesis Akhir (Executive Synthesis)
+        SecA & SecB & SecD & SecE --> SecFinal[6. Executive Summary Terintegrasi]
     end
 
-    Node1 & Node2 & Node5 --> Aggregator[Aggregator / Synthesizer Node]
-    Aggregator --> Output[Complete Structured KYC Report JSON]
+    SecFinal --> AtomicCheck{Semua Section Berhasil?}
+    AtomicCheck -- Ya --> FinalJSON[Commit ke Database & Tampilkan di Frontend]
+    AtomicCheck -- Gagal di Bagian Tertentu --> SectionRetry[Auto-Retry Hanya Section yang Gagal]
+    SectionRetry --> AtomicCheck
 ```
 
-#### Modul-Modul yang Dipisahkan:
-1. **Module 1: Corporate Intelligence** (`ExecutiveSummaryModel`, `CompanyOverviewModel`)
-   - Fokus: Positioning perusahaan, struktur holding, skala bisnis, dan konteks operasional.
-2. **Module 2: Industry & Competition** (`IndustryAnalysisModel`, `List[CompetitorModel]`)
-   - Fokus: Regulasi industri (OJK, BI, BSSN), lanskap pasar lokal, dan analisis diferensiasi kompetitor.
-3. **Module 3: Technical Pain Points & Core Needs** (`CustomerNeedSummaryModel`, `List[PainPointModel]`)
-   - Fokus: Mendiagnosis akar masalah arsitektur existing klien (misal: query join lambat, bottleneck batch ETL H+2).
-4. **Module 4: Solutions & Presales Architecture** (`List[PresalesUseCaseModel]`)
-   - Fokus: Grounding mendalam dengan portofolio SMG (Greenplum, Dell, Nutanix, BigQuery) dan mitigasi kendala teknis.
-5. **Module 5: Presales Execution Strategy** (`MeetingStrategyModel`)
-   - Fokus: Pertanyaan discovery discovery tajam per stakeholder dan checklist teknis persiapan POC/meeting.
+#### B. Granular Fault-Tolerance & Section-Level Auto-Retry
+- **Masalah pada Pipeline Monolitik**: Jika satu prompt 12-section mengalami timeout atau *rate limit* di detik ke-40, seluruh proses gagal dan harus diulang dari awal (buang token dan waktu).
+- **Mekanisme Granular Auto-Retry per Section**:
+  1. Setiap section dijalankan sebagai unit task independen dengan mekanisme *retry handler* (misal: 3x *exponential backoff*).
+  2. Jika 5 section berhasil dan 1 section (misal: *Analisis Kompetitor*) mengalami kegagalan/timeout, sistem **HANYA me-retry section yang gagal tersebut**. Hasil 5 section lainnya tetap dipertahankan dalam memori/state.
+  3. **Atomic UI Presentation Guarantee**: Meskipun proses di backend bersifat terpotong-potong per section, frontend **HANYA menampilkan laporan ketika 100% seluruh section telah berhasil diproses secara lengkap**. User tidak akan pernah melihat laporan yang setengah jadi atau *corrupted*.
+
+#### C. Pembagian Modul Section:
+1. **Module 1: Company Profile & Business Footprint** (`CompanyOverviewModel`, `BusinessModel`, `LocationModel`)
+2. **Module 2: Industry Dynamics & Competitors** (`IndustryAnalysisModel`, `List[CompetitorModel]`)
+3. **Module 3: Customer Pain Points & Latent Needs** (`CustomerNeedSummaryModel`, `List[PainPointModel]`)
+4. **Module 4: Technical Architecture & Presales Use Cases** (`List[PresalesUseCaseModel]` - Grounding Hybrid RAG Solusi SMG)
+5. **Module 5: Presales Engagement Strategy** (`MeetingStrategyModel` - Pertanyaan discovery per stakeholder & checklist)
+6. **Module 6: Ultimate Executive Summary** (`ExecutiveSummaryModel` - Mengonsolidasikan Module 1 s/d 5 menjadi narasi C-Level yang kohesif)
 
 ---
 
