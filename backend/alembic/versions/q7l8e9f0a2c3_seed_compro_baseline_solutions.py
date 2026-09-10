@@ -162,60 +162,50 @@ def upgrade() -> None:
     tables = inspector.get_table_names()
 
     if 'master_solutions' in tables:
-        master_solutions_table = sa.table(
-            'master_solutions',
-            sa.Column('id', postgresql.UUID(as_uuid=True)),
-            sa.Column('slug', sa.String(length=255)),
-            sa.Column('title', sa.String(length=255)),
-            sa.Column('pillar', sa.String(length=100)),
-            sa.Column('tier', sa.Integer()),
-            sa.Column('primary_products', postgresql.JSONB()),
-            sa.Column('all_products', postgresql.JSONB()),
-            sa.Column('target_industries', postgresql.JSONB()),
-            sa.Column('key_subheadings', postgresql.JSONB()),
-            sa.Column('pain_points', postgresql.JSONB()),
-            sa.Column('business_impact', sa.Text()),
-            sa.Column('summary_snippet', sa.Text()),
-            sa.Column('source_url', sa.String(length=500)),
-            sa.Column('is_active', sa.Boolean()),
-        )
-
         for s in COMPRO_SOLUTIONS:
-            existing = conn.execute(
-                sa.text("SELECT id FROM master_solutions WHERE slug = :slug"),
-                {"slug": s["slug"]}
-            ).fetchone()
-
-            if not existing:
-                conn.execute(
-                    sa.text("""
-                        INSERT INTO master_solutions (
-                            id, slug, title, pillar, tier, primary_products, all_products,
-                            target_industries, key_subheadings, pain_points, business_impact,
-                            summary_snippet, source_url, is_active, created_at, updated_at
-                        ) VALUES (
-                            :id, :slug, :title, :pillar, :tier, CAST(:primary_products AS jsonb), CAST(:all_products AS jsonb),
-                            CAST(:target_industries AS jsonb), CAST(:key_subheadings AS jsonb), CAST(:pain_points AS jsonb), :business_impact,
-                            :summary_snippet, :source_url, :is_active, NOW(), NOW()
-                        )
-                    """),
-                    {
-                        "id": str(uuid.uuid4()),
-                        "slug": s["slug"],
-                        "title": s["title"],
-                        "pillar": s["pillar"],
-                        "tier": s["tier"],
-                        "primary_products": json.dumps(s["primary_products"]),
-                        "all_products": json.dumps(s["all_products"]),
-                        "target_industries": json.dumps(s["target_industries"]),
-                        "key_subheadings": json.dumps(s["key_subheadings"]),
-                        "pain_points": json.dumps(s["pain_points"]),
-                        "business_impact": s["business_impact"],
-                        "summary_snippet": s["summary_snippet"],
-                        "source_url": s["source_url"],
-                        "is_active": True,
-                    }
-                )
+            conn.execute(
+                sa.text("""
+                    INSERT INTO master_solutions (
+                        id, slug, title, pillar, tier, primary_products, all_products,
+                        target_industries, key_subheadings, pain_points, business_impact,
+                        summary_snippet, source_url, is_active, created_at, updated_at
+                    ) VALUES (
+                        :id, :slug, :title, :pillar, :tier, CAST(:primary_products AS jsonb), CAST(:all_products AS jsonb),
+                        CAST(:target_industries AS jsonb), CAST(:key_subheadings AS jsonb), CAST(:pain_points AS jsonb), :business_impact,
+                        :summary_snippet, :source_url, :is_active, NOW(), NOW()
+                    )
+                    ON CONFLICT (slug) DO UPDATE SET
+                        title = EXCLUDED.title,
+                        pillar = EXCLUDED.pillar,
+                        tier = EXCLUDED.tier,
+                        primary_products = EXCLUDED.primary_products,
+                        all_products = EXCLUDED.all_products,
+                        target_industries = EXCLUDED.target_industries,
+                        key_subheadings = EXCLUDED.key_subheadings,
+                        pain_points = EXCLUDED.pain_points,
+                        business_impact = EXCLUDED.business_impact,
+                        summary_snippet = EXCLUDED.summary_snippet,
+                        source_url = EXCLUDED.source_url,
+                        is_active = EXCLUDED.is_active,
+                        updated_at = NOW()
+                """),
+                {
+                    "id": str(uuid.uuid4()),
+                    "slug": s["slug"],
+                    "title": s["title"],
+                    "pillar": s["pillar"],
+                    "tier": s["tier"],
+                    "primary_products": json.dumps(s["primary_products"]),
+                    "all_products": json.dumps(s["all_products"]),
+                    "target_industries": json.dumps(s["target_industries"]),
+                    "key_subheadings": json.dumps(s["key_subheadings"]),
+                    "pain_points": json.dumps(s["pain_points"]),
+                    "business_impact": s["business_impact"],
+                    "summary_snippet": s["summary_snippet"],
+                    "source_url": s["source_url"],
+                    "is_active": True,
+                }
+            )
 
 
 def downgrade() -> None:
