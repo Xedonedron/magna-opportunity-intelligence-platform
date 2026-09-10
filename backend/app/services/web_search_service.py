@@ -133,7 +133,7 @@ class WebSearchService:
                 query_parts.append(" ".join(list(set(found_keywords))[:3]))
 
             if len(query_parts) <= 1:
-                query_parts.append("cloud AI solutions")
+                query_parts.append("enterprise IT solutions")
 
             query = " ".join(query_parts) + " use cases solutions enterprise"
             logger.info(f"[Search Service] Searching industry use cases with query: {query}")

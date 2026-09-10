@@ -113,7 +113,7 @@ export function formatKYCToMarkdown(report: KYCReport, companyName?: string): st
             if (uc.how_it_works) lines.push(`- **Cara Kerja Solusi**: ${uc.how_it_works}`);
             if (uc.business_impact) lines.push(`- **Dampak Bisnis**: ${uc.business_impact}`);
             if (uc.google_products && uc.google_products.length > 0) {
-                lines.push(`- **Produk Google Cloud**: ${uc.google_products.join(", ")}`);
+                lines.push(`- **Produk & Teknologi Terkait**: ${uc.google_products.join(", ")}`);
             }
             if (uc.smartnet_solutions && uc.smartnet_solutions.length > 0) {
                 lines.push(`- **Solusi Smartnet Magna**: ${uc.smartnet_solutions.join(", ")}`);

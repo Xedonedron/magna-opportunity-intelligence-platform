@@ -221,7 +221,7 @@ export const id: Translations = {
                     problemSolved: "Masalah yang Diselesaikan",
                     howItWorks: "Cara Kerja Solusi",
                     businessImpact: "Dampak Bisnis",
-                    googleProducts: "Produk Google Cloud",
+                    googleProducts: "Produk & Teknologi Terkait (Vendor / Stack)",
                     smartnetSolutions: "Solusi Smartnet Magna",
                     impact: "Dampak",
                     noUseCases: "Belum ada use case yang dibuat.",

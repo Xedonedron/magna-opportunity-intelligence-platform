@@ -16,6 +16,7 @@ import {
     Layers,
     Building2,
     Cpu,
+    Server,
     Loader2,
     X,
 } from "lucide-react";
@@ -44,11 +45,23 @@ const PILLAR_CONFIG: Record<string, { label: string; icon: React.ComponentType<{
         color: "text-emerald-600 dark:text-emerald-400",
         badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900",
     },
+    "Security Management Solution": {
+        label: "Security Mgmt",
+        icon: Shield,
+        color: "text-emerald-600 dark:text-emerald-400",
+        badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900",
+    },
+    "IT Infrastructure Solution": {
+        label: "IT Infrastructure",
+        icon: Server,
+        color: "text-amber-600 dark:text-amber-400",
+        badgeBg: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900",
+    },
     "Network & Enterprise Workplace": {
         label: "Network & Workplace",
         icon: Network,
-        color: "text-amber-600 dark:text-amber-400",
-        badgeBg: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900",
+        color: "text-cyan-600 dark:text-cyan-400",
+        badgeBg: "bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950/40 dark:text-cyan-300 dark:border-cyan-900",
     },
 };
 

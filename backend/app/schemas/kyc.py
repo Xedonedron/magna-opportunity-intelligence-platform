@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from datetime import datetime
 from uuid import UUID
 from typing import Optional, Any
@@ -19,8 +19,19 @@ class UseCaseItem(BaseModel):
     how_it_works: str
     business_impact: str
     google_products: list[str] = []
+    vendor_products: Optional[list[str]] = None
     smartnet_solutions: list[str] = []
     impact_level: str = "High"  # High, Medium, Low
+
+    @model_validator(mode="before")
+    @classmethod
+    def sync_vendor_products(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if not data.get("google_products") and data.get("vendor_products"):
+                data["google_products"] = data["vendor_products"]
+            elif data.get("google_products") and not data.get("vendor_products"):
+                data["vendor_products"] = data["google_products"]
+        return data
 
 
 class KYCReportResponse(BaseModel):

@@ -221,7 +221,7 @@ export const en = {
                     problemSolved: "Problem Solved",
                     howItWorks: "How It Works",
                     businessImpact: "Business Impact",
-                    googleProducts: "Google Products",
+                    googleProducts: "Products & Technologies (Vendor / Stack)",
                     smartnetSolutions: "Smartnet Solutions",
                     impact: "Impact",
                     noUseCases: "No use cases generated yet.",

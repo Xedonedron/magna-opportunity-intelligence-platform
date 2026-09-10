@@ -128,7 +128,7 @@ class GoogleGroundingService:
         """
         query_prompt = (
             f"Search Google for real-world enterprise use cases and technological solutions in the '{industry}' industry "
-            f"specifically addressing customer needs: '{customer_needs}' and target product: '{product or 'Cloud & AI'}'. "
+            f"specifically addressing customer needs: '{customer_needs}' and target product: '{product or 'Enterprise IT Solution'}'. "
             f"Provide specific case studies and references."
         )
         res = self.search_and_ground(query_prompt, db=db)

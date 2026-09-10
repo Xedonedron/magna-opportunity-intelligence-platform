@@ -301,14 +301,23 @@ async def analysis_node(state: KYCState, config: Optional[RunnableConfig] = None
 INSTRUKSI BAHASA:
 Seluruh teks narasi, ringkasan eksekutif, deskripsi, analisis industri, analisis kompetitor, use cases, tujuan meeting, rekomendasi pertanyaan, dan checklist persiapan WAJIB ditulis dalam Bahasa Indonesia yang formal, profesional, dan komprehensif (standar B2B enterprise presales). Tetap pertahankan istilah teknis standar industri IT/Cloud dalam bahasa Inggris yang umum digunakan (misal: "Cloud Migration", "Data Warehouse", "BigQuery", "Predictive AI", "Dashboard", "Workload", "Zero Trust", "API").
 
-CRITICAL ALIGNMENT & ISOLATION INSTRUCTION:
+CRITICAL ALIGNMENT, VENDOR MATCHING & ISOLATION INSTRUCTION:
 1. Seluruh laporan yang dihasilkan (termasuk executive_summary, customer_need_summary, use_cases, recommended_questions, potential_pain_points, dan meeting_objectives) HARUS selaras secara ketat dengan "Kebutuhan Klien", "Target Solusi / Produk", dan "PANDUAN FOKUS KHUSUS VERSI INI" di atas.
-2. DILARANG KERAS mencampuradukkan atau memasukkan topik solusi di luar kebutuhan aktif saat ini (misal: jika kebutuhan klien saat ini berfokus pada Server, Compute Infrastructure, atau Core Switch, JANGAN memasukkan use case WiFi, Endpoint Antivirus, atau Anti-Fraud kecuali diminta secara eksplisit).
-3. Pilihlah solusi Smartnet Magna dan Google Cloud yang benar-benar relevan dengan arsitektur kebutuhan saat ini. Jika katalog solusi tidak memiliki produk yang persis sama, gunakan solusi infrastruktur komputasi/arsitektur yang relevan secara logis tanpa memaksakan produk katalog yang tidak berhubungan.
+2. DILARANG KERAS mencampuradukkan atau memasukkan topik solusi di luar kebutuhan aktif saat ini (misal: jika kebutuhan klien saat ini berfokus pada Server On-Premise, Compute Infrastructure, atau Core Switch, JANGAN memasukkan use case WiFi nirkabel, Endpoint Antivirus, atau Anti-Fraud kecuali diminta secara eksplisit).
+3. PANDUAN PEMILIHAN VENDOR & ARSITEKTUR BERDASARKAN COMPANY PROFILE (COMPRO) SMG:
+   PT Smartnet Magna Global (member of CTI Group) memiliki portofolio solusi komprehensif lintas 4 Pilar (Cloud, Data Analytics & AI, IT Infrastructure on-premise/hybrid, Security Management). Pilihlah vendor dan arsitektur yang SESUAI REALITAS TEKNIS kebutuhan klien:
+   - On-Premise Server / Storage / HCI / Virtualisasi Fisik: Gunakan Dell Technologies, HPE, Nutanix, VMware vSphere / Broadcom, Cisco UCS, Sangfor. DILARANG memaksakan Google Cloud / GCP untuk pengadaan server on-premise fisik.
+   - Enterprise Wired & Wireless LAN / WiFi: Gunakan Cisco Catalyst, Aruba (HPE Networking), Huawei, Extreme Networks (standar Wi-Fi 6, WPA3, High-Density Switching, SolarWinds/PRTG). DILARANG membawa Google SecOps atau layanan cloud murni untuk implementasi WiFi/LAN fisik.
+   - Cybersecurity Multi-Layer: Petakan solusi keamanan ke layer yang tepat:
+     * Privileged Access / Admin Rights: BeyondTrust PAM (Password Safe) & BeyondTrust EPM (Least Privilege).
+     * Perimeter & Firewall: Fortinet FortiGate (NSE 4 Certified), Palo Alto Networks, Check Point (NGFW).
+     * Endpoint Security / Antivirus: CrowdStrike Falcon, Trend Micro, Symantec by Broadcom, Sophos, SentinelOne (NGAV / EDR).
+     * SIEM / SOAR / Cloud Security: Google Security Operations (SecOps / Chronicle), Google Threat Intelligence / Mandiant, Security Command Center (SCC).
+   - Cloud Native & Modern Data/AI Stack: Gunakan Google Cloud (BigQuery, Vertex AI, GKE, Looker), AWS, Greenplum, Snowflake, Confluent jika dan hanya jika kebutuhan klien melibatkan cloud, migrasi ke cloud, data warehouse modern, atau AI.
 
 CRITICAL LINK INSTRUCTION: Untuk array "references", Anda HANYA BOLEH menyertakan URL nyata yang secara eksplisit tersedia pada bagian Data Riset di atas. DILARANG membuat, merekayasa, atau menebak URL.
 
-PANDUAN SOLUSI & USE CASE: Saat menyusun use_cases, rujuk bagian Referensi Riset dan Katalog Solusi Smartnet Magna Global di atas. Masukkan solusi nyata dari katalog Smartnet Magna pada field "smartnet_solutions" dan produk Google Cloud pada field "google_products". Nilai "impact_level" harus salah satu dari: "High", "Medium", atau "Low". Wajib urutkan daftar "use_cases" secara berurutan berdasarkan nilai "impact_level": dimulai dari "High", lalu "Medium", kemudian "Low".
+PANDUAN SOLUSI & USE CASE: Saat menyusun use_cases, rujuk bagian Referensi Riset dan Katalog Solusi Smartnet Magna Global di atas. Masukkan solusi spesifik dari katalog/portfolio Smartnet Magna pada field "smartnet_solutions" dan produk/teknologi vendor utama yang relevan (misal: Dell PowerEdge, Nutanix HCI, Cisco Catalyst, Aruba Wi-Fi 6, BeyondTrust PAM, Fortinet FortiGate, BigQuery, Vertex AI, dsb.) pada field "google_products". Nilai "impact_level" harus salah satu dari: "High", "Medium", atau "Low". Wajib urutkan daftar "use_cases" secara berurutan berdasarkan nilai "impact_level": dimulai dari "High", lalu "Medium", kemudian "Low".
 
 Format output HARUS berupa JSON valid dengan struktur kunci (keys) persis berikut:
 {{
@@ -342,7 +351,7 @@ Format output HARUS berupa JSON valid dengan struktur kunci (keys) persis beriku
             "problem_solved": "Masalah spesifik yang diselesaikan oleh solusi ini",
             "how_it_works": "Bagaimana arsitektur dan alur kerja solusi ini diimplementasikan",
             "business_impact": "Dampak bisnis terukur, efisiensi biaya, atau percepatan time-to-market",
-            "google_products": ["Produk Google Cloud yang relevan (misal: BigQuery, Vertex AI, GKE)"],
+            "google_products": ["Produk vendor / teknologi utama yang relevan (misal: Dell PowerEdge, Nutanix, Cisco Catalyst, Aruba, BeyondTrust PAM, Fortinet FortiGate, BigQuery, Vertex AI)"],
             "smartnet_solutions": ["Solusi spesifik dari katalog Smartnet Magna"],
             "impact_level": "High"
         }},
@@ -352,7 +361,7 @@ Format output HARUS berupa JSON valid dengan struktur kunci (keys) persis beriku
             "problem_solved": "Masalah spesifik yang diselesaikan oleh solusi ini",
             "how_it_works": "Bagaimana arsitektur dan alur kerja solusi ini diimplementasikan",
             "business_impact": "Dampak bisnis terukur atau optimasi operasional",
-            "google_products": ["Produk Google Cloud yang relevan"],
+            "google_products": ["Produk vendor / teknologi utama yang relevan"],
             "smartnet_solutions": ["Solusi spesifik dari katalog Smartnet Magna"],
             "impact_level": "Medium"
         }},
@@ -362,7 +371,7 @@ Format output HARUS berupa JSON valid dengan struktur kunci (keys) persis beriku
             "problem_solved": "Masalah spesifik yang diselesaikan oleh solusi ini",
             "how_it_works": "Bagaimana arsitektur dan alur kerja solusi ini diimplementasikan",
             "business_impact": "Penyempurnaan tata kelola atau efisiensi pendukung",
-            "google_products": ["Produk Google Cloud yang relevan"],
+            "google_products": ["Produk vendor / teknologi utama yang relevan"],
             "smartnet_solutions": ["Solusi spesifik dari katalog Smartnet Magna"],
             "impact_level": "Low"
         }}

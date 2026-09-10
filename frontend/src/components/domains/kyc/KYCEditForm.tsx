@@ -477,12 +477,12 @@ function UseCasesInput({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                             <label className="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">
-                                Google Products
+                                Produk & Vendor Terkait (Tech Stack)
                             </label>
                             <TagInput
                                 values={uc.google_products}
                                 onChange={(v) => updateUseCase(index, "google_products", v)}
-                                placeholder="Add product..."
+                                placeholder="Add product / vendor (e.g. Cisco, BeyondTrust, Dell, BigQuery)..."
                             />
                         </div>
                         <div>

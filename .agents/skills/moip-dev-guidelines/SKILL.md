@@ -115,20 +115,35 @@ KEY="value"        # quote tidak konsisten
 
 ---
 
-## 🔄 Workflow: Deploy ke VM
+## 🚀 Kebijakan Validasi & Auto-Push (Validation-to-Push Policy)
+
+1. **Validasi Sebelum Push**:
+   - Backend: Jalankan `python -m py_compile ...` pada file python yang diubah/dibuat.
+   - Frontend: Jalankan TypeScript typecheck (`tsc --noEmit`).
+   - Logic / scoring tests dipastikan lulus tanpa error.
+2. **Langsung Push ke Remote (`origin main`)**:
+   - Begitu validasi selesai dan sukses, AI assistant langsung melakukan commit dan `git push origin main`.
+   - Tidak perlu menunda atau meminta persetujuan terpisah untuk push yang sudah disetujui dalam rencana kerja.
+3. **Pemberitahuan Perintah Deploy VPS**:
+   - Prosedur deploy VPS (`git pull origin main`, `docker compose build...`, `alembic upgrade head`) sudah baku dan terdokumentasi di bagian bawah.
+   - **JANGAN** menyebutkan perintah deploy VPS ini secara repetitif di setiap akhir balasan chat agar tidak memenuhi respons, kecuali diminta secara spesifik oleh user.
+
+---
+
+## 🔄 Workflow: Deploy ke VM (Referensi Permanen)
 
 ### Setelah Pull dari Repo
 
-Jika ada perubahan di folder `backend/alembic/versions/`:
+Jika ada perubahan di folder `backend/alembic/versions/` atau logic backend:
 
 ```bash
 # 1. Pull code terbaru
 git pull origin main
 
-# 2. Rebuild container (WAJIB jika ada migration baru)
-docker compose build --no-cache backend && docker compose up -d backend
+# 2. Rebuild backend & celery (WAJIB jika ada perubahan logic / migration baru)
+docker compose build --no-cache backend celery && docker compose up -d backend celery
 
-# 3. Jalankan migration
+# 3. Jalankan migration database
 docker compose exec -T backend alembic upgrade head
 
 # 4. Verifikasi

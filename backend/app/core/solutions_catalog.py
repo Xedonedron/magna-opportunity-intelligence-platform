@@ -237,6 +237,138 @@ BUILTIN_CORE_SOLUTIONS: List[Dict[str, Any]] = [
         ],
         "business_impact": "Akses aman ke aplikasi internal dari mana saja tanpa VPN, perlindungan menyeluruh dari credential theft, dan audit akses real-time.",
         "summary_snippet": "Konsultasi dan implementasi arsitektur Zero Trust model Google BeyondCorp Enterprise untuk melindungi akses ke aplikasi korporat berbasis identitas pengguna dan kondisi perangkat."
+    },
+    {
+        "id": "enterprise-wired-wireless-lan-healthcare-enterprise",
+        "title": "Enterprise Wired & Wireless LAN (High-Density Wi-Fi 6 & WPA3)",
+        "pillar": "IT Infrastructure Solution",
+        "tier": 1,
+        "primary_products": ["Cisco", "Aruba", "HPE Networking", "Huawei"],
+        "all_products": ["Cisco", "Aruba", "HPE Networking", "Huawei", "Extreme Networks", "Wi-Fi 6", "WPA3", "Core Switch", "Access Point"],
+        "target_industries": ["Healthcare & Hospitals", "Enterprise General", "Education & Campus"],
+        "source_url": "https://magnaglobal.id/solutions/it-infrastructure-wired-wireless-lan",
+        "key_subheadings": [
+            "Perancangan High-Density Wireless LAN untuk Lingkungan Kritis (EMR & IoT Medis)",
+            "Implementasi Standar Keamanan WPA3 & Segmentasi Jaringan Pasien/Staf",
+            "Penyediaan Akses Cepat Wi-Fi 6 untuk Mobilitas Tenaga Medis & Perangkat Klinis",
+            "Manajemen Terpusat & Monitoring Performa Jaringan (SolarWinds / PRTG)"
+        ],
+        "pain_points": [
+            "Koneksi nirkabel sering putus (drop) dan lambat saat menangani ratusan perangkat medis dan IoT secara bersamaan.",
+            "Risiko kebocoran data rekam medis pasien akibat standar enkripsi nirkabel lama yang belum memenuhi standar kepatuhan regulasi."
+        ],
+        "business_impact": "Konektivitas nirkabel rumah sakit dan enterprise yang stabil dan aman 99.99%, latency rendah untuk akses EMR real-time, dan kepatuhan standar keamanan data medis.",
+        "summary_snippet": "Penyediaan infrastruktur jaringan wired dan wireless LAN enterprise berkecepatan tinggi dengan teknologi Wi-Fi 6 dan enkripsi WPA3 oleh PT Smartnet Magna Global untuk mendukung kelancaran operasional klinis dan korporat."
+    },
+    {
+        "id": "pam-privileged-access-management-banking-assets",
+        "title": "Privileged Access Management (PAM) untuk Proteksi Aset Kritis Perbankan",
+        "pillar": "Security Management Solution",
+        "tier": 1,
+        "primary_products": ["BeyondTrust", "PAM", "Password Safe"],
+        "all_products": ["BeyondTrust", "PAM", "Password Safe", "Privileged Remote Access", "Session Monitoring"],
+        "target_industries": ["FSI / Banking & Multifinance", "Enterprise General"],
+        "source_url": "https://magnaglobal.id/solutions/privileged-access-management-pam",
+        "key_subheadings": [
+            "Sentralisasi Penyimpanan & Rotasi Otomatis Kredensial Administrator",
+            "Monitoring & Recording Sesi Akses Privileged Real-Time",
+            "Pemberian Akses Berbasis Just-In-Time (JIT) Tanpa Membocorkan Password",
+            "Audit Trail Lengkap dan Bukti Kepatuhan Regulasi Finansial (OJK / BI / ISO 27001)"
+        ],
+        "pain_points": [
+            "Banyaknya akun privileged admin bersama (shared credentials) tanpa pencatatan aktivitas yang jelas sehingga rentan insider threat.",
+            "Rotasi password server dan database perbankan yang masih dilakukan manual dan tidak konsisten."
+        ],
+        "business_impact": "Kontrol penuh terhadap seluruh akses akun berhak istimewa, eliminasi kebocoran kredensial root/admin, dan 100% kepatuhan audit regulasi perbankan.",
+        "summary_snippet": "Implementasi solusi BeyondTrust Password Safe & Privileged Access Management oleh SMG untuk mengamankan kredensial penting perbankan, merekam sesi server secara real-time, dan mencegah penyalahgunaan hak akses internal."
+    },
+    {
+        "id": "epm-endpoint-privilege-management-corporate",
+        "title": "Endpoint Privilege Management (EPM) & Penghapusan Local Admin Korporasi",
+        "pillar": "Security Management Solution",
+        "tier": 1,
+        "primary_products": ["BeyondTrust", "EPM", "Endpoint Privilege Management"],
+        "all_products": ["BeyondTrust", "EPM", "Least Privilege", "Application Control", "Zero Trust"],
+        "target_industries": ["Enterprise General", "FSI / Banking & Multifinance", "Manufacture Industry"],
+        "source_url": "https://magnaglobal.id/solutions/endpoint-privilege-management-epm",
+        "key_subheadings": [
+            "Pencabutan Hak Local Administrator pada Seluruh Laptop & Workstation Karyawan",
+            "Penerapan Just-In-Time Privilege Elevation untuk Tugas Khusus Terverifikasi",
+            "Smart Application Control untuk Menjalankan Software Legal dan Memblokir Script Berbahaya",
+            "Minimalkan Gangguan Produktivitas Kerja Harian Karyawan"
+        ],
+        "pain_points": [
+            "Karyawan memegang hak local administrator sehingga bebas menginstal software bajakan atau terinfeksi malware ransomware.",
+            "Tim IT kewalahan jika mencabut hak admin secara kaku karena dapat menghambat alur kerja karyawan."
+        ],
+        "business_impact": "Mereduksi risiko infeksi malware dan ransomware endpoint hingga 90% melalui prinsip least privilege tanpa mengorbankan produktivitas kerja pengguna.",
+        "summary_snippet": "Implementasi BeyondTrust EPM oleh PT Smartnet Magna Global untuk menghapus hak local admin pada komputer karyawan dengan memberikan izin eskalasi hak akses otomatis berbasis konteks dan aplikasi terpercaya."
+    },
+    {
+        "id": "server-storage-virtualization-hci",
+        "title": "Modern On-Premise Server, Storage Virtualization & Hyper-converged Infrastructure (HCI)",
+        "pillar": "IT Infrastructure Solution",
+        "tier": 1,
+        "primary_products": ["Nutanix", "Dell Technologies", "HPE", "VMware", "Sangfor"],
+        "all_products": ["Nutanix", "Dell Technologies", "HPE", "VMware vSphere", "Broadcom", "Sangfor", "NetApp", "xFusion", "HCI"],
+        "target_industries": ["Enterprise General", "FSI / Banking & Multifinance", "Manufacture Industry", "Healthcare & Hospitals"],
+        "source_url": "https://magnaglobal.id/solutions/it-infrastructure-server-storage-hci",
+        "key_subheadings": [
+            "Konsolidasi Server Fisik dan Storage Menggunakan Arsitektur Hyper-converged (HCI)",
+            "Peningkatan Efisiensi Data Center On-Premise dengan Komputasi Kinerja Tinggi",
+            "Virtualisasi Tingkat Enterprise dengan VMware vSphere / Nutanix AHV",
+            "Solusi Backup, Replikasi Data, dan Disaster Recovery Terintegrasi"
+        ],
+        "pain_points": [
+            "Server on-premise lama (legacy hardware) yang mendekati masa End-of-Life (EOL), boros listrik/ruang rack, dan berbiaya maintenance tinggi.",
+            "Kompleksitas pengelolaan silo komputasi, SAN storage, dan jaringan yang terpisah-pisah."
+        ],
+        "business_impact": "Pengurangan jejak footprint data center hingga 60%, efisiensi CAPEX/OPEX hingga 45%, serta ketersediaan sistem (high availability) 99.99% tanpa downtime.",
+        "summary_snippet": "Penyediaan, integrasi, dan pemeliharaan server fisik enterprise, storage all-flash, dan arsitektur HCI (Nutanix / Dell / HPE / VMware / Sangfor) oleh PT Smartnet Magna Global untuk infrastruktur data center on-premise yang tangguh."
+    },
+    {
+        "id": "next-generation-firewall-network-security",
+        "title": "Next-Generation Firewall (NGFW) & Perimeter Threat Prevention",
+        "pillar": "Security Management Solution",
+        "tier": 1,
+        "primary_products": ["Fortinet", "FortiGate", "Palo Alto Networks", "Check Point"],
+        "all_products": ["Fortinet", "FortiGate", "Palo Alto Networks", "Check Point", "NGFW", "IPS", "VPN", "Network Access Control"],
+        "target_industries": ["Enterprise General", "FSI / Banking & Multifinance", "Retail & Manufacture"],
+        "source_url": "https://magnaglobal.id/solutions/security-next-generation-firewall",
+        "key_subheadings": [
+            "Inspeksi Mendalam Lalu Lintas Jaringan (Deep Packet Inspection & SSL/TLS Decryption)",
+            "Pencegahan Intrusi Berkelanjutan (Intrusion Prevention System - IPS)",
+            "Segmentasi Jaringan Internal Berbasis Keamanan Tingkat Lanjut",
+            "Sentralisasi Manajemen Firewall Multi-Site & Secure SD-WAN"
+        ],
+        "pain_points": [
+            "Firewall konvensional lama tidak mampu membaca payload terenkripsi dan mendeteksi ancaman modern tingkat aplikasi (Layer 7).",
+            "Beban operasional mengelola puluhan firewall di cabang yang terdistribusi secara manual."
+        ],
+        "business_impact": "Perlindungan perimeter 100% terhadap lalu lintas berbahaya, isolasi otomatis ancaman lateral di jaringan lokal, dan visibilitas total aktivitas bandwidth aplikasi.",
+        "summary_snippet": "Implementasi NGFW enterprise menggunakan Fortinet FortiGate dan Palo Alto Networks oleh tim bersertifikasi SMG (NSE 4 / Certified Professional) untuk memperkuat perimeter dan segmentasi jaringan korporat."
+    },
+    {
+        "id": "etl-monitoring-managed-services",
+        "title": "24/7 Managed Services & Data Pipeline (ETL) Monitoring",
+        "pillar": "Data Analytics & AI",
+        "tier": 1,
+        "primary_products": ["Greenplum Database", "Talend", "Cloudera"],
+        "all_products": ["Greenplum", "Talend", "Cloudera", "Managed Services", "ETL Monitoring", "Data Pipeline"],
+        "target_industries": ["FSI / Banking & Multifinance", "Enterprise General"],
+        "source_url": "https://magnaglobal.id/solutions/managed-services-etl-monitoring",
+        "key_subheadings": [
+            "Monitoring Proaktif 24/7 untuk Ratusan Pipeline ETL Misi-Kritis",
+            "Otomasi Diagnostik Error & Penanganan Insiden Pipeline Data",
+            "Kepatuhan SLA Pemrosesan Data Harian Perbankan (99.9%)",
+            "Pengurangan MTTR (Mean Time to Resolution) di Bawah 25 Menit"
+        ],
+        "pain_points": [
+            "Keterbatasan staf IT internal dalam memantau ratusan pipeline ETL harian yang sering gagal tanpa pemberitahuan dini.",
+            "Keterlambatan data batch harian yang mengganggu pelaporan regulasi perbankan dan keputusan bisnis."
+        ],
+        "business_impact": "85% penurunan kegagalan kritis pipeline data, pemenuhan SLA 99.9%, dan menghemat hingga 400 jam kerja tim IT internal per bulan.",
+        "summary_snippet": "Layanan 24/7 Managed Services dari PT Smartnet Magna Global untuk pemantauan dan troubleshooting proaktif pipeline ETL enterprise berbasis Greenplum, Talend, dan Cloudera di industri perbankan."
     }
 ]
 
@@ -336,53 +468,71 @@ class SolutionsCatalog:
             self._load_catalog()
 
         scored_cards = []
-        search_blob = f"{industry or ''} {product or ''} {customer_needs or ''}".lower()
+        raw_search = f"{industry or ''} {product or ''} {customer_needs or ''}".lower()
+        norm_search = raw_search.replace("-", " ")
+        norm_search_compact = raw_search.replace("-", "")
 
         for card in self._cards:
             score = 0
-            has_relevant_match = False
+            has_topical_match = False
 
-            # Industry match
-            for ind in card.target_industries:
-                if ind.lower() != "enterprise general" and any(k in search_blob for k in ind.lower().split() if len(k) > 2):
-                    score += 5
-                    has_relevant_match = True
-
-            # Product match
+            # 1. Primary products match (highest weight)
             for prod in card.primary_products:
-                if prod.lower() in search_blob:
-                    score += 6
-                    has_relevant_match = True
+                p_lower = prod.lower()
+                p_norm = p_lower.replace("-", " ")
+                p_compact = p_lower.replace("-", "")
+                if (p_lower in raw_search or p_norm in norm_search or p_compact in norm_search_compact):
+                    score += 8
+                    has_topical_match = True
+
+            # 2. All products match
             for prod in card.all_products:
-                if prod.lower() in search_blob:
-                    score += 2
-                    has_relevant_match = True
+                p_lower = prod.lower()
+                p_norm = p_lower.replace("-", " ")
+                p_compact = p_lower.replace("-", "")
+                if (p_lower in raw_search or p_norm in norm_search or p_compact in norm_search_compact):
+                    score += 3
+                    has_topical_match = True
 
-            # Pillar and title match
-            if any(term in search_blob for term in card.pillar.lower().split() if len(term) > 3):
-                score += 3
-                has_relevant_match = True
+            # 3. Card Title keyword matching
+            clean_title = card.title.lower().replace("&", " ").replace("/", " ").replace("(", " ").replace(")", " ")
+            for word in clean_title.split():
+                if len(word) > 3:
+                    w_norm = word.replace("-", " ")
+                    w_compact = word.replace("-", "")
+                    if (word in raw_search or w_norm in norm_search or w_compact in norm_search_compact or (len(word) > 5 and word[:5] in raw_search)):
+                        score += 6
+                        has_topical_match = True
+                        break
 
-            # Subheading & keyword matching
+            # 4. Subheadings & technical keywords across all 4 pillars
             infra_keywords = [
-                "server", "compute", "virtualization", "vmware", "gke", "cloud run",
-                "nutanix", "switch", "network", "firewall", "wifi", "storage", "backup",
+                "server", "compute", "virtualiz", "virtualis", "vmware", "gke", "cloud run",
+                "nutanix", "switch", "network", "firewall", "wifi", "wi fi", "storage", "backup",
                 "disaster recovery", "migrasi", "migration", "database", "dataflow",
                 "bigquery", "predictive", "fraud", "streaming", "ransomware", "antivirus",
-                "zero trust", "scc", "pam", "iam", "endpoint", "infrastructure"
+                "zero trust", "scc", "pam", "epm", "iam", "endpoint", "infrastructure",
+                "cisco", "aruba", "fortinet", "beyondtrust", "dell", "hpe", "huawei",
+                "palo alto", "greenplum", "talend", "cloudera", "sangfor", "solarwinds",
+                "prtg", "wireless", "lan", "ngfw", "edr", "broadcom", "wpa3", "local admin"
             ]
             for sub in card.key_subheadings:
+                sub_lower = sub.lower()
                 for kw in infra_keywords:
-                    if kw in sub.lower() and kw in search_blob:
+                    if kw in sub_lower and (kw in raw_search or kw in norm_search or kw.replace(" ", "") in norm_search_compact):
                         score += 3
-                        has_relevant_match = True
+                        has_topical_match = True
 
-            # Only apply Tier 1 priority boost if the solution actually has some relevance to the query!
-            # This prevents irrelevant cards (e.g. NGAV / Anti-Fraud) from dominating unrelated deals (e.g. Server / Switch).
-            if card.tier == 1 and has_relevant_match:
+            # 5. Industry match (Only provide vertical bonus if there is a topical product/need match)
+            for ind in card.target_industries:
+                if ind.lower() != "enterprise general" and any(k in raw_search for k in ind.lower().split() if len(k) > 3):
+                    score += 4
+
+            # 6. Tier 1 boost
+            if card.tier == 1 and has_topical_match:
                 score += 2
 
-            if has_relevant_match and score > 0:
+            if has_topical_match and score > 0:
                 scored_cards.append((score, card))
 
         # If no curated solutions matched, do not inject unrelated solutions into the prompt
@@ -400,7 +550,7 @@ class SolutionsCatalog:
         ]
 
         for i, card in enumerate(selected, 1):
-            tech_str = ", ".join(card.primary_products) if card.primary_products else "Google Cloud Platform"
+            tech_str = ", ".join(card.primary_products) if card.primary_products else "Solusi Enterprise PT Smartnet Magna Global"
             industries_str = ", ".join(card.target_industries)
             output_lines.append(f"### {i}. {card.title} ({card.pillar})")
             output_lines.append(f"- **Teknologi Utama**: {tech_str}")
@@ -418,25 +568,31 @@ class SolutionsCatalog:
         return "\n".join(output_lines)
 
     def get_summary_overview(self) -> str:
-        """Overview of 5 SMG solution pillars for conversational chat system prompt."""
-        return """Katalog Solusi Pre-Sales PT Smartnet Magna Global:
-1. Google Cloud Infrastructure & Modernization:
-   - Migrasi Workload (VMware Exit Strategy, VM to GCP, Database Migration)
-   - Kubernetes & Containers (Google Kubernetes Engine / GKE Autopilot, Cloud Run)
-   - Multi-cloud & Enterprise Storage (Anthos, High-Performance All-Flash Storage, Disaster Recovery)
-2. Data Analytics & AI Enterprise:
-   - Modern Data Warehouse (Google BigQuery, BigQuery Studio)
-   - Real-Time Streaming & Pipeline (Google Cloud Dataflow, Pub/Sub)
-   - Machine Learning & Generative AI (Vertex AI, Gemini in BigQuery, Predictive Analytics / Anti-Fraud)
-   - Business Intelligence (Looker Studio, Enterprise Dashboard)
-3. Cybersecurity Suite:
-   - Postur Keamanan Cloud & Multicloud (Security Command Center / SCC Enterprise)
-   - Threat Intelligence Berbasis AI (Google Threat Intelligence / Mandiant)
-   - Proteksi Endpoint & Akses (Next-Gen Antivirus / NGAV, EDR, Endpoint Privilege Management / EPM, PAM)
-   - Keamanan Data & Identitas (Zero Trust / BeyondCorp Enterprise, Cloud DLP, NDR)
-4. Modern Workplace & Collaboration:
-   - Google Workspace Enterprise Deployment & Change Management
-5. Managed Services & Enterprise IT Consulting."""
+        """Overview of 4 SMG solution pillars from Company Profile for conversational chat & KYC system prompt."""
+        return """Katalog Portofolio Solusi Resmi PT Smartnet Magna Global (SMG) - Member of CTI Group:
+1. Cloud Solution (Cloud Native, Modernization & Hybrid):
+   - Google Cloud Platform (Premier Partner: Compute Engine, GKE, Cloud Run, Cloud SQL, Anthos, Vertex AI)
+   - Google Workspace (Enterprise Collaboration & Change Management)
+   - Google Maps Platform & Amazon Web Services (AWS)
+   - 6 Pilar Cloud: Infrastructure Modernization, Application Modernization, Data & DB, AI, Security & Identity, Productivity
+2. Data Analytics & AI Solution:
+   - Modern Data Warehouse & Processing: Google BigQuery, Greenplum Database, Snowflake, Confluent
+   - Real-Time Streaming & Pipeline: Google Cloud Dataflow, Datastream, Pub/Sub, Talend, Cloudera
+   - Enterprise AI & Machine Learning: Vertex AI, Gemini AI, Predictive Analytics / Anti-Fraud, BigQuery ML
+   - BI & Visualization: Looker Studio Pro, Enterprise Executive Dashboard
+   - Managed Services: 24/7 Data Pipeline & ETL Monitoring (SLA 99.9%, MTTR < 25 menit)
+3. IT Infrastructure Solution (On-Premises, Hybrid & Edge):
+   - Server & Storage Virtualization: Dell Technologies, HPE, Cisco, NetApp, xFusion, Zimbra, Red Hat, Microsoft
+   - Hyper-converged Infrastructure (HCI): Nutanix, VMware vSphere / Broadcom Cloud Foundation, Sangfor, Dell EMC
+   - Enterprise Wired & Wireless LAN: Cisco Catalyst, Aruba (HPE Networking), Huawei, Extreme Networks (Wi-Fi 6, WPA3, High-Density Switching)
+   - Network Performance Monitoring: SolarWinds, Paessler PRTG
+   - Backup & Disaster Recovery: Zettagrid, Dell, Veeam
+4. Security Management Solution (Multi-Vendor Defense in Depth):
+   - Privileged Access & Identity: BeyondTrust PAM (Password Safe), BeyondTrust EPM (Least Privilege/Application Control), RSA, Identity Management
+   - Network Security & Perimeter: Fortinet FortiGate (NSE 4 Certified), Palo Alto Networks, Check Point, WatchGuard (NGFW, NAC)
+   - Endpoint Security: Next-Gen Antivirus (NGAV), EDR (CrowdStrike Falcon, Trend Micro, Symantec by Broadcom, Sophos, Kaspersky, McAfee, SentinelOne)
+   - Cloud Security & SecOps: Google Security Operations (SIEM & SOAR / Chronicle), Google Threat Intelligence / Mandiant, Security Command Center (SCC) Enterprise
+5. SMG Professional Services: Implementation, Preventive & Corrective Maintenance, Cloud Managed Services (including 24/7 ETL Monitoring), Cloud Migration Services."""
 
 
 # Singleton instance

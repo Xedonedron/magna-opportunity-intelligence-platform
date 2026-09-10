@@ -20,7 +20,7 @@
 - **Database**: PostgreSQL 16 + SQLAlchemy ORM (UUID Primary Keys) + Alembic migrations
 - **Task Queue**: Celery + Redis for background jobs
 - **AI Orchestration**: LangGraph + LangChain
-- **RAG Strategy**: Prompt Context Injection — built-in Smartnet Magna solutions catalog hardcoded in KYC pipeline prompt + Google Search Grounding for live web citations (no vector DB in production)
+- **RAG Strategy**: Prompt Context Injection — built-in Smartnet Magna solutions catalog (Multi-Vendor: Cloud, Data & AI, IT Infrastructure On-Premise/Hybrid, Security Management based on Company Profile baseline) hardcoded in KYC pipeline prompt + Google Search Grounding for live web citations (no vector DB in production)
 
 ### External Services
 - **LLM (Dual Provider via Unified Factory `app/core/llm.py`)**:
@@ -393,18 +393,32 @@
 ## Backend Services
 
 ### Solutions Catalog Engine (`backend/app/core/solutions_catalog.py`)
-- **Centralized Grounding Provider**: Single Source of Truth for PT Smartnet Magna Global official product offerings, architectures, and case studies.
+- **Centralized Grounding Provider**: Single Source of Truth for PT Smartnet Magna Global official product offerings, architectures, and case studies grounded directly in SMG Company Profile (Compro).
+- **Core Corporate Identity**: PT Smartnet Magna Global is a member of **CTI Group**. While SMG holds **Google Cloud Premier Partner** status, SMG operates as a full-spectrum Enterprise Systems Integrator spanning **4 Key Solution Pillars**:
+  1. **Cloud Solution**: Infrastructure Modernization, Application Modernization, Data Analytics & Databases, AI, Security & Identity, Productivity & Collaboration (Google Cloud Premier Partner, AWS, Google Workspace, Google Maps Platform).
+  2. **Data Analytics & AI Solution**: Data Ingestion, Storage & Processing, BI & Visualization, AI & ML, Governance, Data Warehouse (Google BigQuery, Vertex AI, Looker Studio, Greenplum Database, Snowflake, Confluent, 24/7 Managed ETL Services).
+  3. **IT Infrastructure Solution (On-Premises, Hybrid, & Edge)**: Server & Storage Virtualization, Wired & Wireless LAN (Enterprise Wi-Fi 6, WPA3, High-Density), Hyper-converged Infrastructure (HCI), Network Performance Monitoring, Backup & Disaster Recovery (Cisco, VMware/Broadcom, HPE/Aruba, Dell Technologies, Nutanix, Huawei, Sangfor, NetApp, SolarWinds, Paessler PRTG, Zimbra, xFusion, Zettagrid).
+  4. **Security Management Solution (Multi-Vendor Defense in Depth)**: Next-Gen Firewall (NGFW), EDR & NGAV, SIEM & SOAR, Privileged Access Management (PAM), Endpoint Privilege Management (EPM), DLP, Identity Management, Observability, NAC (BeyondTrust, Fortinet, Symantec by Broadcom, Trend Micro, Check Point, Kaspersky, CrowdStrike, Sophos, McAfee, SentinelOne, Ivanti, WatchGuard, Palo Alto Networks, RSA, Google Cloud Security/SecOps/Mandiant).
+  5. **Services Portfolio**: Implementation, Preventive & Corrective Maintenance, Cloud Managed Services (including 24/7 ETL Monitoring), Cloud Migration Services.
+- **Presales Reasoning & Architectural Guardrails**:
+  - **On-Premise Infrastructure / Servers / Storage**: Propose Dell Technologies, HPE, Nutanix, VMware vSphere, Cisco, Sangfor. **NEVER** force Google Cloud or GCP services for purely on-premise hardware/compute requests unless cloud migration/hybrid is explicitly requested.
+  - **Campus & Enterprise Networking / WiFi**: Propose Cisco, Aruba/HPE Networking, Huawei, Extreme Networks with Wi-Fi 6 / WPA3 standards. **NEVER** substitute local wireless/wired LAN deployment with Google SecOps or cloud-only tools.
+  - **Cybersecurity Multi-Layer Mapping**: Match the specific security discipline:
+    * PAM & EPM $\rightarrow$ BeyondTrust (Password Safe, Privilege Management).
+    * NGFW & Perimeter $\rightarrow$ Fortinet FortiGate, Palo Alto Networks.
+    * EDR / NGAV $\rightarrow$ CrowdStrike, Trend Micro, Symantec, Sophos.
+    * SIEM / SOAR / Cloud Security $\rightarrow$ Google SecOps / Chronicle, Mandiant, Security Command Center.
 - **Database & Memory Caching**: Dynamically loads active solutions from PostgreSQL `master_solutions` table via `SessionLocal` with fallback to `backend/app/data/curated_solutions.json` and in-memory presets. Auto-reloads in memory on admin mutations (`POST /api/admin/solutions`, `PUT`, `DELETE`).
 - **Dynamic Relevance Matching Algorithm (`get_solutions_for_prompt`)**:
   - Scores solution cards dynamically against the target Opportunity context without context dilution or token bloating:
     * **Industry Match (+5 points)**: Matches client industry against `target_industries`.
-    * **Product Match (+6 points)**: Matches presales product against `primary_products` / `all_products`.
-    * **Needs Keyword Match (+4 points)**: Matches terms in `customer_needs` (e.g., "fraud", "ransomware", "migration") against titles and `pain_points`.
+    * **Product Match (+6 points)**: Matches presales product against `primary_products` / `all_products` across all partner vendors.
+    * **Needs Keyword Match (+4 points)**: Matches terms in `customer_needs` (e.g., "server", "wifi", "switch", "firewall", "pam", "fraud", "ransomware", "migration") against titles and `pain_points`.
     * **Tier 1 Priority Boost (+2 points)**: Prioritizes concrete product/case study solutions over conceptual frameworks.
   - Returns top `limit` cards (default 3–4, ~800–1,200 tokens) with structured subheadings, products, pain points, quantifiable business impact, and reference URLs.
 - **Dual Pipeline Integration**:
-  1. **KYC Pipeline** (`analysis_node` in `kyc_pipeline.py`): Replaces static 5-bullet placeholder with contextualized solution cards so recommended use cases cite actual GCP stacks and SMG architectures.
-  2. **Opportunity AI Chat** (`opportunities.py`): Injects official pillar summary overview + top matching solution cards directly into the Pre-Sales Assistant system prompt.
+  1. **KYC Pipeline** (`analysis_node` in `kyc_pipeline.py`): Injects contextualized solution cards so recommended use cases cite actual SMG architectures and relevant vendor stacks (both on-premise and cloud).
+  2. **Opportunity AI Chat** (`opportunities.py`): Injects official 4-pillar summary overview + top matching solution cards directly into the Pre-Sales Assistant system prompt.
 
 ### KYC Pipeline Service (`backend/app/services/kyc_pipeline.py`)
 **Architecture**: LangGraph 2-node StateGraph (`research_node` → `analysis_node`)
