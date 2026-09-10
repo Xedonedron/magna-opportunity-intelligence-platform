@@ -233,7 +233,7 @@ Please generate the comprehensive meeting playbook in JSON format. Provide 3-4 f
             usage_meta = getattr(response, "usage_metadata", None) or getattr(response, "response_metadata", {}).get("token_usage") or {}
             p_tokens = usage_meta.get("input_tokens") or usage_meta.get("prompt_tokens") or estimate_tokens(user_prompt)
             c_tokens = usage_meta.get("output_tokens") or usage_meta.get("completion_tokens") or estimate_tokens(str(response.content))
-            model_name = getattr(llm, "model_name", None) or getattr(llm, "model", "gemini-2.5-flash")
+            model_name = getattr(llm, "model_name", None) or getattr(llm, "model", None) or "ai-model"
             provider = "google" if "google" in llm.__class__.__name__.lower() else "openai"
 
             record_ai_usage(

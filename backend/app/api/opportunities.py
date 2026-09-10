@@ -541,8 +541,14 @@ Opportunity & KYC Context:
 
     async def generate_response_chunks():
         start_time = time.time()
-        active_model_name = payload.model or get_db_setting(db, "ai_model") or "gemini-2.5-flash"
-        provider = "google" if ("gemini" in active_model_name.lower() or "gemma" in active_model_name.lower()) else "openai"
+        active_provider = get_db_setting(db, "llm_provider") or settings.LLM_PROVIDER or "openai"
+        active_model_name = (
+            payload.model
+            or get_db_setting(db, "ai_model")
+            or (settings.OPENAI_MODEL if active_provider == "openai" else settings.GEMINI_MODEL)
+            or "glm-4-plus"
+        )
+        provider = active_provider
         streamed_usage = None
 
         try:

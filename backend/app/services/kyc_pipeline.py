@@ -408,7 +408,7 @@ Kembalikan HANYA JSON yang valid, tanpa teks pengantar atau penutup di luar JSON
                 p_tokens = usage_meta.get("input_tokens") or usage_meta.get("prompt_tokens") or estimate_tokens(current_prompt)
                 c_tokens = usage_meta.get("output_tokens") or usage_meta.get("completion_tokens") or estimate_tokens(str(response.content))
 
-                model_name = getattr(current_llm, "model_name", None) or getattr(current_llm, "model", "gemini-2.5-flash")
+                model_name = getattr(current_llm, "model_name", None) or getattr(current_llm, "model", None) or "ai-model"
                 provider = "google" if "google" in current_llm.__class__.__name__.lower() else "openai"
 
                 k_ver = state.get("kyc_version") or 1
@@ -448,16 +448,7 @@ Kembalikan HANYA JSON yang valid, tanpa teks pengantar atau penutup di luar JSON
             if attempt < max_retries:
                 # On transient/gateway errors (like 502 upstream stream ended, timeouts):
                 await asyncio.sleep(3.0 * attempt)
-                if attempt == max_retries - 1 and (settings.active_gemini_api_key or get_db_setting(None, "gemini_api_key")):
-                    # Auto-fallback: If OpenAI provider keeps failing with 502/stream dropped and Google API key is available, switch to Google
-                    try:
-                        logger.info("[KYC Pipeline] Attempting fallback to Google Gemini provider for final retry...")
-                        current_llm = get_chat_llm(provider="google", model_name="gemini-2.5-flash", timeout=180.0)
-                    except Exception as fb_err:
-                        logger.warning(f"[KYC Pipeline] Google fallback initialization failed: {fb_err}")
-                        current_llm = get_chat_llm(json_mode=False, timeout=240.0)
-                else:
-                    current_llm = get_chat_llm(json_mode=False, timeout=240.0)
+                current_llm = get_chat_llm(json_mode=False, timeout=240.0)
             else:
                 logger.error(f"[KYC Pipeline] All {max_retries} attempts failed. Last error: {e}")
                 return {"error": f"AI analysis failed: {str(e)}"}

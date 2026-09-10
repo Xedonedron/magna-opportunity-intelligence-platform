@@ -71,7 +71,7 @@ class AIValidationService:
 
         if thinking_text or context_text:
             try:
-                llm = get_chat_llm(model_name="gemini-2.5-flash", temperature=0.0, db=db)
+                llm = get_chat_llm(temperature=0.0, db=db)
                 critic_prompt = f"""You are an expert AI Output & Reasoning Consistency Critic.
 Evaluate if the Final Output is strictly grounded, logically follows from the Thinking Process, and aligns with the Context without hallucination or contradiction.
 

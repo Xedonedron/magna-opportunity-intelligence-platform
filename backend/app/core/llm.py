@@ -86,18 +86,24 @@ def get_chat_llm(
     db_openai_base = get_db_setting(db, "openai_api_base")
 
     # 1. Determine active provider
-    selected_provider = (provider or db_provider or settings.LLM_PROVIDER or "openai").lower()
     active_model = model_name or db_model
 
-    # Infer provider from model name if active_model is known
-    if active_model:
-        mn_lower = active_model.lower()
-        if "gemini" in mn_lower or "gemma" in mn_lower:
-            selected_provider = "google"
-        elif "deepseek" in mn_lower or "glm" in mn_lower or "gpt" in mn_lower:
-            selected_provider = "openai"
+    # Respect explicit provider argument or DB configuration first
+    if provider:
+        selected_provider = provider.lower()
+    elif db_provider:
+        selected_provider = db_provider.lower()
+    elif settings.LLM_PROVIDER:
+        selected_provider = settings.LLM_PROVIDER.lower()
+    else:
+        # Only if no provider is configured anywhere, infer provider from model name
+        selected_provider = "openai"
+        if active_model:
+            mn_lower = active_model.lower()
+            if "gemini" in mn_lower or "gemma" in mn_lower:
+                selected_provider = "google"
 
-    if "google" in selected_provider or "gemini" in selected_provider or "gemma" in selected_provider:
+    if "google" in selected_provider:
         selected_provider = "google"
     else:
         selected_provider = "openai"

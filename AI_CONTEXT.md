@@ -650,8 +650,7 @@ type MeetingStatus = 'scheduled' | 'completed' | 'cancelled'
      - **Mitigation & Resilience**:
        - Increased client/gateway timeout to 180s–240s in `get_chat_llm()`.
        - Automatic bypass of `response_format: {"type": "json_object"}` for reasoning models (e.g. `r1`, `o1`, `reasoner`) and graceful downgrade to prompt-only JSON on retries.
-       - Retry loop with exponential backoff on transient exceptions (502, 503, 504, stream disconnects) instead of immediate abort.
-       - Automatic fallback to Google Gemini/Gemma (`gemini-2.5-flash`) on final retry if OpenAI provider fails.
+       - Retry loop with exponential backoff on transient exceptions (502, 503, 504, stream disconnects) instead of immediate abort, retaining the user's active configured model without forced external fallback.
    - JSON parsing defects: LLM output truncation (`MAX_TOKENS`), broken markdown code block fences, or malformed JSON syntax (handled via regex fencing and self-healing bracket repair in `_clean_and_parse_json`).
    - Content moderation / safety filter rejection on target company profile or prompts.
 6. **Database & Persistence Layer**:

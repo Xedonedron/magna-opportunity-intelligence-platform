@@ -234,13 +234,9 @@ flowchart TD
     F -- No --> H[Return Error]
 
     B -- 502 Timeout Stream Dropped --> I{Retry count < 3?}
-    I -- Yes --> J{Final retry\nand Google key exists?}
-    J -- Yes --> K[Auto-fallback Google\ngemini-2.5-flash]
-    J -- No --> G
-    K --> A
+    I -- Yes --> G
     I -- No --> H
 
-    style K fill:#ffd700,stroke:#333
     style H fill:#ff6b6b,stroke:#333
     style E fill:#51cf66,stroke:#333
 ```
@@ -253,7 +249,7 @@ flowchart TD
 | Reasoning model guard | Auto-strip `response_format` JSON untuk model R1, o1, o3, QWQ |
 | Retry loop | Max 3 attempts, exponential backoff 2s–6s |
 | JSON self-healing | Regex fence extraction, trailing comma cleanup, bracket balancing |
-| Provider fallback | Final retry auto-switch ke `gemini-2.5-flash` jika OpenAI gagal |
+| Toleransi retry | Retry mode tanpa `response_format` ketat (`json_mode=False`) pada active provider yang dipilih |
 
 ### 3.4 AI Chat Streaming Flow
 

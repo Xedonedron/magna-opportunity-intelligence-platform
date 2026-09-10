@@ -10,6 +10,7 @@ build/
 .next/
 coverage/
 *.log
+*.log.txt
 backend/data/
 chromadb/
 *.sqlite3
