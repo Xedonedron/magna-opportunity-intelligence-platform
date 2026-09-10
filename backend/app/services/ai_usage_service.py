@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 # (Input Price / 1M tokens, Output Price / 1M tokens)
 MODEL_RATES: Dict[str, Tuple[float, float]] = {
     # Google AI Studio / Gemini Models
+    "gemini-3.8-flash": (0.10, 0.40),
     "gemini-2.5-flash": (0.075, 0.30),
     "gemini-2.0-flash": (0.075, 0.30),
     "gemini-1.5-flash": (0.075, 0.30),
@@ -33,12 +34,17 @@ MODEL_RATES: Dict[str, Tuple[float, float]] = {
     "gemma-2-27b-it": (0.10, 0.20),
     "gemma-2-9b-it": (0.06, 0.12),
     # OpenAI / CosmosHub / Open Models
+    "glm-5.1": (0.80, 1.00),
     "glm-4-plus": (1.00, 1.00),
     "glm-4-air": (0.20, 0.20),
+    "deepseek-v4-pro": (0.30, 0.80),
+    "deepseek-v4-flash": (0.10, 0.30),
     "deepseek-chat": (0.14, 0.28),
     "deepseek-v3": (0.14, 0.28),
     "deepseek-r1": (0.55, 2.19),
     "deepseek-reasoner": (0.55, 2.19),
+    "qwen-3.8-max": (0.40, 1.20),
+    "claude-opus-4.7": (2.50, 10.00),
     "gpt-4o-mini": (0.15, 0.60),
     "gpt-4o": (2.50, 10.00),
     # Default fallback rate

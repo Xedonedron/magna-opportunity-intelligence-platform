@@ -36,6 +36,7 @@ class KYCState(TypedDict):
     kyc_version: Optional[int]
     source_type: Optional[str]
     focus_notes: Optional[str]
+    model_name: Optional[str]
 
     # Intermediate results
     search_results: dict
@@ -143,9 +144,9 @@ def _clean_and_parse_json(content: Any) -> dict:
 
 
 # --- LLM Setup ---
-def get_llm(json_mode: bool = True, timeout: float = 180.0, db: Any = None):
+def get_llm(model_name: Optional[str] = None, json_mode: bool = True, timeout: float = 180.0, db: Any = None):
     """Get the active Chat LLM instance via Unified LLM Factory."""
-    return get_chat_llm(json_mode=json_mode, timeout=timeout, db=db)
+    return get_chat_llm(model_name=model_name, json_mode=json_mode, timeout=timeout, db=db)
 
 
 async def _update_progress(config: Optional[RunnableConfig], step: str, percent: int):
@@ -224,7 +225,8 @@ async def analysis_node(state: KYCState, config: Optional[RunnableConfig] = None
     logger.info(f"[KYC Pipeline] Analysis node: {state['company_name']}")
     await _update_progress(config, "analyzing", 85)
 
-    llm = get_llm()
+    model_override = state.get("model_name")
+    llm = get_llm(model_name=model_override)
 
     # Build context from research
     context_parts = []
@@ -402,7 +404,10 @@ Kembalikan HANYA JSON yang valid, tanpa teks pengantar atau penutup di luar JSON
                     "Pastikan seluruh string dan quote di-escape dengan benar dan kembalikan struktur JSON lengkap yang valid."
                 )
             logger.info(f"[KYC Pipeline] Invoking LLM analysis (attempt {attempt}/{max_retries})...")
+            import time
+            start_llm = time.time()
             response = await current_llm.ainvoke(current_prompt)
+            llm_duration_ms = int((time.time() - start_llm) * 1000)
             result = _clean_and_parse_json(response.content)
 
             # Record token usage for KYC LLM analysis
@@ -435,6 +440,7 @@ Kembalikan HANYA JSON yang valid, tanpa teks pengantar atau penutup di luar JSON
                     query_prompt=f"KYC Pipeline Synthesis (v{k_ver} - {s_type}) for {state.get('company_name')}",
                     response_preview=str(response.content)[:1000] if response.content else None,
                     metadata_json={"kyc_version": k_ver, "source_type": s_type},
+                    duration_ms=llm_duration_ms,
                     status="success",
                 )
             except Exception as usage_err:
@@ -446,7 +452,7 @@ Kembalikan HANYA JSON yang valid, tanpa teks pengantar atau penutup di luar JSON
             logger.warning(f"[KYC Pipeline] Attempt {attempt}/{max_retries} failed to parse JSON: {e}")
             if attempt < max_retries:
                 # Switch to plain chat LLM without strict response_format on retry to avoid upstream streaming truncation
-                current_llm = get_chat_llm(json_mode=False, timeout=240.0)
+                current_llm = get_chat_llm(model_name=model_override, json_mode=False, timeout=240.0)
                 await asyncio.sleep(2.0 * attempt)
             else:
                 logger.error(f"[KYC Pipeline] All {max_retries} JSON parsing attempts failed: {e}")
@@ -457,7 +463,7 @@ Kembalikan HANYA JSON yang valid, tanpa teks pengantar atau penutup di luar JSON
             if attempt < max_retries:
                 # On transient/gateway errors (like 502 upstream stream ended, timeouts):
                 await asyncio.sleep(3.0 * attempt)
-                current_llm = get_chat_llm(json_mode=False, timeout=240.0)
+                current_llm = get_chat_llm(model_name=model_override, json_mode=False, timeout=240.0)
             else:
                 logger.error(f"[KYC Pipeline] All {max_retries} attempts failed. Last error: {e}")
                 return {"error": f"AI analysis failed: {str(e)}"}
@@ -538,12 +544,13 @@ async def run_kyc_pipeline(
     kyc_version: int = 1,
     source_type: str = "automatic",
     focus_notes: Optional[str] = None,
+    model_name: Optional[str] = None,
 ) -> dict[str, Any]:
     """Run the full KYC pipeline and return the report data.
 
     Returns a dict with all KYC sections or an error.
     """
-    logger.info(f"[KYC Pipeline] Starting KYC for: {company_name} (v{kyc_version} - {source_type})")
+    logger.info(f"[KYC Pipeline] Starting KYC for: {company_name} (v{kyc_version} - {source_type}) [model={model_name or 'default'}]")
 
     if not has_active_llm_key():
         return {
@@ -563,6 +570,7 @@ async def run_kyc_pipeline(
         "kyc_version": kyc_version,
         "source_type": source_type,
         "focus_notes": focus_notes,
+        "model_name": model_name,
         "search_results": {},
         "website_content": None,
         "industry_use_cases": [],
@@ -605,6 +613,7 @@ async def run_kyc_pipeline(
             "recommended_questions": result.get("recommended_questions", []),
             "preparation_checklist": result.get("preparation_checklist", []),
             "references": result.get("references", []),
+            "model_name": model_name,
             "completed_at": datetime.now(timezone.utc).isoformat(),
         }
 

@@ -3,7 +3,7 @@ Unit tests for AI Usage & Pricing Service and Admin Monitoring Endpoints.
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import pytest
 from sqlalchemy.orm import Session
 
@@ -134,7 +134,6 @@ def test_record_ai_usage_and_aggregations(db: Session):
     assert audit_logs["items"][0]["user"]["full_name"] == "Super Admin Test"
     assert audit_logs["items"][0]["opportunity"]["company_name"] == "PT Teknologi Maju"
 
-    # Now add KYC v2 manual regeneration
     usage3 = record_ai_usage(
         db=db,
         user_id=user.id,
@@ -150,6 +149,8 @@ def test_record_ai_usage_and_aggregations(db: Session):
         duration_ms=4800,
     )
     assert usage3 is not None
+    usage3.created_at = datetime.now(timezone.utc) + timedelta(seconds=1)
+    db.commit()
 
     # Audit query should now include Chat and KYC v2
     updated_logs = get_assistant_queries_audit(db)
@@ -158,8 +159,6 @@ def test_record_ai_usage_and_aggregations(db: Session):
     assert any("v2 - manual_regenerate" in p for p in prompts)
 
     # Now add KYC v3 manual regeneration for same opportunity (should supersede v2, keeping only latest)
-    import time
-    time.sleep(0.01)
     usage4 = record_ai_usage(
         db=db,
         user_id=user.id,
@@ -175,6 +174,8 @@ def test_record_ai_usage_and_aggregations(db: Session):
         duration_ms=5000,
     )
     assert usage4 is not None
+    usage4.created_at = datetime.now(timezone.utc) + timedelta(seconds=2)
+    db.commit()
 
     latest_logs = get_assistant_queries_audit(db)
     # Total should still be 2 (1 Chat + 1 latest KYC v3)

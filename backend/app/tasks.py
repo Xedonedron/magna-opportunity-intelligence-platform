@@ -198,6 +198,7 @@ def run_kyc_pipeline_task(
     opportunity_id: str,
     source_type: str = "automatic",
     focus_notes: str | None = None,
+    model_name: str | None = None,
 ) -> dict:
     """Run the AI KYC pipeline for an opportunity.
 
@@ -218,8 +219,9 @@ def run_kyc_pipeline_task(
 
     db = SessionLocal()
     try:
+        opp_uuid = uuid.UUID(opportunity_id) if isinstance(opportunity_id, str) else opportunity_id
         opportunity = db.query(Opportunity).filter(
-            Opportunity.id == opportunity_id
+            Opportunity.id == opp_uuid
         ).first()
         if not opportunity:
             return {"status": "error", "message": "Opportunity not found"}
@@ -227,7 +229,7 @@ def run_kyc_pipeline_task(
         kyc_report = (
             db.query(KYCReport)
             .filter(
-                KYCReport.opportunity_id == opportunity_id,
+                KYCReport.opportunity_id == opp_uuid,
                 KYCReport.status == "running",
             )
             .order_by(KYCReport.version.desc())
@@ -240,7 +242,7 @@ def run_kyc_pipeline_task(
             # Determine next version number
             max_version = (
                 db.query(KYCReport.version)
-                .filter(KYCReport.opportunity_id == opportunity_id)
+                .filter(KYCReport.opportunity_id == opp_uuid)
                 .order_by(KYCReport.version.desc())
                 .first()
             )
@@ -262,11 +264,14 @@ def run_kyc_pipeline_task(
         opportunity.status = "KYC Running"
 
         # Add timeline event
+        desc_text = f"AI KYC analysis initiated ({source_type})."
+        if model_name:
+            desc_text += f" Model: {model_name}."
         timeline_event = TimelineEvent(
             opportunity_id=opportunity.id,
             actor_name="System",
             action=f"KYC Started (v{next_version})",
-            description=f"AI KYC analysis initiated ({source_type}).",
+            description=desc_text,
             event_type="system",
         )
         db.add(timeline_event)
@@ -307,6 +312,7 @@ def run_kyc_pipeline_task(
                 kyc_version=next_version,
                 source_type=source_type,
                 focus_notes=effective_focus,
+                model_name=model_name,
             )
         )
 
