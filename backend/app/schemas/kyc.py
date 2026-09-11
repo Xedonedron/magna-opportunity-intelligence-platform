@@ -1,27 +1,36 @@
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 from datetime import datetime
 from uuid import UUID
 from typing import Optional, Any
 
 
+class CompanyOverviewModel(BaseModel):
+    name: str = Field(default="", description="Nama resmi perusahaan")
+    description: str = Field(default="", description="Deskripsi singkat profil bisnis dan positioning")
+    founded: Optional[str] = Field(default="N/A", description="Tahun pendirian jika diketahui")
+    size: Optional[str] = Field(default="N/A", description="Estimasi jumlah karyawan / skala perusahaan")
+    headquarters: Optional[str] = Field(default="N/A", description="Lokasi kantor pusat")
+    key_products: list[str] = Field(default_factory=list, description="Lini produk / layanan utama")
+
+
 class CompetitorItem(BaseModel):
-    name: str
-    market_position: str
-    strengths: list[str] = []
-    weaknesses: list[str] = []
-    differentiators: str = ""
+    name: str = Field(default="", description="Nama perusahaan kompetitor")
+    market_position: str = Field(default="", description="Market Leader / Challenger / Niche / Direct Competitor")
+    strengths: list[str] = Field(default_factory=list, description="Keunggulan kompetitif kompetitor")
+    weaknesses: list[str] = Field(default_factory=list, description="Kelemahan atau celah pasar kompetitor")
+    differentiators: str = Field(default="", description="Diferensiasi target klien terhadap kompetitor ini")
 
 
 class UseCaseItem(BaseModel):
-    title: str
-    description: str
-    problem_solved: str
-    how_it_works: str
-    business_impact: str
-    google_products: list[str] = []
-    vendor_products: Optional[list[str]] = None
-    smartnet_solutions: list[str] = []
-    impact_level: str = "High"  # High, Medium, Low
+    title: str = Field(default="", description="Judul use case enterprise grade")
+    description: str = Field(default="", description="Deskripsi singkat implementasi use case")
+    problem_solved: str = Field(default="", description="Masalah spesifik yang diselesaikan")
+    how_it_works: str = Field(default="", description="Arsitektur teknis dan cara kerja solusi")
+    business_impact: str = Field(default="", description="Dampak bisnis terukur / ROI / efisiensi")
+    google_products: list[str] = Field(default_factory=list, description="Vendor products & technologies utama")
+    vendor_products: Optional[list[str]] = Field(default=None, description="Alias untuk vendor products")
+    smartnet_solutions: list[str] = Field(default_factory=list, description="Solusi resmi Smartnet Magna Global")
+    impact_level: str = Field(default="High", description="High, Medium, atau Low")
 
     @model_validator(mode="before")
     @classmethod
@@ -32,6 +41,44 @@ class UseCaseItem(BaseModel):
             elif data.get("google_products") and not data.get("vendor_products"):
                 data["vendor_products"] = data["google_products"]
         return data
+
+
+# --- Sectional KYC Structured Output Schemas (Inisiatif 1) ---
+class CompanyProfileOutput(BaseModel):
+    """Module 1: Company Profile & Business Footprint"""
+    company_overview: CompanyOverviewModel = Field(description="Profil ringkas perusahaan")
+    business_model: str = Field(description="Model bisnis dan revenue stream")
+    company_location: str = Field(description="Lokasi fasilitas operasional dan cakupan geografis")
+
+
+class IndustryCompetitorsOutput(BaseModel):
+    """Module 2: Industry Dynamics & Competitors"""
+    industry_analysis: str = Field(description="Analisis mendalam lanskap industri dan tren teknologi")
+    competitor_analysis: list[CompetitorItem] = Field(default_factory=list, description="Daftar kompetitor utama")
+
+
+class PainPointsNeedsOutput(BaseModel):
+    """Module 3: Customer Pain Points & Latent Needs"""
+    customer_need_summary: str = Field(description="Rangkuman latar belakang kebutuhan bisnis & teknis")
+    potential_pain_points: list[str] = Field(default_factory=list, description="Daftar pain points teknis / operasional")
+
+
+class UseCasesOutput(BaseModel):
+    """Module 4: Technical Architecture & Presales Use Cases"""
+    use_cases: list[UseCaseItem] = Field(default_factory=list, description="Daftar use case arsitektural terurut")
+
+
+class EngagementStrategyOutput(BaseModel):
+    """Module 5: Presales Engagement Strategy"""
+    meeting_objectives: list[str] = Field(default_factory=list, description="Objektif strategis meeting presales")
+    recommended_questions: list[str] = Field(default_factory=list, description="Discovery questions per stakeholder")
+    preparation_checklist: list[str] = Field(default_factory=list, description="Checklist persiapan teknis dan sales")
+
+
+class ExecutiveSummaryOutput(BaseModel):
+    """Module 6: Ultimate Executive Summary (Sintesis Akhir)"""
+    executive_summary: str = Field(description="Sintesis eksekutif C-Level komprehensif 2-3 paragraf")
+
 
 
 class KYCReportResponse(BaseModel):

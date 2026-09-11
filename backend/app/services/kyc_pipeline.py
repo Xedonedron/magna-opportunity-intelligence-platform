@@ -1,4 +1,4 @@
-"""AI KYC Pipeline using LangGraph for orchestrated KYC report generation."""
+"""AI KYC Pipeline using LangGraph and Sectional Native Structured Output for KYC report generation."""
 
 import asyncio
 import re
@@ -17,8 +17,21 @@ from app.services.web_search_service import web_search_service
 from app.services.web_crawler_service import web_crawler_service
 from app.services.link_verifier import link_verifier_service
 from app.core.solutions_catalog import solutions_catalog
+from app.services.kyc_sectional_runner import run_sectional_kyc_pipeline
+from app.schemas.kyc import (
+    CompanyOverviewModel,
+    CompetitorItem,
+    UseCaseItem,
+    CompanyProfileOutput,
+    IndustryCompetitorsOutput,
+    PainPointsNeedsOutput,
+    UseCasesOutput,
+    EngagementStrategyOutput,
+    ExecutiveSummaryOutput,
+)
 
 logger = logging.getLogger(__name__)
+
 
 
 # --- State Definition ---
@@ -221,301 +234,27 @@ async def research_node(state: KYCState, config: Optional[RunnableConfig] = None
 
 
 async def analysis_node(state: KYCState, config: Optional[RunnableConfig] = None) -> dict:
-    """Node 3: Analyze research data and generate KYC sections using LLM."""
-    logger.info(f"[KYC Pipeline] Analysis node: {state['company_name']}")
-    await _update_progress(config, "analyzing", 85)
+    """Node 2: Sectional KYC Generation Pipeline with Native Structured Output."""
+    logger.info(f"[KYC Pipeline] Sectional analysis node: {state['company_name']}")
+    await _update_progress(config, "analyzing", 75)
 
     model_override = state.get("model_name")
-    llm = get_llm(model_name=model_override)
-
-    # Build context from research
-    context_parts = []
-
-    # Add search results
-    search = state.get("search_results", {})
-    if search.get("company_answer"):
-        context_parts.append(f"Company Summary: {search['company_answer']}")
-
-    for result in search.get("company_info", [])[:3]:
-        context_parts.append(f"- {result.get('title', '')}: {result.get('content', '')[:500]}")
-
-    for result in search.get("news", [])[:3]:
-        context_parts.append(f"News: {result.get('title', '')} - {result.get('content', '')[:300]}")
-
-    # Add website content
-    website = state.get("website_content")
-    if website:
-        context_parts.append(f"\nWebsite Title: {website.get('title', '')}")
-        context_parts.append(f"Website Description: {website.get('description', '')}")
-        if website.get("headings"):
-            context_parts.append(f"Website Sections: {', '.join(website['headings'][:5])}")
-        content_preview = website.get("text_content", "")[:2000]
-        context_parts.append(f"Website Content: {content_preview}")
-
-    context = "\n".join(context_parts) if context_parts else "No external data found."
-
-    # Build industry use cases context
-    industry_use_cases = state.get("industry_use_cases", [])
-    use_cases_context = ""
-    if industry_use_cases:
-        use_cases_lines = ["\n## Industry Use Cases Reference (from web search):"]
-        for i, uc in enumerate(industry_use_cases[:5], 1):
-            use_cases_lines.append(f"{i}. {uc.get('title', 'N/A')}: {uc.get('content', '')[:300]}")
-        use_cases_context = "\n".join(use_cases_lines)
-
-    # Built-in Smartnet Magna Global Profile & Curated Solutions Grounding
-    solutions_context = solutions_catalog.get_solutions_for_prompt(
-        industry=state.get("industry"),
-        product=state.get("product"),
-        customer_needs=state.get("customer_needs"),
-        limit=4,
-    )
-
-    focus_notes_section = ""
-    if state.get("focus_notes"):
-        focus_notes_section = f"""
-## PANDUAN FOKUS KHUSUS VERSI INI (PRIORITAS TERTINGGI):
-{state['focus_notes']}
-"""
-
-    # Generate comprehensive KYC report
-    prompt = f"""Anda adalah seorang Principal Business Analyst dan Enterprise Solutions Consultant yang sedang menyusun laporan intelijen KYC (Know Your Customer) komprehensif untuk persiapan meeting presales engineering di PT Smartnet Magna Global.
-
-## Informasi Perusahaan Klien
-- Nama Perusahaan: {state['company_name']}
-- Website: {state.get('website', 'N/A')}
-- Industri: {state.get('industry', 'N/A')}
-- Target Solusi / Produk: {state.get('product', 'N/A')}
-
-## Kebutuhan Klien (Customer Needs dari LGO/Sales)
-{state['customer_needs']}
-
-## Catatan Tambahan
-{state.get('additional_notes', 'None')}
-{focus_notes_section}
-## Data Riset & Intelijen Eksternal
-{context}
-{use_cases_context}
-{solutions_context}
-
----
-
-INSTRUKSI BAHASA:
-Seluruh teks narasi, ringkasan eksekutif, deskripsi, analisis industri, analisis kompetitor, use cases, tujuan meeting, rekomendasi pertanyaan, dan checklist persiapan WAJIB ditulis dalam Bahasa Indonesia yang formal, profesional, dan komprehensif (standar B2B enterprise presales). Tetap pertahankan istilah teknis standar industri IT/Cloud dalam bahasa Inggris yang umum digunakan (misal: "Cloud Migration", "Data Warehouse", "BigQuery", "Predictive AI", "Dashboard", "Workload", "Zero Trust", "API").
-
-CRITICAL ALIGNMENT, VENDOR MATCHING & ISOLATION INSTRUCTION:
-1. Seluruh laporan yang dihasilkan (termasuk executive_summary, customer_need_summary, use_cases, recommended_questions, potential_pain_points, dan meeting_objectives) HARUS selaras secara ketat dengan "Kebutuhan Klien", "Target Solusi / Produk", dan "PANDUAN FOKUS KHUSUS VERSI INI" di atas.
-2. DILARANG KERAS mencampuradukkan atau memasukkan topik solusi di luar kebutuhan aktif saat ini (misal: jika kebutuhan klien saat ini berfokus pada Server On-Premise, Compute Infrastructure, atau Core Switch, JANGAN memasukkan use case WiFi nirkabel, Endpoint Antivirus, atau Anti-Fraud kecuali diminta secara eksplisit).
-3. PANDUAN PEMILIHAN VENDOR & ARSITEKTUR BERDASARKAN COMPANY PROFILE (COMPRO) SMG:
-   PT Smartnet Magna Global (member of CTI Group) memiliki portofolio solusi komprehensif lintas 4 Pilar (Cloud, Data Analytics & AI, IT Infrastructure on-premise/hybrid, Security Management). Pilihlah vendor dan arsitektur yang SESUAI REALITAS TEKNIS kebutuhan klien:
-   - On-Premise Server / Storage / HCI / Virtualisasi Fisik: Gunakan Dell Technologies, HPE, Nutanix, VMware vSphere / Broadcom, Cisco UCS, Sangfor. DILARANG memaksakan Google Cloud / GCP untuk pengadaan server on-premise fisik.
-   - Enterprise Wired & Wireless LAN / WiFi: Gunakan Cisco Catalyst, Aruba (HPE Networking), Huawei, Extreme Networks (standar Wi-Fi 6, WPA3, High-Density Switching, SolarWinds/PRTG). DILARANG membawa Google SecOps atau layanan cloud murni untuk implementasi WiFi/LAN fisik.
-   - Cybersecurity Multi-Layer: Petakan solusi keamanan ke layer yang tepat:
-     * Privileged Access / Admin Rights: BeyondTrust PAM (Password Safe) & BeyondTrust EPM (Least Privilege).
-     * Perimeter & Firewall: Fortinet FortiGate (NSE 4 Certified), Palo Alto Networks, Check Point (NGFW).
-     * Endpoint Security / Antivirus: CrowdStrike Falcon, Trend Micro, Symantec by Broadcom, Sophos, SentinelOne (NGAV / EDR).
-     * SIEM / SOAR / Cloud Security: Google Security Operations (SecOps / Chronicle), Google Threat Intelligence / Mandiant, Security Command Center (SCC).
-   - Cloud Native & Modern Data/AI Stack: Gunakan Google Cloud (BigQuery, Vertex AI, GKE, Looker), AWS, Greenplum, Snowflake, Confluent jika dan hanya jika kebutuhan klien melibatkan cloud, migrasi ke cloud, data warehouse modern, atau AI.
-
-CRITICAL LINK INSTRUCTION: Untuk array "references", Anda HANYA BOLEH menyertakan URL nyata yang secara eksplisit tersedia pada bagian Data Riset di atas. DILARANG membuat, merekayasa, atau menebak URL.
-
-PANDUAN SOLUSI & USE CASE: Saat menyusun use_cases, rujuk bagian Referensi Riset dan Katalog Solusi Smartnet Magna Global di atas. Masukkan solusi spesifik dari katalog/portfolio Smartnet Magna pada field "smartnet_solutions" dan produk/teknologi vendor utama yang relevan (misal: Dell PowerEdge, Nutanix HCI, Cisco Catalyst, Aruba Wi-Fi 6, BeyondTrust PAM, Fortinet FortiGate, BigQuery, Vertex AI, dsb.) pada field "google_products". Nilai "impact_level" harus salah satu dari: "High", "Medium", atau "Low". Wajib urutkan daftar "use_cases" secara berurutan berdasarkan nilai "impact_level": dimulai dari "High", lalu "Medium", kemudian "Low".
-
-STANDARDISASI NAMA SOLUSI & USE CASE (ENTERPRISE GRADE):
-- DILARANG KERAS menggunakan judul clickbait, judul artikel blog informal, tanda seru ('Waspada!', 'Penting!', 'Awas!', 'Anti Ribet'), atau kalimat pertanyaan retoris ('Mengapa...', 'Benarkah...').
-- Seluruh nama use case pada field 'title' dan nama solusi pada 'smartnet_solutions' WAJIB menggunakan tata nama enterprise B2B formal yang mencerminkan kemampuan arsitektural teknis (contoh: 'Enterprise Cloud Observability & Proactive Monitoring', 'Zero Trust Architecture & Context-Aware Perimeter', 'Predictive Anti-Fraud & Real-Time Risk Analytics', 'Next-Generation Firewall & Perimeter Defense').
-
-Format output HARUS berupa JSON valid dengan struktur kunci (keys) persis berikut:
-{{
-    "executive_summary": "Ringkasan eksekutif 2-3 paragraf mengenai profil perusahaan, konteks bisnis, peluang kolaborasi, dan urgensi solusi",
-    "company_overview": {{
-        "name": "{state['company_name']}",
-        "description": "Deskripsi singkat profil bisnis, fokus utama operasional, dan positioning pasar perusahaan",
-        "founded": "Tahun pendirian jika diketahui (atau N/A)",
-        "size": "Estimasi jumlah karyawan / skala perusahaan",
-        "headquarters": "Lokasi kantor pusat / wilayah operasional utama",
-        "key_products": ["Daftar produk, layanan, atau lini bisnis utama perusahaan"]
-    }},
-    "industry_analysis": "Analisis mendalam mengenai lanskap industri, tren adopsi teknologi, regulasi/tantangan utama, dan peluang pertumbuhan pasar",
-    "competitor_analysis": [
-        {{
-            "name": "Nama perusahaan kompetitor",
-            "market_position": "Market Leader / Challenger / Niche Player / Kompetitor Utama",
-            "strengths": ["Keunggulan kompetitif 1", "Keunggulan 2"],
-            "weaknesses": ["Kelemahan atau celah pasar 1", "Kelemahan 2"],
-            "differentiators": "Bagaimana target perusahaan bersaing atau membedakan diri dari kompetitor ini"
-        }}
-    ],
-    "business_model": "Penjelasan bagaimana perusahaan menghasilkan pendapatan (revenue stream) dan menjalankan model operasional bisnisnya",
-    "company_location": "Lokasi kantor pusat, fasilitas operasional, dan cakupan geografis pasar",
-    "customer_need_summary": "Rangkuman komprehensif mengenai latar belakang kebutuhan, objektif teknis & bisnis klien berdasarkan data input dan riset",
-    "potential_pain_points": ["Kendala operasional / teknis 1", "Pain point integrasi / infrastruktur 2", "Tantangan skalabilitas / keamanan 3"],
-    "use_cases": [
-        {{
-            "title": "Judul use case / skenario solusi (Prioritas Tinggi)",
-            "description": "Deskripsi singkat implementasi use case",
-            "problem_solved": "Masalah spesifik yang diselesaikan oleh solusi ini",
-            "how_it_works": "Bagaimana arsitektur dan alur kerja solusi ini diimplementasikan",
-            "business_impact": "Dampak bisnis terukur, efisiensi biaya, atau percepatan time-to-market",
-            "google_products": ["Produk vendor / teknologi utama yang relevan (misal: Dell PowerEdge, Nutanix, Cisco Catalyst, Aruba, BeyondTrust PAM, Fortinet FortiGate, BigQuery, Vertex AI)"],
-            "smartnet_solutions": ["Solusi spesifik dari katalog Smartnet Magna"],
-            "impact_level": "High"
-        }},
-        {{
-            "title": "Judul use case / skenario solusi (Prioritas Menengah)",
-            "description": "Deskripsi singkat implementasi use case",
-            "problem_solved": "Masalah spesifik yang diselesaikan oleh solusi ini",
-            "how_it_works": "Bagaimana arsitektur dan alur kerja solusi ini diimplementasikan",
-            "business_impact": "Dampak bisnis terukur atau optimasi operasional",
-            "google_products": ["Produk vendor / teknologi utama yang relevan"],
-            "smartnet_solutions": ["Solusi spesifik dari katalog Smartnet Magna"],
-            "impact_level": "Medium"
-        }},
-        {{
-            "title": "Judul use case / skenario solusi (Prioritas Tambahan)",
-            "description": "Deskripsi singkat implementasi use case",
-            "problem_solved": "Masalah spesifik yang diselesaikan oleh solusi ini",
-            "how_it_works": "Bagaimana arsitektur dan alur kerja solusi ini diimplementasikan",
-            "business_impact": "Penyempurnaan tata kelola atau efisiensi pendukung",
-            "google_products": ["Produk vendor / teknologi utama yang relevan"],
-            "smartnet_solutions": ["Solusi spesifik dari katalog Smartnet Magna"],
-            "impact_level": "Low"
-        }}
-    ],
-    "meeting_objectives": ["Tujuan strategis meeting 1", "Tujuan teknis meeting 2", "Target kesepakatan langkah berikutnya (Next Steps)"],
-    "recommended_questions": ["Pertanyaan discovery kebutuhan bisnis 1", "Pertanyaan pendalaman arsitektur teknis 2", "Pertanyaan terkait timeline & budget 3", "Pertanyaan kriteria keberhasilan proyek 4", "Pertanyaan pengambil keputusan 5"],
-    "preparation_checklist": ["Item persiapan presentasi / demo teknis 1", "Dokumen / proposal referensi yang perlu disiapkan 2", "Pemeriksaan arsitektur atau studi kasus relevan 3"],
-    "references": [
-        {{"title": "Judul artikel / referensi", "url": "URL sumber valid dari riset data", "type": "website/news/linkedin"}}
-    ]
-}}
-
-Kembalikan HANYA JSON yang valid, tanpa teks pengantar atau penutup di luar JSON."""
-
-    # Attempt invoke with auto-retry & graceful fallback
-    max_retries = 3
-    last_error: Optional[Exception] = None
-    result: dict = {}
-    current_llm = llm
-
-    for attempt in range(1, max_retries + 1):
-        try:
-            current_prompt = prompt
-            if attempt > 1 and last_error:
-                # Feedback loop on retry to steer LLM to strictly correct syntax
-                current_prompt += (
-                    f"\n\nCRITICAL FIX: Percobaan sebelumnya mengalami kendala: '{str(last_error)}'. "
-                    "Pastikan seluruh string dan quote di-escape dengan benar dan kembalikan struktur JSON lengkap yang valid."
-                )
-            logger.info(f"[KYC Pipeline] Invoking LLM analysis (attempt {attempt}/{max_retries})...")
-            import time
-            start_llm = time.time()
-            response = await current_llm.ainvoke(current_prompt)
-            llm_duration_ms = int((time.time() - start_llm) * 1000)
-            result = _clean_and_parse_json(response.content)
-
-            # Record token usage for KYC LLM analysis
-            try:
-                import uuid as py_uuid
-                from app.services.ai_usage_service import record_ai_usage, estimate_tokens
-
-                opp_uuid = py_uuid.UUID(state["opportunity_id"]) if state.get("opportunity_id") else None
-                usr_uuid = py_uuid.UUID(state["user_id"]) if state.get("user_id") else None
-
-                usage_meta = getattr(response, "usage_metadata", None) or getattr(response, "response_metadata", {}).get("token_usage") or {}
-                p_tokens = usage_meta.get("input_tokens") or usage_meta.get("prompt_tokens") or estimate_tokens(current_prompt)
-                c_tokens = usage_meta.get("output_tokens") or usage_meta.get("completion_tokens") or estimate_tokens(str(response.content))
-
-                model_name = getattr(current_llm, "model_name", None) or getattr(current_llm, "model", None) or "ai-model"
-                provider = "google" if "google" in current_llm.__class__.__name__.lower() else "openai"
-
-                k_ver = state.get("kyc_version") or 1
-                s_type = state.get("source_type") or "automatic"
-
-                record_ai_usage(
-                    db=None,
-                    user_id=usr_uuid,
-                    opportunity_id=opp_uuid,
-                    feature="kyc_generation",
-                    model_name=str(model_name),
-                    provider=provider,
-                    prompt_tokens=int(p_tokens),
-                    completion_tokens=int(c_tokens),
-                    query_prompt=f"KYC Pipeline Synthesis (v{k_ver} - {s_type}) for {state.get('company_name')}",
-                    response_preview=str(response.content)[:1000] if response.content else None,
-                    metadata_json={"kyc_version": k_ver, "source_type": s_type},
-                    duration_ms=llm_duration_ms,
-                    status="success",
-                )
-            except Exception as usage_err:
-                logger.warning(f"[KYC Pipeline] Non-blocking usage recording error: {usage_err}")
-
-            break
-        except (json.JSONDecodeError, ValueError) as e:
-            last_error = e
-            logger.warning(f"[KYC Pipeline] Attempt {attempt}/{max_retries} failed to parse JSON: {e}")
-            if attempt < max_retries:
-                # Switch to plain chat LLM without strict response_format on retry to avoid upstream streaming truncation
-                current_llm = get_chat_llm(model_name=model_override, json_mode=False, timeout=240.0)
-                await asyncio.sleep(2.0 * attempt)
-            else:
-                logger.error(f"[KYC Pipeline] All {max_retries} JSON parsing attempts failed: {e}")
-                return {"error": f"Failed to parse AI response after {max_retries} attempts: {str(e)}"}
-        except Exception as e:
-            last_error = e
-            logger.warning(f"[KYC Pipeline] LLM invocation failed on attempt {attempt}/{max_retries}: {e}")
-            if attempt < max_retries:
-                # On transient/gateway errors (like 502 upstream stream ended, timeouts):
-                await asyncio.sleep(3.0 * attempt)
-                current_llm = get_chat_llm(model_name=model_override, json_mode=False, timeout=240.0)
-            else:
-                logger.error(f"[KYC Pipeline] All {max_retries} attempts failed. Last error: {e}")
-                return {"error": f"AI analysis failed: {str(e)}"}
+    llm = get_llm(model_name=model_override, json_mode=True, timeout=240.0)
 
     try:
-        # Sanitize references via live LinkVerifier Engine
-        raw_references = result.get("references", [])
-        verified_references = await link_verifier_service.sanitize_references_and_sources(
-            references=raw_references,
-            search_results=state.get("search_results"),
-            timeout=3.0,
+        result = await run_sectional_kyc_pipeline(
+            state=state,
+            llm=llm,
+            config=config,
+            update_progress_fn=_update_progress,
+            clean_json_fn=_clean_and_parse_json,
         )
-
-        # Sort use_cases deterministically by impact_level: High -> Medium -> Low
-        impact_order = {"High": 0, "Medium": 1, "Low": 2}
-        raw_use_cases = result.get("use_cases", [])
-        if isinstance(raw_use_cases, list):
-            sorted_use_cases = sorted(
-                raw_use_cases,
-                key=lambda uc: impact_order.get(
-                    uc.get("impact_level", "Medium") if isinstance(uc, dict) else "Medium", 99
-                )
-            )
-        else:
-            sorted_use_cases = []
-
-        return {
-            "executive_summary": result.get("executive_summary", ""),
-            "company_overview": result.get("company_overview", {}),
-            "industry_analysis": result.get("industry_analysis", ""),
-            "competitor_analysis": result.get("competitor_analysis", []),
-            "business_model": result.get("business_model", ""),
-            "company_location": result.get("company_location", ""),
-            "customer_need_summary": result.get("customer_need_summary", ""),
-            "potential_pain_points": result.get("potential_pain_points", []),
-            "use_cases": sorted_use_cases,
-            "meeting_objectives": result.get("meeting_objectives", []),
-            "recommended_questions": result.get("recommended_questions", []),
-            "preparation_checklist": result.get("preparation_checklist", []),
-            "references": verified_references,
-        }
-
+        return result
     except Exception as e:
-        logger.error(f"[KYC Pipeline] Reference sanitation failed: {e}")
-        return {"error": f"AI post-processing failed: {str(e)}"}
+        logger.error(f"[KYC Pipeline] Sectional generation failed: {e}")
+        return {"error": f"AI analysis failed: {str(e)}"}
 
 
-# --- Graph Builder ---
 def build_kyc_graph() -> StateGraph:
     """Build the LangGraph KYC pipeline."""
     workflow = StateGraph(KYCState)
