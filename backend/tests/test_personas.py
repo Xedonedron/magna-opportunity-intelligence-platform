@@ -2,7 +2,7 @@
 Tests for Target Persona endpoints and generation logic.
 """
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 import uuid
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
@@ -21,87 +21,189 @@ class TestTargetPersona:
     def test_list_personas_empty(
         self, client: TestClient, auth_headers: dict[str, str], test_opportunity: Opportunity
     ):
-        """Should return empty list if no personas generated yet."""
+        """Should return empty items list if no personas generated yet."""
         response = client.get(
             f"/api/opportunities/{test_opportunity.id}/personas", headers=auth_headers
         )
         assert response.status_code == 200
-        assert response.json() == []
+        data = response.json()
+        assert data["items"] == []
+        assert data["total"] == 0
 
-    @patch("app.services.persona_service.generate_persona_questions_with_llm")
-    def test_get_persona_auto_generates_and_saves(
+    @patch("app.api.personas.generate_persona_playbook", new_callable=AsyncMock)
+    def test_generate_persona_success(
         self,
-        mock_llm,
+        mock_generate,
         client: TestClient,
         auth_headers: dict[str, str],
         db: Session,
         test_opportunity: Opportunity,
     ):
-        """Should generate and save to database on first GET request."""
-        mock_llm.return_value = {
-            "key_responsibilities": "Oversee operations",
-            "strategic_focus": "Process automation & efficiency",
-            "pain_points": ["Legacy systems", "Manual bottlenecks"],
-            "discovery_questions": ["How do you track SLAs?"],
-            "objection_handling": ["If concern is downtime: highlight phased rollout."],
+        """Should generate and save persona to database via POST /generate."""
+        mock_generate.return_value = {
+            "focus_areas": [{"title": "Cloud Migration", "description": "High priority"}],
+            "questions": [{"category": "Architecture", "question": "Current infra setup?", "purpose": "Assess needs"}],
+            "value_props": ["Reduce opex by 30%"],
+            "objection_handling": [{"objection": "Too expensive", "response": "Phased ROI"}],
         }
 
-        response = client.get(
-            f"/api/opportunities/{test_opportunity.id}/personas/Director/Operations",
+        response = client.post(
+            f"/api/opportunities/{test_opportunity.id}/personas/generate",
+            json={"seniority": "Director/C-Level", "department": "IT", "force_regenerate": False},
             headers=auth_headers,
         )
 
         assert response.status_code == 200
         data = response.json()
-        assert data["seniority"] == "Director"
-        assert data["department"] == "Operations"
-        assert len(data["discovery_questions"]) == 1
-        assert data["discovery_questions"][0] == "How do you track SLAs?"
+        assert data["seniority"] == "Director/C-Level"
+        assert data["department"] == "IT"
+        assert len(data["focus_areas"]) == 1
+        assert len(data["questions"]) == 1
+        assert data["questions"][0]["question"] == "Current infra setup?"
 
-        # Verify cached in database
+        # Verify saved in database
         saved = (
             db.query(OpportunityPersona)
             .filter_by(
                 opportunity_id=test_opportunity.id,
-                seniority="Director",
-                department="Operations",
+                seniority="Director/C-Level",
+                department="IT",
             )
             .first()
         )
         assert saved is not None
-        assert saved.strategic_focus == "Process automation & efficiency"
+        assert len(saved.focus_areas) == 1
 
-    @patch("app.services.persona_service.generate_persona_questions_with_llm")
-    def test_get_persona_returns_cached_without_calling_llm(
+    @patch("app.api.personas.generate_persona_playbook", new_callable=AsyncMock)
+    def test_generate_returns_cached_without_calling_llm(
         self,
-        mock_llm,
+        mock_generate,
         client: TestClient,
         auth_headers: dict[str, str],
         db: Session,
         test_opportunity: Opportunity,
     ):
-        """Should return cached persona if already exists without re-calling LLM."""
+        """Should return cached persona if already exists without re-calling generate service."""
         cached_persona = OpportunityPersona(
             id=uuid.uuid4(),
             opportunity_id=test_opportunity.id,
             seniority="VP",
             department="IT",
-            key_responsibilities="IT Infrastructure",
-            strategic_focus="Cloud security",
-            pain_points=["Cloud migration risks"],
-            discovery_questions=["What is your current RPO/RTO?"],
-            objection_handling=["Highlight SOC 2 compliance."],
+            focus_areas=[{"title": "Security", "description": "SOC2 Compliance"}],
+            questions=[{"category": "Security", "question": "Current RPO?", "purpose": "Baseline"}],
+            value_props=["Full coverage"],
+            objection_handling=[{"objection": "Time", "response": "Quick onboarding"}],
         )
         db.add(cached_persona)
         db.commit()
 
-        response = client.get(
-            f"/api/opportunities/{test_opportunity.id}/personas/VP/IT",
+        response = client.post(
+            f"/api/opportunities/{test_opportunity.id}/personas/generate",
+            json={"seniority": "VP", "department": "IT", "force_regenerate": False},
             headers=auth_headers,
         )
 
         assert response.status_code == 200
         data = response.json()
         assert data["seniority"] == "VP"
-        assert data["discovery_questions"] == ["What is your current RPO/RTO?"]
-        mock_llm.assert_not_called()
+        assert data["questions"][0]["question"] == "Current RPO?"
+        mock_generate.assert_not_called()
+
+    def test_get_persona_detail(
+        self,
+        client: TestClient,
+        auth_headers: dict[str, str],
+        db: Session,
+        test_opportunity: Opportunity,
+    ):
+        """Should fetch persona detail via GET /detail?seniority=...&department=..."""
+        cached = OpportunityPersona(
+            id=uuid.uuid4(),
+            opportunity_id=test_opportunity.id,
+            seniority="Manager",
+            department="Finance",
+            focus_areas=[{"title": "Cost", "description": "Budget control"}],
+            questions=[],
+            value_props=[],
+            objection_handling=[],
+        )
+        db.add(cached)
+        db.commit()
+
+        response = client.get(
+            f"/api/opportunities/{test_opportunity.id}/personas/detail?seniority=Manager&department=Finance",
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["seniority"] == "Manager"
+        assert data["department"] == "Finance"
+
+    @patch("app.api.personas.generate_persona_playbook", new_callable=AsyncMock)
+    def test_generate_persona_custom_others(
+        self,
+        mock_generate,
+        client: TestClient,
+        auth_headers: dict[str, str],
+        db: Session,
+        test_opportunity: Opportunity,
+    ):
+        """Should support custom seniority and department (Others)."""
+        mock_generate.return_value = {
+            "focus_areas": [{"title": "Governance & Compliance", "description": "Audit readiness"}],
+            "questions": [{"category": "Compliance", "question": "What is current audit cycle?", "purpose": "Gap analysis"}],
+            "value_props": ["Automated compliance evidence"],
+            "objection_handling": [{"objection": "Audit timing", "response": "Parallel verification"}],
+        }
+
+        response = client.post(
+            f"/api/opportunities/{test_opportunity.id}/personas/generate",
+            json={
+                "seniority": "  Lead Enterprise Architect  ",
+                "department": "  Risk & Compliance  ",
+                "force_regenerate": False,
+            },
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["seniority"] == "Lead Enterprise Architect"
+        assert data["department"] == "Risk & Compliance"
+
+        # Verify saved in database with trimmed values
+        saved = (
+            db.query(OpportunityPersona)
+            .filter_by(
+                opportunity_id=test_opportunity.id,
+                seniority="Lead Enterprise Architect",
+                department="Risk & Compliance",
+            )
+            .first()
+        )
+        assert saved is not None
+        assert saved.seniority == "Lead Enterprise Architect"
+        assert saved.department == "Risk & Compliance"
+
+    def test_generate_persona_validation_error_empty_or_too_long(
+        self,
+        client: TestClient,
+        auth_headers: dict[str, str],
+        test_opportunity: Opportunity,
+    ):
+        """Should reject whitespace-only or string exceeding 50 chars."""
+        # Whitespace-only
+        res1 = client.post(
+            f"/api/opportunities/{test_opportunity.id}/personas/generate",
+            json={"seniority": "   ", "department": "IT"},
+            headers=auth_headers,
+        )
+        assert res1.status_code == 422
+
+        # Too long (>50 chars)
+        res2 = client.post(
+            f"/api/opportunities/{test_opportunity.id}/personas/generate",
+            json={"seniority": "A" * 51, "department": "IT"},
+            headers=auth_headers,
+        )
+        assert res2.status_code == 422

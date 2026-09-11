@@ -1,6 +1,20 @@
-export type SeniorityLevel = 'Staff' | 'Manager' | 'Head' | 'VP' | 'Director/C-Level';
+export type SeniorityLevel =
+    | 'Staff'
+    | 'Manager'
+    | 'Head'
+    | 'VP'
+    | 'Director/C-Level'
+    | 'Others'
+    | (string & {});
 
-export type DepartmentType = 'Finance' | 'HR' | 'Marketing' | 'Sales' | 'IT' | 'Operations';
+export type DepartmentType =
+    | 'IT'
+    | 'Finance'
+    | 'Operations'
+    | 'HR'
+    | 'Marketing'
+    | 'Others'
+    | (string & {});
 
 export interface FocusAreaItem {
     title: string;

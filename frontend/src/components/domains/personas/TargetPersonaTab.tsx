@@ -35,16 +35,35 @@ const SENIORITY_LEVELS: SeniorityLevel[] = [
     "Head",
     "VP",
     "Director/C-Level",
+    "Others",
 ];
 
 const DEPARTMENTS: DepartmentType[] = [
+    "IT",
     "Finance",
+    "Operations",
     "HR",
     "Marketing",
-    "Sales",
-    "IT",
-    "Operations",
+    "Others",
 ];
+
+const SENIORITY_SUBTITLES: Record<string, string> = {
+    Staff: "Technical / Hands-on",
+    Manager: "Ops & Team",
+    Head: "Ops & Strategy",
+    VP: "Executive / Leadership",
+    "Director/C-Level": "Strategic ROI",
+    Others: "Custom Role",
+};
+
+const DEPT_SUBTITLES: Record<string, string> = {
+    IT: "Security & Infra",
+    Finance: "Cost & Budget",
+    Operations: "Efficiency & SLA",
+    HR: "People & Culture",
+    Marketing: "Growth & Brand",
+    Others: "Specialized Domain",
+};
 
 interface TargetPersonaTabProps {
     opportunityId: string;
@@ -54,10 +73,23 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
     const { t } = useLanguage();
     const [selectedSeniority, setSelectedSeniority] =
         useState<SeniorityLevel>("Director/C-Level");
+    const [customSeniority, setCustomSeniority] = useState("");
     const [selectedDepartment, setSelectedDepartment] =
         useState<DepartmentType>("IT");
+    const [customDepartment, setCustomDepartment] = useState("");
     const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
     const [isFullCopied, setIsFullCopied] = useState(false);
+
+    const effectiveSeniority =
+        selectedSeniority === "Others" ? customSeniority.trim() : selectedSeniority;
+    const effectiveDepartment =
+        selectedDepartment === "Others" ? customDepartment.trim() : selectedDepartment;
+
+    const isCustomSeniorityValid =
+        selectedSeniority !== "Others" || customSeniority.trim().length > 0;
+    const isCustomDepartmentValid =
+        selectedDepartment !== "Others" || customDepartment.trim().length > 0;
+    const canGenerate = isCustomSeniorityValid && isCustomDepartmentValid;
 
     // Fetch list to show available generated combinations
     const { data: personaList, isLoading: isListLoading } =
@@ -68,7 +100,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
         data: personaDetail,
         isLoading: isDetailLoading,
         isFetching,
-    } = usePersonaDetail(opportunityId, selectedSeniority, selectedDepartment);
+    } = usePersonaDetail(opportunityId, effectiveSeniority, effectiveDepartment);
 
     const generateMutation = useGeneratePersona(opportunityId);
 
@@ -78,23 +110,29 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
 
     const isCurrentTargetGenerating =
         isPending &&
-        generatingSeniority === selectedSeniority &&
-        generatingDepartment === selectedDepartment;
+        generatingSeniority === effectiveSeniority &&
+        generatingDepartment === effectiveDepartment;
 
     const isBackgroundGenerating = isPending && !isCurrentTargetGenerating;
 
     const handleGenerate = (force = false) => {
+        if (!effectiveSeniority || !effectiveDepartment) {
+            toast.error("Silakan isi nama jabatan atau departemen spesifik terlebih dahulu.");
+            return;
+        }
         generateMutation.mutate({
-            seniority: selectedSeniority,
-            department: selectedDepartment,
+            seniority: effectiveSeniority,
+            department: effectiveDepartment,
             force_regenerate: force,
         });
     };
 
-    const isGenerated = (s: SeniorityLevel, d: DepartmentType) => {
-        if (!personaList?.items) return false;
+    const isGenerated = (s: string, d: string) => {
+        if (!personaList?.items || !s || !d) return false;
         return personaList.items.some(
-            (item) => item.seniority === s && item.department === d
+            (item) =>
+                item.seniority.toLowerCase() === s.toLowerCase() &&
+                item.department.toLowerCase() === d.toLowerCase()
         );
     };
 
@@ -117,8 +155,8 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
 
     const activePersona =
         personaDetail ||
-        (generateMutation.data?.seniority === selectedSeniority &&
-            generateMutation.data?.department === selectedDepartment
+        (generateMutation.data?.seniority === effectiveSeniority &&
+            generateMutation.data?.department === effectiveDepartment
             ? generateMutation.data
             : null);
 
@@ -153,8 +191,23 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                     <button
                         type="button"
                         onClick={() => {
-                            setSelectedSeniority(generatingSeniority);
-                            setSelectedDepartment(generatingDepartment);
+                            const isPresetSeniority = SENIORITY_LEVELS.includes(generatingSeniority as SeniorityLevel);
+                            if (isPresetSeniority && generatingSeniority !== "Others") {
+                                setSelectedSeniority(generatingSeniority as SeniorityLevel);
+                                setCustomSeniority("");
+                            } else {
+                                setSelectedSeniority("Others");
+                                setCustomSeniority(generatingSeniority);
+                            }
+
+                            const isPresetDept = DEPARTMENTS.includes(generatingDepartment as DepartmentType);
+                            if (isPresetDept && generatingDepartment !== "Others") {
+                                setSelectedDepartment(generatingDepartment as DepartmentType);
+                                setCustomDepartment("");
+                            } else {
+                                setSelectedDepartment("Others");
+                                setCustomDepartment(generatingDepartment);
+                            }
                         }}
                         className="text-xs font-semibold text-orange-700 hover:text-orange-900 bg-white/80 hover:bg-white px-2.5 py-1 rounded-md border border-orange-200/80 transition-colors shrink-0"
                     >
@@ -210,8 +263,8 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             variant="outline"
                             size="sm"
                             onClick={() => handleGenerate(true)}
-                            disabled={isPending}
-                            className="gap-1.5 text-xs text-zinc-700 border-zinc-300 hover:bg-zinc-50"
+                            disabled={isPending || !canGenerate}
+                            className="gap-1.5 text-xs text-zinc-700 border-zinc-300 hover:bg-zinc-50 disabled:opacity-50"
                         >
                             <RefreshCw className={`w-3.5 h-3.5 ${isCurrentTargetGenerating ? "animate-spin" : ""}`} />
                             {isCurrentTargetGenerating ? t.opportunityDetail.persona.regenerating : t.opportunityDetail.persona.regeneratePlaybook}
@@ -220,7 +273,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                         <Button
                             size="sm"
                             onClick={() => handleGenerate(false)}
-                            disabled={isPending}
+                            disabled={isPending || !canGenerate}
                             className="gap-1.5 text-xs bg-orange-600 hover:bg-orange-700 text-white disabled:opacity-50"
                         >
                             <Sparkles className={`w-3.5 h-3.5 ${isCurrentTargetGenerating ? "animate-spin" : ""}`} />
@@ -239,18 +292,18 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             <ShieldCheck className="w-4 h-4 text-zinc-400" />
                             {t.opportunityDetail.persona.seniorityLevel}
                         </span>
-                        <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
-                            {selectedSeniority}
+                        <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full truncate max-w-[160px]">
+                            {effectiveSeniority || selectedSeniority}
                         </span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {SENIORITY_LEVELS.map((lvl) => {
-                            const hasCached = isGenerated(lvl, selectedDepartment);
+                            const hasCached = isGenerated(lvl === "Others" ? effectiveSeniority : lvl, effectiveDepartment);
                             const isSelected = selectedSeniority === lvl;
                             const isLvlGenerating =
                                 isPending &&
-                                generatingSeniority === lvl &&
-                                generatingDepartment === selectedDepartment;
+                                generatingSeniority === (lvl === "Others" ? effectiveSeniority : lvl) &&
+                                generatingDepartment === effectiveDepartment;
                             return (
                                 <button
                                     key={lvl}
@@ -270,12 +323,27 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                                         ) : null}
                                     </div>
                                     <span className="text-[10px] text-zinc-400 mt-0.5">
-                                        {lvl === "Director/C-Level" ? "Strategic ROI" : lvl === "Staff" ? "Technical / Hands-on" : "Ops & Team"}
+                                        {SENIORITY_SUBTITLES[lvl] || "Custom Role"}
                                     </span>
                                 </button>
                             );
                         })}
                     </div>
+                    {selectedSeniority === "Others" && (
+                        <div className="mt-3 pt-3 border-t border-zinc-100 space-y-1">
+                            <label className="block text-[11px] font-medium text-zinc-600">
+                                Masukkan level jabatan / peran spesifik (maks. 50 karakter):
+                            </label>
+                            <input
+                                type="text"
+                                value={customSeniority}
+                                onChange={(e) => setCustomSeniority(e.target.value.slice(0, 50))}
+                                placeholder="misal: Lead Enterprise Architect / CISO"
+                                className="w-full text-xs px-3 py-1.5 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 bg-zinc-50/50"
+                                maxLength={50}
+                            />
+                        </div>
+                    )}
                 </Card>
 
                 {/* Department Selector */}
@@ -285,18 +353,18 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             <Building2 className="w-4 h-4 text-zinc-400" />
                             {t.opportunityDetail.persona.targetDepartment}
                         </span>
-                        <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
-                            {selectedDepartment}
+                        <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full truncate max-w-[160px]">
+                            {effectiveDepartment || selectedDepartment}
                         </span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {DEPARTMENTS.map((dept) => {
-                            const hasCached = isGenerated(selectedSeniority, dept);
+                            const hasCached = isGenerated(effectiveSeniority, dept === "Others" ? effectiveDepartment : dept);
                             const isSelected = selectedDepartment === dept;
                             const isDeptGenerating =
                                 isPending &&
-                                generatingDepartment === dept &&
-                                generatingSeniority === selectedSeniority;
+                                generatingDepartment === (dept === "Others" ? effectiveDepartment : dept) &&
+                                generatingSeniority === effectiveSeniority;
                             return (
                                 <button
                                     key={dept}
@@ -316,12 +384,27 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                                         ) : null}
                                     </div>
                                     <span className="text-[10px] text-zinc-400 mt-0.5">
-                                        {dept === "IT" ? "Security & Infra" : dept === "Finance" ? "Cost & Budget" : "Workflow & KPI"}
+                                        {DEPT_SUBTITLES[dept] || "Specialized Domain"}
                                     </span>
                                 </button>
                             );
                         })}
                     </div>
+                    {selectedDepartment === "Others" && (
+                        <div className="mt-3 pt-3 border-t border-zinc-100 space-y-1">
+                            <label className="block text-[11px] font-medium text-zinc-600">
+                                Masukkan nama departemen / divisi spesifik (maks. 50 karakter):
+                            </label>
+                            <input
+                                type="text"
+                                value={customDepartment}
+                                onChange={(e) => setCustomDepartment(e.target.value.slice(0, 50))}
+                                placeholder="misal: Risk & Compliance / Audit Internal"
+                                className="w-full text-xs px-3 py-1.5 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 bg-zinc-50/50"
+                                maxLength={50}
+                            />
+                        </div>
+                    )}
                 </Card>
             </div>
 
@@ -344,7 +427,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                 <Card className="p-12 text-center bg-white border-zinc-200">
                     <div className="flex flex-col items-center justify-center space-y-3">
                         <Loader2 className="w-6 h-6 text-zinc-400 animate-spin" />
-                        <p className="text-xs text-zinc-500">{t.opportunityDetail.persona.loadingPlaybook} {selectedSeniority} ({selectedDepartment})...</p>
+                        <p className="text-xs text-zinc-500">{t.opportunityDetail.persona.loadingPlaybook} {effectiveSeniority || selectedSeniority} ({effectiveDepartment || selectedDepartment})...</p>
                     </div>
                 </Card>
             ) : activePersona ? (
@@ -510,7 +593,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             <Users className="w-6 h-6" />
                         </div>
                         <h4 className="text-sm font-semibold text-zinc-900">
-                            {t.opportunityDetail.persona.noPersonaTitle} ({selectedSeniority} - {selectedDepartment})
+                            {t.opportunityDetail.persona.noPersonaTitle} ({effectiveSeniority || selectedSeniority} - {effectiveDepartment || selectedDepartment})
                         </h4>
                         <p className="text-xs text-zinc-500 leading-relaxed">
                             {t.opportunityDetail.persona.noPersonaDesc}
@@ -518,11 +601,11 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                         <Button
                             size="sm"
                             onClick={() => handleGenerate(false)}
-                            disabled={isPending}
+                            disabled={isPending || !canGenerate}
                             className="gap-1.5 text-xs bg-orange-600 hover:bg-orange-700 text-white mt-2 disabled:opacity-50"
                         >
                             <Sparkles className="w-3.5 h-3.5" />
-                            {isPending ? t.opportunityDetail.persona.generating : `${t.opportunityDetail.persona.generatePlaybook} (${selectedSeniority} - ${selectedDepartment})`}
+                            {isPending ? t.opportunityDetail.persona.generating : `${t.opportunityDetail.persona.generatePlaybook} (${effectiveSeniority || selectedSeniority} - ${effectiveDepartment || selectedDepartment})`}
                         </Button>
                     </div>
                 </Card>

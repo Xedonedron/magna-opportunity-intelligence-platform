@@ -50,8 +50,8 @@ async def list_personas(
 @router.get("/detail", response_model=OpportunityPersonaResponse | None)
 async def get_persona_detail(
     opportunity_id: uuid.UUID,
-    seniority: str = Query(...),
-    department: str = Query(...),
+    seniority: str = Query(..., min_length=1, max_length=50),
+    department: str = Query(..., min_length=1, max_length=50),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -61,8 +61,8 @@ async def get_persona_detail(
         db.query(OpportunityPersona)
         .filter(
             OpportunityPersona.opportunity_id == opportunity_id,
-            OpportunityPersona.seniority == seniority,
-            OpportunityPersona.department == department,
+            OpportunityPersona.seniority == seniority.strip(),
+            OpportunityPersona.department == department.strip(),
         )
         .first()
     )
@@ -177,7 +177,7 @@ async def generate_or_get_persona(
             extra_data={
                 "seniority": payload.seniority,
                 "department": payload.department,
-                "company_name": opp.company_name,
+                "company_name": opportunity.company_name,
             },
         )
     except Exception:
