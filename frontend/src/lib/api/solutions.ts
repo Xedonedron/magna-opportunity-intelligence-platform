@@ -59,4 +59,9 @@ export const solutionsApi = {
         const res = await api.delete(`/api/admin/solutions/${id}`);
         return res.data;
     },
+
+    async syncMasterCatalog(): Promise<{ status: string; message: string; total_active: number }> {
+        const res = await api.post("/api/admin/solutions/sync");
+        return res.data;
+    },
 };

@@ -19,6 +19,7 @@ import {
     Server,
     Loader2,
     X,
+    RefreshCw,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -121,6 +122,25 @@ export function SolutionsCatalogTab() {
             setLoading(false);
         }
     };
+    const [syncing, setSyncing] = useState<boolean>(false);
+
+    const handleSyncMaster = async () => {
+        if (!confirm("Sinkronkan seluruh katalog solusi dengan data master resmi (40 solusi terkurasi)? Solusi lama dengan URL tidak valid akan dibersihkan.")) {
+            return;
+        }
+        setSyncing(true);
+        try {
+            const res = await solutionsApi.syncMasterCatalog();
+            toast.success(res.message || "Katalog solusi berhasil disinkronkan dengan data master!");
+            await fetchSolutions();
+        } catch (err: any) {
+            console.error("Failed to sync solutions:", err);
+            toast.error(err?.response?.data?.detail || "Gagal menyinkronkan katalog solusi.");
+        } finally {
+            setSyncing(false);
+        }
+    };
+
 
     useEffect(() => {
         fetchSolutions();
@@ -265,9 +285,21 @@ export function SolutionsCatalogTab() {
                 </div>
 
                 {canManage && (
-                    <Button onClick={openCreateDialog} className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white text-xs h-9 gap-1.5 shadow-sm">
-                        <Plus className="w-4 h-4" /> Tambah Solusi Baru
-                    </Button>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <Button
+                            onClick={handleSyncMaster}
+                            disabled={syncing}
+                            variant="outline"
+                            className="text-xs h-9 gap-1.5 border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/50"
+                            title="Sinkronkan database dengan 40 solusi resmi dan bersihkan link lama"
+                        >
+                            <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} />
+                            {syncing ? "Menyinkronkan..." : "Sinkronkan Master Data"}
+                        </Button>
+                        <Button onClick={openCreateDialog} className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-9 gap-1.5 shadow-sm">
+                            <Plus className="w-4 h-4" /> Tambah Solusi Baru
+                        </Button>
+                    </div>
                 )}
             </div>
 

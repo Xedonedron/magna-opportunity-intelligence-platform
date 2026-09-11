@@ -880,4 +880,98 @@ def delete_master_solution(
     return {"status": "success", "message": f"Solution '{solution.title}' deleted"}
 
 
+@router.post("/solutions/sync", status_code=status.HTTP_200_OK)
+def sync_master_solutions_from_curated(
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_superadmin),
+):
+    """
+    Synchronize PostgreSQL master_solutions table with the official curated_solutions.json.
+    Purges dead/deprecated links and ensures naming matches enterprise standards.
+    """
+    import os
+    import json
+
+    curated_path = os.path.join(
+        os.path.dirname(__file__), "..", "data", "curated_solutions.json"
+    )
+    if not os.path.exists(curated_path):
+        raise HTTPException(status_code=404, detail="curated_solutions.json not found")
+
+    with open(curated_path, "r", encoding="utf-8") as f:
+        official_solutions = json.load(f)
+
+    # 1. Purge legacy broken /solutions/ URLs
+    db.query(MasterSolution).filter(MasterSolution.source_url.ilike("%/solutions/%")).delete(synchronize_session=False)
+
+    official_urls = set()
+    upserted_count = 0
+
+    for item in official_solutions:
+        source_url = item.get("source_url")
+        if not source_url:
+            continue
+        official_urls.add(source_url)
+
+        existing = db.query(MasterSolution).filter(MasterSolution.source_url == source_url).first()
+        if not existing and item.get("slug"):
+            existing = db.query(MasterSolution).filter(MasterSolution.slug == item.get("slug")).first()
+
+        if existing:
+            existing.title = item["title"].strip()
+            existing.slug = item.get("slug")
+            existing.pillar = item["pillar"].strip()
+            existing.tier = item.get("tier", 1)
+            existing.primary_products = item.get("primary_products", [])
+            existing.all_products = item.get("all_products", [])
+            existing.target_industries = item.get("target_industries", ["Enterprise General"])
+            existing.key_subheadings = item.get("key_subheadings", [])
+            existing.pain_points = item.get("pain_points", [])
+            existing.business_impact = item.get("business_impact", "")
+            existing.summary_snippet = item.get("summary_snippet", "")
+            existing.source_url = source_url
+            existing.is_active = True
+        else:
+            new_record = MasterSolution(
+                title=item["title"].strip(),
+                slug=item.get("slug"),
+                pillar=item["pillar"].strip(),
+                tier=item.get("tier", 1),
+                primary_products=item.get("primary_products", []),
+                all_products=item.get("all_products", []),
+                target_industries=item.get("target_industries", ["Enterprise General"]),
+                key_subheadings=item.get("key_subheadings", []),
+                pain_points=item.get("pain_points", []),
+                business_impact=item.get("business_impact", ""),
+                summary_snippet=item.get("summary_snippet", ""),
+                source_url=source_url,
+                is_active=True,
+            )
+            db.add(new_record)
+        upserted_count += 1
+
+    # 2. Remove any orphaned entries not in official list
+    if official_urls:
+        db.query(MasterSolution).filter(
+            ~MasterSolution.source_url.in_(list(official_urls))
+        ).delete(synchronize_session=False)
+
+    db.commit()
+
+    try:
+        solutions_catalog.reload()
+    except Exception:
+        pass
+
+    total_active = db.query(MasterSolution).filter(MasterSolution.is_active == True).count()
+
+    return {
+        "status": "success",
+        "message": f"Successfully synchronized master solutions catalog. {total_active} active solutions.",
+        "total_active": total_active,
+        "processed": upserted_count,
+    }
+
+
+
 
