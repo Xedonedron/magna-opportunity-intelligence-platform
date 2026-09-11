@@ -321,6 +321,10 @@ CRITICAL LINK INSTRUCTION: Untuk array "references", Anda HANYA BOLEH menyertaka
 
 PANDUAN SOLUSI & USE CASE: Saat menyusun use_cases, rujuk bagian Referensi Riset dan Katalog Solusi Smartnet Magna Global di atas. Masukkan solusi spesifik dari katalog/portfolio Smartnet Magna pada field "smartnet_solutions" dan produk/teknologi vendor utama yang relevan (misal: Dell PowerEdge, Nutanix HCI, Cisco Catalyst, Aruba Wi-Fi 6, BeyondTrust PAM, Fortinet FortiGate, BigQuery, Vertex AI, dsb.) pada field "google_products". Nilai "impact_level" harus salah satu dari: "High", "Medium", atau "Low". Wajib urutkan daftar "use_cases" secara berurutan berdasarkan nilai "impact_level": dimulai dari "High", lalu "Medium", kemudian "Low".
 
+STANDARDISASI NAMA SOLUSI & USE CASE (ENTERPRISE GRADE):
+- DILARANG KERAS menggunakan judul clickbait, judul artikel blog informal, tanda seru ('Waspada!', 'Penting!', 'Awas!', 'Anti Ribet'), atau kalimat pertanyaan retoris ('Mengapa...', 'Benarkah...').
+- Seluruh nama use case pada field 'title' dan nama solusi pada 'smartnet_solutions' WAJIB menggunakan tata nama enterprise B2B formal yang mencerminkan kemampuan arsitektural teknis (contoh: 'Enterprise Cloud Observability & Proactive Monitoring', 'Zero Trust Architecture & Context-Aware Perimeter', 'Predictive Anti-Fraud & Real-Time Risk Analytics', 'Next-Generation Firewall & Perimeter Defense').
+
 Format output HARUS berupa JSON valid dengan struktur kunci (keys) persis berikut:
 {{
     "executive_summary": "Ringkasan eksekutif 2-3 paragraf mengenai profil perusahaan, konteks bisnis, peluang kolaborasi, dan urgensi solusi",

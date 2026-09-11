@@ -130,32 +130,55 @@ KEY="value"        # quote tidak konsisten
 
 ---
 
-## 🔄 Workflow: Deploy ke VM (Referensi Permanen)
+## 🌐 Arsitektur Deployment MOIP (PENTING)
 
-### Setelah Pull dari Repo
+Sistem MOIP memiliki arsitektur deployment terpisah (*decoupled deployment*):
 
-Jika ada perubahan di folder `backend/alembic/versions/` atau logic backend:
+| Komponen | Platform Deployment | Cara Deploy & Karakteristik |
+|---|---|---|
+| **Frontend (Next.js)** | **Vercel** | Terpisah dari VM. Otomatis ter-deploy (*CI/CD*) saat commit/push ke branch GitHub terkait. **TIDAK** dibuild atau dijalankan di dalam Docker VPS. |
+| **Backend (FastAPI)** | **VM / VPS (Docker Compose)** | Dijalankan via Docker container `backend`. Perlu `docker compose build` atau `restart` saat ada perubahan logic/dependency. |
+| **Worker (Celery)** | **VM / VPS (Docker Compose)** | Dijalankan via Docker container `celery`. Wajib rebuild bersamaan dengan backend. |
+| **Database (PostgreSQL)** | **VM / VPS (Docker Compose)** | Container `postgres`. Skema diatur via Alembic migrations. |
+| **Cache / Queue (Redis)** | **VM / VPS (Docker Compose)** | Container `redis`. |
+
+> [!WARNING]
+> **JANGAN PERNAH** mencoba mem-build frontend di Docker VPS atau menambahkan frontend service ke dalam `docker-compose.yml` VM. Segala kompilasi dan serving frontend sepenuhnya ditangani oleh Vercel.
+
+---
+
+## 🔄 Workflow: Deploy ke VM / VPS (Referensi Permanen)
+
+### Setelah Pull dari Repo di VM Backend
+
+Jika ada perubahan di folder `backend/alembic/versions/`, dependency, atau logic backend:
 
 ```bash
-# 1. Pull code terbaru
+# 1. Pull code terbaru dari repository
 git pull origin main
 
-# 2. Rebuild backend & celery (WAJIB jika ada perubahan logic / migration baru)
+# 2. Rebuild backend & celery (WAJIB jika ada perubahan logic, dataset master, atau dependency)
 docker compose build --no-cache backend celery && docker compose up -d backend celery
 
-# 3. Jalankan migration database
+# 3. Jalankan migration database (jika ada file migrasi baru)
 docker compose exec -T backend alembic upgrade head
 
-# 4. Verifikasi
+# 4. Verifikasi status container & migration
+docker compose ps
 docker compose exec -T backend alembic current
 ```
 
-### Jika Tidak Ada Migration Baru
+### Jika Hanya Perubahan Kecil Tanpa Perubahan Dependency / Dockerfile
 
 ```bash
 git pull origin main
-docker compose restart backend
+docker compose restart backend celery
 ```
+
+### Deployment Frontend (Vercel)
+- Cukup lakukan `git push origin main`.
+- Vercel akan otomatis mendeteksi perubahan di folder `frontend/` dan mentrigger production deployment.
+- Pastikan environment variables di dashboard Vercel (`NEXT_PUBLIC_API_URL`) tetap mengarah ke domain backend VPS yang aktif.
 
 ---
 

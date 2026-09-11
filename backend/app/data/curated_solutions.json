@@ -3,7 +3,7 @@
     "id": "waspada-ai-powered-ransomware-mengincar-enterprise",
     "tier": 1,
     "status": "APPROVED",
-    "title": "Waspada! AI-Powered Ransomware Mengincar Enterprise",
+    "title": "AI-Powered Ransomware Protection & Threat Defense",
     "pillar": "Data Analytics & AI",
     "primary_products": [
       "Security Command Center",
@@ -98,7 +98,7 @@
     "id": "mengapa-ai-ready-infrastructure-jadi-fondasi-utama-enterprise-di-era-modern",
     "tier": 1,
     "status": "APPROVED",
-    "title": "Mengapa AI-Ready Infrastructure jadi Fondasi Utama Enterprise di Era Modern?",
+    "title": "AI-Ready High-Performance Infrastructure Foundation",
     "pillar": "Data Analytics & AI",
     "primary_products": [
       "Google Cloud",
@@ -394,7 +394,7 @@
     "id": "awas-downtime-mengintai-cegah-dengan-cloud-monitoring",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Awas Downtime Mengintai! Cegah dengan Cloud Monitoring",
+    "title": "Enterprise Cloud Observability & Proactive Monitoring",
     "pillar": "Data Analytics & AI",
     "primary_products": [
       "Cloud Monitoring"
@@ -466,7 +466,7 @@
     "id": "kenali-lebih-dalam-hybrid-cloud-storage-untuk-cerdas-kelola-data-perusahaan",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Kenali Lebih Dalam Hybrid Cloud Storage untuk Cerdas Kelola Data Perusahaan",
+    "title": "Enterprise Hybrid Cloud Storage & Data Tiering",
     "pillar": "Data Analytics & AI",
     "primary_products": [
       "Cloud Storage",
@@ -533,7 +533,7 @@
     "id": "hyperconverged-infrastructure-fondasi-digital-banking-yang-modern-dan-scalable",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Hyperconverged Infrastructure: Fondasi Digital Banking yang Modern dan Scalable",
+    "title": "Hyperconverged Infrastructure (HCI) untuk Digital Banking",
     "pillar": "Cloud Infrastructure & Modernization",
     "primary_products": [
       "Hyperconverged Infrastructure"
@@ -562,7 +562,7 @@
     "id": "cloud-banking-transformasi-perbankan-modern-dimulai-dari-sini",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Cloud Banking: Transformasi Perbankan Modern Dimulai Dari Sini!",
+    "title": "Modern Cloud Core Banking Infrastructure Transformation",
     "pillar": "Data Analytics & AI",
     "primary_products": [],
     "all_products": [],
@@ -590,7 +590,7 @@
     "id": "tingkatkan-visibilitas-dan-respons-keamanan-anda-dengan-siem-modern",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Tingkatkan Visibilitas dan Respons Keamanan Anda dengan SIEM Modern!",
+    "title": "Modern SIEM & Security Operations Center (SOC) Modernization",
     "pillar": "Data Analytics & AI",
     "primary_products": [
       "SIEM"
@@ -652,7 +652,7 @@
     "id": "5-strategi-optimalkan-infrastruktur-hybrid-cloud-dengan-google-cloud-di-2025",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "5 Strategi Optimalkan Infrastruktur Hybrid Cloud dengan Google Cloud di 2025",
+    "title": "Hybrid Cloud Infrastructure Strategy & Multi-Cloud Optimization",
     "pillar": "Cloud Infrastructure & Modernization",
     "primary_products": [
       "Google Cloud",
@@ -725,7 +725,7 @@
     "id": "jangan-biarkan-data-nasabah-bocor-ini-cara-cerdas-menghadapinya",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Jangan Biarkan Data Nasabah Bocor! Ini Cara Cerdas Menghadapinya",
+    "title": "Enterprise Customer Data Protection & Breach Prevention",
     "pillar": "Data Analytics & AI",
     "primary_products": [],
     "all_products": [],
@@ -792,7 +792,7 @@
     "id": "5-manfaat-cloud-computing-yang-bisa-mengubah-bisnis-multifinance",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "5 Manfaat Cloud Computing yang Bisa Mengubah Bisnis Multifinance",
+    "title": "Cloud Infrastructure Modernization untuk Bisnis Multifinance",
     "pillar": "Data Analytics & AI",
     "primary_products": [],
     "all_products": [],
@@ -859,7 +859,7 @@
     "id": "mengenal-google-security-command-center-enterprise-untuk-kelola-keamanan-multicloud",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Mengenal Google Security Command Center Enterprise untuk Kelola Keamanan Multicloud",
+    "title": "Multi-Cloud Security Posture Management dengan SCC Enterprise",
     "pillar": "Cybersecurity Suite",
     "primary_products": [
       "Security Command Center"
@@ -960,7 +960,7 @@
     "id": "pusat-data-nasional-down-dibobol-ransomware-ini-peran-penting-endpoint-security",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Pusat Data Nasional Down Dibobol Ransomware, Ini Peran Penting Endpoint Security",
+    "title": "Resilient Endpoint Security & Advanced Ransomware Containment",
     "pillar": "Data Analytics & AI",
     "primary_products": [],
     "all_products": [],
@@ -987,7 +987,7 @@
     "id": "security-command-center-solusi-canggih-di-tengah-ancaman-siber-yang-kian-kompleks",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Security Command Center: Solusi Canggih di Tengah Ancaman Siber yang Kian Kompleks",
+    "title": "Google Security Command Center (SCC) Threat Detection & Compliance",
     "pillar": "Cybersecurity Suite",
     "primary_products": [
       "Security Command Center"
@@ -1022,7 +1022,7 @@
     "id": "penting-ini-5-alasan-bisnis-butuh-data-loss-prevention-dlp",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Penting! Ini 5 Alasan Bisnis Butuh Data Loss Prevention (DLP)",
+    "title": "Comprehensive Data Loss Prevention (DLP) & Data Governance",
     "pillar": "Data Analytics & AI",
     "primary_products": [
       "Data Loss Prevention",
@@ -1059,7 +1059,7 @@
     "id": "memahami-iam-fondasi-keamanan-dan-efisiensi-bisnis-modern",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Memahami IAM, Fondasi Keamanan dan Efisiensi Bisnis Modern",
+    "title": "Enterprise Identity and Access Management (IAM) & Least Privilege",
     "pillar": "Data Analytics & AI",
     "primary_products": [
       "IAM"
@@ -1094,7 +1094,7 @@
     "id": "google-firebase-platform-unggulan-untuk-pengembangan-aplikasi-modern",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Google Firebase: Platform Unggulan untuk Pengembangan Aplikasi Modern",
+    "title": "Modern Mobile & Web App Backend Development dengan Firebase",
     "pillar": "Cloud Infrastructure & Modernization",
     "primary_products": [
       "Firebase"
@@ -1198,7 +1198,7 @@
     "id": "waspada-5-tantangan-ini-sering-hantui-bisnis-e-commerce-di-indonesia",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Waspada! 5 Tantangan Ini Sering Hantui Bisnis E-commerce di Indonesia",
+    "title": "High-Scalability Infrastructure & Performance Optimization E-Commerce",
     "pillar": "Data Analytics & AI",
     "primary_products": [],
     "all_products": [],
@@ -1263,7 +1263,7 @@
     "id": "transformasi-digital-jadi-mudah-dan-aman-dengan-google-cloud-platform",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Transformasi Digital Jadi Mudah dan Aman dengan Google Cloud Platform",
+    "title": "Secure Digital Transformation with Google Cloud Platform (GCP)",
     "pillar": "Cloud Infrastructure & Modernization",
     "primary_products": [
       "Google Cloud"
@@ -1298,7 +1298,7 @@
     "id": "google-bigquery-solusi-anti-ribet-kelola-data-karyawan",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Google BigQuery, Solusi Anti Ribet Kelola Data Karyawan",
+    "title": "Centralized People Analytics & Data Management dengan BigQuery",
     "pillar": "Data Analytics & AI",
     "primary_products": [
       "BigQuery"
@@ -1332,7 +1332,7 @@
     "id": "wujudkan-kerja-kreatif-dan-kolaboratif-dengan-google-workspace",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Wujudkan Kerja Kreatif dan Kolaboratif dengan Google Workspace",
+    "title": "Modern Collaboration & Productivity Suite dengan Google Workspace",
     "pillar": "Network & Enterprise Workplace",
     "primary_products": [
       "Google Workspace"
@@ -1365,7 +1365,7 @@
     "id": "google-anthos-pilihan-tepat-terapkan-multicloud",
     "tier": 2,
     "status": "APPROVED_NICHE",
-    "title": "Google Anthos, Pilihan Tepat Terapkan Multicloud!",
+    "title": "Multi-Cloud Container Platform & Modernization dengan Google Anthos",
     "pillar": "Cloud Infrastructure & Modernization",
     "primary_products": [
       "Anthos"
@@ -1391,251 +1391,5 @@
     "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
     "filter_reason": "Moderate technical / consultative context",
     "summary_snippet": "Kemampuan untuk menggunakan aset yang ada dengan lebih baik dan memanfaatkan cara baru untuk menyimpan, mengelola, dan menganalisis data menjadi faktor utama yang mendorong perusahaan mengadopsi strategi multicloud. Masuk akal memang, karena berdasarkan survei yang dilakukan oleh Gartner, saat ini..."
-  },
-  {
-    "id": "enterprise-wired-wireless-lan-healthcare-enterprise",
-    "tier": 1,
-    "status": "APPROVED",
-    "title": "Enterprise Wired & Wireless LAN (High-Density Wi-Fi 6 & WPA3)",
-    "pillar": "IT Infrastructure Solution",
-    "primary_products": [
-      "Cisco",
-      "Aruba",
-      "HPE Networking",
-      "Huawei",
-      "Wi-Fi 6",
-      "WiFi",
-      "Wireless LAN"
-    ],
-    "all_products": [
-      "Cisco",
-      "Aruba",
-      "HPE Networking",
-      "Huawei",
-      "Extreme Networks",
-      "Wi-Fi 6",
-      "WPA3",
-      "Core Switch",
-      "Access Point"
-    ],
-    "target_industries": [
-      "Healthcare & Hospitals",
-      "Enterprise General",
-      "Education & Campus"
-    ],
-    "source_url": "https://magnaglobal.id/solutions/it-infrastructure-wired-wireless-lan",
-    "key_subheadings": [
-      "Perancangan High-Density Wireless LAN untuk Lingkungan Kritis (EMR & IoT Medis)",
-      "Implementasi Standar Keamanan WPA3 & Segmentasi Jaringan Pasien/Staf",
-      "Penyediaan Akses Cepat Wi-Fi 6 untuk Mobilitas Tenaga Medis & Perangkat Klinis",
-      "Manajemen Terpusat & Monitoring Performa Jaringan (SolarWinds / PRTG)"
-    ],
-    "pain_points": [
-      "Koneksi nirkabel sering putus (drop) dan lambat saat menangani ratusan perangkat medis dan IoT secara bersamaan.",
-      "Risiko kebocoran data rekam medis pasien akibat standar enkripsi nirkabel lama yang belum memenuhi standar kepatuhan regulasi."
-    ],
-    "business_impact": "Konektivitas nirkabel rumah sakit dan enterprise yang stabil dan aman 99.99%, latency rendah untuk akses EMR real-time, dan kepatuhan standar keamanan data medis.",
-    "filter_reason": "Baseline from Company Profile",
-    "summary_snippet": "Penyediaan infrastruktur jaringan wired dan wireless LAN enterprise berkecepatan tinggi dengan teknologi Wi-Fi 6 dan enkripsi WPA3 oleh PT Smartnet Magna Global untuk mendukung kelancaran operasional klinis dan korporat."
-  },
-  {
-    "id": "pam-privileged-access-management-banking-assets",
-    "tier": 1,
-    "status": "APPROVED",
-    "title": "Privileged Access Management (PAM) untuk Proteksi Aset Kritis Perbankan",
-    "pillar": "Security Management Solution",
-    "primary_products": [
-      "BeyondTrust",
-      "PAM",
-      "Password Safe"
-    ],
-    "all_products": [
-      "BeyondTrust",
-      "PAM",
-      "Password Safe",
-      "Privileged Remote Access",
-      "Session Monitoring"
-    ],
-    "target_industries": [
-      "FSI / Banking & Multifinance",
-      "Enterprise General"
-    ],
-    "source_url": "https://magnaglobal.id/solutions/privileged-access-management-pam",
-    "key_subheadings": [
-      "Sentralisasi Penyimpanan & Rotasi Otomatis Kredensial Administrator",
-      "Monitoring & Recording Sesi Akses Privileged Real-Time",
-      "Pemberian Akses Berbasis Just-In-Time (JIT) Tanpa Membocorkan Password",
-      "Audit Trail Lengkap dan Bukti Kepatuhan Regulasi Finansial (OJK / BI / ISO 27001)"
-    ],
-    "pain_points": [
-      "Banyaknya akun privileged admin bersama (shared credentials) tanpa pencatatan aktivitas yang jelas sehingga rentan insider threat.",
-      "Rotasi password server dan database perbankan yang masih dilakukan manual dan tidak konsisten."
-    ],
-    "business_impact": "Kontrol penuh terhadap seluruh akses akun berhak istimewa, eliminasi kebocoran kredensial root/admin, dan 100% kepatuhan audit regulasi perbankan.",
-    "filter_reason": "Baseline from Company Profile",
-    "summary_snippet": "Implementasi solusi BeyondTrust Password Safe & Privileged Access Management oleh SMG untuk mengamankan kredensial penting perbankan, merekam sesi server secara real-time, dan mencegah penyalahgunaan hak akses internal."
-  },
-  {
-    "id": "epm-endpoint-privilege-management-corporate",
-    "tier": 1,
-    "status": "APPROVED",
-    "title": "Endpoint Privilege Management (EPM) & Penghapusan Local Admin Korporasi",
-    "pillar": "Security Management Solution",
-    "primary_products": [
-      "BeyondTrust",
-      "EPM",
-      "Endpoint Privilege Management"
-    ],
-    "all_products": [
-      "BeyondTrust",
-      "EPM",
-      "Least Privilege",
-      "Application Control",
-      "Zero Trust"
-    ],
-    "target_industries": [
-      "Enterprise General",
-      "FSI / Banking & Multifinance",
-      "Manufacture Industry"
-    ],
-    "source_url": "https://magnaglobal.id/solutions/endpoint-privilege-management-epm",
-    "key_subheadings": [
-      "Pencabutan Hak Local Administrator pada Seluruh Laptop & Workstation Karyawan",
-      "Penerapan Just-In-Time Privilege Elevation untuk Tugas Khusus Terverifikasi",
-      "Smart Application Control untuk Menjalankan Software Legal dan Memblokir Script Berbahaya",
-      "Minimalkan Gangguan Produktivitas Kerja Harian Karyawan"
-    ],
-    "pain_points": [
-      "Karyawan memegang hak local administrator sehingga bebas menginstal software bajakan atau terinfeksi malware ransomware.",
-      "Tim IT kewalahan jika mencabut hak admin secara kaku karena dapat menghambat alur kerja karyawan."
-    ],
-    "business_impact": "Mereduksi risiko infeksi malware dan ransomware endpoint hingga 90% melalui prinsip least privilege tanpa mengorbankan produktivitas kerja pengguna.",
-    "filter_reason": "Baseline from Company Profile",
-    "summary_snippet": "Implementasi BeyondTrust EPM oleh PT Smartnet Magna Global untuk menghapus hak local admin pada komputer karyawan dengan memberikan izin eskalasi hak akses otomatis berbasis konteks dan aplikasi terpercaya."
-  },
-  {
-    "id": "server-storage-virtualization-hci",
-    "tier": 1,
-    "status": "APPROVED",
-    "title": "Modern On-Premise Server, Storage Virtualization & Hyper-converged Infrastructure (HCI)",
-    "pillar": "IT Infrastructure Solution",
-    "primary_products": [
-      "Nutanix",
-      "Dell Technologies",
-      "HPE",
-      "VMware",
-      "Sangfor"
-    ],
-    "all_products": [
-      "Nutanix",
-      "Dell Technologies",
-      "HPE",
-      "VMware vSphere",
-      "Broadcom",
-      "Sangfor",
-      "NetApp",
-      "xFusion",
-      "HCI"
-    ],
-    "target_industries": [
-      "Enterprise General",
-      "FSI / Banking & Multifinance",
-      "Manufacture Industry",
-      "Healthcare & Hospitals"
-    ],
-    "source_url": "https://magnaglobal.id/solutions/it-infrastructure-server-storage-hci",
-    "key_subheadings": [
-      "Konsolidasi Server Fisik dan Storage Menggunakan Arsitektur Hyper-converged (HCI)",
-      "Peningkatan Efisiensi Data Center On-Premise dengan Komputasi Kinerja Tinggi",
-      "Virtualisasi Tingkat Enterprise dengan VMware vSphere / Nutanix AHV",
-      "Solusi Backup, Replikasi Data, dan Disaster Recovery Terintegrasi"
-    ],
-    "pain_points": [
-      "Server on-premise lama (legacy hardware) yang mendekati masa End-of-Life (EOL), boros listrik/ruang rack, dan berbiaya maintenance tinggi.",
-      "Kompleksitas pengelolaan silo komputasi, SAN storage, dan jaringan yang terpisah-pisah."
-    ],
-    "business_impact": "Pengurangan jejak footprint data center hingga 60%, efisiensi CAPEX/OPEX hingga 45%, serta ketersediaan sistem (high availability) 99.99% tanpa downtime.",
-    "filter_reason": "Baseline from Company Profile",
-    "summary_snippet": "Penyediaan, integrasi, dan pemeliharaan server fisik enterprise, storage all-flash, dan arsitektur HCI (Nutanix / Dell / HPE / VMware / Sangfor) oleh PT Smartnet Magna Global untuk infrastruktur data center on-premise yang tangguh."
-  },
-  {
-    "id": "next-generation-firewall-network-security",
-    "tier": 1,
-    "status": "APPROVED",
-    "title": "Next-Generation Firewall (NGFW) & Perimeter Threat Prevention",
-    "pillar": "Security Management Solution",
-    "primary_products": [
-      "Fortinet",
-      "FortiGate",
-      "Palo Alto Networks",
-      "Check Point"
-    ],
-    "all_products": [
-      "Fortinet",
-      "FortiGate",
-      "Palo Alto Networks",
-      "Check Point",
-      "NGFW",
-      "IPS",
-      "VPN",
-      "Network Access Control"
-    ],
-    "target_industries": [
-      "Enterprise General",
-      "FSI / Banking & Multifinance",
-      "Retail & Manufacture"
-    ],
-    "source_url": "https://magnaglobal.id/solutions/security-next-generation-firewall",
-    "key_subheadings": [
-      "Inspeksi Mendalam Lalu Lintas Jaringan (Deep Packet Inspection & SSL/TLS Decryption)",
-      "Pencegahan Intrusi Berkelanjutan (Intrusion Prevention System - IPS)",
-      "Segmentasi Jaringan Internal Berbasis Keamanan Tingkat Lanjut",
-      "Sentralisasi Manajemen Firewall Multi-Site & Secure SD-WAN"
-    ],
-    "pain_points": [
-      "Firewall konvensional lama tidak mampu membaca payload terenkripsi dan mendeteksi ancaman modern tingkat aplikasi (Layer 7).",
-      "Beban operasional mengelola puluhan firewall di cabang yang terdistribusi secara manual."
-    ],
-    "business_impact": "Perlindungan perimeter 100% terhadap lalu lintas berbahaya, isolasi otomatis ancaman lateral di jaringan lokal, dan visibilitas total aktivitas bandwidth aplikasi.",
-    "filter_reason": "Baseline from Company Profile",
-    "summary_snippet": "Implementasi NGFW enterprise menggunakan Fortinet FortiGate dan Palo Alto Networks oleh tim bersertifikasi SMG (NSE 4 / Certified Professional) untuk memperkuat perimeter dan segmentasi jaringan korporat."
-  },
-  {
-    "id": "etl-monitoring-managed-services",
-    "tier": 1,
-    "status": "APPROVED",
-    "title": "24/7 Managed Services & Data Pipeline (ETL) Monitoring",
-    "pillar": "Data Analytics & AI",
-    "primary_products": [
-      "Greenplum Database",
-      "Talend",
-      "Cloudera"
-    ],
-    "all_products": [
-      "Greenplum",
-      "Talend",
-      "Cloudera",
-      "Managed Services",
-      "ETL Monitoring",
-      "Data Pipeline"
-    ],
-    "target_industries": [
-      "FSI / Banking & Multifinance",
-      "Enterprise General"
-    ],
-    "source_url": "https://magnaglobal.id/solutions/managed-services-etl-monitoring",
-    "key_subheadings": [
-      "Monitoring Proaktif 24/7 untuk Ratusan Pipeline ETL Misi-Kritis",
-      "Otomasi Diagnostik Error & Penanganan Insiden Pipeline Data",
-      "Kepatuhan SLA Pemrosesan Data Harian Perbankan (99.9%)",
-      "Pengurangan MTTR (Mean Time to Resolution) di Bawah 25 Menit"
-    ],
-    "pain_points": [
-      "Keterbatasan staf IT internal dalam memantau ratusan pipeline ETL harian yang sering gagal tanpa pemberitahuan dini.",
-      "Keterlambatan data batch harian yang mengganggu pelaporan regulasi perbankan dan keputusan bisnis."
-    ],
-    "business_impact": "85% penurunan kegagalan kritis pipeline data, pemenuhan SLA 99.9%, dan menghemat hingga 400 jam kerja tim IT internal per bulan.",
-    "filter_reason": "Baseline from Company Profile",
-    "summary_snippet": "Layanan 24/7 Managed Services dari PT Smartnet Magna Global untuk pemantauan dan troubleshooting proaktif pipeline ETL enterprise berbasis Greenplum, Talend, dan Cloudera di industri perbankan."
   }
 ]
