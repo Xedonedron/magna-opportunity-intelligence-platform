@@ -153,7 +153,10 @@ export default function DashboardPage() {
                 userRole={metrics.user_role}
             />
 
-            <PipelineFunnelChart data={metrics.by_status} />
+            <PipelineFunnelChart 
+                data={metrics.by_status} 
+                wonRate={metrics.won_rate} 
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <StatusChart data={metrics.by_status} />
