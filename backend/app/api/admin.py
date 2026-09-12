@@ -901,25 +901,28 @@ def sync_master_solutions_from_curated(
     with open(curated_path, "r", encoding="utf-8") as f:
         official_solutions = json.load(f)
 
-    # 1. Purge legacy broken /solutions/ URLs
-    db.query(MasterSolution).filter(MasterSolution.source_url.ilike("%/solutions/%")).delete(synchronize_session=False)
+    # 1. Purge legacy broken /solutions/ URLs or records with NULL slug
+    db.query(MasterSolution).filter(
+        (MasterSolution.source_url.ilike("%/solutions/%")) | (MasterSolution.slug == None)
+    ).delete(synchronize_session=False)
 
-    official_urls = set()
+    official_slugs = set()
     upserted_count = 0
 
     for item in official_solutions:
-        source_url = item.get("source_url")
-        if not source_url:
+        slug = item.get("slug") or item.get("id")
+        if not slug:
             continue
-        official_urls.add(source_url)
+        official_slugs.add(slug)
+        source_url = item.get("source_url") or ""
 
-        existing = db.query(MasterSolution).filter(MasterSolution.source_url == source_url).first()
-        if not existing and item.get("slug"):
-            existing = db.query(MasterSolution).filter(MasterSolution.slug == item.get("slug")).first()
+        existing = db.query(MasterSolution).filter(MasterSolution.slug == slug).first()
+        if not existing and source_url:
+            existing = db.query(MasterSolution).filter(MasterSolution.source_url == source_url).first()
 
         if existing:
             existing.title = item["title"].strip()
-            existing.slug = item.get("slug")
+            existing.slug = slug
             existing.pillar = item["pillar"].strip()
             existing.tier = item.get("tier", 1)
             existing.primary_products = item.get("primary_products", [])
@@ -934,7 +937,7 @@ def sync_master_solutions_from_curated(
         else:
             new_record = MasterSolution(
                 title=item["title"].strip(),
-                slug=item.get("slug"),
+                slug=slug,
                 pillar=item["pillar"].strip(),
                 tier=item.get("tier", 1),
                 primary_products=item.get("primary_products", []),
@@ -951,9 +954,9 @@ def sync_master_solutions_from_curated(
         upserted_count += 1
 
     # 2. Remove any orphaned entries not in official list
-    if official_urls:
+    if official_slugs:
         db.query(MasterSolution).filter(
-            ~MasterSolution.source_url.in_(list(official_urls))
+            ~MasterSolution.slug.in_(list(official_slugs))
         ).delete(synchronize_session=False)
 
     db.commit()

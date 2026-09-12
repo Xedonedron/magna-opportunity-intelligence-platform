@@ -32,6 +32,9 @@ def upgrade() -> None:
     with open(curated_path, "r", encoding="utf-8") as f:
         official_solutions = json.load(f)
 
+    # 1. Clean up duplicate legacy rows where slug is null
+    bind.execute(sa.text("DELETE FROM master_solutions WHERE slug IS NULL"))
+
     for item in official_solutions:
         slug = item.get("slug") or item.get("id")
         if not slug:
