@@ -17,7 +17,7 @@ from app.services.kyc_invoker import invoke_section
 from app.services.link_verifier import link_verifier_service
 from app.core.solutions_catalog import solutions_catalog
 
-def _build_base_context(state: Any) -> tuple[str, str, str]:
+def _build_base_context(state: Any) -> tuple:
     context_parts = []
     search = state.get("search_results", {})
     if search.get("company_answer"):
@@ -53,6 +53,15 @@ def _build_base_context(state: Any) -> tuple[str, str, str]:
         limit=4,
     )
 
+    # Also get raw matched cards for case_study_url attachment & references injection
+    _, matched_smg_cards = solutions_catalog.match_solutions_with_metadata(
+        industry=state.get("industry"),
+        product=state.get("product"),
+        customer_needs=state.get("customer_needs"),
+        focus_notes=state.get("focus_notes"),
+        limit=6,
+    )
+
     focus = f"\n## PANDUAN FOKUS KHUSUS (PRIORITAS TERTINGGI):\n{state['focus_notes']}\n" if state.get("focus_notes") else ""
 
     base = f"""## Informasi Perusahaan Klien
@@ -70,7 +79,7 @@ def _build_base_context(state: Any) -> tuple[str, str, str]:
 ## Data Riset & Intelijen Eksternal
 {context}
 """
-    return base, use_cases_context, solutions_context
+    return base, use_cases_context, solutions_context, matched_smg_cards
 
 logger = logging.getLogger(__name__)
 async def run_sectional_kyc_pipeline(
@@ -80,7 +89,7 @@ async def run_sectional_kyc_pipeline(
     update_progress_fn: Any,
     clean_json_fn: Any,
 ) -> dict:
-    base_context, use_cases_context, solutions_context = _build_base_context(state)
+    base_context, use_cases_context, solutions_context, matched_smg_cards = _build_base_context(state)
 
     # --- Phase 1: Foundation Analysis (Parallel Modules 1-3) ---
     logger.info("[KYC Pipeline] Phase 1: Foundation Analysis (Modules 1, 2, 3)...")
@@ -103,7 +112,13 @@ async def run_sectional_kyc_pipeline(
 {solutions_context}
 Needs: {mod3.customer_need_summary}
 Pain Points: {', '.join(mod3.potential_pain_points)}
-Pilar SMG: On-prem (Dell, HPE, Nutanix, Cisco), Network (Cisco, Aruba), Security (BeyondTrust, Fortinet, Palo Alto, SecOps), Cloud/Data (GCP, AWS).
+
+ARSITEKTUR DECISION RULES (WAJIB DIPATUHI):
+- On-Premise Compute/Storage: Dell Technologies, HPE, Nutanix, VMware, Sangfor. JANGAN gunakan BigQuery/Vertex AI untuk permintaan server fisik kecuali hybrid/cloud migration diminta.
+- Campus LAN/WiFi: Cisco Catalyst, Aruba (HPE Networking), Huawei, Extreme Networks. JANGAN campur dengan SecOps/cloud warehouse.
+- Cybersecurity: BeyondTrust PAM/EPM, Fortinet FortiGate, CrowdStrike, Google SecOps/Chronicle.
+- Cloud Data Pipeline/ETL: BigQuery untuk SQL ELT, Dataflow untuk streaming, Dataproc untuk Spark OSS, Cloud Composer untuk DAG orchestration.
+- AI/ML: Vertex AI, Gemini, BigQuery ML.
 """
     prompt_mod5 = f"""Susun strategi engagement dan discovery questions presales (Module 5):
 {base_context}
@@ -139,11 +154,44 @@ Target Meeting: {', '.join(mod5.meeting_objectives)}
         if item.get("url"):
             raw_refs.append({"title": item.get("title") or "Industry News Reference", "url": item["url"], "category": "Industry News"})
 
+    # Inject matched SMG solution cards as official case study references
+    for card in matched_smg_cards:
+        if card.source_url:
+            raw_refs.append({
+                "title": card.title,
+                "url": card.source_url,
+                "category": "Solusi Resmi & Case Study SMG",
+            })
+
     verified_refs = await link_verifier_service.sanitize_references_and_sources(raw_refs, search_results=search, timeout=3.0)
+
+    # Build lookup of verified SMG URLs for case_study attachment
+    verified_smg_urls = {r["url"] for r in verified_refs if r.get("category") == "Solusi Resmi & Case Study SMG"}
+
+    # Post-process use cases: attach case_study_url from matched SMG cards
+    use_case_dicts = []
+    for uc in mod4.use_cases:
+        uc_dict = uc.model_dump()
+        # Match by product overlap between use case and SMG cards
+        uc_products = set(p.lower() for p in (uc_dict.get("google_products") or []))
+        best_card = None
+        best_overlap = 0
+        for card in matched_smg_cards:
+            if card.source_url not in verified_smg_urls:
+                continue
+            card_products = set(p.lower() for p in card.primary_products + card.all_products)
+            overlap = len(uc_products & card_products)
+            if overlap > best_overlap:
+                best_overlap = overlap
+                best_card = card
+        if best_card:
+            uc_dict["case_study_url"] = best_card.source_url
+            uc_dict["case_study_title"] = best_card.title
+        use_case_dicts.append(uc_dict)
 
     impact_order = {"High": 0, "Medium": 1, "Low": 2}
     sorted_use_cases = sorted(
-        [uc.model_dump() for uc in mod4.use_cases],
+        use_case_dicts,
         key=lambda uc: impact_order.get(uc.get("impact_level", "Medium"), 99),
     )
 

@@ -4,6 +4,8 @@ SMG Solutions Catalog & Knowledge Grounding Engine.
 Provides centralized, curated solution architectures, tech stacks, and real-world
 case studies from PT Smartnet Magna Global for injection into AI KYC pipelines
 and Opportunity Chat Assistants.
+
+Architecture: Two-Tier Context-Aware & Semantic Intent Matching with Pillar Boundary Governance.
 """
 
 from __future__ import annotations
@@ -11,8 +13,9 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +26,8 @@ DATA_FILE = os.path.join(os.path.dirname(__file__), "..", "data", "curated_solut
 class SolutionCard:
     id: str
     title: str
-    pillar: str  # Cloud Infrastructure & Modernization, Data Analytics & AI, Cybersecurity Suite, Network & Workplace
-    tier: int  # 1 = High-Value Concrete Product/Solution, 2 = Niche Strategic Framework
+    pillar: str
+    tier: int
     primary_products: List[str]
     all_products: List[str]
     target_industries: List[str]
@@ -33,6 +36,88 @@ class SolutionCard:
     pain_points: List[str] = field(default_factory=list)
     business_impact: str = ""
     summary_snippet: str = ""
+
+
+
+# ---------------------------------------------------------------------------
+# Intent & Domain Classification Tables
+# ---------------------------------------------------------------------------
+PILLAR_INFRA = "Cloud Infrastructure & Modernization"
+PILLAR_DATA = "Data Analytics & AI"
+PILLAR_SECURITY = "Cybersecurity Suite"
+PILLAR_NETWORK = "Network & Enterprise Workplace"
+
+# (keywords, pillar, environment)  environment: on_premise|campus_lan|cloud|hybrid|None
+INTENT_SIGNALS: List[Tuple[List[str], str, Optional[str]]] = [
+    (["dell server", "dell poweredge", "hpe proliant", "hpe server", "nutanix", "hci",
+      "hyperconverged", "hyper converged", "vmware", "vsphere", "bare metal", "baremetal",
+      "on premise", "on-premise", "colocation", "data center fisik", "server fisik",
+      "rack server", "blade server", "xfusion", "sangfor hci"],
+     PILLAR_INFRA, "on_premise"),
+    (["campus lan", "campus network", "wifi", "wi-fi", "wi fi", "wireless lan", "wlan",
+      "access point", "cisco catalyst", "aruba", "hpe networking", "extreme networks",
+      "network switch", "layer 2", "layer 3", "wpa3", "wifi 6", "wi-fi 6",
+      "poe switch", "solarwinds", "prtg", "network monitoring"],
+     PILLAR_NETWORK, "campus_lan"),
+    (["pam", "privileged access", "beyondtrust", "epm", "endpoint privilege",
+      "ngav", "antivirus", "edr", "endpoint security", "crowdstrike", "sentinelone",
+      "trend micro", "symantec", "sophos", "kaspersky", "ransomware", "malware",
+      "ngfw", "firewall", "fortinet", "fortigate", "palo alto", "check point",
+      "siem", "soar", "soc", "secops", "chronicle", "mandiant", "threat intelligence",
+      "security command center", "scc", "dlp", "data loss prevention", "zero trust",
+      "beyondcorp", "ndr", "network detection", "iam", "identity access"],
+     PILLAR_SECURITY, None),
+    (["bigquery", "vertex ai", "gemini", "dataflow", "dataproc", "cloud composer",
+      "pub/sub", "pubsub", "looker", "cloud sql", "cloud run", "gke", "kubernetes",
+      "anthos", "cloud storage", "gcp", "google cloud", "aws",
+      "data warehouse", "data lake", "etl", "elt", "data pipeline", "streaming",
+      "machine learning", "ai readiness", "predictive analytics", "bigquery ml",
+      "cloud migration", "cloud native", "serverless", "firebase",
+      "snowflake", "confluent", "greenplum", "dbt"],
+     PILLAR_DATA, "cloud"),
+]
+
+# If primary environment is X, suppress these pillars from results
+PILLAR_SUPPRESSION: Dict[str, set] = {
+    "on_premise": {PILLAR_DATA},
+    "campus_lan": {PILLAR_SECURITY, PILLAR_DATA},
+}
+
+
+def _word_boundary_match(token: str, text_lower: str) -> bool:
+    """Whole-word/phrase match. Prevents 'lan' matching inside 'penjualan'."""
+    if ' ' in token or '/' in token or '-' in token:
+        return token in text_lower
+    return bool(re.search(r'\b' + re.escape(token) + r'\b', text_lower))
+
+
+def _classify_intent(search_text: str) -> Tuple[Optional[str], Optional[str]]:
+    """Classify input into (primary_pillar, target_environment)."""
+    text_lower = search_text.lower()
+    pillar_scores: Dict[str, int] = {}
+    env_votes: Dict[str, int] = {}
+
+    for keywords, pillar, env in INTENT_SIGNALS:
+        for kw in keywords:
+            if _word_boundary_match(kw, text_lower):
+                pillar_scores[pillar] = pillar_scores.get(pillar, 0) + 1
+                if env:
+                    env_votes[env] = env_votes.get(env, 0) + 1
+
+    if not pillar_scores:
+        return None, None
+
+    primary_pillar = max(pillar_scores, key=pillar_scores.get)  # type: ignore[arg-type]
+    target_env = max(env_votes, key=env_votes.get) if env_votes else None  # type: ignore[arg-type]
+
+    # Hybrid override: don't suppress cloud if migration/hybrid explicitly mentioned
+    if target_env == "on_premise":
+        hybrid_signals = ["hybrid", "cloud migration", "migrasi cloud", "modernisasi", "modernization"]
+        if any(_word_boundary_match(s, text_lower) for s in hybrid_signals):
+            target_env = "hybrid"
+
+    return primary_pillar, target_env
+
 
 
 # Fallback core catalog if curated_solutions.json has not yet been populated
@@ -321,6 +406,130 @@ class SolutionsCatalog:
     def get_all_cards(self) -> List[SolutionCard]:
         return self._cards
 
+    def _score_card(self, card: SolutionCard, search_text: str,
+                    primary_pillar: Optional[str], target_env: Optional[str]) -> int:
+        """Domain-constrained candidate scoring. Returns 0 if suppressed or irrelevant."""
+        text_lower = search_text.lower()
+
+        # Pillar boundary governance: suppress cross-pillar contamination
+        if target_env and target_env in PILLAR_SUPPRESSION:
+            if card.pillar in PILLAR_SUPPRESSION[target_env]:
+                return 0
+
+        score = 0
+        has_match = False
+
+        # 1. Primary products match (highest weight) - whole-token matching
+        for prod in card.primary_products:
+            p_lower = prod.lower()
+            if len(p_lower) >= 3 and _word_boundary_match(p_lower, text_lower):
+                score += 8
+                has_match = True
+
+        # 2. All products match
+        for prod in card.all_products:
+            p_lower = prod.lower()
+            if len(p_lower) >= 3 and _word_boundary_match(p_lower, text_lower):
+                score += 3
+                has_match = True
+
+        # 3. Title keyword matching (whole-word only, min 4 chars)
+        title_tokens = re.findall(r'[a-z0-9][a-z0-9\-]+', card.title.lower())
+        for word in title_tokens:
+            if len(word) >= 4 and _word_boundary_match(word, text_lower):
+                score += 6
+                has_match = True
+                break
+
+        # 4. Subheading keyword match (whole-word)
+        for sub in card.key_subheadings:
+            sub_lower = sub.lower()
+            sub_tokens = re.findall(r'[a-z0-9][a-z0-9\-]+', sub_lower)
+            for tok in sub_tokens:
+                if len(tok) >= 4 and _word_boundary_match(tok, text_lower):
+                    score += 3
+                    has_match = True
+                    break
+            if has_match:
+                break
+
+        # 5. Industry vertical bonus (only if topical match exists)
+        if has_match:
+            for ind in card.target_industries:
+                if ind.lower() == "enterprise general":
+                    continue
+                ind_tokens = re.findall(r'[a-z0-9]+', ind.lower())
+                for tok in ind_tokens:
+                    if len(tok) > 3 and _word_boundary_match(tok, text_lower):
+                        score += 4
+                        break
+
+        # 6. Pillar affinity bonus
+        if has_match and primary_pillar and card.pillar == primary_pillar:
+            score += 5
+
+        # 7. Tier 1 boost
+        if card.tier == 1 and has_match:
+            score += 2
+
+        return score if has_match else 0
+
+    def match_solutions_with_metadata(
+        self,
+        industry: Optional[str] = None,
+        product: Optional[str] = None,
+        customer_needs: Optional[str] = None,
+        focus_notes: Optional[str] = None,
+        limit: int = 4,
+    ) -> Tuple[str, List[SolutionCard]]:
+        """
+        Context-aware semantic matching returning both prompt grounding text AND raw SolutionCard objects.
+        Enables direct linkage to UseCaseItem case_study_url and KYC References.
+        """
+        if not self._cards:
+            self._load_catalog()
+
+        search_text = " ".join(filter(None, [industry, product, customer_needs, focus_notes]))
+        if not search_text.strip():
+            return "", []
+
+        primary_pillar, target_env = _classify_intent(search_text)
+
+        scored = []
+        for card in self._cards:
+            s = self._score_card(card, search_text, primary_pillar, target_env)
+            if s > 0:
+                scored.append((s, card))
+
+        if not scored:
+            return "", []
+
+        scored.sort(key=lambda x: x[0], reverse=True)
+        selected = [c for _, c in scored[:limit]]
+
+        # Format prompt grounding text
+        lines = [
+            "## Katalog Solusi Resmi & Studi Kasus PT Smartnet Magna Global (Grounding Rujukan):",
+            "Gunakan solusi nyata, arsitektur teknis, dan portofolio resmi PT Smartnet Magna Global (SMG) berikut saat merumuskan rekomendasi arsitektur teknis dan use cases:\n"
+        ]
+        for i, card in enumerate(selected, 1):
+            tech_str = ", ".join(card.primary_products) if card.primary_products else "Solusi Enterprise PT Smartnet Magna Global"
+            industries_str = ", ".join(card.target_industries)
+            lines.append(f"### {i}. {card.title} ({card.pillar})")
+            lines.append(f"- **Teknologi Utama**: {tech_str}")
+            lines.append(f"- **Target Industri / Skenario**: {industries_str}")
+            if card.pain_points:
+                lines.append(f"- **Kendala Klien yang Diselesaikan**: {'; '.join(card.pain_points[:2])}")
+            if card.key_subheadings:
+                lines.append(f"- **Komponen Arsitektur**: {', '.join(card.key_subheadings[:4])}")
+            if card.business_impact:
+                lines.append(f"- **Dampak Bisnis**: {card.business_impact}")
+            if card.source_url:
+                lines.append(f"- **Referensi Resmi**: {card.source_url}")
+            lines.append("")
+
+        return "\n".join(lines), selected
+
     def get_solutions_for_prompt(
         self,
         industry: Optional[str] = None,
@@ -328,112 +537,13 @@ class SolutionsCatalog:
         customer_needs: Optional[str] = None,
         limit: int = 4,
     ) -> str:
-        """
-        Match and return the most relevant SMG solution cards formatted for LLM Prompt Grounding.
-        Scores solutions based on industry vertical, target product match, and keywords in customer needs.
-        """
-        if not self._cards:
-            self._load_catalog()
+        """Backward-compatible wrapper returning only the prompt grounding string."""
+        prompt_text, _ = self.match_solutions_with_metadata(
+            industry=industry, product=product, customer_needs=customer_needs, limit=limit
+        )
+        return prompt_text
 
-        scored_cards = []
-        raw_search = f"{industry or ''} {product or ''} {customer_needs or ''}".lower()
-        norm_search = raw_search.replace("-", " ")
-        norm_search_compact = raw_search.replace("-", "")
 
-        for card in self._cards:
-            score = 0
-            has_topical_match = False
-
-            # 1. Primary products match (highest weight)
-            for prod in card.primary_products:
-                p_lower = prod.lower()
-                p_norm = p_lower.replace("-", " ")
-                p_compact = p_lower.replace("-", "")
-                if (p_lower in raw_search or p_norm in norm_search or p_compact in norm_search_compact):
-                    score += 8
-                    has_topical_match = True
-
-            # 2. All products match
-            for prod in card.all_products:
-                p_lower = prod.lower()
-                p_norm = p_lower.replace("-", " ")
-                p_compact = p_lower.replace("-", "")
-                if (p_lower in raw_search or p_norm in norm_search or p_compact in norm_search_compact):
-                    score += 3
-                    has_topical_match = True
-
-            # 3. Card Title keyword matching
-            clean_title = card.title.lower().replace("&", " ").replace("/", " ").replace("(", " ").replace(")", " ")
-            for word in clean_title.split():
-                if len(word) > 3:
-                    w_norm = word.replace("-", " ")
-                    w_compact = word.replace("-", "")
-                    if (word in raw_search or w_norm in norm_search or w_compact in norm_search_compact or (len(word) > 5 and word[:5] in raw_search)):
-                        score += 6
-                        has_topical_match = True
-                        break
-
-            # 4. Subheadings & technical keywords across all 4 pillars
-            infra_keywords = [
-                "server", "compute", "virtualiz", "virtualis", "vmware", "gke", "cloud run",
-                "nutanix", "switch", "network", "firewall", "wifi", "wi fi", "storage", "backup",
-                "disaster recovery", "migrasi", "migration", "database", "dataflow",
-                "bigquery", "predictive", "fraud", "streaming", "ransomware", "antivirus",
-                "zero trust", "scc", "pam", "epm", "iam", "endpoint", "infrastructure",
-                "cisco", "aruba", "fortinet", "beyondtrust", "dell", "hpe", "huawei",
-                "palo alto", "greenplum", "talend", "cloudera", "sangfor", "solarwinds",
-                "prtg", "wireless", "lan", "ngfw", "edr", "broadcom", "wpa3", "local admin"
-            ]
-            for sub in card.key_subheadings:
-                sub_lower = sub.lower()
-                for kw in infra_keywords:
-                    if kw in sub_lower and (kw in raw_search or kw in norm_search or kw.replace(" ", "") in norm_search_compact):
-                        score += 3
-                        has_topical_match = True
-
-            # 5. Industry match (Only provide vertical bonus if there is a topical product/need match)
-            for ind in card.target_industries:
-                if ind.lower() != "enterprise general" and any(k in raw_search for k in ind.lower().split() if len(k) > 3):
-                    score += 4
-
-            # 6. Tier 1 boost
-            if card.tier == 1 and has_topical_match:
-                score += 2
-
-            if has_topical_match and score > 0:
-                scored_cards.append((score, card))
-
-        # If no curated solutions matched, do not inject unrelated solutions into the prompt
-        if not scored_cards:
-            return ""
-
-        # Sort descending by relevance score
-        scored_cards.sort(key=lambda x: x[0], reverse=True)
-        selected = [c for _, c in scored_cards[:limit]]
-
-        # Format into clean, high-density prompt grounding context
-        output_lines = [
-            "## Katalog Solusi Resmi & Studi Kasus PT Smartnet Magna Global (Grounding Rujukan):",
-            "Gunakan solusi nyata, arsitektur teknis, dan portofolio resmi PT Smartnet Magna Global (SMG) berikut saat merumuskan rekomendasi arsitektur teknis dan use cases:\n"
-        ]
-
-        for i, card in enumerate(selected, 1):
-            tech_str = ", ".join(card.primary_products) if card.primary_products else "Solusi Enterprise PT Smartnet Magna Global"
-            industries_str = ", ".join(card.target_industries)
-            output_lines.append(f"### {i}. {card.title} ({card.pillar})")
-            output_lines.append(f"- **Teknologi Utama**: {tech_str}")
-            output_lines.append(f"- **Target Industri / Skenario**: {industries_str}")
-            if card.pain_points:
-                output_lines.append(f"- **Kendala Klien yang Diselesaikan**: {'; '.join(card.pain_points[:2])}")
-            if card.key_subheadings:
-                output_lines.append(f"- **Komponen Arsitektur**: {', '.join(card.key_subheadings[:4])}")
-            if card.business_impact:
-                output_lines.append(f"- **Dampak Bisnis**: {card.business_impact}")
-            if card.source_url:
-                output_lines.append(f"- **Referensi Resmi**: {card.source_url}")
-            output_lines.append("")
-
-        return "\n".join(output_lines)
 
     def get_summary_overview(self) -> str:
         """Overview of 4 SMG solution pillars from Company Profile for conversational chat & KYC system prompt."""

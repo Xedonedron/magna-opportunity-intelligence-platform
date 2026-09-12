@@ -31,6 +31,8 @@ class UseCaseItem(BaseModel):
     vendor_products: Optional[list[str]] = Field(default=None, description="Alias untuk vendor products")
     smartnet_solutions: list[str] = Field(default_factory=list, description="Solusi resmi Smartnet Magna Global")
     impact_level: str = Field(default="High", description="High, Medium, atau Low")
+    case_study_url: Optional[str] = Field(default=None, description="Verified URL to official SMG case study article")
+    case_study_title: Optional[str] = Field(default=None, description="Title of the matched SMG case study article")
 
     @model_validator(mode="before")
     @classmethod

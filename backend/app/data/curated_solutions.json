@@ -4,7 +4,7 @@
     "tier": 1,
     "status": "APPROVED",
     "title": "AI-Powered Ransomware Protection & Threat Defense",
-    "pillar": "Data Analytics & AI",
+    "pillar": "Cybersecurity Suite",
     "primary_products": [
       "Security Command Center",
       "Google Threat Intelligence"
@@ -591,7 +591,7 @@
     "tier": 2,
     "status": "APPROVED_NICHE",
     "title": "Modern SIEM & Security Operations Center (SOC) Modernization",
-    "pillar": "Data Analytics & AI",
+    "pillar": "Cybersecurity Suite",
     "primary_products": [
       "SIEM"
     ],
@@ -726,7 +726,7 @@
     "tier": 2,
     "status": "APPROVED_NICHE",
     "title": "Enterprise Customer Data Protection & Breach Prevention",
-    "pillar": "Data Analytics & AI",
+    "pillar": "Cybersecurity Suite",
     "primary_products": [],
     "all_products": [],
     "target_industries": [
@@ -961,7 +961,7 @@
     "tier": 2,
     "status": "APPROVED_NICHE",
     "title": "Resilient Endpoint Security & Advanced Ransomware Containment",
-    "pillar": "Data Analytics & AI",
+    "pillar": "Cybersecurity Suite",
     "primary_products": [],
     "all_products": [],
     "target_industries": [
@@ -1023,7 +1023,7 @@
     "tier": 2,
     "status": "APPROVED_NICHE",
     "title": "Comprehensive Data Loss Prevention (DLP) & Data Governance",
-    "pillar": "Data Analytics & AI",
+    "pillar": "Cybersecurity Suite",
     "primary_products": [
       "Data Loss Prevention",
       "DLP"
@@ -1060,7 +1060,7 @@
     "tier": 2,
     "status": "APPROVED_NICHE",
     "title": "Enterprise Identity and Access Management (IAM) & Least Privilege",
-    "pillar": "Data Analytics & AI",
+    "pillar": "Cybersecurity Suite",
     "primary_products": [
       "IAM"
     ],
@@ -1391,5 +1391,54 @@
     "business_impact": "Meningkatkan efisiensi operasional, reliabilitas infrastruktur, dan memitigasi risiko keamanan data secara terukur.",
     "filter_reason": "Moderate technical / consultative context",
     "summary_snippet": "Kemampuan untuk menggunakan aset yang ada dengan lebih baik dan memanfaatkan cara baru untuk menyimpan, mengelola, dan menganalisis data menjadi faktor utama yang mendorong perusahaan mengadopsi strategi multicloud. Masuk akal memang, karena berdasarkan survei yang dilakukan oleh Gartner, saat ini..."
+  },
+  {
+    "id": "modern-enterprise-data-warehouse-cloud-data-pipeline-elt-etl",
+    "tier": 1,
+    "status": "APPROVED",
+    "title": "Modern Enterprise Data Warehouse & Cloud Data Pipeline (ELT/ETL)",
+    "pillar": "Data Analytics & AI",
+    "primary_products": [
+      "BigQuery",
+      "Dataflow",
+      "Dataproc",
+      "Cloud Composer",
+      "Pub/Sub"
+    ],
+    "all_products": [
+      "BigQuery",
+      "Dataflow",
+      "Dataproc",
+      "Cloud Composer",
+      "Pub/Sub",
+      "Cloud Storage",
+      "Datastream",
+      "dbt",
+      "Apache Spark",
+      "Apache Beam"
+    ],
+    "target_industries": [
+      "Enterprise General",
+      "FSI / Banking & Multifinance",
+      "Retail & E-Commerce",
+      "Telco & Media"
+    ],
+    "source_url": "",
+    "key_subheadings": [
+      "Batch & Streaming Data Ingestion dengan Pub/Sub dan Datastream",
+      "ELT Pipeline Transformasi Data dengan BigQuery & dbt",
+      "ETL Streaming Pipeline dengan Google Cloud Dataflow (Apache Beam)",
+      "Distributed Processing & OSS Spark Jobs dengan Dataproc",
+      "Workflow Orchestration & DAG Scheduling dengan Cloud Composer (Airflow)",
+      "Enterprise Data Lake & Lakehouse Architecture di Cloud Storage + BigQuery"
+    ],
+    "pain_points": [
+      "Silo data operasional tersebar di berbagai sistem on-premise dan SaaS yang menghambat analitik terpadu dan pengambilan keputusan berbasis data.",
+      "Pipeline ETL legacy yang rapuh, sulit di-maintain, dan tidak mampu menangani volume data streaming real-time.",
+      "Ketergantungan tinggi pada batch processing manual yang menyebabkan keterlambatan insight bisnis hingga berhari-hari."
+    ],
+    "business_impact": "Membangun data warehouse modern dengan latensi near real-time, mengurangi biaya infrastruktur ETL hingga 50%, dan mengakselerasi time-to-insight dari hari ke menit melalui pipeline ELT/ETL terkelola penuh.",
+    "filter_reason": "Direct product solution / case study match",
+    "summary_snippet": "Solusi end-to-end modern data warehouse dan cloud data pipeline menggunakan BigQuery sebagai serverless data warehouse, Dataflow untuk streaming ETL, Dataproc untuk workload Apache Spark, dan Cloud Composer untuk orkestrasi workflow DAG terjadwal."
   }
 ]

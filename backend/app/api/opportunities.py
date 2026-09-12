@@ -505,7 +505,7 @@ async def chat_with_opportunity(
         industry=opp.industry,
         product=opp.product,
         customer_needs=opp.customer_needs,
-        limit=3,
+        limit=4,
     )
 
     system_prompt = f"""You are a professional Pre-sales Engineer and Solutions Architect at PT Smartnet Magna Global (SMG) - Member of CTI Group.

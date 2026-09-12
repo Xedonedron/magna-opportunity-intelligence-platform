@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ChevronDown, Target, Lightbulb, Settings, TrendingUp, Package, Building2 } from "lucide-react";
+import { ChevronDown, Target, Lightbulb, Settings, TrendingUp, Package, Building2, ExternalLink } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";
 import type { KYCUseCase } from "@/types/kyc";
@@ -118,12 +118,23 @@ export function UseCaseAccordion({ useCases }: { useCases: KYCUseCase[] }) {
                                             {(uc.smartnet_solutions || []).map((s) => (
                                                 <span
                                                     key={s}
-                                                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-zinc-200 text-zinc-800"
+                                                    className="inline-flex items-center px-2.5 py-1 rounded text-xs font-semibold bg-gradient-to-r from-red-50 to-orange-50 text-red-700 border border-red-200 dark:from-red-950/40 dark:to-orange-950/40 dark:text-red-300 dark:border-red-900"
                                                 >
                                                     {s}
                                                 </span>
                                             ))}
                                         </div>
+                                        {uc.case_study_url && (
+                                            <a
+                                                href={uc.case_study_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition-colors shadow-sm"
+                                            >
+                                                <ExternalLink className="w-3 h-3" />
+                                                Case Study Resmi SMG: {uc.case_study_title || "Lihat Artikel"} ↗
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             </div>

@@ -11,6 +11,8 @@ export interface KYCUseCase {
     google_products: string[];
     smartnet_solutions: string[];
     impact_level: 'High' | 'Medium' | 'Low';
+    case_study_url?: string;
+    case_study_title?: string;
 }
 
 export interface KYCReference {
