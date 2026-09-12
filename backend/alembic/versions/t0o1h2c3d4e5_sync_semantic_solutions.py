@@ -39,14 +39,10 @@ def upgrade() -> None:
 
         source_url = item.get("source_url") or ""
 
-        res = bind.execute(
-            sa.text("SELECT id FROM master_solutions WHERE slug = :slug"),
-            {"slug": slug}
-        ).fetchone()
-
         payload = {
+            "new_id": str(uuid.uuid4()),
             "title": item["title"].strip(),
-            "slug": item.get("slug") or item.get("id"),
+            "slug": slug,
             "pillar": item["pillar"].strip(),
             "tier": item.get("tier", 1),
             "primary_products": json.dumps(item.get("primary_products", [])),
@@ -60,46 +56,40 @@ def upgrade() -> None:
             "is_active": True,
         }
 
-        if res:
-            payload["rec_id"] = res[0]
-            bind.execute(
-                sa.text("""
-                    UPDATE master_solutions
-                    SET title = :title, slug = :slug, pillar = :pillar, tier = :tier,
-                        primary_products = CAST(:primary_products AS jsonb),
-                        all_products = CAST(:all_products AS jsonb),
-                        target_industries = CAST(:target_industries AS jsonb),
-                        key_subheadings = CAST(:key_subheadings AS jsonb),
-                        pain_points = CAST(:pain_points AS jsonb),
-                        business_impact = :business_impact,
-                        summary_snippet = :summary_snippet,
-                        is_active = :is_active, updated_at = NOW()
-                    WHERE id = :rec_id
-                """),
-                payload
-            )
-        else:
-            payload["new_id"] = str(uuid.uuid4())
-            bind.execute(
-                sa.text("""
-                    INSERT INTO master_solutions (
-                        id, slug, title, pillar, tier, primary_products,
-                        all_products, target_industries, key_subheadings,
-                        pain_points, business_impact, summary_snippet,
-                        source_url, is_active, created_at, updated_at
-                    ) VALUES (
-                        CAST(:new_id AS uuid), :slug, :title, :pillar, :tier,
-                        CAST(:primary_products AS jsonb),
-                        CAST(:all_products AS jsonb),
-                        CAST(:target_industries AS jsonb),
-                        CAST(:key_subheadings AS jsonb),
-                        CAST(:pain_points AS jsonb),
-                        :business_impact, :summary_snippet,
-                        :source_url, :is_active, NOW(), NOW()
-                    )
-                """),
-                payload
-            )
+        bind.execute(
+            sa.text("""
+                INSERT INTO master_solutions (
+                    id, slug, title, pillar, tier, primary_products,
+                    all_products, target_industries, key_subheadings,
+                    pain_points, business_impact, summary_snippet,
+                    source_url, is_active, created_at, updated_at
+                ) VALUES (
+                    CAST(:new_id AS uuid), :slug, :title, :pillar, :tier,
+                    CAST(:primary_products AS jsonb),
+                    CAST(:all_products AS jsonb),
+                    CAST(:target_industries AS jsonb),
+                    CAST(:key_subheadings AS jsonb),
+                    CAST(:pain_points AS jsonb),
+                    :business_impact, :summary_snippet,
+                    :source_url, :is_active, NOW(), NOW()
+                )
+                ON CONFLICT (slug) DO UPDATE SET
+                    title = EXCLUDED.title,
+                    pillar = EXCLUDED.pillar,
+                    tier = EXCLUDED.tier,
+                    primary_products = EXCLUDED.primary_products,
+                    all_products = EXCLUDED.all_products,
+                    target_industries = EXCLUDED.target_industries,
+                    key_subheadings = EXCLUDED.key_subheadings,
+                    pain_points = EXCLUDED.pain_points,
+                    business_impact = EXCLUDED.business_impact,
+                    summary_snippet = EXCLUDED.summary_snippet,
+                    source_url = EXCLUDED.source_url,
+                    is_active = EXCLUDED.is_active,
+                    updated_at = NOW();
+            """),
+            payload
+        )
 
 
 def downgrade() -> None:
