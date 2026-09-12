@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import type { StatusCount } from "@/types/dashboard";
-import { TrendingUp, Layers, CheckCircle2, Filter } from "lucide-react";
+import { TrendingUp, Layers, CheckCircle2 } from "lucide-react";
 
 interface PipelineFunnelChartProps {
     data: StatusCount[];
@@ -113,16 +113,12 @@ const FUNNEL_STAGES: FunnelStageConfig[] = [
 type FunnelStageComputed = FunnelStageConfig & {
     stepNumber: number;
     value: number;
-    activeCount: number;
-    cumulativeCount: number;
-    stageConversion: string;
-    totalConversion: string;
+    sharePercentage: string;
     height: number;
 };
 
 export function PipelineFunnelChart({ data, wonRate }: PipelineFunnelChartProps) {
     const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-    const [viewMode, setViewMode] = useState<"cumulative" | "active">("cumulative");
 
     // Geometry constants for smooth S-curve stream funnel
     const SVG_WIDTH = 1050;
@@ -132,14 +128,14 @@ export function PipelineFunnelChart({ data, wonRate }: PipelineFunnelChartProps)
     const MIN_HEIGHT = 16;
     const colWidth = SVG_WIDTH / FUNNEL_STAGES.length;
 
-    const { stages, totalFunnelDeals, topOfFunnelCount, wonCount } = useMemo(() => {
+    const { stages, totalFunnelDeals, wonCount } = useMemo(() => {
         const countMap = new Map<string, number>();
         (data || []).forEach((item) => {
             countMap.set(item.status.trim().toLowerCase(), item.count);
         });
 
-        // 1. Raw counts (active snapshot at each stage)
-        const rawStages = FUNNEL_STAGES.map((stage, idx) => {
+        // 1. Raw counts (active snapshot deal di masing-masing tahap)
+        const initial = FUNNEL_STAGES.map((stage, idx) => {
             const count = stage.statuses.reduce(
                 (sum, s) => sum + (countMap.get(s.trim().toLowerCase()) || 0),
                 0
@@ -147,92 +143,35 @@ export function PipelineFunnelChart({ data, wonRate }: PipelineFunnelChartProps)
             return {
                 ...stage,
                 stepNumber: idx + 1,
-                rawCount: count,
+                value: count,
             };
         });
 
-        const totalDeals = rawStages.reduce((sum, s) => sum + s.rawCount, 0);
+        const totalDeals = initial.reduce((sum, s) => sum + s.value, 0);
+        const won = initial[initial.length - 1]?.value || 0;
+        const maxVal = Math.max(...initial.map((s) => s.value), 1);
 
-        // 2. Cumulative counts (sales funnel progression from bottom up)
-        const cumulativeCounts = new Array(FUNNEL_STAGES.length).fill(0);
-        let runningSum = 0;
-        for (let i = FUNNEL_STAGES.length - 1; i >= 0; i--) {
-            runningSum += rawStages[i].rawCount;
-            cumulativeCounts[i] = runningSum;
-        }
+        const computed: FunnelStageComputed[] = initial.map((stage) => {
+            // Proporsi persentase deal di tahap ini terhadap seluruh deal aktif
+            const sharePercentage =
+                totalDeals > 0
+                    ? `${((stage.value / totalDeals) * 100).toFixed(1)}%`
+                    : "0.0%";
 
-        const isCumulative = viewMode === "cumulative";
-        const topCount = cumulativeCounts[0] || 0;
-        const won = rawStages[rawStages.length - 1]?.rawCount || 0;
-
-        // Dynamic max value for height scaling
-        const activeValues = rawStages.map((s) => s.rawCount);
-        const maxVal = isCumulative
-            ? Math.max(cumulativeCounts[0] || 1, 1)
-            : Math.max(...activeValues, 1);
-
-        const computed: FunnelStageComputed[] = rawStages.map((stage, idx) => {
-            const activeCount = stage.rawCount;
-            const cumulativeCount = cumulativeCounts[idx];
-            const displayValue = isCumulative ? cumulativeCount : activeCount;
-
-            // Stage-to-stage conversion rate
-            let stageConversion = "0%";
-            if (isCumulative) {
-                if (idx === 0) {
-                    stageConversion = "100% (Top)";
-                } else {
-                    const prevCum = cumulativeCounts[idx - 1];
-                    stageConversion =
-                        prevCum > 0
-                            ? `${((cumulativeCount / prevCum) * 100).toFixed(0)}%`
-                            : "0%";
-                }
-            } else {
-                if (idx === 0) {
-                    stageConversion = "100%";
-                } else {
-                    const prevRaw = rawStages[idx - 1].rawCount;
-                    stageConversion =
-                        prevRaw > 0
-                            ? `${((activeCount / prevRaw) * 100).toFixed(0)}%`
-                            : "-";
-                }
-            }
-
-            // Overall conversion or pipeline share
-            let totalConversion = "0%";
-            if (isCumulative) {
-                totalConversion =
-                    topCount > 0
-                        ? `${((cumulativeCount / topCount) * 100).toFixed(1)}%`
-                        : "0%";
-            } else {
-                totalConversion =
-                    totalDeals > 0
-                        ? `${((activeCount / totalDeals) * 100).toFixed(1)}%`
-                        : "0%";
-            }
-
-            // Proportional dynamic height: removes the flat 18px clamping bug!
-            // When displayValue = 0, height = 0.
-            // When displayValue > 0, height scales smoothly between MIN_HEIGHT and MAX_CURVE_HEIGHT.
+            // Formula skala ketinggian dinamis & proporsional:
+            // Menyelesaikan clamping bug: nilai 2 dan 3 kini terbukti lebih tinggi dari nilai 1!
             const height =
-                displayValue > 0
+                stage.value > 0
                     ? Math.round(
                           MIN_HEIGHT +
-                              (displayValue / maxVal) *
+                              (stage.value / maxVal) *
                                   (MAX_CURVE_HEIGHT - MIN_HEIGHT)
                       )
                     : 0;
 
             return {
                 ...stage,
-                value: displayValue,
-                activeCount,
-                cumulativeCount,
-                stageConversion,
-                totalConversion,
+                sharePercentage,
                 height,
             };
         });
@@ -240,12 +179,11 @@ export function PipelineFunnelChart({ data, wonRate }: PipelineFunnelChartProps)
         return {
             stages: computed,
             totalFunnelDeals: totalDeals,
-            topOfFunnelCount: topCount,
             wonCount: won,
         };
-    }, [data, viewMode]);
+    }, [data]);
 
-    // Use official backend wonRate if provided, otherwise compute against total deals
+    // Menggunakan wonRate resmi dari backend jika ada, atau hitung proporsi WON dari total pipeline
     const resolvedWinRate =
         wonRate !== undefined
             ? wonRate.toFixed(1)
@@ -257,59 +195,24 @@ export function PipelineFunnelChart({ data, wonRate }: PipelineFunnelChartProps)
 
     return (
         <Card className="p-5 sm:p-7 shadow-xs border border-zinc-200/90 dark:border-zinc-800 transition-colors bg-white dark:bg-zinc-900">
-            {/* Header section with Clean Title & Floating Stat Cards + View Mode Toggle */}
+            {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-100 dark:border-zinc-800/80">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-2xs">
                         <Layers className="w-5 h-5" />
                     </div>
                     <div>
-                        <div className="flex items-center gap-2">
-                            <h2 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
-                                Pipeline Funnel
-                            </h2>
-                            <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
-                                {viewMode === "cumulative" ? "Kumulatif" : "Status Aktif"}
-                            </span>
-                        </div>
+                        <h2 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
+                            Pipeline Funnel
+                        </h2>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                            {viewMode === "cumulative"
-                                ? "Visualisasi akumulasi peluang yang mencapai tiap tahapan dari Meeting hingga WON"
-                                : "Visualisasi distribusi deal yang sedang aktif di masing-masing tahapan"}
+                            Visualisasi distribusi peluang aktif di setiap tahapan dari Meeting hingga WON
                         </p>
                     </div>
                 </div>
 
-                {/* Right-aligned Floating Stat Cards & View Mode Switch */}
+                {/* Right-aligned Floating Stat Cards */}
                 <div className="flex items-center gap-3 flex-wrap">
-                    {/* View Mode Switch Toggle */}
-                    <div className="flex items-center p-1 bg-zinc-100/90 dark:bg-zinc-800/90 rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 shadow-2xs">
-                        <button
-                            type="button"
-                            onClick={() => setViewMode("cumulative")}
-                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                                viewMode === "cumulative"
-                                    ? "bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-xs"
-                                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
-                            }`}
-                            title="Tampilkan funnel sesungguhnya (kumulatif dari awal hingga akhir)"
-                        >
-                            Corong Kumulatif
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setViewMode("active")}
-                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                                viewMode === "active"
-                                    ? "bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-xs"
-                                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
-                            }`}
-                            title="Tampilkan jumlah deal yang diam di status saat ini"
-                        >
-                            Status Saat Ini
-                        </button>
-                    </div>
-
                     <div className="bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200/80 dark:border-zinc-700/70 rounded-xl px-4 py-2 shadow-2xs">
                         <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
                             Total Deal di Funnel
@@ -523,7 +426,7 @@ export function PipelineFunnelChart({ data, wonRate }: PipelineFunnelChartProps)
                                                 )}
                                             </div>
 
-                                            {/* Big Bold Quantity & Subtitle Label */}
+                                            {/* Big Bold Quantity & Stage Name */}
                                             <div>
                                                 <div className="flex items-baseline gap-1.5">
                                                     <span
@@ -540,21 +443,6 @@ export function PipelineFunnelChart({ data, wonRate }: PipelineFunnelChartProps)
                                                     </span>
                                                 </div>
 
-                                                {/* Informative Sub-badge: Active deals vs Reached Volume */}
-                                                <div className="mt-0.5">
-                                                    {viewMode === "cumulative" ? (
-                                                        <span className="text-[10.5px] font-medium text-zinc-500 dark:text-zinc-400">
-                                                            {stage.activeCount > 0
-                                                                ? `${stage.activeCount} deal aktif`
-                                                                : "0 deal aktif"}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-[10.5px] font-medium text-zinc-500 dark:text-zinc-400">
-                                                            {stage.cumulativeCount} total lolos
-                                                        </span>
-                                                    )}
-                                                </div>
-
                                                 <p
                                                     className={`text-xs font-semibold mt-1.5 leading-tight line-clamp-2 min-h-[30px] ${
                                                         isZero
@@ -567,7 +455,7 @@ export function PipelineFunnelChart({ data, wonRate }: PipelineFunnelChartProps)
                                                 </p>
                                             </div>
 
-                                            {/* Sub-label Metrics (Conversion & Pipeline Share) */}
+                                            {/* Sub-label Metrics: Porsi Pipeline & Jumlah Deal */}
                                             <div className="mt-3 pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[11px]">
                                                 <span
                                                     className={`font-semibold ${
@@ -575,23 +463,14 @@ export function PipelineFunnelChart({ data, wonRate }: PipelineFunnelChartProps)
                                                             ? "text-zinc-400 dark:text-zinc-600"
                                                             : "text-zinc-600 dark:text-zinc-300"
                                                     }`}
-                                                    title={
-                                                        viewMode === "cumulative"
-                                                            ? "Konversi dari tahap sebelumnya"
-                                                            : "Rasio terhadap status sebelumnya"
-                                                    }
+                                                    title="Persentase deal di tahap ini terhadap total seluruh deal di pipeline"
                                                 >
-                                                    {idx === 0 ? "100% (Top)" : `Conv: ${stage.stageConversion}`}
+                                                    Porsi: {stage.sharePercentage}
                                                 </span>
                                                 <span
                                                     className="text-[10px] text-zinc-400 dark:text-zinc-500"
-                                                    title={
-                                                        viewMode === "cumulative"
-                                                            ? "Persentase retensi dari awal funnel (Step 1)"
-                                                            : "Proporsi terhadap total peluang aktif"
-                                                    }
                                                 >
-                                                    {stage.totalConversion}
+                                                    {stage.value} Deal
                                                 </span>
                                             </div>
                                         </div>
@@ -605,4 +484,5 @@ export function PipelineFunnelChart({ data, wonRate }: PipelineFunnelChartProps)
         </Card>
     );
 }
+
 
