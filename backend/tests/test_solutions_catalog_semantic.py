@@ -36,6 +36,15 @@ class TestIntentClassifier:
         _, env = _classify_intent("Dell server on-premise hybrid cloud migration")
         assert env == "hybrid"
 
+    def test_workspace_intent(self):
+        pillar, _ = _classify_intent("Google Workspace migration Gmail Zimbra email enterprise")
+        assert pillar == PILLAR_NETWORK
+
+    def test_maps_intent(self):
+        pillar, env = _classify_intent("Google Maps Platform rute armada kurir delivery tracking")
+        assert pillar == PILLAR_INFRA
+        assert env == "cloud"
+
 
 class TestWordBoundaryMatch:
     def test_lan_not_in_penjualan(self):
@@ -88,6 +97,54 @@ class TestSolutionMatching:
         titles_lower = [c.title.lower() for c in cards]
         assert any("privilege" in t or "pam" in t or "endpoint" in t for t in titles_lower), \
             f"PAM cards not found: {titles_lower}"
+
+    def test_workspace_matching(self):
+        _, cards = solutions_catalog.match_solutions_with_metadata(
+            customer_needs="Migrasi email Zimbra ke Google Workspace untuk enterprise",
+            limit=3,
+        )
+        assert len(cards) > 0
+        assert "Google Workspace" in cards[0].title
+
+    def test_planet_ban_cdc_matching(self):
+        _, cards = solutions_catalog.match_solutions_with_metadata(
+            customer_needs="Planet Ban retail store CDC Datastream inventory real time 1200 outlet",
+            limit=3,
+        )
+        assert len(cards) > 0
+        assert "Planet Ban" in cards[0].title or "CDC" in cards[0].title
+
+    def test_malika_ai_matching(self):
+        _, cards = solutions_catalog.match_solutions_with_metadata(
+            customer_needs="MALIKA procurement AI vendor document comparison dan search",
+            limit=3,
+        )
+        assert len(cards) > 0
+        assert "MALIKA" in cards[0].title
+
+    def test_banking_etl_matching(self):
+        _, cards = solutions_catalog.match_solutions_with_metadata(
+            customer_needs="Banking 24/7 ETL monitoring managed services Greenplum Talend",
+            limit=3,
+        )
+        assert len(cards) > 0
+        assert "ETL Pipeline Monitoring" in cards[0].title
+
+    def test_maps_matching(self):
+        _, cards = solutions_catalog.match_solutions_with_metadata(
+            customer_needs="Google Maps Platform fleet route optimization kurir logistik tracking",
+            limit=3,
+        )
+        assert len(cards) > 0
+        assert "Google Maps Platform" in cards[0].title
+
+    def test_healthcare_lan_matching(self):
+        _, cards = solutions_catalog.match_solutions_with_metadata(
+            customer_needs="Healthcare hospital wired wireless LAN EMR Wi-Fi 6 WPA3",
+            limit=3,
+        )
+        assert len(cards) > 0
+        assert "Healthcare" in cards[0].title
 
     def test_cards_valid_source_url(self):
         for card in solutions_catalog.get_all_cards():
