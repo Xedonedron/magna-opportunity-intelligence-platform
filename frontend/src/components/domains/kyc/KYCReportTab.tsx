@@ -21,6 +21,7 @@ import {
     Copy,
     Check,
     Sparkles,
+    Wrench,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -40,6 +41,7 @@ import {
 import { useLanguage } from "@/context/LanguageContext";
 import { formatKYCToMarkdown } from "@/lib/clipboard-formatters";
 import type { KYCReport } from "@/types/kyc";
+import { normalizeRecommendedQuestions } from "@/types/kyc";
 
 export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
     const router = useRouter();
@@ -912,8 +914,14 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
             )}
 
             {/* Meeting Objectives & Recommended Questions */}
-            {(report.meeting_objectives || report.recommended_questions) && (
-                <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {(report.meeting_objectives || report.recommended_questions) && (() => {
+                const rq = normalizeRecommendedQuestions(report.recommended_questions);
+                const hasBusiness = rq.business.length > 0;
+                const hasTechnical = rq.technical.length > 0;
+                const hasQuestions = hasBusiness || hasTechnical;
+                return (
+                <section className="space-y-6">
+                    {/* Meeting Objectives */}
                     {report.meeting_objectives && report.meeting_objectives.length > 0 && (
                         <div>
                             <SectionTitle>{t.opportunityDetail.kyc.sections.meetingObjectives || "Meeting Objectives"}</SectionTitle>
@@ -929,23 +937,51 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                             </Card>
                         </div>
                     )}
-                    {report.recommended_questions && report.recommended_questions.length > 0 && (
+                    {/* Recommended Questions — Business & Technical */}
+                    {hasQuestions && (
                         <div>
                             <SectionTitle>{t.opportunityDetail.kyc.sections.recommendedQuestions || "Recommended Questions"}</SectionTitle>
-                            <Card className="p-6">
-                                <ul className="space-y-2">
-                                    {report.recommended_questions.map((q, i) => (
-                                        <li key={i} className="flex items-start gap-2 text-sm text-zinc-600">
-                                            <HelpCircle className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-                                            {q}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </Card>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {hasBusiness && (
+                                    <Card className="p-6">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <Briefcase className="w-4 h-4 text-indigo-500" />
+                                            <h4 className="text-sm font-semibold text-indigo-700">Business Discovery</h4>
+                                        </div>
+                                        <p className="text-xs text-zinc-400 mb-3">Target: C-Level / Business Owner / VP</p>
+                                        <ul className="space-y-2">
+                                            {rq.business.map((q, i) => (
+                                                <li key={i} className="flex items-start gap-2 text-sm text-zinc-600">
+                                                    <HelpCircle className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+                                                    {q}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </Card>
+                                )}
+                                {hasTechnical && (
+                                    <Card className="p-6">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <Wrench className="w-4 h-4 text-emerald-500" />
+                                            <h4 className="text-sm font-semibold text-emerald-700">Technical Discovery</h4>
+                                        </div>
+                                        <p className="text-xs text-zinc-400 mb-3">Target: CTO / IT Manager / DevOps / SecOps</p>
+                                        <ul className="space-y-2">
+                                            {rq.technical.map((q, i) => (
+                                                <li key={i} className="flex items-start gap-2 text-sm text-zinc-600">
+                                                    <HelpCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                                                    {q}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </Card>
+                                )}
+                            </div>
                         </div>
                     )}
                 </section>
-            )}
+                );
+            })()}
 
             {/* Preparation Checklist */}
             {report.preparation_checklist && report.preparation_checklist.length > 0 && (

@@ -10,6 +10,7 @@ from app.schemas.kyc import (
     CompanyOverviewModel,
     CompetitorItem,
     UseCaseItem,
+    CategorizedQuestions,
 )
 from app.services.kyc_invoker import invoke_section
 from app.services.kyc_sectional_runner import run_sectional_kyc_pipeline
@@ -128,7 +129,10 @@ async def test_sectional_pipeline_3phases():
         elif schema_cls == EngagementStrategyOutput:
             return EngagementStrategyOutput(
                 meeting_objectives=["Review PAM PoC scope"],
-                recommended_questions=["How are privileged accounts managed?"],
+                recommended_questions=CategorizedQuestions(
+                    business=["What is the expected ROI timeline for security modernization?"],
+                    technical=["How are privileged accounts managed today?"],
+                ),
                 preparation_checklist=["Prepare PAM architecture deck"],
             )
         elif schema_cls == ExecutiveSummaryOutput:

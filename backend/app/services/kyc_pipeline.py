@@ -28,6 +28,7 @@ from app.schemas.kyc import (
     UseCasesOutput,
     EngagementStrategyOutput,
     ExecutiveSummaryOutput,
+    CategorizedQuestions,
 )
 
 logger = logging.getLogger(__name__)
@@ -67,7 +68,7 @@ class KYCState(TypedDict):
     potential_pain_points: list[str]
     use_cases: list[dict]
     meeting_objectives: list[str]
-    recommended_questions: list[str]
+    recommended_questions: dict
     preparation_checklist: list[str]
     references: list[dict]
 
@@ -327,7 +328,7 @@ async def run_kyc_pipeline(
         "potential_pain_points": [],
         "use_cases": [],
         "meeting_objectives": [],
-        "recommended_questions": [],
+        "recommended_questions": {"business": [], "technical": []},
         "preparation_checklist": [],
         "references": [],
         "error": None,
@@ -353,7 +354,7 @@ async def run_kyc_pipeline(
             "potential_pain_points": result.get("potential_pain_points", []),
             "use_cases": result.get("use_cases", []),
             "meeting_objectives": result.get("meeting_objectives", []),
-            "recommended_questions": result.get("recommended_questions", []),
+            "recommended_questions": result.get("recommended_questions", {"business": [], "technical": []}),
             "preparation_checklist": result.get("preparation_checklist", []),
             "references": result.get("references", []),
             "model_name": model_name,

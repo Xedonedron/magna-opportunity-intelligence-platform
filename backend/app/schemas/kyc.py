@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from datetime import datetime
 from uuid import UUID
 from typing import Optional, Any
@@ -70,10 +70,25 @@ class UseCasesOutput(BaseModel):
     use_cases: list[UseCaseItem] = Field(default_factory=list, description="Daftar use case arsitektural terurut")
 
 
+class CategorizedQuestions(BaseModel):
+    """Discovery questions split by persona: business vs technical."""
+    business: list[str] = Field(
+        default_factory=list,
+        description="Pertanyaan strategis bisnis, ROI, KPI, dan timeline untuk C-Level/Business Owner"
+    )
+    technical: list[str] = Field(
+        default_factory=list,
+        description="Pertanyaan teknis arsitektur, kapasitas, integrasi, dan security untuk IT/DevOps/SecOps"
+    )
+
+
 class EngagementStrategyOutput(BaseModel):
     """Module 5: Presales Engagement Strategy"""
     meeting_objectives: list[str] = Field(default_factory=list, description="Objektif strategis meeting presales")
-    recommended_questions: list[str] = Field(default_factory=list, description="Discovery questions per stakeholder")
+    recommended_questions: CategorizedQuestions = Field(
+        default_factory=CategorizedQuestions,
+        description="Discovery questions terbagi atas persona business dan technical"
+    )
     preparation_checklist: list[str] = Field(default_factory=list, description="Checklist persiapan teknis dan sales")
 
 
@@ -100,7 +115,7 @@ class KYCReportResponse(BaseModel):
     potential_pain_points: Optional[list[str]] = None
     use_cases: Optional[list[dict[str, Any]]] = None
     meeting_objectives: Optional[list[str]] = None
-    recommended_questions: Optional[list[str]] = None
+    recommended_questions: Optional[dict[str, Any]] = None
     preparation_checklist: Optional[list[str]] = None
     references: Optional[list[dict[str, Any]]] = None
     source_type: str
@@ -110,6 +125,21 @@ class KYCReportResponse(BaseModel):
     created_by: Optional[UUID] = None
     created_at: datetime
     completed_at: Optional[datetime] = None
+
+    @field_validator("recommended_questions", mode="before")
+    @classmethod
+    def normalize_recommended_questions(cls, v: Any) -> Any:
+        """Backward compat: convert legacy list[str] to {business: [], technical: list}."""
+        if v is None:
+            return None
+        if isinstance(v, list):
+            return {"business": [], "technical": v}
+        if isinstance(v, dict):
+            return {
+                "business": v.get("business") or [],
+                "technical": v.get("technical") or [],
+            }
+        return v
 
     class Config:
         from_attributes = True
@@ -150,6 +180,21 @@ class KYCReportUpdate(BaseModel):
     potential_pain_points: Optional[list[str]] = None
     use_cases: Optional[list[dict[str, Any]]] = None
     meeting_objectives: Optional[list[str]] = None
-    recommended_questions: Optional[list[str]] = None
+    recommended_questions: Optional[dict[str, Any]] = None
     preparation_checklist: Optional[list[str]] = None
     references: Optional[list[dict[str, Any]]] = None
+
+    @field_validator("recommended_questions", mode="before")
+    @classmethod
+    def normalize_recommended_questions(cls, v: Any) -> Any:
+        """Backward compat: convert legacy list[str] to {business: [], technical: list}."""
+        if v is None:
+            return None
+        if isinstance(v, list):
+            return {"business": [], "technical": v}
+        if isinstance(v, dict):
+            return {
+                "business": v.get("business") or [],
+                "technical": v.get("technical") or [],
+            }
+        return v

@@ -4,6 +4,7 @@
  */
 
 import type { KYCReport } from "@/types/kyc";
+import { normalizeRecommendedQuestions } from "@/types/kyc";
 import type { OpportunityPersona } from "@/types/persona";
 
 /**
@@ -132,12 +133,27 @@ export function formatKYCToMarkdown(report: KYCReport, companyName?: string): st
     }
 
     // 10. Recommended Questions
-    if (report.recommended_questions && report.recommended_questions.length > 0) {
-        lines.push("## 10. Rekomendasi Pertanyaan Discovery (Recommended Questions)");
-        report.recommended_questions.forEach((q, idx) => {
-            lines.push(`${idx + 1}. ${q}`);
-        });
-        lines.push("");
+    if (report.recommended_questions) {
+        const rq = normalizeRecommendedQuestions(report.recommended_questions);
+        const hasBusiness = rq.business.length > 0;
+        const hasTechnical = rq.technical.length > 0;
+        if (hasBusiness || hasTechnical) {
+            lines.push("## 10. Rekomendasi Pertanyaan Discovery (Recommended Questions)");
+            if (hasBusiness) {
+                lines.push("### 💼 Business Discovery (C-Level / Business Owner / VP)");
+                rq.business.forEach((q, idx) => {
+                    lines.push(`${idx + 1}. ${q}`);
+                });
+                lines.push("");
+            }
+            if (hasTechnical) {
+                lines.push("### 🔧 Technical Discovery (CTO / IT Manager / DevOps / SecOps)");
+                rq.technical.forEach((q, idx) => {
+                    lines.push(`${idx + 1}. ${q}`);
+                });
+                lines.push("");
+            }
+        }
     }
 
     // 11. Preparation Checklist

@@ -213,7 +213,7 @@ export const en = {
                 potentialPainPoints: "Potential Pain Points",
                 recommendedUseCases: "Recommended Solutions & Use Cases",
                 meetingObjectives: "Meeting Objectives",
-                recommendedQuestions: "Recommended Questions",
+                recommendedQuestions: "Discovery Questions",
                 preparationChecklist: "Meeting Preparation Checklist",
                 externalReferences: "References & Data Sources",
                 useCaseDetails: {

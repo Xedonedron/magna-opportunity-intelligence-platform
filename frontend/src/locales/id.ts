@@ -213,7 +213,7 @@ export const id: Translations = {
                 potentialPainPoints: "Potensi Kendala & Pain Points",
                 recommendedUseCases: "Rekomendasi Solusi & Use Case",
                 meetingObjectives: "Tujuan Pertemuan Presales",
-                recommendedQuestions: "Rekomendasi Pertanyaan Discovery",
+                recommendedQuestions: "Pertanyaan Discovery",
                 preparationChecklist: "Checklist Persiapan Pertemuan",
                 externalReferences: "Referensi & Sumber Data",
                 useCaseDetails: {

@@ -124,6 +124,12 @@ ARSITEKTUR DECISION RULES (WAJIB DIPATUHI):
 {base_context}
 Needs: {mod3.customer_need_summary}
 Pain points: {', '.join(mod3.potential_pain_points)}
+
+INSTRUKSI PENTING untuk recommended_questions:
+Bagi discovery questions menjadi dua kategori:
+- "business": Pertanyaan untuk C-Level / Business Owner / VP — fokus pada business driver, ROI, cost of inaction, timeline regulasi, target revenue/efisiensi, pain point operasional bisnis.
+- "technical": Pertanyaan untuk CTO / IT Manager / DevOps / SecOps / Architect — fokus pada arsitektur eksisting, volume data/throughput, integrasi API/IAM, kendala migrasi teknis, stack teknologi, security posture.
+Masing-masing kategori minimal 3-5 pertanyaan.
 """
     mod4, mod5 = await asyncio.gather(
         invoke_section(llm, UseCasesOutput, prompt_mod4, "Module 4", max_retries=3, state=state, clean_json_fn=clean_json_fn),
@@ -206,7 +212,7 @@ Target Meeting: {', '.join(mod5.meeting_objectives)}
         "potential_pain_points": mod3.potential_pain_points,
         "use_cases": sorted_use_cases,
         "meeting_objectives": mod5.meeting_objectives,
-        "recommended_questions": mod5.recommended_questions,
+        "recommended_questions": mod5.recommended_questions.model_dump(),
         "preparation_checklist": mod5.preparation_checklist,
         "references": verified_refs,
     }

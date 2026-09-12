@@ -36,7 +36,7 @@ class KYCReport(Base):
     potential_pain_points: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     use_cases: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     meeting_objectives: Mapped[list | None] = mapped_column(JSONB, nullable=True)
-    recommended_questions: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    recommended_questions: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     preparation_checklist: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     references: Mapped[list | None] = mapped_column(JSONB, nullable=True)
 

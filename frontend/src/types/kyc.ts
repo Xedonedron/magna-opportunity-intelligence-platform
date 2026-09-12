@@ -38,6 +38,11 @@ export interface KYCCompetitor {
     differentiators?: string;
 }
 
+export interface KYCCategorizedQuestions {
+    business: string[];
+    technical: string[];
+}
+
 export interface KYCReport {
     id: string;
     opportunity_id: string;
@@ -58,7 +63,7 @@ export interface KYCReport {
     potential_pain_points?: string[];
     use_cases?: KYCUseCase[];
     meeting_objectives?: string[];
-    recommended_questions?: string[];
+    recommended_questions?: KYCCategorizedQuestions | string[];
     preparation_checklist?: string[];
     references?: KYCReference[];
     error_message?: string;
@@ -75,4 +80,18 @@ export interface KYCRegenerateRequest {
     source_type?: string;
     title?: string;
     focus_notes?: string;
+}
+
+/**
+ * Normalize recommended_questions from API (handles legacy string[] and new categorized format).
+ */
+export function normalizeRecommendedQuestions(
+    rq: KYCCategorizedQuestions | string[] | undefined | null
+): KYCCategorizedQuestions {
+    if (!rq) return { business: [], technical: [] };
+    if (Array.isArray(rq)) return { business: [], technical: rq };
+    return {
+        business: rq.business || [],
+        technical: rq.technical || [],
+    };
 }

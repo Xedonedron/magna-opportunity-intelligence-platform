@@ -9,6 +9,7 @@ import type {
     KYCCompanyOverview,
     KYCCompetitor,
 } from "@/types/kyc";
+import { normalizeRecommendedQuestions } from "@/types/kyc";
 
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -170,7 +171,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
             </section>
 
             {/* Meeting Objectives & Questions */}
-            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <section className="space-y-6">
                 <div>
                     <SectionLabel>{sec.meetingObjectives || "Meeting Objectives"}</SectionLabel>
                     <ListInput
@@ -181,11 +182,30 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
                 </div>
                 <div>
                     <SectionLabel>{sec.recommendedQuestions || "Recommended Questions"}</SectionLabel>
-                    <ListInput
-                        values={report.recommended_questions || []}
-                        onChange={(v) => onChange("recommended_questions", v)}
-                        placeholder="Add question..."
-                    />
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <p className="text-xs font-medium text-indigo-600 mb-2">💼 Business Discovery</p>
+                            <ListInput
+                                values={normalizeRecommendedQuestions(report.recommended_questions).business}
+                                onChange={(v) => {
+                                    const rq = normalizeRecommendedQuestions(report.recommended_questions);
+                                    onChange("recommended_questions", { ...rq, business: v });
+                                }}
+                                placeholder="Add business question..."
+                            />
+                        </div>
+                        <div>
+                            <p className="text-xs font-medium text-emerald-600 mb-2">🔧 Technical Discovery</p>
+                            <ListInput
+                                values={normalizeRecommendedQuestions(report.recommended_questions).technical}
+                                onChange={(v) => {
+                                    const rq = normalizeRecommendedQuestions(report.recommended_questions);
+                                    onChange("recommended_questions", { ...rq, technical: v });
+                                }}
+                                placeholder="Add technical question..."
+                            />
+                        </div>
+                    </div>
                 </div>
             </section>
 
