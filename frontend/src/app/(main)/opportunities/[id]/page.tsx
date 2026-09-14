@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
     ChevronRight,
@@ -57,6 +57,8 @@ const eventTypeIcons: Record<string, React.ReactNode> = {
 export default function OpportunityDetailPage() {
     const { id } = useParams() as { id: string };
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const tabParam = searchParams.get("tab");
     const { t } = useLanguage();
     const tabs = [
         { id: "overview", label: t.opportunityDetail.tabs.overview || "Overview", icon: LayoutDashboard },
@@ -66,7 +68,13 @@ export default function OpportunityDetailPage() {
         { id: "resources", label: t.opportunityDetail.tabs.documents || "Resources", icon: FolderKey },
         { id: "timeline", label: t.opportunityDetail.tabs.timeline || "Timeline", icon: GitCommit },
     ];
-    const [activeTab, setActiveTab] = useState("overview");
+    const [activeTab, setActiveTab] = useState(() => (tabParam && ["overview", "kyc", "personas", "meetings", "resources", "timeline"].includes(tabParam) ? tabParam : "overview"));
+
+    useEffect(() => {
+        if (tabParam && tabs.some((t) => t.id === tabParam)) {
+            setActiveTab(tabParam);
+        }
+    }, [tabParam]);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [showCreateMeeting, setShowCreateMeeting] = useState(false);
     const [showEditOpportunity, setShowEditOpportunity] = useState(false);

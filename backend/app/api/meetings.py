@@ -16,6 +16,7 @@ from app.schemas.meeting import (
 )
 from app.tasks import create_calendar_event
 from app.services.audit_service import AuditService
+from app.services.notification_service import NotificationService
 
 router = APIRouter(prefix="/api/meetings", tags=["meetings"])
 
@@ -148,6 +149,15 @@ def create_meeting(
         )
     except Exception:
         pass
+
+    # In-app notification for stakeholders & superadmins
+    NotificationService.notify_meeting_scheduled(
+        db,
+        opp,
+        meeting_title=payload.title,
+        meeting_date_str=payload.date.strftime('%b %d, %Y %I:%M %p'),
+        actor_id=current_user.id,
+    )
 
     db.commit()
     db.refresh(meeting)

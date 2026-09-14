@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Search, FolderOpen, Calendar, X, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { NotificationDropdown } from "@/components/domains/notifications/NotificationDropdown";
+import { useNotificationToaster } from "@/hooks/use-notifications";
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useLanguage } from "@/context/LanguageContext";
@@ -15,6 +16,7 @@ interface SearchResult {
 }
 
 export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) {
+    useNotificationToaster();
     const router = useRouter();
     const { t, locale } = useLanguage();
     const [query, setQuery] = useState("");

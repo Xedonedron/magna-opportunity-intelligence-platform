@@ -15,6 +15,7 @@ from app.models.opportunity import Opportunity
 from app.models.user import User
 from app.services.email_service import email_service
 from app.services.calendar_service import calendar_service
+from app.services.notification_service import NotificationService
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +61,7 @@ def send_opportunity_created_notification(opportunity_id: str) -> dict:
 
 
 @celery_app.task(name="tasks.send_kyc_completed_notification")
-def send_kyc_completed_notification(opportunity_id: str) -> dict:
+def send_kyc_completed_notification(opportunity_id: str, version: int = 1) -> dict:
     """Send notification when KYC is completed."""
     db = SessionLocal()
     try:
@@ -70,15 +71,8 @@ def send_kyc_completed_notification(opportunity_id: str) -> dict:
         if not opportunity:
             return {"status": "error", "message": "Opportunity not found"}
 
-        # Create in-app notification
-        notification = Notification(
-            user_id=opportunity.created_by,
-            opportunity_id=opportunity.id,
-            type="kyc_completed",
-            title="KYC Report Completed",
-            message=f"AI KYC report for {opportunity.company_name} is ready.",
-        )
-        db.add(notification)
+        # In-app notifications
+        NotificationService.notify_kyc_completed(db, opportunity, version=version)
 
         # Send email
         creator = db.query(User).filter(User.id == opportunity.created_by).first()
@@ -90,7 +84,7 @@ def send_kyc_completed_notification(opportunity_id: str) -> dict:
             )
 
         db.commit()
-        return {"status": "success", "notification_id": str(notification.id)}
+        return {"status": "success"}
     except Exception as e:
         db.rollback()
         logger.error(f"Error sending KYC completed notification: {e}")
@@ -101,7 +95,7 @@ def send_kyc_completed_notification(opportunity_id: str) -> dict:
 
 @celery_app.task(name="tasks.send_status_changed_notification")
 def send_status_changed_notification(
-    opportunity_id: str, old_status: str, new_status: str
+    opportunity_id: str, old_status: str, new_status: str, actor_id: str = None
 ) -> dict:
     """Send notification when opportunity status changes."""
     db = SessionLocal()
@@ -112,15 +106,10 @@ def send_status_changed_notification(
         if not opportunity:
             return {"status": "error", "message": "Opportunity not found"}
 
-        # Create in-app notification
-        notification = Notification(
-            user_id=opportunity.created_by,
-            opportunity_id=opportunity.id,
-            type="status_changed",
-            title="Status Changed",
-            message=f"{opportunity.company_name}: {old_status} → {new_status}",
+        parsed_actor_id = uuid.UUID(actor_id) if actor_id else None
+        NotificationService.notify_status_changed(
+            db, opportunity, old_status, new_status, actor_id=parsed_actor_id
         )
-        db.add(notification)
 
         # Send email
         creator = db.query(User).filter(User.id == opportunity.created_by).first()
@@ -133,7 +122,7 @@ def send_status_changed_notification(
             )
 
         db.commit()
-        return {"status": "success", "notification_id": str(notification.id)}
+        return {"status": "success"}
     except Exception as e:
         db.rollback()
         logger.error(f"Error sending status changed notification: {e}")
@@ -346,10 +335,15 @@ def run_kyc_pipeline_task(
                 event_type="system",
             )
             db.add(timeline_complete)
+
+            # In-app notifications for all stakeholders & superadmins
+            NotificationService.notify_kyc_completed(
+                db, opportunity, version=next_version
+            )
             db.commit()
 
-            # Send completion notification
-            send_kyc_completed_notification.delay(str(opportunity.id))
+            # Send completion notification (email)
+            send_kyc_completed_notification.delay(str(opportunity.id), version=next_version)
 
             return {
                 "status": "success",
@@ -358,25 +352,40 @@ def run_kyc_pipeline_task(
             }
         else:
             # Pipeline failed
+            err_msg = result.get("error", "Unknown error")
             kyc_report.status = "failed"
-            kyc_report.error_message = result.get("error", "Unknown error")
+            kyc_report.error_message = err_msg
             opportunity.status = old_status  # Revert status
 
             timeline_fail = TimelineEvent(
                 opportunity_id=opportunity.id,
                 actor_name="System",
                 action=f"KYC Failed (v{next_version})",
-                description=f"Error: {result.get('error', 'Unknown')}",
+                description=f"Error: {err_msg}",
                 event_type="system",
             )
             db.add(timeline_fail)
+
+            # In-app notification for failure
+            NotificationService.notify_kyc_failed(
+                db, opportunity, error_message=err_msg, version=next_version
+            )
             db.commit()
 
-            return {"status": "error", "message": result.get("error")}
+            return {"status": "error", "message": err_msg}
 
     except Exception as e:
         db.rollback()
         logger.error(f"Error running KYC pipeline: {e}")
+        try:
+            opp_err = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
+            if opp_err:
+                NotificationService.notify_kyc_failed(
+                    db, opp_err, error_message=str(e), version=next_version
+                )
+                db.commit()
+        except Exception:
+            pass
         return {"status": "error", "message": str(e)}
     finally:
         db.close()

@@ -11,6 +11,7 @@ class NotificationResponse(BaseModel):
     type: str
     title: str
     message: Optional[str] = None
+    link_url: Optional[str] = None
     is_read: bool
     created_at: datetime
 
@@ -30,6 +31,7 @@ class NotificationCreate(BaseModel):
     type: str
     title: str
     message: Optional[str] = None
+    link_url: Optional[str] = None
     metadata_json: Optional[str] = None
 
 

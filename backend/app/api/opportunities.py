@@ -27,6 +27,7 @@ from app.tasks import (
     run_kyc_pipeline_task,
 )
 from app.models.notification import Notification
+from app.services.notification_service import NotificationService
 from app.core.solutions_catalog import solutions_catalog
 
 router = APIRouter(prefix="/api/opportunities", tags=["opportunities"])
@@ -190,15 +191,10 @@ async def create_opportunity(
         event_type="create",
     )
 
-    # Create notification directly (also triggers async task as backup)
-    notification = Notification(
-        user_id=current_user.id,
-        opportunity_id=opportunity.id,
-        type="opportunity_created",
-        title="Opportunity Created",
-        message=f"Opportunity for {data.company_name} has been created.",
+    # In-app notifications for superadmins & stakeholders (excluding creator)
+    NotificationService.notify_opportunity_created(
+        db, opportunity, actor_id=current_user.id
     )
-    db.add(notification)
     db.commit()
     db.refresh(opportunity)
 
@@ -245,6 +241,7 @@ async def update_opportunity(
     update_data = data.model_dump(exclude_unset=True)
     old_status = opportunity.status
     old_engineer = opportunity.assigned_engineer
+    old_revenue = opportunity.potential_revenue
 
     # Validate status
     if "status" in update_data and update_data["status"] not in VALID_STATUSES:
@@ -278,6 +275,17 @@ async def update_opportunity(
             )
             db.add(new_meeting)
 
+    # Check potential revenue / deal value change
+    revenue_changed = "potential_revenue" in update_data and update_data["potential_revenue"] != old_revenue
+    if revenue_changed:
+        NotificationService.notify_revenue_changed(
+            db,
+            opportunity,
+            old_val=old_revenue,
+            new_val=update_data["potential_revenue"],
+            actor_id=current_user.id,
+        )
+
     # Log engineer / pre-sales assignment change
     engineer_changed = "assigned_engineer" in update_data and update_data["assigned_engineer"] != old_engineer
     if engineer_changed:
@@ -291,17 +299,12 @@ async def update_opportunity(
                 f"Assigned Pre-Sales to {new_eng}.",
                 event_type="update",
             )
-            # Create notification for assigned user if they exist
-            new_engineer = db.query(User).filter(User.full_name.ilike(f"%{new_eng}%")).first()
-            if new_engineer:
-                notification = Notification(
-                    user_id=new_engineer.id,
-                    opportunity_id=opportunity.id,
-                    type="opportunity_assigned",
-                    title="Opportunity Assigned",
-                    message=f"You have been assigned to pre-sales opportunity '{opportunity.company_name}'.",
-                )
-                db.add(notification)
+            NotificationService.notify_engineer_assigned(
+                db,
+                opportunity,
+                assigned_engineer=new_eng,
+                actor_id=current_user.id,
+            )
         else:
             _log_timeline(
                 db,
@@ -322,7 +325,14 @@ async def update_opportunity(
             f"Status changed from '{old_status}' to '{update_data['status']}'.",
             event_type="status_change",
         )
-    elif update_data and not engineer_changed:
+        NotificationService.notify_status_changed(
+            db,
+            opportunity,
+            old_status=old_status,
+            new_status=update_data["status"],
+            actor_id=current_user.id,
+        )
+    elif update_data and not engineer_changed and not revenue_changed:
         changed_fields = list(update_data.keys())
         _log_timeline(
             db,
@@ -336,11 +346,11 @@ async def update_opportunity(
     db.commit()
     db.refresh(opportunity)
 
-    # Trigger async notification for status change
+    # Trigger async notification for status change (email backup)
     if "status" in update_data and update_data["status"] != old_status:
         try:
             send_status_changed_notification.delay(
-                str(opportunity.id), old_status, update_data["status"]
+                str(opportunity.id), old_status, update_data["status"], actor_id=str(current_user.id)
             )
         except Exception:
             pass
