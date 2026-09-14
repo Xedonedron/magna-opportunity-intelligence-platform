@@ -556,7 +556,7 @@ function InfoRow({
                     </div>
                 ) : isLink ? (
                     <a
-                        href={value}
+                        href={value.startsWith("http://") || value.startsWith("https://") ? value : `https://${value}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-blue-600 hover:underline"

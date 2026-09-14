@@ -100,10 +100,10 @@ export interface OpportunityListResponse {
 export interface OpportunityCreateInput {
     company_name: string;
     contact_name?: string | null;
-    website?: string | null;
+    website: string;
     email?: string | null;
     phone?: string | null;
-    industry?: string | null;
+    industry: string;
     product?: string | null;
     customer_needs: string;
     additional_notes?: string | null;

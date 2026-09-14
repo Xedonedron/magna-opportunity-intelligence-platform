@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input, Select, SuggestedInput, MultiSelect } from "@/components/ui/Input";
 import { useUpdateOpportunity } from "@/hooks/use-opportunities";
 import type { Opportunity } from "@/types/opportunity";
+import { toast } from "sonner";
 
 import { useEffect } from "react";
 import { getMasterIndustries, getMasterPresales, fetchMasterData, DEFAULT_TARGET_SOLUTIONS } from "@/lib/master-data";
@@ -57,15 +58,33 @@ export function EditOpportunityDialog({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!companyName.trim()) {
+            toast.error("Company name is required");
+            return;
+        }
+        if (!website.trim()) {
+            toast.error("Website URL is required for AI context");
+            return;
+        }
+        if (!industry.trim()) {
+            toast.error("Industry is required for AI context");
+            return;
+        }
+
+        const trimmedWebsite = website.trim();
+        const formattedWebsite = trimmedWebsite.startsWith("http://") || trimmedWebsite.startsWith("https://")
+            ? trimmedWebsite
+            : `https://${trimmedWebsite}`;
+
         try {
             await updateOpportunity.mutateAsync({
                 id: opportunity.id,
                 input: {
-                    company_name: companyName,
-                    website: website || null,
+                    company_name: companyName.trim(),
+                    website: formattedWebsite,
                     email: email || null,
                     phone: phone || null,
-                    industry: industry || null,
+                    industry: industry.trim(),
                     product: product || null,
                     assigned_engineer: assignedEngineer || null,
                     customer_needs: customerNeeds,
@@ -126,6 +145,7 @@ export function EditOpportunityDialog({
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                 setWebsite(e.target.value)
                             }
+                            required
                         />
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <Input
@@ -153,6 +173,7 @@ export function EditOpportunityDialog({
                                 value={industry}
                                 onChange={setIndustry}
                                 suggestions={industriesList.length > 0 ? industriesList : getMasterIndustries()}
+                                required
                             />
                             <MultiSelect
                                 label="Target Solution"

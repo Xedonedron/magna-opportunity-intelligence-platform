@@ -24,11 +24,18 @@ import { getMasterIndustries, getMasterPresales, fetchMasterData, DEFAULT_TARGET
 import { useEffect } from "react";
 
 const formSchema = z.object({
-    company_name: z.string().min(1, "Company name is required"),
-    website: z.string().optional(),
+    company_name: z.string().trim().min(1, "Company name is required"),
+    website: z
+        .string()
+        .trim()
+        .min(1, "Website URL is required")
+        .refine(
+            (val) => /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/.*)?$/i.test(val.trim()),
+            { message: "Please enter a valid website URL (e.g. https://example.com or example.com)" }
+        ),
     email: z.string().email("Invalid email").optional().or(z.literal("")),
     phone: z.string().optional(),
-    industry: z.string().optional(),
+    industry: z.string().trim().min(1, "Industry is required"),
     product: z.string().min(1, "Target Solution is required"),
     assigned_engineer: z.string().optional(),
     customer_needs: z.string().min(1, "Customer needs is required"),
@@ -73,15 +80,6 @@ export default function CreateOpportunityPage() {
     const [industriesList, setIndustriesList] = useState<string[]>([]);
     const [presalesList, setPresalesList] = useState<string[]>([]);
 
-    useEffect(() => {
-        fetchMasterData().then((data) => {
-            setIndustriesList(data.industries);
-            setPresalesList(data.presales);
-        });
-    }, []);
-
-    const activePresales = presalesList.length > 0 ? presalesList : getMasterPresales();
-
     const {
         register,
         handleSubmit,
@@ -105,6 +103,16 @@ export default function CreateOpportunityPage() {
         },
     });
 
+    useEffect(() => {
+        register("industry");
+        fetchMasterData().then((data) => {
+            setIndustriesList(data.industries);
+            setPresalesList(data.presales);
+        });
+    }, [register]);
+
+    const activePresales = presalesList.length > 0 ? presalesList : getMasterPresales();
+
     const onSubmit = async (data: FormData) => {
         setIsSubmitting(true);
         setPipelineState(1);
@@ -114,12 +122,17 @@ export default function CreateOpportunityPage() {
                 ? new Date(data.estimated_agenda_date).toISOString()
                 : null;
 
+            const trimmedWebsite = data.website.trim();
+            const formattedWebsite = trimmedWebsite.startsWith("http://") || trimmedWebsite.startsWith("https://")
+                ? trimmedWebsite
+                : `https://${trimmedWebsite}`;
+
             const payload = {
-                company_name: data.company_name,
-                website: data.website || null,
+                company_name: data.company_name.trim(),
+                website: formattedWebsite,
                 email: data.email || null,
                 phone: data.phone || null,
-                industry: data.industry || null,
+                industry: data.industry.trim(),
                 product: data.product || null,
                 assigned_engineer: data.assigned_engineer || null,
                 customer_needs: data.customer_needs,
@@ -251,11 +264,22 @@ export default function CreateOpportunityPage() {
                                     {errors.company_name.message}
                                 </p>
                             )}
-                            <Input
-                                label="Website URL"
-                                placeholder="e.g. https://acme.com"
-                                {...register("website")}
-                            />
+                            <div>
+                                <Input
+                                    label="Website URL"
+                                    placeholder="e.g. https://acme.com or acme.com"
+                                    required
+                                    {...register("website")}
+                                />
+                                <p className="text-xs text-zinc-400 mt-1">
+                                    Wajib diisi sebagai sumber grounding AI untuk memindai profil dan teknologi perusahaan.
+                                </p>
+                                {errors.website && (
+                                    <p className="text-xs text-red-500 mt-1">
+                                        {errors.website.message}
+                                    </p>
+                                )}
+                            </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <Input
                                     label="Contact Email"
@@ -272,13 +296,24 @@ export default function CreateOpportunityPage() {
                             {errors.email && (
                                 <p className="text-xs text-red-500">{errors.email.message}</p>
                             )}
-                            <SuggestedInput
-                                label="Industry"
-                                placeholder="e.g. Manufacturing, Finance, Healthcare"
-                                value={watch("industry") || ""}
-                                onChange={(val) => setValue("industry", val)}
-                                suggestions={industriesList.length > 0 ? industriesList : getMasterIndustries()}
-                            />
+                            <div>
+                                <SuggestedInput
+                                    label="Industry"
+                                    placeholder="e.g. Manufacturing, Finance, Healthcare"
+                                    required
+                                    value={watch("industry") || ""}
+                                    onChange={(val) => setValue("industry", val, { shouldValidate: true })}
+                                    suggestions={industriesList.length > 0 ? industriesList : getMasterIndustries()}
+                                />
+                                <p className="text-xs text-zinc-400 mt-1">
+                                    Wajib diisi untuk analisis tren sektor industri dan pencocokan solusi katalog AI.
+                                </p>
+                                {errors.industry && (
+                                    <p className="text-xs text-red-500 mt-1">
+                                        {errors.industry.message}
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </div>
 

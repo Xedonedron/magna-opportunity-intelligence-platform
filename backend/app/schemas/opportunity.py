@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, field_validator
 
 
 # --- Timeline ---
@@ -23,10 +23,10 @@ class TimelineEventResponse(BaseModel):
 class OpportunityCreate(BaseModel):
     company_name: str = Field(..., min_length=1, max_length=255)
     contact_name: str | None = Field(None, max_length=255)
-    website: str | None = Field(None, max_length=500)
+    website: str = Field(..., min_length=1, max_length=500)
     email: EmailStr | None = None
     phone: str | None = Field(None, max_length=50)
-    industry: str | None = Field(None, max_length=255)
+    industry: str = Field(..., min_length=1, max_length=255)
     product: str | None = Field(None, max_length=255)
     customer_needs: str = Field(..., min_length=1)
     additional_notes: str | None = None
@@ -34,6 +34,24 @@ class OpportunityCreate(BaseModel):
     estimated_agenda_date: datetime | None = None
     meeting_schedule: datetime | None = None
     assigned_engineer: str | None = None
+
+    @field_validator("website")
+    @classmethod
+    def validate_website(cls, v: str) -> str:
+        val = v.strip()
+        if not val:
+            raise ValueError("Website URL cannot be empty")
+        if not (val.startswith("http://") or val.startswith("https://")):
+            return f"https://{val}"
+        return val
+
+    @field_validator("industry", "company_name")
+    @classmethod
+    def validate_not_empty(cls, v: str) -> str:
+        val = v.strip()
+        if not val:
+            raise ValueError("Field cannot be empty or blank")
+        return val
 
 
 class OpportunityUpdate(BaseModel):

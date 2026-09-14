@@ -187,6 +187,8 @@ class TestOpportunityCreate:
             json={
                 "company_name": "Revenue Test PT",
                 "customer_needs": "Enterprise Cloud Setup",
+                "industry": "Financial Services",
+                "website": "https://revenuetest.id",
                 "potential_revenue": 500000000.0,
                 "estimated_agenda_date": "2026-10-15T10:00:00Z",
             },
@@ -207,6 +209,54 @@ class TestOpportunityCreate:
             json={},  # Missing required fields
         )
         assert response.status_code == 422
+
+    def test_create_opportunity_missing_website(
+        self, client: TestClient, auth_headers: dict[str, str]
+    ):
+        """Should return 422 if website is omitted."""
+        response = client.post(
+            "/api/opportunities",
+            headers=auth_headers,
+            json={
+                "company_name": "No Website PT",
+                "customer_needs": "Some needs",
+                "industry": "Technology",
+            },
+        )
+        assert response.status_code == 422
+
+    def test_create_opportunity_missing_industry(
+        self, client: TestClient, auth_headers: dict[str, str]
+    ):
+        """Should return 422 if industry is omitted."""
+        response = client.post(
+            "/api/opportunities",
+            headers=auth_headers,
+            json={
+                "company_name": "No Industry PT",
+                "customer_needs": "Some needs",
+                "website": "https://example.com",
+            },
+        )
+        assert response.status_code == 422
+
+    def test_create_opportunity_website_normalized(
+        self, client: TestClient, auth_headers: dict[str, str]
+    ):
+        """Should prepend https:// to website if omitted."""
+        response = client.post(
+            "/api/opportunities",
+            headers=auth_headers,
+            json={
+                "company_name": "Normalized PT",
+                "customer_needs": "Some needs",
+                "industry": "Manufacturing",
+                "website": "example.com",
+            },
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert data["website"] == "https://example.com"
 
 
 class TestOpportunityDetail:

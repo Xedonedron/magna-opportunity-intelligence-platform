@@ -18,6 +18,7 @@ from app.core.database import Base, get_db
 from app.main import app
 from app.models import User, Opportunity
 from app.services.auth import create_access_token
+from unittest.mock import patch, MagicMock
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -25,6 +26,15 @@ from sqlalchemy.dialects.postgresql import JSONB
 @compiles(JSONB, "sqlite")
 def compile_jsonb_sqlite(type_, compiler, **kw):
     return "JSON"
+
+
+@pytest.fixture(autouse=True)
+def mock_celery():
+    """Mock Celery task delays to avoid waiting for Redis connection timeouts during tests."""
+    with patch("app.tasks.send_opportunity_created_notification.delay") as p1, \
+         patch("app.tasks.send_status_changed_notification.delay") as p2, \
+         patch("app.tasks.run_kyc_pipeline_task.delay") as p3:
+        yield
 
 
 # Use in-memory SQLite for testing
