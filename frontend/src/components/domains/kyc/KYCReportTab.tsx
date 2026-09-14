@@ -30,7 +30,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { CollapsibleErrorAlert } from "@/components/ui/CollapsibleErrorAlert";
 import { UseCaseAccordion } from "./UseCaseAccordion";
-import { VersionSelector } from "./VersionSelector";
+import { VersionSelector, cleanVersionTitle } from "./VersionSelector";
 import { KYCEditForm } from "./KYCEditForm";
 import {
     useLatestKYCReport,
@@ -86,10 +86,10 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
     // Sync title input and reset inline title edit when report changes
     useEffect(() => {
         if (report) {
-            setTitleInput(report.title || "");
+            setTitleInput(cleanVersionTitle(report.title));
             setIsEditingTitle(false);
         }
-    }, [report?.id]);
+    }, [report?.id, report?.title]);
 
     // Reset edit state when report changes
     useEffect(() => {
@@ -150,9 +150,10 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
     const handleSaveTitle = async () => {
         if (!report) return;
         try {
+            const cleanTitle = cleanVersionTitle(titleInput);
             await updateReport.mutateAsync({
                 reportId: report.id,
-                data: { title: titleInput.trim() || undefined },
+                data: { title: cleanTitle || undefined },
             });
             setIsEditingTitle(false);
             toast.success("Deskripsi versi berhasil diperbarui");
@@ -163,16 +164,14 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
 
     // Handle regenerate modal trigger
     const handleRegenerateClick = () => {
-        const currentMax = versionsData?.items.reduce((max, v) => Math.max(max, v.version), 0) || report?.version || 1;
-        const nextVersion = currentMax + 1;
-        setRegenerateTitle(`v${nextVersion} - `);
+        setRegenerateTitle("");
         setRegenerateFocus("");
         setShowConfirmRegenerate(true);
     };
 
     const handleConfirmRegenerate = async () => {
         try {
-            const cleanTitle = regenerateTitle.trim() || undefined;
+            const cleanTitle = cleanVersionTitle(regenerateTitle) || undefined;
             const cleanFocus = regenerateFocus.trim() || undefined;
             await regenerate.mutateAsync({
                 source_type: "manual_regenerate",
@@ -304,14 +303,14 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setTitleInput(report.title || "");
+                                        setTitleInput(cleanVersionTitle(report.title));
                                         setIsEditingTitle(true);
                                     }}
                                     className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200/80 rounded-md transition-colors"
                                     title="Ubah deskripsi versi ini"
                                 >
                                     <Edit3 className="w-3 h-3 text-zinc-400" />
-                                    <span>{report.title ? "Ubah Deskripsi" : "Beri Deskripsi"}</span>
+                                    <span>{cleanVersionTitle(report.title) ? "Ubah Deskripsi" : "Beri Deskripsi"}</span>
                                 </button>
                             )
                         )}
@@ -391,6 +390,9 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
     const renderRegenerateModal = () => {
         if (!showConfirmRegenerate) return null;
 
+        const currentMax = versionsData?.items.reduce((max, v) => Math.max(max, v.version), 0) || report?.version || 1;
+        const nextVersion = currentMax + 1;
+
         return (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                 <Card className="p-6 max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-150">
@@ -406,16 +408,24 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
 
                     <div className="space-y-4 mb-6">
                         <div>
-                            <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-1.5">
-                                Judul / Label Versi (Opsional)
-                            </label>
+                            <div className="flex items-center justify-between mb-1.5">
+                                <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider">
+                                    Judul / Label Versi (Opsional)
+                                </label>
+                                <span className="text-[11px] text-zinc-500 font-medium bg-zinc-100 px-2 py-0.5 rounded">
+                                    Versi v{nextVersion}
+                                </span>
+                            </div>
                             <input
                                 type="text"
                                 value={regenerateTitle}
                                 onChange={(e) => setRegenerateTitle(e.target.value)}
-                                placeholder="Contoh: v2 - Penambahan konteks untuk core switch"
+                                placeholder="Contoh: Pembaruan spesifikasi server & migrasi compute"
                                 className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900"
                             />
+                            <p className="text-[11px] text-zinc-500 mt-1">
+                                Label nomor versi (v{nextVersion}) akan disematkan otomatis pada Version History.
+                            </p>
                         </div>
 
                         <div>
@@ -696,6 +706,19 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header with version info & actions */}
             {renderHeader()}
+
+            {/* Focus Notes banner if present for this version */}
+            {report.focus_notes && (
+                <div className="bg-amber-50/80 border border-amber-200/80 text-amber-900 px-4 py-3 rounded-xl text-xs flex items-start gap-2.5 shadow-sm -mt-4">
+                    <Sparkles className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                    <div className="min-w-0">
+                        <span className="font-semibold text-amber-900">Fokus Analisis Versi v{report.version}: </span>
+                        <span className="text-amber-800/90 whitespace-normal break-words leading-relaxed">
+                            {report.focus_notes}
+                        </span>
+                    </div>
+                </div>
+            )}
 
             {/* Executive Summary */}
             {report.executive_summary && (

@@ -81,3 +81,19 @@ def test_batch_regenerate_script_logic(db: Session):
     assert saved_v2.status == "running"
     assert opp.status == "KYC Running"
     mock_delay.assert_called_once_with(str(opp.id), source_type="manual_regenerate")
+
+
+def test_kyc_title_sanitization():
+    import re
+
+    def sanitize_title(title: str | None) -> str | None:
+        if not title:
+            return None
+        cleaned = re.sub(r"^v\d+\s*[-–—:]\s*", "", title.strip(), flags=re.IGNORECASE).strip()
+        return cleaned or None
+
+    assert sanitize_title("v3 - Update ke server on-premise") == "Update ke server on-premise"
+    assert sanitize_title("v3: Update migrasi") == "Update migrasi"
+    assert sanitize_title("v3 - ") is None
+    assert sanitize_title("Update ke server on-premise") == "Update ke server on-premise"
+    assert sanitize_title("V12 - Penambahan switch") == "Penambahan switch"

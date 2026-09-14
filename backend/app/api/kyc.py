@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -116,7 +117,10 @@ async def regenerate_kyc_report(
     next_version = (max_version[0] + 1) if max_version else 1
 
     source_type = data.source_type if data else "manual_regenerate"
-    title = (data.title.strip() if data.title else None) if data else None
+    raw_title = (data.title.strip() if data.title else None) if data else None
+    title = re.sub(r"^v\d+\s*[-–—:]\s*", "", raw_title, flags=re.IGNORECASE).strip() if raw_title else None
+    if not title:
+        title = None
     focus_notes = (data.focus_notes.strip() if data.focus_notes else None) if data else None
 
     # Create a placeholder report with 'running' status
@@ -197,6 +201,11 @@ async def update_kyc_report(
         raise HTTPException(status_code=404, detail="KYC report not found")
 
     update_data = data.model_dump(exclude_unset=True)
+    if "title" in update_data:
+        raw_t = str(update_data["title"]).strip() if update_data["title"] else None
+        cleaned_t = re.sub(r"^v\d+\s*[-–—:]\s*", "", raw_t, flags=re.IGNORECASE).strip() if raw_t else None
+        update_data["title"] = cleaned_t if cleaned_t else None
+
     if "use_cases" in update_data and isinstance(update_data["use_cases"], list):
         impact_order = {"High": 0, "Medium": 1, "Low": 2}
         update_data["use_cases"] = sorted(
