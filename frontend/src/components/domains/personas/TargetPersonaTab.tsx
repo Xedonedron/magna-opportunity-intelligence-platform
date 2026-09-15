@@ -217,13 +217,13 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
             )}
 
             {/* Header section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-zinc-200 shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
                 <div>
                     <div className="flex items-center gap-2">
                         <span className="p-2 rounded-lg bg-orange-50 text-orange-600">
                             <Users className="w-5 h-5" />
                         </span>
-                        <h3 className="text-base font-semibold text-zinc-900">
+                        <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
                             {t.opportunityDetail.persona.title}
                         </h3>
                     </div>
@@ -239,7 +239,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             variant="outline"
                             size="sm"
                             onClick={handleCopyFullPlaybook}
-                            className="gap-1.5 text-xs text-zinc-700 border-zinc-300 hover:bg-zinc-50 transition-colors"
+                            className="gap-1.5 text-xs text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
                             title={t.opportunityDetail.persona.copyFullPlaybook || "Salin Full Playbook"}
                         >
                             {isFullCopied ? (
@@ -264,7 +264,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             size="sm"
                             onClick={() => handleGenerate(true)}
                             disabled={isPending || !canGenerate}
-                            className="gap-1.5 text-xs text-zinc-700 border-zinc-300 hover:bg-zinc-50 disabled:opacity-50"
+                            className="gap-1.5 text-xs text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50"
                         >
                             <RefreshCw className={`w-3.5 h-3.5 ${isCurrentTargetGenerating ? "animate-spin" : ""}`} />
                             {isCurrentTargetGenerating ? t.opportunityDetail.persona.regenerating : t.opportunityDetail.persona.regeneratePlaybook}
@@ -286,7 +286,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
             {/* Selectors Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Seniority Selector */}
-                <Card className="p-4 bg-white border-zinc-200">
+                <Card className="p-4 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
                     <div className="flex items-center justify-between mb-3">
                         <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
                             <ShieldCheck className="w-4 h-4 text-zinc-400" />
@@ -311,7 +311,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                                     onClick={() => setSelectedSeniority(lvl)}
                                     className={`flex flex-col items-start p-2.5 rounded-lg border text-left transition-all ${isSelected
                                             ? "border-orange-500 bg-orange-50/50 text-orange-950 ring-1 ring-orange-500 shadow-sm"
-                                            : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
+                                            : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800"
                                         }`}
                                 >
                                     <div className="flex items-center justify-between w-full">
@@ -339,7 +339,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                                 value={customSeniority}
                                 onChange={(e) => setCustomSeniority(e.target.value.slice(0, 50))}
                                 placeholder="misal: Lead Enterprise Architect / CISO"
-                                className="w-full text-xs px-3 py-1.5 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 bg-zinc-50/50"
+                                className="w-full text-xs px-3 py-1.5 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 bg-zinc-50/50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
                                 maxLength={50}
                             />
                         </div>
@@ -347,7 +347,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                 </Card>
 
                 {/* Department Selector */}
-                <Card className="p-4 bg-white border-zinc-200">
+                <Card className="p-4 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
                     <div className="flex items-center justify-between mb-3">
                         <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
                             <Building2 className="w-4 h-4 text-zinc-400" />
@@ -372,7 +372,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                                     onClick={() => setSelectedDepartment(dept)}
                                     className={`flex flex-col items-start p-2.5 rounded-lg border text-left transition-all ${isSelected
                                             ? "border-orange-500 bg-orange-50/50 text-orange-950 ring-1 ring-orange-500 shadow-sm"
-                                            : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
+                                            : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800"
                                         }`}
                                 >
                                     <div className="flex items-center justify-between w-full">
@@ -400,7 +400,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                                 value={customDepartment}
                                 onChange={(e) => setCustomDepartment(e.target.value.slice(0, 50))}
                                 placeholder="misal: Risk & Compliance / Audit Internal"
-                                className="w-full text-xs px-3 py-1.5 border border-zinc-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 bg-zinc-50/50"
+                                className="w-full text-xs px-3 py-1.5 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 bg-zinc-50/50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
                                 maxLength={50}
                             />
                         </div>
@@ -410,12 +410,12 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
 
             {/* Main Content Area */}
             {isCurrentTargetGenerating ? (
-                <Card className="p-12 text-center bg-white border-zinc-200">
+                <Card className="p-12 text-center bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
                     <div className="flex flex-col items-center justify-center space-y-3">
                         <div className="p-3 bg-orange-50 text-orange-600 rounded-full animate-pulse">
                             <Sparkles className="w-6 h-6 animate-spin" />
                         </div>
-                        <h4 className="text-sm font-semibold text-zinc-900">
+                        <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                             {t.opportunityDetail.persona.generating}
                         </h4>
                         <p className="text-xs text-zinc-500 max-w-sm">
@@ -424,7 +424,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                     </div>
                 </Card>
             ) : isDetailLoading ? (
-                <Card className="p-12 text-center bg-white border-zinc-200">
+                <Card className="p-12 text-center bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
                     <div className="flex flex-col items-center justify-center space-y-3">
                         <Loader2 className="w-6 h-6 text-zinc-400 animate-spin" />
                         <p className="text-xs text-zinc-500">{t.opportunityDetail.persona.loadingPlaybook} {effectiveSeniority || selectedSeniority} ({effectiveDepartment || selectedDepartment})...</p>
@@ -435,17 +435,17 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                     {/* Key Strategic Focus & Value Props */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Focus Areas */}
-                        <Card className="p-5 bg-white border-zinc-200">
+                        <Card className="p-5 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
                             <div className="flex items-center gap-2 mb-3">
                                 <Compass className="w-4 h-4 text-orange-600" />
-                                <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">
+                                <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
                                     {t.opportunityDetail.persona.topPriority} ({activePersona.seniority})
                                 </h4>
                             </div>
                             <div className="space-y-3">
                                 {activePersona.focus_areas?.map((fa, i) => (
-                                    <div key={i} className="p-3 rounded-lg bg-zinc-50 border border-zinc-100">
-                                        <span className="text-xs font-semibold text-zinc-900 block mb-1">
+                                    <div key={i} className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-850 border border-zinc-100 dark:border-zinc-800">
+                                        <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 block mb-1">
                                             {fa.title}
                                         </span>
                                         <p className="text-xs text-zinc-600 leading-relaxed">
@@ -457,10 +457,10 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                         </Card>
 
                         {/* Value Props */}
-                        <Card className="p-5 bg-white border-zinc-200">
+                        <Card className="p-5 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
                             <div className="flex items-center gap-2 mb-3">
                                 <Lightbulb className="w-4 h-4 text-amber-500" />
-                                <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">
+                                <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
                                     {t.opportunityDetail.persona.valuePropsToPitch} ({activePersona.department})
                                 </h4>
                             </div>
@@ -476,12 +476,12 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                     </div>
 
                     {/* Recommended Questions Section */}
-                    <Card className="p-5 bg-white border-zinc-200">
+                    <Card className="p-5 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-zinc-100 gap-2">
                             <div>
                                 <div className="flex items-center gap-2">
                                     <HelpCircle className="w-4 h-4 text-blue-600" />
-                                    <h4 className="text-sm font-semibold text-zinc-900">
+                                    <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                                         {t.opportunityDetail.persona.discoveryQuestions}
                                     </h4>
                                 </div>
@@ -511,7 +511,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                             {activePersona.questions?.map((q, idx) => (
                                 <div
                                     key={idx}
-                                    className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/30 hover:border-zinc-300 hover:bg-white transition-all space-y-2 relative group"
+                                    className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-750 bg-zinc-50/30 dark:bg-zinc-850/50 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-white dark:hover:bg-zinc-850 transition-all space-y-2 relative group"
                                 >
                                     <div className="flex items-center justify-between gap-2">
                                         <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
@@ -536,7 +536,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                                         </button>
                                     </div>
 
-                                    <p className="text-xs font-semibold text-zinc-900 leading-relaxed">
+                                    <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 leading-relaxed">
                                         "{q.question}"
                                     </p>
 
@@ -556,10 +556,10 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                     {/* Objection Handling */}
                     {activePersona.objection_handling &&
                         activePersona.objection_handling.length > 0 && (
-                            <Card className="p-5 bg-white border-zinc-200">
+                            <Card className="p-5 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
                                 <div className="flex items-center gap-2 mb-4">
                                     <AlertCircle className="w-4 h-4 text-rose-600" />
-                                    <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">
+                                    <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
                                         {t.opportunityDetail.persona.objectionHandling}
                                     </h4>
                                 </div>
@@ -573,7 +573,7 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                                                 <span className="font-bold text-rose-700">{t.opportunityDetail.persona.potentialObjection}: </span>
                                                 "{obj.objection}"
                                             </div>
-                                            <div className="text-xs text-zinc-700 bg-white p-2.5 rounded border border-zinc-200/80">
+                                            <div className="text-xs text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-850 p-2.5 rounded border border-zinc-200/80 dark:border-zinc-700">
                                                 <span className="font-semibold text-emerald-700 block mb-0.5">
                                                     {t.opportunityDetail.persona.recommendedResponse}:
                                                 </span>
@@ -587,12 +587,12 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                 </div>
             ) : (
                 /* Empty State: Prompt to generate */
-                <Card className="p-12 text-center bg-white border-zinc-200 border-dashed">
+                <Card className="p-12 text-center bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 border-dashed">
                     <div className="flex flex-col items-center justify-center space-y-3 max-w-md mx-auto">
                         <div className="p-3 bg-zinc-100 text-zinc-500 rounded-full">
                             <Users className="w-6 h-6" />
                         </div>
-                        <h4 className="text-sm font-semibold text-zinc-900">
+                        <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                             {t.opportunityDetail.persona.noPersonaTitle} ({effectiveSeniority || selectedSeniority} - {effectiveDepartment || selectedDepartment})
                         </h4>
                         <p className="text-xs text-zinc-500 leading-relaxed">

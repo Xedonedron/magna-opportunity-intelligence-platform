@@ -579,24 +579,24 @@ export default function SettingsPage() {
     return (
         <div className="p-4 sm:p-8 max-w-4xl mx-auto space-y-6 sm:space-y-8">
             {/* Header */}
-            <div className="border-b border-zinc-200 pb-6">
-                <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-900 tracking-tight flex items-center gap-2">
-                    <Settings className="w-7 h-7 sm:w-8 sm:h-8 text-zinc-800" /> Settings
+            <div className="border-b border-zinc-200 dark:border-zinc-800 pb-6">
+                <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight flex items-center gap-2">
+                    <Settings className="w-7 h-7 sm:w-8 sm:h-8 text-zinc-800 dark:text-zinc-200" /> Settings
                 </h1>
-                <p className="text-zinc-500 text-xs sm:text-sm mt-1">
+                <p className="text-zinc-500 dark:text-zinc-400 text-xs sm:text-sm mt-1">
                     Konfigurasi profil Anda dan atur parameter kecerdasan buatan (AI) pendukung KYC.
                 </p>
             </div>
 
             {/* Tabs Navigation */}
-            <div className="flex border-b border-zinc-200 gap-2 sm:gap-4 overflow-x-auto scrollbar-none whitespace-nowrap pb-0.5">
+            <div className="flex border-b border-zinc-200 dark:border-zinc-800 gap-2 sm:gap-4 overflow-x-auto scrollbar-none whitespace-nowrap pb-0.5">
                 {activeTabs.map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`pb-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-all ${activeTab === tab.id
-                            ? "border-zinc-900 text-zinc-900"
-                            : "border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300"
+                            ? "border-zinc-900 dark:border-zinc-100 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+                            : "border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:border-zinc-300 dark:hover:border-zinc-700"
                             }`}
                     >
                         <tab.icon className="w-4 h-4" />
@@ -617,13 +617,13 @@ export default function SettingsPage() {
             <div className="space-y-6">
                 {/* 1. Profile Tab */}
                 {activeTab === "profile" && (
-                    <Card className="p-6 bg-white border border-zinc-200 space-y-6">
-                        <div className="flex items-center gap-4 border-b border-zinc-100 pb-4">
-                            <div className="w-14 h-14 rounded-full bg-zinc-100 flex items-center justify-center border border-zinc-200">
-                                <User className="w-6 h-6 text-zinc-600" />
+                    <Card className="p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-6">
+                        <div className="flex items-center gap-4 border-b border-zinc-100 dark:border-zinc-800 pb-4">
+                            <div className="w-14 h-14 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700">
+                                <User className="w-6 h-6 text-zinc-600 dark:text-zinc-300" />
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold text-zinc-900">{user?.full_name || "User"}</h3>
+                                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{user?.full_name || "User"}</h3>
                                 <p className="text-xs text-zinc-400 font-mono mt-0.5 uppercase">{user?.role || "Engineer"}</p>
                             </div>
                         </div>
@@ -643,12 +643,12 @@ export default function SettingsPage() {
                                 <Input
                                     value={user?.email || ""}
                                     disabled
-                                    className="bg-zinc-50 select-none cursor-not-allowed"
+                                    className="bg-zinc-50 dark:bg-zinc-800 select-none cursor-not-allowed"
                                 />
                             </div>
                         </div>
 
-                        <div className="pt-4 border-t border-zinc-100 flex justify-end">
+                        <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-end">
                             <Button onClick={handleSaveProfile}>Simpan Profil</Button>
                         </div>
                     </Card>
@@ -656,9 +656,9 @@ export default function SettingsPage() {
 
                 {/* 2. AI Settings Tab */}
                 {activeTab === "ai" && isSuperAdmin && (
-                    <Card className="p-6 bg-white border border-zinc-200 space-y-6">
+                    <Card className="p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-6">
                         <div>
-                            <h3 className="text-lg font-semibold text-zinc-900">Konfigurasi AI Pipeline & Multi-Provider LLM</h3>
+                            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Konfigurasi AI Pipeline & Multi-Provider LLM</h3>
                             <p className="text-xs text-zinc-500 mt-0.5">
                                 Pilih provider kecerdasan buatan (Google AI Studio vs OpenAI Compatible), atur API Key, dan tentukan model inference pendukung KYC.
                             </p>
@@ -678,12 +678,12 @@ export default function SettingsPage() {
                                         className={`p-3.5 rounded-lg border text-left transition-all flex flex-col justify-between ${!isSuperAdmin ? "opacity-80 cursor-not-allowed " : ""
                                             }${llmProvider === "google"
                                                 ? "border-emerald-600 bg-emerald-50/60 ring-1 ring-emerald-600"
-                                                : "border-zinc-200 bg-white hover:border-zinc-300"
+                                                : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-850 hover:border-zinc-300 dark:hover:border-zinc-600"
                                             }`}
                                     >
                                         <div>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm font-semibold text-zinc-900">Google AI Studio</span>
+                                                <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Google AI Studio</span>
                                                 <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Recommended</span>
                                             </div>
                                             <p className="text-xs text-zinc-500 mt-1">
@@ -704,7 +704,7 @@ export default function SettingsPage() {
                                     >
                                         <div>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm font-semibold text-zinc-900">OpenAI Compatible</span>
+                                                <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">OpenAI Compatible</span>
                                                 <span className="text-[10px] bg-zinc-100 text-zinc-700 font-bold px-2 py-0.5 rounded-full">CosmosHub</span>
                                             </div>
                                             <p className="text-xs text-zinc-500 mt-1">
@@ -721,8 +721,8 @@ export default function SettingsPage() {
                                     <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider flex items-center gap-1.5">
                                         <span>Model LLM Utama</span>
                                     </label>
-                                    <span className="text-[11px] text-zinc-500 font-mono bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200">
-                                        Aktif: {aiModel ? <strong className="text-zinc-900">{aiModel}</strong> : <span className="text-amber-600 font-medium italic">Belum dipilih</span>}
+                                    <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded border border-zinc-200 dark:border-zinc-700">
+                                        Aktif: {aiModel ? <strong className="text-zinc-900 dark:text-zinc-100">{aiModel}</strong> : <span className="text-amber-600 font-medium italic">Belum dipilih</span>}
                                     </span>
                                 </div>
 
@@ -734,7 +734,7 @@ export default function SettingsPage() {
                                     </div>
 
                                     {activeModelList.length === 0 ? (
-                                        <div className="p-4 rounded-lg border border-dashed border-zinc-200 bg-zinc-50/70 text-center space-y-1">
+                                        <div className="p-4 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-850/50 text-center space-y-1">
                                             <p className="text-xs font-medium text-zinc-700">Belum ada model tersimpan untuk provider ini</p>
                                             <p className="text-[11px] text-zinc-500">
                                                 Ketik nama model pada form di bawah lalu klik <strong>+ Tambah</strong> untuk menambahkan model pertama Anda.
@@ -751,7 +751,7 @@ export default function SettingsPage() {
                                                         className={`flex items-center justify-between p-2.5 rounded-lg border text-left transition-all ${
                                                             isActive
                                                                 ? "border-zinc-950 bg-zinc-900 text-white shadow-sm ring-1 ring-zinc-950"
-                                                                : "border-zinc-200 bg-white text-zinc-800 hover:border-zinc-300 hover:bg-zinc-50 cursor-pointer"
+                                                                : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-850 text-zinc-800 dark:text-zinc-200 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer"
                                                         }`}
                                                     >
                                                         <div className="flex items-center gap-2 min-w-0 pr-2">
@@ -788,7 +788,7 @@ export default function SettingsPage() {
 
                                 {/* Manual Model Input & Add */}
                                 {isSuperAdmin && (
-                                    <div className="pt-2 space-y-1.5 border-t border-zinc-100">
+                                    <div className="pt-2 space-y-1.5 border-t border-zinc-100 dark:border-zinc-800">
                                         <label className="text-[11px] font-semibold text-zinc-600 uppercase flex items-center gap-1">
                                             <span>Ketik Nama Model Baru (Manual)</span>
                                         </label>
@@ -851,8 +851,8 @@ export default function SettingsPage() {
                             </div>
 
                             {/* API Keys Configuration */}
-                            <div className="border-t border-zinc-100 pt-6 space-y-4">
-                                <h4 className="text-sm font-semibold text-zinc-900 flex items-center gap-1.5">
+                            <div className="border-t border-zinc-100 dark:border-zinc-800 pt-6 space-y-4">
+                                <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
                                     <Shield className="w-4 h-4 text-zinc-700" /> Kunci API & Akses Provider
                                 </h4>
 
@@ -970,8 +970,8 @@ export default function SettingsPage() {
                             </div>
 
                             {/* Web Search & Grounding Settings */}
-                            <div className="border-t border-zinc-100 pt-6 space-y-4">
-                                <h4 className="text-sm font-semibold text-zinc-900 flex items-center gap-1.5">
+                            <div className="border-t border-zinc-100 dark:border-zinc-800 pt-6 space-y-4">
+                                <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
                                     <Database className="w-4 h-4 text-zinc-600" /> Pengaturan Web Search & Grounding
                                 </h4>
 
@@ -1023,13 +1023,13 @@ export default function SettingsPage() {
                             </div>
 
                             {/* Financial Privacy Settings */}
-                            <div className="border-t border-zinc-100 pt-6 space-y-4">
-                                <h4 className="text-sm font-semibold text-zinc-900 flex items-center gap-1.5">
+                            <div className="border-t border-zinc-100 dark:border-zinc-800 pt-6 space-y-4">
+                                <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
                                     <Shield className="w-4 h-4 text-zinc-700" /> Privasi & Tampilan Finansial (Financial Privacy)
                                 </h4>
-                                <div className="flex items-center justify-between p-4 border border-zinc-200 rounded-lg bg-zinc-50/50">
+                                <div className="flex items-center justify-between p-4 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50/50 dark:bg-zinc-850/50">
                                     <div className="pr-4">
-                                        <h5 className="text-sm font-medium text-zinc-900">Sembunyikan Nilai Potensi (Hide Financial Numbers)</h5>
+                                        <h5 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Sembunyikan Nilai Potensi (Hide Financial Numbers)</h5>
                                         <p className="text-xs text-zinc-500 mt-0.5">
                                             Jika diaktifkan, angka Potential Revenue di Overview dan Tabel Opportunities akan disamarkan menjadi •••••••• untuk seluruh pengguna.
                                         </p>
@@ -1042,19 +1042,19 @@ export default function SettingsPage() {
                                             onChange={(e) => setHideFinancialNumbers(e.target.checked)}
                                             className="sr-only peer"
                                         />
-                                        <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-zinc-900"></div>
+                                        <div className="w-11 h-6 bg-zinc-200 dark:bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 dark:after:border-zinc-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-zinc-900 dark:peer-checked:bg-zinc-100"></div>
                                     </label>
                                 </div>
                             </div>
 
                             {/* Currency & Exchange Rate Settings */}
-                            <div className="border-t border-zinc-100 pt-6 space-y-4">
-                                <h4 className="text-sm font-semibold text-zinc-900 flex items-center gap-1.5">
+                            <div className="border-t border-zinc-100 dark:border-zinc-800 pt-6 space-y-4">
+                                <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
                                     <DollarSign className="w-4 h-4 text-emerald-600" /> Kurs Valuta AI Token & Cost Monitoring (USD ke IDR)
                                 </h4>
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-zinc-200 rounded-lg bg-zinc-50/50 gap-3">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50/50 dark:bg-zinc-850/50 gap-3">
                                     <div className="pr-4">
-                                        <h5 className="text-sm font-medium text-zinc-900">Nilai Tukar Default (1 USD dalam IDR)</h5>
+                                        <h5 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Nilai Tukar Default (1 USD dalam IDR)</h5>
                                         <p className="text-xs text-zinc-500 mt-0.5">
                                             Digunakan untuk menghitung estimasi biaya token model AI dari USD ke Rupiah secara dinamis di seluruh sistem dan dasbor monitoring.
                                         </p>
@@ -1079,7 +1079,7 @@ export default function SettingsPage() {
                         </div>
 
                         {isSuperAdmin && (
-                            <div className="pt-4 border-t border-zinc-100 flex justify-end">
+                            <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-end">
                                 <Button onClick={handleSaveAISettings} disabled={savingAiSettings} className="gap-2">
                                     {savingAiSettings ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                     Simpan Pengaturan AI
@@ -1101,9 +1101,9 @@ export default function SettingsPage() {
 
                 {/* Master Data Management Tab (Superadmin Only) */}
                 {activeTab === "master_data" && user?.role === "superadmin" && (
-                    <Card className="p-6 bg-white border border-zinc-200 space-y-8">
+                    <Card className="p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-8">
                         <div>
-                            <h3 className="text-lg font-semibold text-zinc-900 flex items-center gap-2">
+                            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                                 <Database className="w-5 h-5 text-zinc-700" /> Master Data Management
                             </h3>
                             <p className="text-xs text-zinc-500 mt-1">
@@ -1112,10 +1112,10 @@ export default function SettingsPage() {
                         </div>
 
                         {/* Pre-Sales Team Options */}
-                        <div className="space-y-4 border-t border-zinc-100 pt-6">
+                        <div className="space-y-4 border-t border-zinc-100 dark:border-zinc-800 pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h4 className="text-sm font-semibold text-zinc-900">Nama Tim Pre-Sales (Predefined Options)</h4>
+                                    <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Nama Tim Pre-Sales (Predefined Options)</h4>
                                     <p className="text-xs text-zinc-400 mt-0.5">Daftar anggota tim Pre-Sales Smartnet Magna Global.</p>
                                 </div>
                             </div>
@@ -1158,9 +1158,9 @@ export default function SettingsPage() {
                         </div>
 
                         {/* Industry Categories Options */}
-                        <div className="space-y-4 border-t border-zinc-100 pt-6">
+                        <div className="space-y-4 border-t border-zinc-100 dark:border-zinc-800 pt-6">
                             <div>
-                                <h4 className="text-sm font-semibold text-zinc-900">Kategori Industry (Predefined Options)</h4>
+                                <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Kategori Industry (Predefined Options)</h4>
                                 <p className="text-xs text-zinc-400 mt-0.5">Daftar sektor industri klien.</p>
                             </div>
 
@@ -1200,7 +1200,7 @@ export default function SettingsPage() {
                             </div>
                         </div>
 
-                        <div className="pt-4 border-t border-zinc-100 flex justify-end">
+                        <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-end">
                             <Button onClick={handleSaveMasterData} disabled={savingMasterData} className="gap-2">
                                 {savingMasterData ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                 Simpan Master Data
@@ -1212,8 +1212,8 @@ export default function SettingsPage() {
                 {/* 4. User Management Tab */}
                 {activeTab === "users" && user?.role === "superadmin" && (
                     <div className="space-y-5">
-                        <div className="border-b border-zinc-100 pb-4">
-                            <h3 className="text-base font-semibold text-zinc-900 flex items-center gap-2"><Users className="w-5 h-5" /> User Access Control & Management</h3>
+                        <div className="border-b border-zinc-100 dark:border-zinc-800 pb-4">
+                            <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2"><Users className="w-5 h-5" /> User Access Control & Management</h3>
                             <p className="text-xs text-zinc-500 mt-1">Kelola role dan kapabilitas setiap pengguna yang terdaftar di sistem. Pengguna tidak dapat melihat pengaturan kapabilitas mereka sendiri.</p>
                         </div>
 
@@ -1244,11 +1244,11 @@ export default function SettingsPage() {
                                     const lastActive = u.last_active_at || u.last_login;
 
                                     return (
-                                        <Card key={u.id} className={`p-4 border ${isEditing ? "border-zinc-900 bg-white shadow-md" : "border-zinc-200 bg-white"} transition-all space-y-3`}>
+                                        <Card key={u.id} className={`p-4 border ${isEditing ? "border-zinc-900 dark:border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-md" : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900"} transition-all space-y-3`}>
                                             <div className="flex items-start justify-between gap-4">
                                                 <div className="flex items-center gap-3 min-w-0">
                                                     <div className="relative shrink-0">
-                                                        <div className="w-10 h-10 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center font-bold text-zinc-700">
+                                                        <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center font-bold text-zinc-700 dark:text-zinc-300">
                                                             {u.full_name ? u.full_name.charAt(0).toUpperCase() : <User className="w-4 h-4 text-zinc-500" />}
                                                         </div>
                                                         <span
@@ -1260,10 +1260,10 @@ export default function SettingsPage() {
                                                     </div>
                                                     <div className="min-w-0">
                                                         <div className="flex items-center gap-2 flex-wrap">
-                                                            <p className="text-sm font-semibold text-zinc-900 truncate">{u.full_name}</p>
+                                                            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">{u.full_name}</p>
                                                             <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${u.role === "superadmin" ? "bg-violet-50 text-violet-700 border-violet-200" :
                                                                 u.role === "manager" ? "bg-blue-50 text-blue-700 border-blue-200" :
-                                                                    "bg-zinc-100 text-zinc-600 border-zinc-200"
+                                                                    "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700"
                                                                 }`}>{u.role}</span>
                                                             {isSelf && <span className="text-[10px] text-zinc-400 italic">(Anda)</span>}
                                                         </div>
@@ -1313,7 +1313,7 @@ export default function SettingsPage() {
                                             {/* Telemetry Summary Strip */}
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
                                                 {/* Last active & Monthly active days */}
-                                                <div className="flex items-center gap-2 text-xs text-zinc-600 bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-100">
+                                                <div className="flex items-center gap-2 text-xs text-zinc-600 bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-100 dark:border-zinc-800">
                                                     <Clock className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                                                     <span className="text-zinc-500">Terakhir aktif:</span>
                                                     <strong className="text-zinc-900 font-semibold">{formatRelativeTime(lastActive)}</strong>
@@ -1324,7 +1324,7 @@ export default function SettingsPage() {
                                                 </div>
 
                                                 {/* Last Action Description */}
-                                                <div className="flex items-center gap-2 text-xs text-zinc-600 bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-100 min-w-0">
+                                                <div className="flex items-center gap-2 text-xs text-zinc-600 bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-100 dark:border-zinc-800 min-w-0">
                                                     <Activity className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                                                     <span className="text-zinc-500 shrink-0">Aksi terakhir:</span>
                                                     {lastAction ? (
@@ -1338,7 +1338,7 @@ export default function SettingsPage() {
                                             </div>
 
                                             {isEditing && draft && (
-                                                <div className="mt-4 pt-4 border-t border-zinc-100 space-y-4">
+                                                <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-4">
                                                     {/* Role Selector */}
                                                     <div className="space-y-1.5">
                                                         <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Role (tampilan sistem)</label>
@@ -1399,7 +1399,7 @@ export default function SettingsPage() {
 
                                             {/* Readonly capability summary */}
                                             {!isEditing && (
-                                                <div className="pt-2 border-t border-zinc-100 flex flex-wrap items-center justify-between gap-2">
+                                                <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-2">
                                                     <div className="flex flex-wrap gap-1.5">
                                                         {caps.map((c: string) => (
                                                             <span key={c} className="text-[10px] bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-full font-medium border border-zinc-200">
@@ -1435,33 +1435,33 @@ export default function SettingsPage() {
                             <>
                                 {/* Metrics Cards */}
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <Card className="p-4 bg-white border border-zinc-200 shadow-sm text-center">
+                                    <Card className="p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm text-center">
                                         <p className="text-[10px] text-zinc-500 font-semibold uppercase">Total Opportunities</p>
-                                        <p className="text-2xl font-bold text-zinc-900 mt-1">{metrics?.totals?.opportunities ?? 0}</p>
+                                        <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">{metrics?.totals?.opportunities ?? 0}</p>
                                     </Card>
-                                    <Card className="p-4 bg-white border border-zinc-200 shadow-sm text-center">
+                                    <Card className="p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm text-center">
                                         <p className="text-[10px] text-zinc-500 font-semibold uppercase">Total Meetings</p>
-                                        <p className="text-2xl font-bold text-zinc-900 mt-1">{metrics?.totals?.meetings ?? 0}</p>
+                                        <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">{metrics?.totals?.meetings ?? 0}</p>
                                     </Card>
-                                    <Card className="p-4 bg-white border border-zinc-200 shadow-sm text-center">
+                                    <Card className="p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm text-center">
                                         <p className="text-[10px] text-zinc-500 font-semibold uppercase">Total KYC Reports</p>
-                                        <p className="text-2xl font-bold text-zinc-900 mt-1">{metrics?.totals?.kyc_reports ?? 0}</p>
+                                        <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">{metrics?.totals?.kyc_reports ?? 0}</p>
                                     </Card>
-                                    <Card className="p-4 bg-white border border-zinc-200 shadow-sm text-center">
+                                    <Card className="p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm text-center">
                                         <p className="text-[10px] text-zinc-500 font-semibold uppercase">Registered Users</p>
-                                        <p className="text-2xl font-bold text-zinc-900 mt-1">{metrics?.totals?.users ?? 0}</p>
+                                        <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">{metrics?.totals?.users ?? 0}</p>
                                     </Card>
                                 </div>
 
                                 {/* Status Details */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <Card className="p-5 bg-white border border-zinc-200 shadow-sm">
+                                    <Card className="p-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
                                         <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">KYC Generation Status</h4>
                                         <div className="space-y-2">
                                             {metrics?.kyc_status_breakdown && Object.entries(metrics.kyc_status_breakdown).map(([status, count]) => (
                                                 <div key={status} className="flex justify-between items-center text-sm border-b border-zinc-50 pb-1.5">
                                                     <span className="font-medium text-zinc-600 uppercase text-xs">{status}</span>
-                                                    <span className="font-bold text-zinc-900 bg-zinc-100 px-2 py-0.5 rounded text-xs">{count as any}</span>
+                                                    <span className="font-bold text-zinc-900 dark:text-zinc-100 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-xs">{count as any}</span>
                                                 </div>
                                             ))}
                                             {(!metrics?.kyc_status_breakdown || Object.keys(metrics.kyc_status_breakdown).length === 0) && (
@@ -1470,13 +1470,13 @@ export default function SettingsPage() {
                                         </div>
                                     </Card>
 
-                                    <Card className="p-5 bg-white border border-zinc-200 shadow-sm">
+                                    <Card className="p-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
                                         <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">User Role Distribution</h4>
                                         <div className="space-y-2">
                                             {metrics?.user_roles_breakdown && Object.entries(metrics.user_roles_breakdown).map(([role, count]) => (
                                                 <div key={role} className="flex justify-between items-center text-sm border-b border-zinc-50 pb-1.5">
                                                     <span className="font-medium text-zinc-600 uppercase text-xs">{role}</span>
-                                                    <span className="font-bold text-zinc-900 bg-zinc-100 px-2 py-0.5 rounded text-xs">{count as any}</span>
+                                                    <span className="font-bold text-zinc-900 dark:text-zinc-100 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-xs">{count as any}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -1484,15 +1484,15 @@ export default function SettingsPage() {
                                 </div>
 
                                 {/* System Logs Table */}
-                                <Card className="p-5 bg-white border border-zinc-200 shadow-sm">
-                                    <div className="flex items-center justify-between border-b border-zinc-100 pb-3 mb-4">
+                                <Card className="p-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                                    <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3 mb-4">
                                         <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">System Activity Logs (Recent 30)</h4>
                                         <span className="text-[10px] bg-zinc-100 px-2 py-0.5 rounded text-zinc-500 font-medium">Real-time DB Logs</span>
                                     </div>
                                     <div className="overflow-x-auto max-h-[350px] overflow-y-auto">
                                         <table className="w-full text-left text-xs border-collapse">
                                             <thead>
-                                                <tr className="border-b border-zinc-200 text-zinc-400 font-semibold uppercase font-bold">
+                                                <tr className="border-b border-zinc-200 dark:border-zinc-800 text-zinc-400 dark:text-zinc-500 font-semibold uppercase font-bold">
                                                     <th className="pb-2">Waktu</th>
                                                     <th className="pb-2">Pengguna</th>
                                                     <th className="pb-2">Aktivitas</th>
@@ -1502,7 +1502,7 @@ export default function SettingsPage() {
                                             </thead>
                                             <tbody className="divide-y divide-zinc-100 text-zinc-700">
                                                 {logs.map((log) => (
-                                                    <tr key={log.id} className="hover:bg-zinc-50 transition-colors">
+                                                    <tr key={log.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-850 transition-colors">
                                                         <td className="py-2.5 font-mono text-[10px] text-zinc-500">{new Date(log.created_at).toLocaleString("id-ID")}</td>
                                                         <td className="py-2.5 font-medium">{log.user_name} ({log.user_email})</td>
                                                         <td className="py-2.5"><span className="bg-zinc-100 text-zinc-800 px-2 py-0.5 rounded-full font-medium text-[10px]">{log.action}</span></td>

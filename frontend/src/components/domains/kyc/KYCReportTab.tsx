@@ -229,7 +229,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
         return (
             <Card className="p-12 text-center">
                 <Zap className="w-12 h-12 mx-auto mb-4 text-zinc-200" />
-                <h3 className="text-lg font-medium text-zinc-900 mb-2">{t.opportunityDetail.kyc.noReportTitle}</h3>
+                <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">{t.opportunityDetail.kyc.noReportTitle}</h3>
                 <p className="text-zinc-500 mb-6 max-w-md mx-auto">
                     {t.opportunityDetail.kyc.noReportDesc}
                 </p>
@@ -249,7 +249,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
 
     // Header component containing VersionSelector, Version Title + Pencil Edit, and Actions
     const renderHeader = () => (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-zinc-200 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <div className="flex items-center gap-3 flex-wrap">
                 {versionsData && versionsData.items.length > 0 && (
                     <VersionSelector
@@ -306,7 +306,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                         setTitleInput(cleanVersionTitle(report.title));
                                         setIsEditingTitle(true);
                                     }}
-                                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200/80 rounded-md transition-colors"
+                                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700 rounded-md transition-colors"
                                     title="Ubah deskripsi versi ini"
                                 >
                                     <Edit3 className="w-3 h-3 text-zinc-400" />
@@ -330,7 +330,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                     <Button
                         variant="secondary"
                         size="sm"
-                        className="gap-1.5 text-xs text-zinc-700 border border-zinc-200 hover:bg-zinc-100 transition-colors"
+                        className="gap-1.5 text-xs text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                         onClick={handleCopyKYC}
                         title={t.opportunityDetail.kyc.copyButton || "Salin Laporan KYC"}
                     >
@@ -397,8 +397,8 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                 <Card className="p-6 max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-150">
                     <div className="flex items-center gap-2 mb-3">
-                        <RefreshCw className="w-5 h-5 text-zinc-900" />
-                        <h3 className="text-lg font-semibold text-zinc-900">
+                        <RefreshCw className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
+                        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                             {t.opportunityDetail.kyc.confirmRegenerateTitle || "Generate Ulang Laporan KYC"}
                         </h3>
                     </div>
@@ -421,7 +421,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                 value={regenerateTitle}
                                 onChange={(e) => setRegenerateTitle(e.target.value)}
                                 placeholder="Contoh: Pembaruan spesifikasi server & migrasi compute"
-                                className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                                className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100"
                             />
                             <p className="text-[11px] text-zinc-500 mt-1">
                                 Label nomor versi (v{nextVersion}) akan disematkan otomatis pada Version History.
@@ -437,7 +437,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                 value={regenerateFocus}
                                 onChange={(e) => setRegenerateFocus(e.target.value)}
                                 placeholder="Tuliskan arahan spesifik jika konteks berubah, contoh: Fokus pada pengadaan Server On-Premise & migrasi compute. Abaikan kebutuhan WiFi/Network sebelumnya."
-                                className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900 placeholder:text-zinc-400"
+                                className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             />
                             <p className="text-[11px] text-zinc-500 mt-1">
                                 AI akan mengisolasi fokus analisis ke arahan ini agar hasil tidak bercampur dengan konteks sebelumnya.
@@ -516,9 +516,9 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
         return (
             <div className="space-y-6 animate-in fade-in duration-300">
                 {renderHeader()}
-                <Card className="p-8 max-w-2xl mx-auto border border-zinc-200 shadow-sm bg-white mt-4">
+                <Card className="p-8 max-w-2xl mx-auto border border-zinc-200 dark:border-zinc-800 shadow-sm bg-white dark:bg-zinc-900 mt-4">
                     <div className="text-center mb-6">
-                        <div className="inline-flex p-3 rounded-full bg-zinc-50 border border-zinc-100 mb-3 animate-pulse">
+                        <div className="inline-flex p-3 rounded-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 mb-3 animate-pulse">
                             <Loader2 className="w-6 h-6 animate-spin text-zinc-950" />
                         </div>
                         <h3 className="text-xl font-semibold text-zinc-950">
@@ -568,7 +568,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                             </div>
                                         )}
                                         {state === "pending" && (
-                                            <div className="w-8 h-8 rounded-full bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-300">
+                                            <div className="w-8 h-8 rounded-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-300 dark:text-zinc-600">
                                                 <Clock className="w-4 h-4" />
                                             </div>
                                         )}
@@ -624,7 +624,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                             <Button
                                 size="sm"
                                 variant="secondary"
-                                className="text-xs h-7 bg-white hover:bg-blue-50 border-blue-200 text-blue-800 shrink-0 shadow-xs"
+                                className="text-xs h-7 bg-white dark:bg-blue-950/40 hover:bg-blue-50 dark:hover:bg-blue-900/60 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 shrink-0 shadow-xs"
                                 onClick={() => setSelectedReportId(otherCompletedVersion.id)}
                             >
                                 Buka v{otherCompletedVersion.version}
@@ -651,7 +651,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
         return (
             <div className="space-y-6">
                 {/* Save/Cancel Bar */}
-                <div className="sticky top-0 z-20 bg-white border-b border-zinc-200 -mx-4 px-4 py-3 flex items-center justify-between">
+                <div className="sticky top-0 z-20 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 -mx-4 px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Edit3 className="w-4 h-4 text-zinc-500" />
                         <span className="text-sm font-medium">{t.opportunityDetail.kyc.editButton}</span>
@@ -831,14 +831,14 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                     <SectionTitle>{t.opportunityDetail.kyc.sections.competitorAnalysis || "Competitor Analysis"}</SectionTitle>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {report.competitor_analysis.map((comp, idx) => (
-                            <Card key={idx} className="p-5 flex flex-col justify-between border-zinc-200">
+                            <Card key={idx} className="p-5 flex flex-col justify-between border-zinc-200 dark:border-zinc-800">
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-2 border-b border-zinc-100 pb-3">
                                         <div className="w-8 h-8 rounded bg-zinc-100 flex items-center justify-center text-zinc-600">
                                             <Swords className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <h4 className="text-sm font-semibold text-zinc-900 leading-tight">
+                                            <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
                                                 {comp.name}
                                             </h4>
                                             <span className="text-[11px] font-medium text-zinc-500">
@@ -1013,10 +1013,10 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                     <Card className="p-0">
                         <ul className="divide-y divide-zinc-100">
                             {report.preparation_checklist.map((item, idx) => (
-                                <li key={idx} className="p-4 flex gap-3 hover:bg-zinc-50">
+                                <li key={idx} className="p-4 flex gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
                                     <input
                                         type="checkbox"
-                                        className="mt-1 w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
+                                        className="mt-1 w-4 h-4 rounded border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-zinc-900 dark:focus:ring-zinc-100"
                                     />
                                     <span className="text-sm text-zinc-700">{item}</span>
                                 </li>
@@ -1069,7 +1069,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
     return (
-        <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider mb-4">
+        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider mb-4">
             {children}
         </h3>
     );
@@ -1089,7 +1089,7 @@ function OverviewItem({
             <span className="text-zinc-400">{icon}</span>
             <div>
                 <span className="text-xs text-zinc-500 uppercase tracking-wider block">{label}</span>
-                <span className="text-sm text-zinc-900">{value}</span>
+                <span className="text-sm text-zinc-900 dark:text-zinc-100">{value}</span>
             </div>
         </div>
     );

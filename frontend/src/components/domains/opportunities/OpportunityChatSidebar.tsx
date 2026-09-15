@@ -225,18 +225,18 @@ export function OpportunityChatSidebar({
 
     return (
         <div
-            className={`fixed inset-0 z-50 w-full h-full bg-zinc-50 flex flex-col sm:relative sm:inset-auto sm:z-auto sm:border-l sm:border-zinc-200 transition-all duration-300 ${isWide ? "sm:w-[650px]" : "sm:w-[400px]"
+            className={`fixed inset-0 z-50 w-full h-full bg-zinc-50 dark:bg-zinc-950 flex flex-col sm:relative sm:inset-auto sm:z-auto sm:border-l sm:border-zinc-200 dark:sm:border-zinc-800 transition-all duration-300 ${isWide ? "sm:w-[650px]" : "sm:w-[400px]"
                 }`}
         >
             {/* Header */}
-            <div className="bg-white border-b border-zinc-200 px-4 py-3 flex items-center justify-between shrink-0 shadow-sm">
+            <div className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 py-3 flex items-center justify-between shrink-0 shadow-sm">
                 <div className="flex items-center gap-2 min-w-0">
-                    <div className="p-1.5 rounded-md bg-zinc-950 text-white shrink-0">
+                    <div className="p-1.5 rounded-md bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-900 shrink-0">
                         <Sparkles className="w-4 h-4 animate-pulse" />
                     </div>
                     <div className="min-w-0">
-                        <h3 className="text-sm font-semibold text-zinc-900 truncate">Chat with AI</h3>
-                        <p className="text-[10px] text-zinc-500 font-medium truncate">Magna Pre-sales Assistant</p>
+                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">Chat with AI</h3>
+                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium truncate">Magna Pre-sales Assistant</p>
                     </div>
                 </div>
 
@@ -245,7 +245,7 @@ export function OpportunityChatSidebar({
                     <button
                         onClick={() => setIsWide(!isWide)}
                         title={isWide ? "Perkecil Panel" : "Perbesar Panel"}
-                        className="p-1.5 rounded text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 transition-colors"
+                        className="p-1.5 rounded text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                     >
                         {isWide ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                     </button>
@@ -253,7 +253,7 @@ export function OpportunityChatSidebar({
                     <button
                         onClick={onClose}
                         title="Tutup Obrolan"
-                        className="p-1.5 rounded text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 transition-colors"
+                        className="p-1.5 rounded text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -261,9 +261,9 @@ export function OpportunityChatSidebar({
             </div>
 
             {/* Disclaimer & Info Bar */}
-            <div className="bg-zinc-100 border-b border-zinc-200/80 px-4 py-2 flex items-center gap-2 shrink-0">
+            <div className="bg-zinc-100 dark:bg-zinc-900/60 border-b border-zinc-200/80 dark:border-zinc-800 px-4 py-2 flex items-center gap-2 shrink-0">
                 <CalendarDays className="w-3.5 h-3.5 text-zinc-500" />
-                <span className="text-[10px] text-zinc-600 font-medium leading-tight">
+                <span className="text-[10px] text-zinc-600 dark:text-zinc-300 font-medium leading-tight">
                     Riwayat obrolan disimpan otomatis dan akan kedaluwarsa setelah 7 hari.
                 </span>
             </div>
@@ -272,9 +272,9 @@ export function OpportunityChatSidebar({
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {isLoadingHistory ? (
                     <div className="space-y-4 pt-12">
-                        <div className="h-6 w-3/4 bg-zinc-200/80 rounded animate-pulse mx-auto" />
-                        <div className="h-16 w-5/6 bg-zinc-200/80 rounded animate-pulse mx-auto" />
-                        <div className="h-10 w-2/3 bg-zinc-200/80 rounded animate-pulse mx-auto" />
+                        <div className="h-6 w-3/4 bg-zinc-200/80 dark:bg-zinc-800 rounded animate-pulse mx-auto" />
+                        <div className="h-16 w-5/6 bg-zinc-200/80 dark:bg-zinc-800 rounded animate-pulse mx-auto" />
+                        <div className="h-10 w-2/3 bg-zinc-200/80 dark:bg-zinc-800 rounded animate-pulse mx-auto" />
                     </div>
                 ) : (
                     <>
@@ -288,16 +288,16 @@ export function OpportunityChatSidebar({
                                 >
                                     <div
                                         className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border shadow-sm text-xs ${isUser
-                                            ? "bg-zinc-950 text-white border-zinc-950"
-                                            : "bg-zinc-100 text-zinc-800 border-zinc-200"
+                                            ? "bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-900 border-zinc-950 dark:border-zinc-100"
+                                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-700"
                                             }`}
                                     >
                                         {isUser ? <User className="w-3.5 h-3.5" /> : <Brain className="w-3.5 h-3.5" />}
                                     </div>
                                     <div
                                         className={`p-3.5 rounded-xl text-sm leading-relaxed shadow-sm ${isUser
-                                            ? "bg-zinc-950 text-white"
-                                            : "bg-white border border-zinc-200 text-zinc-800"
+                                            ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900"
+                                            : "bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200"
                                             }`}
                                     >
                                         {renderMarkdown(msg.content)}
@@ -308,10 +308,10 @@ export function OpportunityChatSidebar({
 
                         {isLoading && (
                             <div className="flex gap-2.5 max-w-[80%] mr-auto items-center">
-                                <div className="w-7 h-7 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center shrink-0 animate-pulse">
+                                <div className="w-7 h-7 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shrink-0 animate-pulse">
                                     <Brain className="w-3.5 h-3.5 text-zinc-400" />
                                 </div>
-                                <div className="bg-white border border-zinc-200 p-3 rounded-xl shadow-sm flex items-center gap-1 py-2">
+                                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-3 rounded-xl shadow-sm flex items-center gap-1 py-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.3s]" />
                                     <div className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.15s]" />
                                     <div className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" />
@@ -331,7 +331,7 @@ export function OpportunityChatSidebar({
             </div>
 
             {/* Suggestions & Input Panel */}
-            <div className="bg-white border-t border-zinc-200 p-4 space-y-3.5 shrink-0 shadow-[0_-2px_10px_rgba(0,0,0,0.02)]">
+            <div className="bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 p-4 space-y-3.5 shrink-0 shadow-[0_-2px_10px_rgba(0,0,0,0.02)]">
                 {/* Suggestions list (visible only when there's no chat history beyond welcome message) */}
                 {messages.length <= 1 && !isLoadingHistory && (
                     <div className="space-y-1.5">
@@ -343,7 +343,7 @@ export function OpportunityChatSidebar({
                                 <button
                                     key={idx}
                                     onClick={() => handleSendMessage(sug)}
-                                    className="text-xs text-left text-zinc-600 hover:text-zinc-950 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200/60 p-2 py-2 px-3 rounded-md transition-colors whitespace-normal break-words h-auto"
+                                    className="text-xs text-left text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-100 bg-zinc-50 dark:bg-zinc-850 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200/60 dark:border-zinc-750 p-2 py-2 px-3 rounded-md transition-colors whitespace-normal break-words h-auto"
                                 >
                                     {sug}
                                 </button>
@@ -364,7 +364,7 @@ export function OpportunityChatSidebar({
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Tanyakan posisioning, arsitektur, dll..."
-                        className="flex-1 h-9 px-3 rounded-md border border-zinc-300 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-950 bg-white"
+                        className="flex-1 h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-400 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                         disabled={isLoading || isLoadingHistory}
                     />
                     <Button

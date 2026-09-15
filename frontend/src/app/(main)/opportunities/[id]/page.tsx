@@ -111,15 +111,15 @@ export default function OpportunityDetailPage() {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col h-full bg-zinc-50">
-                <div className="bg-white border-b border-zinc-200 px-8 pt-8 pb-0">
+            <div className="flex flex-col h-full bg-zinc-50 dark:bg-zinc-950">
+                <div className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-8 pt-8 pb-0">
                     <div className="max-w-[1200px] mx-auto">
-                        <div className="h-4 w-32 bg-zinc-100 rounded animate-pulse mb-4" />
-                        <div className="h-8 w-64 bg-zinc-100 rounded animate-pulse mb-2" />
-                        <div className="h-4 w-96 bg-zinc-100 rounded animate-pulse mb-8" />
-                        <div className="flex gap-6 border-b border-zinc-200">
+                        <div className="h-4 w-32 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse mb-4" />
+                        <div className="h-8 w-64 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse mb-2" />
+                        <div className="h-4 w-96 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse mb-8" />
+                        <div className="flex gap-6 border-b border-zinc-200 dark:border-zinc-800">
                             {tabs.map((t) => (
-                                <div key={t.id} className="h-10 w-24 bg-zinc-100 rounded animate-pulse" />
+                                <div key={t.id} className="h-10 w-24 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
                             ))}
                         </div>
                     </div>
@@ -130,7 +130,7 @@ export default function OpportunityDetailPage() {
 
     if (!opp) {
         return (
-            <div className="flex flex-col items-center justify-center py-24 text-zinc-500">
+            <div className="flex flex-col items-center justify-center py-24 text-zinc-500 dark:text-zinc-400">
                 <FolderOpen className="w-12 h-12 mb-4 opacity-20" />
                 <p>{t.common.notFound}</p>
                 <Link href="/opportunities">
@@ -143,22 +143,22 @@ export default function OpportunityDetailPage() {
     }
 
     return (
-        <div className="flex h-full bg-zinc-50 overflow-hidden w-full">
+        <div className="flex h-full bg-zinc-50 dark:bg-zinc-950 overflow-hidden w-full">
             {/* Left Content Area */}
             <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
                 {/* Opportunity Header */}
-                <div className="bg-white border-b border-zinc-200 p-4 sm:p-8 pb-0">
+                <div className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 p-4 sm:p-8 pb-0">
                     <div className="max-w-[1200px] mx-auto space-y-6">
                         <button
                             onClick={() => router.push("/opportunities")}
-                            className="text-sm text-zinc-500 hover:text-zinc-900 flex items-center gap-1 mb-2"
+                            className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1 mb-2"
                         >
                             <ChevronRight className="w-4 h-4 rotate-180" /> {t.opportunityDetail.header.backToOpportunities}
                         </button>
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div>
                                 <div className="flex flex-wrap items-center gap-3">
-                                    <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 tracking-tight">
+                                    <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
                                         {opp.company_name}
                                     </h1>
                                     <div className="flex items-center gap-2">
@@ -178,11 +178,11 @@ export default function OpportunityDetailPage() {
                                                     }
                                                 }}
                                                 disabled={updateOpportunity.isPending}
-                                                className="h-8 rounded-md border border-zinc-300 bg-white px-2.5 text-xs font-medium text-zinc-700 shadow-sm outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 cursor-pointer disabled:opacity-50"
+                                                className="h-8 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2.5 text-xs font-medium text-zinc-700 dark:text-zinc-200 shadow-sm outline-none focus:border-zinc-500 dark:focus:border-zinc-400 focus:ring-1 focus:ring-zinc-500 dark:focus:ring-zinc-400 cursor-pointer disabled:opacity-50"
                                                 title="Ubah Status Opportunity"
                                             >
                                                 {ALL_STATUSES.map((s) => (
-                                                    <option key={s} value={s}>
+                                                    <option key={s} value={s} className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
                                                         {s}
                                                     </option>
                                                 ))}
@@ -193,8 +193,8 @@ export default function OpportunityDetailPage() {
                                 <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 mt-1.5">
                                     <span>ID: {opp.id.slice(0, 8)}</span>
                                     <span className="hidden sm:inline">•</span>
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-zinc-100 font-medium text-zinc-800 border border-zinc-200/80">
-                                        <User className="w-3.5 h-3.5 text-zinc-500" />
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 font-medium text-zinc-800 dark:text-zinc-200 border border-zinc-200/80 dark:border-zinc-700">
+                                        <User className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
                                         <span>{t.opportunityDetail.header.preSales}:</span>
                                         {canCreateEdit ? (
                                             <select
@@ -211,12 +211,12 @@ export default function OpportunityDetailPage() {
                                                     }
                                                 }}
                                                 disabled={updateOpportunity.isPending}
-                                                className="bg-transparent text-xs font-semibold text-zinc-900 border-none outline-none cursor-pointer focus:ring-0"
+                                                className="bg-transparent text-xs font-semibold text-zinc-900 dark:text-zinc-100 border-none outline-none cursor-pointer focus:ring-0"
                                                 title="Ubah Assignment Pre-Sales"
                                             >
-                                                <option value="">{t.opportunityDetail.header.unassigned}</option>
+                                                <option value="" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">{t.opportunityDetail.header.unassigned}</option>
                                                 {activePresales.map((name) => (
-                                                    <option key={name} value={name}>
+                                                    <option key={name} value={name} className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
                                                         {name}
                                                     </option>
                                                 ))}
@@ -233,7 +233,7 @@ export default function OpportunityDetailPage() {
                                 {canCreateEdit && (
                                     <Button
                                         variant="secondary"
-                                        className="flex-1 sm:flex-initial gap-2 border-zinc-300 text-zinc-700 text-xs sm:text-sm"
+                                        className="flex-1 sm:flex-initial gap-2 text-xs sm:text-sm"
                                         onClick={() => setShowEditOpportunity(true)}
                                     >
                                         <Edit3 className="w-4 h-4" /> {t.common.edit}
@@ -241,10 +241,10 @@ export default function OpportunityDetailPage() {
                                 )}
                                 <Button
                                     variant="secondary"
-                                    className="flex-1 sm:flex-initial gap-2 border-zinc-300 text-xs sm:text-sm"
+                                    className="flex-1 sm:flex-initial gap-2 text-xs sm:text-sm"
                                     onClick={() => setIsChatOpen(!isChatOpen)}
                                 >
-                                    <Sparkles className="w-4 h-4 text-zinc-900" /> {t.opportunityDetail.header.aiChat}
+                                    <Sparkles className="w-4 h-4 text-zinc-900 dark:text-zinc-100" /> {t.opportunityDetail.header.aiChat}
                                 </Button>
                                 {canCreateEdit && (
                                     <Button
@@ -258,14 +258,14 @@ export default function OpportunityDetailPage() {
                         </div>
 
                         {/* Tabs */}
-                        <div className="flex gap-4 sm:gap-6 border-b border-zinc-200 translate-y-px overflow-x-auto scrollbar-none whitespace-nowrap pb-0.5">
+                        <div className="flex gap-4 sm:gap-6 border-b border-zinc-200 dark:border-zinc-800 translate-y-px overflow-x-auto scrollbar-none whitespace-nowrap pb-0.5">
                             {tabs.map((tab) => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`pb-3 sm:pb-4 text-xs sm:text-sm font-medium flex items-center gap-2 border-b-2 transition-colors shrink-0 ${activeTab === tab.id
-                                        ? "border-zinc-900 text-zinc-900 font-semibold"
-                                        : "border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300"
+                                        ? "border-zinc-900 dark:border-zinc-100 text-zinc-900 dark:text-zinc-100 font-semibold"
+                                        : "border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:border-zinc-300 dark:hover:border-zinc-700"
                                         }`}
                                 >
                                     <tab.icon className="w-4 h-4" /> {tab.label}
@@ -282,16 +282,16 @@ export default function OpportunityDetailPage() {
                             <div className="space-y-6">
                                 {/* Key Opportunity Metrics (Potential Revenue & Agenda Date) */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <Card className="p-5 border-emerald-200/80 bg-gradient-to-br from-emerald-50/50 to-white shadow-sm">
+                                    <Card className="p-5 border-emerald-200/80 dark:border-emerald-800/60 bg-gradient-to-br from-emerald-50/50 to-white dark:from-emerald-950/30 dark:to-zinc-900 shadow-sm">
                                         <div className="flex items-center gap-3.5">
-                                            <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center border border-emerald-200/60 shrink-0">
+                                            <div className="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 flex items-center justify-center border border-emerald-200/60 dark:border-emerald-800/80 shrink-0">
                                                 <Coins className="w-5 h-5" />
                                             </div>
                                             <div>
                                                 <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">
                                                     {t.opportunityDetail.overview.potentialRevenue}
                                                 </span>
-                                                <span className="text-xl font-bold text-zinc-900 mt-0.5 block tracking-tight">
+                                                <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-0.5 block tracking-tight">
                                                     {formatCurrency(
                                                         opp.potential_revenue,
                                                         hideFinancialNumbers || user?.role === "engineer" || user?.role === "viewer"
@@ -301,16 +301,16 @@ export default function OpportunityDetailPage() {
                                         </div>
                                     </Card>
 
-                                    <Card className="p-5 border-blue-200/80 bg-gradient-to-br from-blue-50/50 to-white shadow-sm">
+                                    <Card className="p-5 border-blue-200/80 dark:border-blue-800/60 bg-gradient-to-br from-blue-50/50 to-white dark:from-blue-950/30 dark:to-zinc-900 shadow-sm">
                                         <div className="flex items-center gap-3.5">
-                                            <div className="w-11 h-11 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center border border-blue-200/60 shrink-0">
+                                            <div className="w-11 h-11 rounded-xl bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 flex items-center justify-center border border-blue-200/60 dark:border-blue-800/80 shrink-0">
                                                 <CalendarClock className="w-5 h-5" />
                                             </div>
                                             <div>
                                                 <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">
                                                     {t.opportunityDetail.overview.estimatedAgendaDate}
                                                 </span>
-                                                <span className="text-base font-bold text-zinc-900 mt-0.5 block tracking-tight">
+                                                <span className="text-base font-bold text-zinc-900 dark:text-zinc-100 mt-0.5 block tracking-tight">
                                                     {(() => {
                                                         const targetDate = opp.estimated_agenda_date || opp.meeting_schedule;
                                                         return targetDate ? formatDateTime(targetDate) : t.opportunityDetail.overview.notScheduled;
@@ -332,7 +332,7 @@ export default function OpportunityDetailPage() {
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => setShowEditOpportunity(true)}
-                                                    className="h-8 text-xs text-zinc-600 hover:text-zinc-900 gap-1"
+                                                    className="h-8 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 gap-1"
                                                 >
                                                     <Edit3 className="w-3.5 h-3.5" /> {t.common.edit}
                                                 </Button>
@@ -380,18 +380,18 @@ export default function OpportunityDetailPage() {
                                     </Card>
 
                                     <Card className="p-6">
-                                        <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider mb-4">
+                                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider mb-4">
                                             {t.opportunityDetail.overview.customerNeeds}
                                         </h3>
-                                        <p className="text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
+                                        <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
                                             {opp.customer_needs}
                                         </p>
                                         {opp.additional_notes && (
                                             <>
-                                                <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider mt-6 mb-4">
+                                                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider mt-6 mb-4">
                                                     {t.opportunityDetail.overview.keyHighlights}
                                                 </h3>
-                                                <p className="text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
+                                                <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
                                                     {opp.additional_notes}
                                                 </p>
                                             </>
@@ -410,13 +410,13 @@ export default function OpportunityDetailPage() {
                                     <button
                                         type="button"
                                         onClick={() => setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"))}
-                                        className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900 font-medium px-3 py-1.5 bg-white border border-zinc-200 hover:border-zinc-300 rounded-md shadow-sm transition-colors cursor-pointer"
+                                        className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900 font-medium px-3 py-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 rounded-md shadow-sm transition-colors cursor-pointer"
                                     >
                                         <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
                                         <span>{sortOrder === "desc" ? t.opportunityDetail.overview.latestOnTop : t.opportunityDetail.overview.oldestOnTop}</span>
                                     </button>
                                 </div>
-                                <div className="relative border-l border-zinc-200 space-y-8 pb-4">
+                                <div className="relative border-l border-zinc-200 dark:border-zinc-800 space-y-8 pb-4">
                                     {opp.timeline_events && opp.timeline_events.length > 0 ? (
                                         [...opp.timeline_events]
                                             .sort((a, b) => {
@@ -426,14 +426,14 @@ export default function OpportunityDetailPage() {
                                             })
                                             .map((event) => (
                                                 <div key={event.id} className="relative pl-8">
-                                                    <div className="absolute -left-[17px] top-1 w-8 h-8 bg-white rounded-full border border-zinc-200 flex items-center justify-center shadow-sm">
+                                                    <div className="absolute -left-[17px] top-1 w-8 h-8 bg-white dark:bg-zinc-900 rounded-full border border-zinc-200 dark:border-zinc-800 flex items-center justify-center shadow-sm">
                                                         {eventTypeIcons[event.event_type] || (
                                                             <GitCommit className="w-4 h-4 text-zinc-500" />
                                                         )}
                                                     </div>
                                                     <div>
                                                         <div className="flex items-center gap-2 mb-1">
-                                                            <span className="font-medium text-sm text-zinc-900">
+                                                            <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
                                                                 {event.actor_name}
                                                             </span>
                                                             <span className="text-zinc-400 text-sm">•</span>
@@ -540,15 +540,15 @@ function InfoRow({
 }) {
     return (
         <div className="flex items-start gap-3 py-1.5">
-            <span className="text-zinc-400 mt-0.5">{icon}</span>
-            <span className="text-sm text-zinc-500 w-20 shrink-0 mt-0.5">{label}</span>
+            <span className="text-zinc-400 dark:text-zinc-500 mt-0.5">{icon}</span>
+            <span className="text-sm text-zinc-500 dark:text-zinc-400 w-20 shrink-0 mt-0.5">{label}</span>
             {value ? (
                 isBadges ? (
                     <div className="flex flex-wrap gap-1.5">
                         {value.split(", ").map((item, idx) => (
                             <span
                                 key={idx}
-                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 text-zinc-800 border border-zinc-200"
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700"
                             >
                                 {item.trim()}
                             </span>
@@ -559,15 +559,15 @@ function InfoRow({
                         href={value.startsWith("http://") || value.startsWith("https://") ? value : `https://${value}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:underline"
+                        className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
                     >
                         {value}
                     </a>
                 ) : (
-                    <span className="text-sm text-zinc-900">{value}</span>
+                    <span className="text-sm text-zinc-900 dark:text-zinc-100">{value}</span>
                 )
             ) : (
-                <span className="text-sm text-zinc-400">—</span>
+                <span className="text-sm text-zinc-400 dark:text-zinc-500">—</span>
             )}
         </div>
     );

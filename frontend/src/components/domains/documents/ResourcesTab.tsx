@@ -120,7 +120,7 @@ function DocumentCard({
                         onError={() => setThumbnailError(true)}
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-zinc-50">
+                    <div className="w-full h-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-850">
                         {getFileIcon(document.url)}
                     </div>
                 )}
@@ -132,7 +132,7 @@ function DocumentCard({
             {/* Content */}
             <div className="p-4">
                 <div className="flex items-start justify-between gap-2 mb-2">
-                    <h4 className="font-medium text-sm text-zinc-900 line-clamp-2 flex-1">
+                    <h4 className="font-medium text-sm text-zinc-900 dark:text-zinc-100 line-clamp-2 flex-1">
                         {document.title}
                     </h4>
                     {canEdit && (
@@ -161,7 +161,7 @@ function DocumentCard({
                         {document.labels.map((label) => (
                             <span
                                 key={label}
-                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700 border border-zinc-200"
+                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700"
                             >
                                 {label}
                             </span>
@@ -226,7 +226,7 @@ export function ResourcesTab({ opportunityId, canCreateEdit = false }: Resources
         <div className="space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
                     {t.opportunityDetail.documents.title}
                 </h3>
                 {canCreateEdit && (
@@ -248,7 +248,7 @@ export function ResourcesTab({ opportunityId, canCreateEdit = false }: Resources
                     <select
                         value={labelFilter || ""}
                         onChange={(e) => setLabelFilter(e.target.value || null)}
-                        className="h-8 rounded-md border border-zinc-300 bg-white px-2.5 text-xs font-medium text-zinc-700 shadow-sm outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 cursor-pointer"
+                        className="h-8 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2.5 text-xs font-medium text-zinc-700 dark:text-zinc-200 shadow-sm outline-none focus:border-zinc-500 dark:focus:border-zinc-400 focus:ring-1 focus:ring-zinc-500 dark:focus:ring-zinc-400 cursor-pointer"
                     >
                         <option value="">{t.opportunityDetail.documents.allLabels}</option>
                         {documentLabels.map((label) => (
@@ -263,7 +263,7 @@ export function ResourcesTab({ opportunityId, canCreateEdit = false }: Resources
                 <button
                     type="button"
                     onClick={() => setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"))}
-                    className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900 font-medium px-3 py-1.5 bg-white border border-zinc-200 hover:border-zinc-300 rounded-md shadow-sm transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium px-3 py-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 rounded-md shadow-sm transition-colors cursor-pointer"
                 >
                     <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
                     <span>{sortOrder === "desc" ? t.opportunityDetail.documents.newestFirst : t.opportunityDetail.documents.oldestFirst}</span>
@@ -274,7 +274,7 @@ export function ResourcesTab({ opportunityId, canCreateEdit = false }: Resources
             {isLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="bg-white rounded-lg border border-zinc-200 overflow-hidden animate-pulse">
+                        <div key={i} className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden animate-pulse">
                             <div className="aspect-[4/3] bg-zinc-100" />
                             <div className="p-4 space-y-2">
                                 <div className="h-4 bg-zinc-100 rounded w-3/4" />

@@ -121,7 +121,7 @@ export function EditOpportunityDialog({
                     </h2>
                     <button
                         onClick={onClose}
-                        className="min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                        className="min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -130,7 +130,7 @@ export function EditOpportunityDialog({
                 <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-6">
                     {/* Company Information */}
                     <div className="space-y-4">
-                        <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                        <h3 className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
                             Company Information
                         </h3>
                         <Input
@@ -206,8 +206,8 @@ export function EditOpportunityDialog({
                     </div>
 
                     {/* Potential Revenue & Agenda Schedule */}
-                    <div className="space-y-4 pt-4 border-t border-zinc-100">
-                        <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                    <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                        <h3 className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
                             Financial Potential & Agenda Schedule
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -232,12 +232,12 @@ export function EditOpportunityDialog({
                     </div>
 
                     {/* Customer Needs & Context */}
-                    <div className="space-y-4 pt-4 border-t border-zinc-100">
-                        <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                    <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                        <h3 className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
                             Needs & Additional Context
                         </h3>
                         <div className="space-y-1.5">
-                            <label className="block text-sm font-medium text-zinc-700">
+                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                                 Known Customer Needs / Pain Points
                             </label>
                             <textarea
@@ -245,23 +245,23 @@ export function EditOpportunityDialog({
                                 required
                                 value={customerNeeds}
                                 onChange={(e) => setCustomerNeeds(e.target.value)}
-                                className="flex w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-base sm:text-sm shadow-sm transition-colors placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900"
+                                className="flex w-full rounded-md border border-zinc-200 dark:border-zinc-700 bg-transparent px-3 py-2 text-base sm:text-sm shadow-sm transition-colors placeholder:text-zinc-400 dark:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100"
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <label className="block text-sm font-medium text-zinc-700">
+                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                                 Additional Notes
                             </label>
                             <textarea
                                 rows={3}
                                 value={additionalNotes}
                                 onChange={(e) => setAdditionalNotes(e.target.value)}
-                                className="flex w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-base sm:text-sm shadow-sm transition-colors placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900"
+                                className="flex w-full rounded-md border border-zinc-200 dark:border-zinc-700 bg-transparent px-3 py-2 text-base sm:text-sm shadow-sm transition-colors placeholder:text-zinc-400 dark:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100"
                             />
                         </div>
                     </div>
 
-                    <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t border-zinc-100">
+                    <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                         <Button
                             type="button"
                             variant="ghost"
