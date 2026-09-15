@@ -127,7 +127,7 @@ export default function DashboardPage() {
 
             <div className={`space-y-6 sm:space-y-8 transition-opacity duration-150 ${isUpdating ? "opacity-75" : "opacity-100"}`}>
                 {activeEngineer && (
-                <div className="flex items-center justify-between bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-lg px-4 py-2 text-sm text-blue-900 dark:text-blue-200 animate-in fade-in duration-200">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-lg p-3 sm:px-4 sm:py-2 text-sm text-blue-900 dark:text-blue-200 animate-in fade-in duration-200">
                     <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-zinc-600 dark:text-zinc-400">Menampilkan analitik khusus Pre-Sales:</span>
                         <span className="font-semibold text-blue-700 dark:text-blue-300 bg-white dark:bg-blue-900/60 px-2.5 py-0.5 rounded-md border border-blue-200 dark:border-blue-800">

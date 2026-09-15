@@ -51,23 +51,21 @@ export function StatusChart({ data }: StatusChartProps) {
     }));
 
     return (
-        <Card className="p-5">
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+        <Card className="p-4 sm:p-5">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3 sm:mb-4">
                 Status Distribution
             </h3>
-            <div className="h-64">
+            <div className="h-[240px] md:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
                             data={chartData}
                             cx="50%"
                             cy="50%"
-                            innerRadius={50}
-                            outerRadius={80}
+                            innerRadius={45}
+                            outerRadius={75}
                             paddingAngle={2}
                             dataKey="value"
-                            label={({ name, value }) => `${name}: ${value}`}
-                            labelLine={false}
                         >
                             {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color} />
@@ -77,14 +75,14 @@ export function StatusChart({ data }: StatusChartProps) {
                     </PieChart>
                 </ResponsiveContainer>
             </div>
-            <div className="flex flex-wrap gap-2 mt-4">
+            <div className="flex flex-wrap gap-2 mt-3 sm:mt-4 max-h-24 overflow-y-auto">
                 {chartData.map((item) => (
                     <div key={item.name} className="flex items-center gap-1.5 text-xs">
                         <div
-                            className="w-2.5 h-2.5 rounded-full"
+                            className="w-2.5 h-2.5 rounded-full shrink-0"
                             style={{ backgroundColor: item.color }}
                         />
-                        <span className="text-zinc-600 dark:text-zinc-400">{item.name}</span>
+                        <span className="text-zinc-600 dark:text-zinc-400 truncate">{item.name} ({item.value})</span>
                     </div>
                 ))}
             </div>

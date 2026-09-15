@@ -99,16 +99,16 @@ export default function OpportunitiesPage() {
     const totalPages = data ? Math.ceil(data.total / data.page_size) : 1;
 
     return (
-        <div className="p-8 max-w-[1400px] mx-auto space-y-6">
+        <div className="p-4 sm:p-8 max-w-[1400px] mx-auto space-y-4 sm:space-y-6 pb-24 md:pb-8">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Opportunities</h1>
-                    <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">
+                    <h1 className="text-xl sm:text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Opportunities</h1>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1 hidden sm:block">
                         Manage and track your active sales pipeline.
                     </p>
                 </div>
                 {canCreate && (
-                    <div className="flex items-center gap-2">
+                    <div className="hidden md:flex items-center gap-2">
                         <Link href="/opportunities/import">
                             <Button variant="secondary" className="gap-2 border-zinc-200 dark:border-zinc-700">
                                 <Upload className="w-4 h-4 text-zinc-700 dark:text-zinc-300" /> Import Leads
@@ -125,9 +125,9 @@ export default function OpportunitiesPage() {
 
             <Card className="flex flex-col">
                 {/* Toolbar */}
-                <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-4 bg-zinc-50/50 dark:bg-zinc-900/50 flex-wrap">
-                    <div className="flex items-center gap-2 flex-1 min-w-[280px]">
-                        <div className="relative w-72">
+                <div className="p-3 sm:p-4 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 bg-zinc-50/50 dark:bg-zinc-900/50">
+                    <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap sm:flex-nowrap">
+                        <div className="relative w-full sm:w-72">
                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-400 dark:text-zinc-500" />
                             <input
                                 type="text"
@@ -137,7 +137,7 @@ export default function OpportunitiesPage() {
                                     setSearch(e.target.value);
                                     setPage(1);
                                 }}
-                                className="h-9 w-full rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 pl-9 pr-4 text-sm outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 transition-colors"
+                                className="h-9 w-full rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 pl-9 pr-4 text-base sm:text-sm outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 transition-colors"
                             />
                         </div>
                         <select
@@ -146,7 +146,7 @@ export default function OpportunitiesPage() {
                                 setStatusFilter(e.target.value);
                                 setPage(1);
                             }}
-                            className="h-9 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600 transition-colors"
+                            className="h-9 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-3 text-base sm:text-sm outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600 transition-colors"
                         >
                             <option value="">All Status</option>
                             {ALL_STATUSES.map((s) => (
@@ -172,7 +172,7 @@ export default function OpportunitiesPage() {
                                     window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""));
                                 }
                             }}
-                            className="h-9 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600 transition-colors"
+                            className="h-9 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-3 text-base sm:text-sm outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600 transition-colors"
                         >
                             <option value="">All Pre-Sales</option>
                             {presalesList.map((name) => (
@@ -414,7 +414,7 @@ export default function OpportunitiesPage() {
                         </div>
 
                         {/* Pagination (visible in list mode) */}
-                        <div className="p-4 border-t border-zinc-200 flex items-center justify-between text-sm text-zinc-500 bg-zinc-50/50">
+                        <div className="p-3 sm:p-4 border-t border-zinc-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-zinc-500 bg-zinc-50/50">
                             <div>
                                 Showing {data ? (data.page - 1) * data.page_size + 1 : 0} to{" "}
                                 {data ? Math.min(data.page * data.page_size, data.total) : 0} of{" "}
@@ -455,6 +455,16 @@ export default function OpportunitiesPage() {
                 onConfirm={confirmDelete}
                 onClose={() => setDeleteTarget(null)}
             />
+
+            {/* Mobile FAB: New Opportunity */}
+            {canCreate && (
+                <Link
+                    href="/opportunities/create"
+                    className="fixed bottom-20 right-4 z-40 md:hidden w-14 h-14 rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+                >
+                    <Plus className="w-6 h-6" />
+                </Link>
+            )}
         </div>
     );
 }

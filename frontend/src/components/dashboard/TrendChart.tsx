@@ -37,11 +37,11 @@ export function TrendChart({ data }: TrendChartProps) {
     }));
 
     return (
-        <Card className="p-5">
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+        <Card className="p-4 sm:p-5">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3 sm:mb-4">
                 30-Day Trend
             </h3>
-            <div className="h-64">
+            <div className="h-[240px] md:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData}>
                         <defs>

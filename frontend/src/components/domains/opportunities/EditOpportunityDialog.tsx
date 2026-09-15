@@ -105,25 +105,29 @@ export function EditOpportunityDialog({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
             <div
                 className="absolute inset-0 bg-black/40"
                 onClick={onClose}
             />
-            <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200">
-                    <h2 className="text-lg font-semibold text-zinc-900">
+            <div className="relative bg-white dark:bg-zinc-900 rounded-t-2xl sm:rounded-lg shadow-xl w-full sm:max-w-2xl sm:mx-4 max-h-[90vh] overflow-y-auto">
+                {/* Mobile drag pill */}
+                <div className="sm:hidden flex justify-center pt-2 pb-1">
+                    <div className="w-10 h-1 rounded-full bg-zinc-300 dark:bg-zinc-600" />
+                </div>
+                <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-zinc-200 dark:border-zinc-800">
+                    <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                         Edit Opportunity Details
                     </h2>
                     <button
                         onClick={onClose}
-                        className="text-zinc-400 hover:text-zinc-600"
+                        className="min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-6">
                     {/* Company Information */}
                     <div className="space-y-4">
                         <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
@@ -241,7 +245,7 @@ export function EditOpportunityDialog({
                                 required
                                 value={customerNeeds}
                                 onChange={(e) => setCustomerNeeds(e.target.value)}
-                                className="flex w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900"
+                                className="flex w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-base sm:text-sm shadow-sm transition-colors placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900"
                             />
                         </div>
                         <div className="space-y-1.5">
@@ -252,23 +256,24 @@ export function EditOpportunityDialog({
                                 rows={3}
                                 value={additionalNotes}
                                 onChange={(e) => setAdditionalNotes(e.target.value)}
-                                className="flex w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900"
+                                className="flex w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-base sm:text-sm shadow-sm transition-colors placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900"
                             />
                         </div>
                     </div>
 
-                    <div className="flex justify-end gap-2 pt-4 border-t border-zinc-100">
+                    <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t border-zinc-100">
                         <Button
                             type="button"
                             variant="ghost"
                             onClick={onClose}
+                            className="min-h-[44px] sm:min-h-0"
                         >
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={updateOpportunity.isPending}
-                            className="gap-2"
+                            className="gap-2 min-h-[44px] sm:min-h-0"
                         >
                             <Save className="w-4 h-4" />
                             {updateOpportunity.isPending ? "Saving..." : "Save Changes"}

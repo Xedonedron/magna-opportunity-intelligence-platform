@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, UserCheck, Calendar } from "lucide-react";
+import { X, UserCheck, Calendar, Filter } from "lucide-react";
 import type { DashboardFilters as Filters } from "@/lib/api/dashboard";
 import { fetchMasterData, DEFAULT_PRESALES } from "@/lib/master-data";
+import { DashboardFilterSheet } from "@/components/dashboard/DashboardFilterSheet";
 
 interface DashboardFiltersProps {
     onFilterChange: (filters: Filters) => void;
@@ -32,6 +33,7 @@ export function DashboardFilters({
     currentFilters,
 }: DashboardFiltersProps) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
     const [presalesList, setPresalesList] = useState<string[]>(DEFAULT_PRESALES);
 
     useEffect(() => {
@@ -45,6 +47,13 @@ export function DashboardFilters({
     }, []);
 
     const activePresales = currentFilters.engineer_name || currentFilters.engineer_id;
+
+    const activeFilterCount = [
+        currentFilters.status,
+        activePresales,
+        currentFilters.date_from,
+        currentFilters.date_to,
+    ].filter(Boolean).length;
 
     const handleStatusChange = (status?: string) => {
         onFilterChange({
@@ -65,12 +74,52 @@ export function DashboardFilters({
         onFilterChange({});
     };
 
-    const hasActiveFilters = Boolean(
-        currentFilters.status || activePresales || currentFilters.date_from || currentFilters.date_to
-    );
+    const hasActiveFilters = activeFilterCount > 0;
 
     return (
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 shadow-xs transition-colors">
+        <>
+            {/* Mobile Filter Button (< sm) */}
+            <div className="sm:hidden flex items-center justify-between gap-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-2.5 shadow-2xs">
+                <button
+                    type="button"
+                    onClick={() => setIsMobileSheetOpen(true)}
+                    className="flex-1 flex items-center justify-center gap-2 min-h-[44px] px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium text-sm transition-colors active:scale-[0.98]"
+                >
+                    <Filter className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <span>Filter & Periode</span>
+                    {hasActiveFilters && (
+                        <span className="px-2 py-0.5 rounded-full bg-blue-600 text-white text-xs font-bold">
+                            {activeFilterCount}
+                        </span>
+                    )}
+                </button>
+                {hasActiveFilters && (
+                    <button
+                        type="button"
+                        onClick={handleClearFilters}
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center text-xs text-red-600 dark:text-red-400 px-2.5 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                        title="Reset Filter"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                )}
+            </div>
+
+            {/* Mobile Bottom Sheet Drawer */}
+            <DashboardFilterSheet
+                isOpen={isMobileSheetOpen}
+                onClose={() => setIsMobileSheetOpen(false)}
+                currentFilters={currentFilters}
+                onFilterChange={onFilterChange}
+                onReset={handleClearFilters}
+                activePresales={activePresales}
+                presalesList={presalesList}
+                statusOptions={STATUS_OPTIONS}
+                activeCount={activeFilterCount}
+            />
+
+            {/* Desktop Filters (>= sm) */}
+            <div className="hidden sm:block bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 shadow-xs transition-colors">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-3">
                     {/* Pre-Sales Dropdown */}
@@ -176,5 +225,6 @@ export function DashboardFilters({
                 </div>
             )}
         </div>
+        </>
     );
 }

@@ -19,7 +19,7 @@ export function ThemeToggle({ className }: { className?: string }) {
         return (
             <div
                 className={cn(
-                    "w-9 h-9 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50",
+                    "w-10 h-10 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50",
                     className
                 )}
                 aria-hidden="true"
@@ -38,7 +38,7 @@ export function ThemeToggle({ className }: { className?: string }) {
             type="button"
             onClick={handleToggle}
             className={cn(
-                "relative inline-flex items-center justify-center w-9 h-9 rounded-lg border border-zinc-200 dark:border-zinc-700/80 bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700/70 transition-all focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 shadow-2xs",
+                "relative inline-flex items-center justify-center min-w-[40px] min-h-[40px] sm:w-9 sm:h-9 rounded-lg border border-zinc-200 dark:border-zinc-700/80 bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700/70 transition-all focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 shadow-2xs",
                 className
             )}
             title={isDark ? (t.theme?.switchToLight || "Switch to light mode") : (t.theme?.switchToDark || "Switch to dark mode")}

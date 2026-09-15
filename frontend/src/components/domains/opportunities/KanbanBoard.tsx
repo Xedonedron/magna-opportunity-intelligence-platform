@@ -26,6 +26,7 @@ export function KanbanBoard({
     statusFilter,
 }: KanbanBoardProps) {
     const [items, setItems] = useState<Opportunity[]>(opportunities);
+    const [mobileStatus, setMobileStatus] = useState<OpportunityStatus>(ALL_STATUSES[0]);
     const updateMutation = useUpdateOpportunity();
 
     // Synchronize local items when opportunities prop changes (e.g. from search/filter)
@@ -37,6 +38,9 @@ export function KanbanBoard({
     const columnsToDisplay = statusFilter
         ? ALL_STATUSES.filter((s) => s === statusFilter)
         : ALL_STATUSES;
+
+    // On mobile, if statusFilter is set use that; otherwise use pill selector
+    const mobileColumn = statusFilter ? (statusFilter as OpportunityStatus) : mobileStatus;
 
     const handleDragEnd = async (result: DropResult) => {
         const { destination, source, draggableId } = result;
@@ -84,9 +88,45 @@ export function KanbanBoard({
         }
     };
 
+    const mobileColumnItems = items.filter((item) => item.status === mobileColumn);
+
     return (
         <DragDropContext onDragEnd={handleDragEnd}>
-            <div className="flex gap-4 overflow-x-auto pb-6 pt-1 px-1 scrollbar-thin scrollbar-thumb-zinc-300">
+            {/* Mobile: pill tab selector + single column */}
+            <div className="md:hidden flex flex-col gap-3">
+                <div className="flex overflow-x-auto gap-1.5 pb-2 scrollbar-thin scrollbar-thumb-zinc-300 -mx-1 px-1">
+                    {columnsToDisplay.map((status) => {
+                        const count = items.filter((i) => i.status === status).length;
+                        return (
+                            <button
+                                key={status}
+                                type="button"
+                                onClick={() => setMobileStatus(status as OpportunityStatus)}
+                                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                                    mobileColumn === status
+                                        ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                                        : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                                }`}
+                            >
+                                {status} {count > 0 && <span className="ml-0.5 opacity-70">({count})</span>}
+                            </button>
+                        );
+                    })}
+                </div>
+                <KanbanColumn
+                    key={mobileColumn}
+                    status={mobileColumn}
+                    opportunities={mobileColumnItems}
+                    canEdit={canEdit}
+                    canDelete={canDelete}
+                    hideFinancialNumbers={hideFinancialNumbers}
+                    onDelete={onDelete}
+                    fullWidth
+                />
+            </div>
+
+            {/* Desktop: full multi-column horizontal scroll */}
+            <div className="hidden md:flex gap-4 overflow-x-auto pb-6 pt-1 px-1 scrollbar-thin scrollbar-thumb-zinc-300">
                 {columnsToDisplay.map((status) => {
                     const columnItems = items.filter(
                         (item) => item.status === status

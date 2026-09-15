@@ -88,17 +88,25 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
     };
 
     return (
-        <header className="h-14 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-20 transition-colors">
-            {/* Hamburger button for mobile */}
-            <button
-                onClick={onOpenMobileMenu}
-                className="p-2 -ml-1 mr-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md md:hidden transition-colors"
-                aria-label="Open Mobile Menu"
-            >
-                <Menu className="w-5 h-5" />
-            </button>
+        <header className="h-14 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between px-3 sm:px-6 sticky top-0 z-30 transition-colors w-full max-w-full">
+            {/* Mobile Hamburger + MOIP Logo */}
+            <div className="flex items-center gap-1.5 md:hidden">
+                <button
+                    onClick={onOpenMobileMenu}
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                    aria-label="Open Mobile Menu"
+                >
+                    <Menu className="w-5 h-5" />
+                </button>
+                <div className="flex items-center gap-1.5 font-bold text-sm text-zinc-900 dark:text-white">
+                    <div className="w-6 h-6 rounded bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center text-xs font-bold shrink-0">
+                        M
+                    </div>
+                    <span>MOIP</span>
+                </div>
+            </div>
 
-            <div className="flex items-center flex-1 relative" ref={containerRef}>
+            <div className="flex items-center flex-1 relative md:ml-0 ml-1" ref={containerRef}>
                 {/* Desktop Search Bar */}
                 <div className="relative w-96 hidden md:block">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-400 dark:text-zinc-500" />
@@ -127,7 +135,7 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
                 {/* Mobile Search Toggle Icon */}
                 <button
                     onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-                    className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 md:hidden"
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 md:hidden ml-auto"
                     aria-label="Toggle Search"
                 >
                     <Search className="w-5 h-5" />
@@ -135,25 +143,26 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
 
                 {/* Mobile Expandable Search Bar */}
                 {isMobileSearchOpen && (
-                    <div className="absolute left-0 right-0 top-0 bottom-0 bg-white dark:bg-zinc-900 flex items-center z-30 md:hidden">
-                        <div className="relative w-full">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-400 dark:text-zinc-500" />
+                    <div className="fixed inset-x-0 top-0 h-14 bg-white dark:bg-zinc-900 px-3 flex items-center z-50 md:hidden border-b border-zinc-200 dark:border-zinc-800">
+                        <div className="relative w-full flex items-center">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 dark:text-zinc-500" />
                             <input
                                 autoFocus
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Cari peluang atau rapat..."
-                                className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 pl-9 pr-8 text-xs outline-none text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                                className="h-10 w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 pl-9 pr-10 text-base outline-none text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             />
                             <button
                                 onClick={() => {
                                     setIsMobileSearchOpen(false);
                                     setQuery("");
                                 }}
-                                className="absolute right-2.5 top-2.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 min-w-[40px] min-h-[40px] flex items-center justify-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                                aria-label="Tutup pencarian"
                             >
-                                <X className="w-4 h-4" />
+                                <X className="w-5 h-5" />
                             </button>
                         </div>
                     </div>
@@ -161,7 +170,7 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
 
                 {/* Dropdown Results */}
                 {isOpen && results && (
-                    <div className="absolute top-11 left-0 w-full sm:w-96 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg max-h-[380px] overflow-y-auto z-50 p-2 space-y-3">
+                    <div className="fixed sm:absolute top-14 sm:top-11 inset-x-2 sm:inset-x-auto sm:left-0 sm:w-96 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl max-h-[70vh] sm:max-h-[380px] overflow-y-auto z-50 p-2 space-y-3">
                         {/* Opportunities section */}
                         <div>
                             <h4 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider px-2 py-1 flex items-center gap-1">

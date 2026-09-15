@@ -13,6 +13,7 @@ interface KanbanColumnProps {
     canDelete: boolean;
     hideFinancialNumbers: boolean;
     onDelete: (id: string, name: string) => void;
+    fullWidth?: boolean;
 }
 
 export function KanbanColumn({
@@ -22,6 +23,7 @@ export function KanbanColumn({
     canDelete,
     hideFinancialNumbers,
     onDelete,
+    fullWidth,
 }: KanbanColumnProps) {
     const totalRevenue = opportunities.reduce(
         (sum, opp) => sum + (opp.potential_revenue || 0),
@@ -29,7 +31,7 @@ export function KanbanColumn({
     );
 
     return (
-        <div className="w-72 shrink-0 bg-zinc-50/80 border border-zinc-200/90 rounded-2xl flex flex-col max-h-[calc(100vh-220px)] min-h-[450px]">
+        <div className={`${fullWidth ? "w-full" : "w-72 shrink-0"} bg-zinc-50/80 border border-zinc-200/90 rounded-2xl flex flex-col max-h-[calc(100vh-220px)] min-h-[450px]`}>
             {/* Column Header */}
             <div className="p-3.5 border-b border-zinc-200/80 flex items-center justify-between bg-white rounded-t-2xl shadow-2xs">
                 <div className="flex items-center gap-2">
