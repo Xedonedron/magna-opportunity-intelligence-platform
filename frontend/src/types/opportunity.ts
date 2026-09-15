@@ -130,18 +130,18 @@ export interface OpportunityUpdateInput {
 }
 
 export const STATUS_STYLES: Record<OpportunityStatus, string> = {
-    New: "bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 ring-blue-600/20 dark:ring-blue-500/30",
-    "KYC Running": "bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 ring-orange-600/20 dark:ring-orange-500/30",
-    "Ready Meeting": "bg-green-50 dark:bg-green-950/60 text-green-700 dark:text-green-300 ring-green-600/20 dark:ring-green-500/30",
-    "Meeting Scheduled": "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 ring-indigo-600/20 dark:ring-indigo-500/30",
-    "Meeting Done": "bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 ring-teal-600/20 dark:ring-teal-500/30",
-    "Need Proposal": "bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 ring-purple-600/20 dark:ring-purple-500/30",
-    POC: "bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 ring-violet-600/20 dark:ring-violet-500/30",
-    Negotiation: "bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 ring-amber-600/20 dark:ring-amber-500/30",
-    PO: "bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 ring-cyan-600/20 dark:ring-cyan-500/30",
-    Won: "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 ring-emerald-600/20 dark:ring-emerald-500/30",
-    Lost: "bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 ring-red-600/20 dark:ring-red-500/30",
-    "On Hold": "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 ring-zinc-500/20 dark:ring-zinc-600/30",
+    New: "bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60 ring-1 ring-blue-600/20 dark:ring-blue-500/20",
+    "KYC Running": "bg-orange-50 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 border border-orange-200/60 dark:border-orange-800/60 ring-1 ring-orange-600/20 dark:ring-orange-500/20",
+    "Ready Meeting": "bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-300 border border-green-200/60 dark:border-green-800/60 ring-1 ring-green-600/20 dark:ring-green-500/20",
+    "Meeting Scheduled": "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60 ring-1 ring-indigo-600/20 dark:ring-indigo-500/20",
+    "Meeting Done": "bg-teal-50 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 border border-teal-200/60 dark:border-teal-800/60 ring-1 ring-teal-600/20 dark:ring-teal-500/20",
+    "Need Proposal": "bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/60 ring-1 ring-purple-600/20 dark:ring-purple-500/20",
+    POC: "bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 border border-violet-200/60 dark:border-violet-800/60 ring-1 ring-violet-600/20 dark:ring-violet-500/20",
+    Negotiation: "bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60 ring-1 ring-amber-600/20 dark:ring-amber-500/20",
+    PO: "bg-cyan-50 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 border border-cyan-200/60 dark:border-cyan-800/60 ring-1 ring-cyan-600/20 dark:ring-cyan-500/20",
+    Won: "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60 ring-1 ring-emerald-600/20 dark:ring-emerald-500/20",
+    Lost: "bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-300 border border-red-200/60 dark:border-red-800/60 ring-1 ring-red-600/20 dark:ring-red-500/20",
+    "On Hold": "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 ring-1 ring-zinc-500/20 dark:ring-zinc-600/30",
 };
 
 export const ALL_STATUSES: OpportunityStatus[] = [

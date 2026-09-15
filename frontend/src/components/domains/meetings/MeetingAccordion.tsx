@@ -32,9 +32,9 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
 
     if (meetings.length === 0) {
         return (
-            <Card className="p-12 text-center">
-                <Calendar className="w-10 h-10 text-zinc-300 mx-auto mb-3" />
-                <p className="text-sm text-zinc-500">
+            <Card className="p-12 text-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+                <Calendar className="w-10 h-10 text-zinc-300 dark:text-zinc-600 mx-auto mb-3" />
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
                     {t.opportunityDetail.meetings.noMeetings}
                 </p>
             </Card>
@@ -46,8 +46,8 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
             {meetings.map((meeting) => {
                 const isOpen = openId === meeting.id;
                 return (
-                    <Card key={meeting.id} className="overflow-hidden">
-                        <div className="w-full px-5 py-4 flex items-center justify-between hover:bg-zinc-50 transition-colors">
+                    <Card key={meeting.id} className="overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+                        <div className="w-full px-5 py-4 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                             <button
                                 onClick={() =>
                                     setOpenId(isOpen ? null : meeting.id)
@@ -56,17 +56,17 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                             >
                                 <div
                                     className={`p-2 rounded-lg ${isOpen
-                                            ? "bg-zinc-900 text-white"
-                                            : "bg-zinc-100 text-zinc-500"
+                                            ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
                                         }`}
                                 >
                                     <Calendar className="w-4 h-4" />
                                 </div>
                                 <div>
-                                    <p className="font-medium text-zinc-900 text-sm">
+                                    <p className="font-medium text-zinc-900 dark:text-zinc-100 text-sm">
                                         {meeting.title}
                                     </p>
-                                    <p className="text-xs text-zinc-500 mt-0.5">
+                                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                                         {formatDate(meeting.date, locale)}
                                         {meeting.location &&
                                             ` • ${meeting.location}`}
@@ -79,7 +79,7 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => setEditingMeeting(meeting)}
-                                    className="h-8 text-xs text-zinc-600 hover:text-zinc-900 gap-1"
+                                    className="h-8 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 gap-1"
                                     title={t.opportunityDetail.meetings.editMeeting}
                                 >
                                     <Edit3 className="w-3.5 h-3.5" />
@@ -100,12 +100,12 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                         </div>
 
                         {isOpen && (
-                            <div className="px-5 py-5 border-t border-zinc-100 bg-zinc-50/50 space-y-5">
+                            <div className="px-5 py-5 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-850/50 space-y-5">
                                 {/* Participants */}
                                 {meeting.participants &&
                                     meeting.participants.length > 0 && (
                                         <div>
-                                            <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                                 <Users className="w-3.5 h-3.5" />
                                                 {t.opportunityDetail.meetings.participants}
                                             </h4>
@@ -114,7 +114,7 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                                                     (p, i) => (
                                                         <span
                                                             key={i}
-                                                            className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-zinc-200 text-zinc-700"
+                                                            className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
                                                         >
                                                             {p}
                                                         </span>
@@ -127,7 +127,7 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                                 {/* Agenda */}
                                 {meeting.agenda && meeting.agenda.length > 0 && (
                                     <div>
-                                        <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                        <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                             <ListChecks className="w-3.5 h-3.5" />
                                             {t.opportunityDetail.meetings.agenda}
                                         </h4>
@@ -135,7 +135,7 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                                             {meeting.agenda.map((item, i) => (
                                                 <li
                                                     key={i}
-                                                    className="text-sm text-zinc-600"
+                                                    className="text-sm text-zinc-600 dark:text-zinc-400"
                                                 >
                                                     {item}
                                                 </li>
@@ -147,11 +147,11 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                                 {/* Notes */}
                                 {meeting.notes && (
                                     <div>
-                                        <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                        <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                             <FileText className="w-3.5 h-3.5" />
                                             {t.opportunityDetail.meetings.notes}
                                         </h4>
-                                        <p className="text-sm text-zinc-600 leading-relaxed bg-white border border-zinc-100 rounded-md p-3">
+                                        <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed bg-white dark:bg-zinc-850 border border-zinc-100 dark:border-zinc-800 rounded-md p-3">
                                             {meeting.notes}
                                         </p>
                                     </div>

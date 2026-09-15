@@ -88,12 +88,12 @@ export function VersionSelector({
             </button>
 
             {isOpen && (
-                <div className="absolute top-full left-0 mt-1 w-84 sm:w-[420px] max-w-[92vw] bg-white border border-zinc-200 rounded-lg shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-100">
-                    <div className="px-3.5 py-2 text-xs font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-100 flex items-center justify-between">
+                <div className="absolute top-full left-0 mt-1 w-84 sm:w-[420px] max-w-[92vw] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="px-3.5 py-2 text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
                         <span>Version History</span>
-                        <span className="text-[10px] text-zinc-400 lowercase">{versions.length} versions</span>
+                        <span className="text-[10px] text-zinc-400 dark:text-zinc-500 lowercase">{versions.length} versions</span>
                     </div>
-                    <div className="max-h-80 overflow-y-auto divide-y divide-zinc-100">
+                    <div className="max-h-80 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800">
                         {versions.map((version) => {
                             const title = cleanVersionTitle(version.title);
                             const isSelected = version.id === currentVersionId;
@@ -106,13 +106,13 @@ export function VersionSelector({
                                         onSelectVersion(version.id);
                                         setIsOpen(false);
                                     }}
-                                    className={`w-full px-3.5 py-2.5 text-left hover:bg-zinc-50 transition-colors flex items-start gap-2.5 ${
-                                        isSelected ? "bg-zinc-50/80" : ""
+                                    className={`w-full px-3.5 py-2.5 text-left hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors flex items-start gap-2.5 ${
+                                        isSelected ? "bg-zinc-50/80 dark:bg-zinc-800/40" : ""
                                     }`}
                                 >
                                     <div className="mt-0.5 shrink-0">
                                         {isSelected ? (
-                                            <Check className="w-4 h-4 text-zinc-900" />
+                                            <Check className="w-4 h-4 text-zinc-900 dark:text-zinc-100" />
                                         ) : (
                                             <div className="w-4 h-4" />
                                         )}
@@ -120,20 +120,20 @@ export function VersionSelector({
                                     <div className="flex-1 min-w-0 space-y-1">
                                         <div className="flex items-center justify-between gap-2">
                                             <div className="flex items-center gap-2">
-                                                <span className="font-semibold text-sm text-zinc-900">v{version.version}</span>
-                                                <span className="text-xs text-zinc-400">
+                                                <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">v{version.version}</span>
+                                                <span className="text-xs text-zinc-400 dark:text-zinc-500">
                                                     {getSourceTypeLabel(version.source_type)}
                                                 </span>
                                             </div>
                                             <span
                                                 className={`text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 ${
                                                     version.status === "completed"
-                                                        ? "bg-green-100 text-green-700"
+                                                        ? "bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-300"
                                                         : version.status === "running"
-                                                            ? "bg-blue-100 text-blue-700"
+                                                            ? "bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300"
                                                             : version.status === "failed"
-                                                                ? "bg-red-100 text-red-700"
-                                                                : "bg-zinc-100 text-zinc-600"
+                                                                ? "bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-300"
+                                                                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
                                                 }`}
                                             >
                                                 {version.status}
@@ -142,7 +142,7 @@ export function VersionSelector({
 
                                         {/* Version Title with Word Wrap */}
                                         {title && (
-                                            <p className="text-xs font-medium text-zinc-800 break-words whitespace-normal leading-relaxed">
+                                            <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200 break-words whitespace-normal leading-relaxed">
                                                 {title}
                                             </p>
                                         )}

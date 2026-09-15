@@ -47,10 +47,10 @@ export default function MeetingsPage() {
     if (isLoadingMeetings) {
         return (
             <div className="p-8 max-w-5xl mx-auto space-y-6">
-                <div className="h-8 w-48 bg-zinc-200 rounded animate-pulse mb-6" />
+                <div className="h-8 w-48 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse mb-6" />
                 <div className="space-y-4">
                     {[1, 2, 3].map((i) => (
-                        <div key={i} className="h-32 bg-zinc-100 rounded-lg animate-pulse" />
+                        <div key={i} className="h-32 bg-zinc-100 dark:bg-zinc-800/60 rounded-lg animate-pulse" />
                     ))}
                 </div>
             </div>
@@ -117,10 +117,10 @@ export default function MeetingsPage() {
                         return (
                             <Card
                                 key={meeting.id}
-                                className={`border transition-all duration-200 bg-white overflow-hidden ${
+                                className={`border transition-all duration-200 bg-white dark:bg-zinc-900 overflow-hidden ${
                                     isExpanded
-                                        ? "border-zinc-400 shadow-md"
-                                        : "border-zinc-200 hover:border-zinc-300 hover:shadow-sm"
+                                        ? "border-zinc-400 dark:border-zinc-700 shadow-md"
+                                        : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm"
                                 }`}
                             >
                                 <div
@@ -131,20 +131,20 @@ export default function MeetingsPage() {
                                         <div className="flex flex-wrap items-center gap-2">
                                             <Link
                                                 href={`/opportunities/${meeting.opportunity_id}`}
-                                                className="text-xs font-semibold text-zinc-500 hover:text-zinc-900 bg-zinc-100 hover:bg-zinc-200/80 px-2 py-0.5 rounded transition-colors"
+                                                className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200/80 dark:hover:bg-zinc-700 px-2 py-0.5 rounded transition-colors"
                                                 onClick={(e) => e.stopPropagation()}
                                             >
                                                 {companyName}
                                             </Link>
-                                            <span className="text-zinc-300">•</span>
-                                            <span className="text-xs text-zinc-500 flex items-center gap-1">
+                                            <span className="text-zinc-300 dark:text-zinc-600">•</span>
+                                            <span className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
                                                 <Clock className="w-3.5 h-3.5" /> {formatDateTime(meeting.date)}
                                             </span>
                                         </div>
-                                        <h3 className="text-lg font-semibold text-zinc-900 truncate">
+                                        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 truncate">
                                             {meeting.title}
                                         </h3>
-                                        <div className="flex flex-wrap items-center gap-4 text-xs text-zinc-500 pt-1">
+                                        <div className="flex flex-wrap items-center gap-4 text-xs text-zinc-500 dark:text-zinc-400 pt-1">
                                             {meeting.location && (
                                                 <span className="flex items-center gap-1">
                                                     <MapPin className="w-3.5 h-3.5" /> {meeting.location}
@@ -165,7 +165,7 @@ export default function MeetingsPage() {
                                                 e.stopPropagation();
                                                 setEditingMeeting(meeting);
                                             }}
-                                            className="h-8 text-xs text-zinc-600 hover:text-zinc-900 gap-1"
+                                            className="h-8 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 gap-1"
                                             title="Edit Meeting & Agenda"
                                         >
                                             <Edit3 className="w-3.5 h-3.5" />
@@ -191,15 +191,15 @@ export default function MeetingsPage() {
 
                                 {/* Expanded Details Section */}
                                 {isExpanded && (
-                                    <div className="border-t border-zinc-100 bg-zinc-50/50 p-6 space-y-6">
+                                    <div className="border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-850/50 p-6 space-y-6">
                                         {/* Agenda & Notes */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             {meeting.agenda && meeting.agenda.length > 0 && (
                                                 <div className="space-y-2">
-                                                    <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                                                    <h4 className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
                                                         Agenda Rapat
                                                     </h4>
-                                                    <ul className="list-disc list-inside space-y-1 text-sm text-zinc-700">
+                                                    <ul className="list-disc list-inside space-y-1 text-sm text-zinc-700 dark:text-zinc-300">
                                                         {meeting.agenda.map((item, index) => (
                                                             <li key={index}>{item}</li>
                                                         ))}
@@ -208,10 +208,10 @@ export default function MeetingsPage() {
                                             )}
                                             {meeting.notes && (
                                                 <div className="space-y-2">
-                                                    <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
+                                                    <h4 className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider flex items-center gap-1">
                                                         <FileText className="w-3.5 h-3.5" /> Catatan Pertemuan
                                                     </h4>
-                                                    <p className="text-sm text-zinc-700 whitespace-pre-wrap leading-relaxed">
+                                                    <p className="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap leading-relaxed">
                                                         {meeting.notes}
                                                     </p>
                                                 </div>

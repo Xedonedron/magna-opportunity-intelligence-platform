@@ -259,9 +259,9 @@ export default function OpportunitiesPage() {
                         <div className={`block md:hidden space-y-3 p-4 transition-opacity duration-150 ${isPlaceholderData ? "opacity-70" : "opacity-100"}`}>
                             {isLoading && !data ? (
                                 Array.from({ length: 3 }).map((_, i) => (
-                                    <div key={i} className="p-4 border border-zinc-200 rounded-xl bg-white space-y-3 animate-pulse">
-                                        <div className="h-5 bg-zinc-200 rounded w-1/2" />
-                                        <div className="h-4 bg-zinc-100 rounded w-1/3" />
+                                    <div key={i} className="p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-900 space-y-3 animate-pulse">
+                                        <div className="h-5 bg-zinc-200 dark:bg-zinc-800 rounded w-1/2" />
+                                        <div className="h-4 bg-zinc-100 dark:bg-zinc-800/60 rounded w-1/3" />
                                     </div>
                                 ))
                             ) : data && data.items.length > 0 ? (
@@ -269,19 +269,19 @@ export default function OpportunitiesPage() {
                                     <div
                                         key={opp.id}
                                         onClick={() => router.push(`/opportunities/${opp.id}`)}
-                                        className="p-4 border border-zinc-200/90 rounded-xl bg-white shadow-sm space-y-3 active:bg-zinc-50 transition-colors"
+                                        className="p-4 border border-zinc-200/90 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-900 shadow-sm space-y-3 active:bg-zinc-50 dark:active:bg-zinc-800 transition-colors"
                                     >
                                         <div className="flex items-start justify-between gap-2">
                                             <div>
-                                                <h4 className="font-bold text-zinc-900 text-sm">{opp.company_name}</h4>
-                                                <p className="text-xs text-zinc-500 mt-0.5">{opp.industry || "General Industry"}</p>
+                                                <h4 className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">{opp.company_name}</h4>
+                                                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{opp.industry || "General Industry"}</p>
                                             </div>
                                             <StatusBadge status={opp.status as OpportunityStatus} />
                                         </div>
-                                        <div className="grid grid-cols-2 gap-2 text-xs py-2.5 border-y border-zinc-100">
+                                        <div className="grid grid-cols-2 gap-2 text-xs py-2.5 border-y border-zinc-100 dark:border-zinc-800">
                                             <div>
-                                                <span className="text-zinc-400 block text-[10px] uppercase font-semibold tracking-wider">Potential Value</span>
-                                                <span className="font-bold text-zinc-900 mt-0.5 block">
+                                                <span className="text-zinc-400 dark:text-zinc-500 block text-[10px] uppercase font-semibold tracking-wider">Potential Value</span>
+                                                <span className="font-bold text-zinc-900 dark:text-zinc-100 mt-0.5 block">
                                                     {formatCurrency(
                                                         opp.potential_revenue,
                                                         hideFinancialNumbers || user?.role === "engineer" || user?.role === "viewer"
@@ -289,8 +289,8 @@ export default function OpportunitiesPage() {
                                                 </span>
                                             </div>
                                             <div>
-                                                <span className="text-zinc-400 block text-[10px] uppercase font-semibold tracking-wider">Est. Agenda</span>
-                                                <span className="text-zinc-800 font-medium mt-0.5 block">
+                                                <span className="text-zinc-400 dark:text-zinc-500 block text-[10px] uppercase font-semibold tracking-wider">Est. Agenda</span>
+                                                <span className="text-zinc-800 dark:text-zinc-200 font-medium mt-0.5 block">
                                                     {opp.estimated_agenda_date
                                                         ? new Date(opp.estimated_agenda_date).toLocaleDateString("id-ID", {
                                                             month: "short",
@@ -301,14 +301,14 @@ export default function OpportunitiesPage() {
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="flex items-center justify-between text-xs text-zinc-500">
+                                        <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
                                             <span className="truncate max-w-[180px]">Eng: {opp.assigned_engineer || "Unassigned"}</span>
-                                            <span className="text-zinc-900 font-semibold flex items-center gap-1 shrink-0">Detail &rarr;</span>
+                                            <span className="text-zinc-900 dark:text-zinc-100 font-semibold flex items-center gap-1 shrink-0">Detail &rarr;</span>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <div className="p-8 text-center text-xs text-zinc-500 bg-white rounded-xl border border-zinc-200">
+                                <div className="p-8 text-center text-xs text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                                     No opportunities found.
                                 </div>
                             )}
@@ -317,7 +317,7 @@ export default function OpportunitiesPage() {
                         {/* Desktop Table (visible on >= md) */}
                         <div className={`hidden md:block overflow-x-auto transition-opacity duration-150 ${isPlaceholderData ? "opacity-70" : "opacity-100"}`}>
                             <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-zinc-500 uppercase bg-zinc-50 border-b border-zinc-200">
+                                <thead className="text-xs text-zinc-500 dark:text-zinc-400 uppercase bg-zinc-50 dark:bg-zinc-850 border-b border-zinc-200 dark:border-zinc-800">
                                     <tr>
                                         <th className="px-6 py-3 font-medium">Company</th>
                                         <th className="px-6 py-3 font-medium">Status</th>
@@ -329,12 +329,12 @@ export default function OpportunitiesPage() {
                                         <th className="px-6 py-3 font-medium text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-zinc-100">
+                                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                                     {isLoading && !data ? (
                                         Array.from({ length: 5 }).map((_, i) => (
                                             <tr key={i}>
                                                 <td colSpan={8} className="px-6 py-4">
-                                                    <div className="h-4 bg-zinc-100 rounded animate-pulse" />
+                                                    <div className="h-4 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
                                                 </td>
                                             </tr>
                                         ))
@@ -342,19 +342,19 @@ export default function OpportunitiesPage() {
                                         data.items.map((opp) => (
                                             <tr
                                                 key={opp.id}
-                                                className="hover:bg-zinc-50/50 group transition-colors cursor-pointer"
+                                                className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50 group transition-colors cursor-pointer"
                                                 onClick={() => router.push(`/opportunities/${opp.id}`)}
                                             >
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-md bg-zinc-100 border border-zinc-200 flex items-center justify-center font-bold text-zinc-600">
+                                                        <div className="w-8 h-8 rounded-md bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center font-bold text-zinc-600 dark:text-zinc-300">
                                                             {opp.company_name.charAt(0)}
                                                         </div>
                                                         <div>
-                                                            <span className="font-medium text-zinc-900 group-hover:underline">
+                                                            <span className="font-medium text-zinc-900 dark:text-zinc-100 group-hover:underline">
                                                                 {opp.company_name}
                                                             </span>
-                                                            <div className="text-zinc-500 text-xs">
+                                                            <div className="text-zinc-500 dark:text-zinc-400 text-xs">
                                                                 {opp.id.slice(0, 8)}
                                                             </div>
                                                         </div>
@@ -363,16 +363,16 @@ export default function OpportunitiesPage() {
                                                 <td className="px-6 py-4">
                                                     <StatusBadge status={opp.status as OpportunityStatus} />
                                                 </td>
-                                                <td className="px-6 py-4 text-zinc-600">
+                                                <td className="px-6 py-4 text-zinc-600 dark:text-zinc-300">
                                                     {opp.industry || "—"}
                                                 </td>
-                                                <td className="px-6 py-4 font-semibold text-zinc-900">
+                                                <td className="px-6 py-4 font-semibold text-zinc-900 dark:text-zinc-100">
                                                     {formatCurrency(
                                                         opp.potential_revenue,
                                                         hideFinancialNumbers || user?.role === "engineer" || user?.role === "viewer"
                                                     )}
                                                 </td>
-                                                <td className="px-6 py-4 text-zinc-600">
+                                                <td className="px-6 py-4 text-zinc-600 dark:text-zinc-300">
                                                     {opp.estimated_agenda_date
                                                         ? new Date(opp.estimated_agenda_date).toLocaleDateString("en-US", {
                                                             month: "short",
@@ -381,10 +381,10 @@ export default function OpportunitiesPage() {
                                                         })
                                                         : "—"}
                                                 </td>
-                                                <td className="px-6 py-4 text-zinc-600">
+                                                <td className="px-6 py-4 text-zinc-600 dark:text-zinc-300">
                                                     {opp.assigned_engineer || "Unassigned"}
                                                 </td>
-                                                <td className="px-6 py-4 text-zinc-500 text-xs">
+                                                <td className="px-6 py-4 text-zinc-500 dark:text-zinc-400 text-xs">
                                                     {timeAgo(opp.updated_at)}
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
@@ -392,7 +392,7 @@ export default function OpportunitiesPage() {
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-700 hover:bg-red-50 transition-all"
+                                                            className="opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all"
                                                             onClick={(e) => handleDelete(e, opp.id, opp.company_name)}
                                                         >
                                                             <Trash2 className="w-4 h-4" />
@@ -403,7 +403,7 @@ export default function OpportunitiesPage() {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={9} className="px-6 py-12 text-center text-zinc-500">
+                                            <td colSpan={9} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400">
                                                 No opportunities found. Create your first opportunity to get
                                                 started.
                                             </td>

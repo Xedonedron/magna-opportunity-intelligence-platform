@@ -34,10 +34,10 @@ export function KanbanCard({
                 <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
-                    className={`group bg-white border rounded-xl p-3.5 shadow-sm transition-all text-xs space-y-3 relative ${
+                    className={`group bg-white dark:bg-zinc-850 border rounded-xl p-3.5 shadow-sm transition-all text-xs space-y-3 relative ${
                         snapshot.isDragging
-                            ? "shadow-lg border-blue-400 ring-2 ring-blue-400/20 rotate-1 z-50 bg-white"
-                            : "border-zinc-200/90 hover:border-zinc-300 hover:shadow"
+                            ? "shadow-lg border-blue-400 dark:border-blue-500 ring-2 ring-blue-400/20 rotate-1 z-50 bg-white dark:bg-zinc-800"
+                            : "border-zinc-200/90 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow dark:shadow-zinc-950/50"
                     }`}
                 >
                     {/* Header with Grip, Company Name & Actions */}
@@ -46,7 +46,7 @@ export function KanbanCard({
                             {canEdit && (
                                 <div
                                     {...provided.dragHandleProps}
-                                    className="mt-0.5 text-zinc-300 hover:text-zinc-600 cursor-grab active:cursor-grabbing shrink-0"
+                                    className="mt-0.5 text-zinc-300 dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-grab active:cursor-grabbing shrink-0"
                                     title="Drag to change status"
                                 >
                                     <GripVertical className="w-3.5 h-3.5" />
@@ -55,12 +55,12 @@ export function KanbanCard({
                             <div className="min-w-0">
                                 <Link
                                     href={`/opportunities/${opportunity.id}`}
-                                    className="font-bold text-zinc-900 hover:text-blue-600 hover:underline text-sm leading-tight block truncate"
+                                    className="font-bold text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 hover:underline text-sm leading-tight block truncate"
                                 >
                                     {opportunity.company_name}
                                 </Link>
-                                <span className="text-[11px] text-zinc-500 font-medium flex items-center gap-1 mt-0.5">
-                                    <Building2 className="w-3 h-3 text-zinc-400 shrink-0" />
+                                <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium flex items-center gap-1 mt-0.5">
+                                    <Building2 className="w-3 h-3 text-zinc-400 dark:text-zinc-500 shrink-0" />
                                     <span className="truncate">{opportunity.industry || "General Industry"}</span>
                                 </span>
                             </div>
@@ -73,7 +73,7 @@ export function KanbanCard({
                                     e.stopPropagation();
                                     onDelete(opportunity.id, opportunity.company_name);
                                 }}
-                                className="opacity-0 group-hover:opacity-100 p-1 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded transition-all shrink-0"
+                                className="opacity-0 group-hover:opacity-100 p-1 text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 rounded transition-all shrink-0"
                                 title="Delete opportunity"
                             >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -87,7 +87,7 @@ export function KanbanCard({
                             {opportunity.product.split(", ").filter(Boolean).map((prod, idx) => (
                                 <span
                                     key={idx}
-                                    className="bg-zinc-50 border border-zinc-200/80 rounded px-1.5 py-0.5 text-[10px] text-zinc-600 font-medium truncate max-w-full"
+                                    className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700 rounded px-1.5 py-0.5 text-[10px] text-zinc-600 dark:text-zinc-300 font-medium truncate max-w-full"
                                 >
                                     {prod}
                                 </span>
@@ -96,12 +96,12 @@ export function KanbanCard({
                     )}
 
                     {/* Revenue & Date Metrics */}
-                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-zinc-100 text-[11px]">
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-[11px]">
                         <div>
-                            <span className="text-zinc-400 block text-[9px] uppercase font-semibold tracking-wider">
+                            <span className="text-zinc-400 dark:text-zinc-500 block text-[9px] uppercase font-semibold tracking-wider">
                                 Potential Value
                             </span>
-                            <span className="font-bold text-zinc-900 mt-0.5 block truncate">
+                            <span className="font-bold text-zinc-900 dark:text-zinc-100 mt-0.5 block truncate">
                                 {formatCurrency(
                                     opportunity.potential_revenue,
                                     hideFinancialNumbers
@@ -109,11 +109,11 @@ export function KanbanCard({
                             </span>
                         </div>
                         <div>
-                            <span className="text-zinc-400 block text-[9px] uppercase font-semibold tracking-wider">
+                            <span className="text-zinc-400 dark:text-zinc-500 block text-[9px] uppercase font-semibold tracking-wider">
                                 Est. Agenda
                             </span>
-                            <span className="text-zinc-700 font-medium mt-0.5 block flex items-center gap-1 truncate">
-                                <Calendar className="w-3 h-3 text-zinc-400 shrink-0" />
+                            <span className="text-zinc-700 dark:text-zinc-300 font-medium mt-0.5 block flex items-center gap-1 truncate">
+                                <Calendar className="w-3 h-3 text-zinc-400 dark:text-zinc-500 shrink-0" />
                                 {opportunity.estimated_agenda_date
                                     ? new Date(opportunity.estimated_agenda_date).toLocaleDateString("id-ID", {
                                           month: "short",
@@ -125,9 +125,9 @@ export function KanbanCard({
                     </div>
 
                     {/* Footer: Assigned Engineer */}
-                    <div className="flex items-center justify-between pt-2 border-t border-zinc-100 text-[11px] text-zinc-500">
+                    <div className="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-zinc-800 text-[11px] text-zinc-500 dark:text-zinc-400">
                         <div className="flex items-center gap-1.5 min-w-0">
-                            <div className="w-5 h-5 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center font-bold text-[10px] text-zinc-600 shrink-0">
+                            <div className="w-5 h-5 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center font-bold text-[10px] text-zinc-600 dark:text-zinc-300 shrink-0">
                                 {opportunity.assigned_engineer?.charAt(0) || "U"}
                             </div>
                             <span className="truncate">

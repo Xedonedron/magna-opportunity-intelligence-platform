@@ -60,18 +60,18 @@ export function CollapsibleErrorAlert({
     };
 
     return (
-        <Card className={`p-6 sm:p-8 bg-white border border-red-200/80 shadow-sm rounded-xl ${className}`}>
+        <Card className={`p-6 sm:p-8 bg-white dark:bg-zinc-900 border border-red-200/80 dark:border-red-950/60 shadow-sm rounded-xl ${className}`}>
             {/* Top Header: Warning Icon + Friendly Title */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-zinc-100">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-zinc-100 dark:border-zinc-800">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200/60 flex items-center justify-center shrink-0">
-                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                    <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-950/50 border border-red-200/60 dark:border-red-800/40 flex items-center justify-center shrink-0">
+                        <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
                     </div>
                     <div>
-                        <h3 className="text-base sm:text-lg font-semibold text-zinc-900 leading-tight">
+                        <h3 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
                             {displayTitle}
                         </h3>
-                        <p className="text-xs text-zinc-500 mt-0.5">
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                             {locale === "id" ? "Proses pembuatan KYC terhenti" : "KYC pipeline generation halted"}
                             {parsed.statusCode ? ` (HTTP ${parsed.statusCode})` : ""}
                         </p>
@@ -85,9 +85,9 @@ export function CollapsibleErrorAlert({
                             variant="outline"
                             size="sm"
                             onClick={onNavigateSettings}
-                            className="text-xs border-zinc-200 text-zinc-700 hover:bg-zinc-50 gap-1.5"
+                            className="text-xs border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 gap-1.5"
                         >
-                            <Settings className="w-3.5 h-3.5 text-zinc-500" />
+                            <Settings className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
                             <span>{locale === "id" ? "Pengaturan AI" : "AI Settings"}</span>
                         </Button>
                     )}
@@ -97,16 +97,16 @@ export function CollapsibleErrorAlert({
                             size="sm"
                             onClick={onRetry}
                             disabled={isRetrying}
-                            className="text-xs gap-1.5 font-medium border border-zinc-200"
+                            className="text-xs gap-1.5 font-medium border border-zinc-200 dark:border-zinc-700"
                         >
                             {isRetrying ? (
                                 <>
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-700" />
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-700 dark:text-zinc-300" />
                                     <span>{locale === "id" ? "Mencoba Ulang..." : "Retrying..."}</span>
                                 </>
                             ) : (
                                 <>
-                                    <RefreshCw className="w-3.5 h-3.5 text-zinc-700" />
+                                    <RefreshCw className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
                                     <span>{locale === "id" ? "Coba Lagi" : "Retry"}</span>
                                 </>
                             )}
@@ -117,18 +117,18 @@ export function CollapsibleErrorAlert({
 
             {/* Non-Technical Summary & Explanation */}
             <div className="py-4 space-y-3">
-                <div className="p-3.5 bg-red-50/40 rounded-lg border border-red-100">
-                    <p className="text-sm font-medium text-zinc-800 leading-relaxed">
+                <div className="p-3.5 bg-red-50/40 dark:bg-red-950/20 rounded-lg border border-red-100 dark:border-red-900/30">
+                    <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 leading-relaxed">
                         {parsed.summary}
                     </p>
                 </div>
 
                 {/* Suggestion Callout */}
                 {parsed.suggestion && (
-                    <div className="flex items-start gap-2.5 p-3 bg-zinc-50 rounded-lg border border-zinc-200/60 text-xs text-zinc-600">
-                        <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-2.5 p-3 bg-zinc-50 dark:bg-zinc-800/60 rounded-lg border border-zinc-200/60 dark:border-zinc-700/60 text-xs text-zinc-600 dark:text-zinc-300">
+                        <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                         <span className="leading-relaxed">
-                            <strong className="font-semibold text-zinc-800">
+                            <strong className="font-semibold text-zinc-800 dark:text-zinc-100">
                                 {locale === "id" ? "Saran Tindakan: " : "Suggested Action: "}
                             </strong>
                             {parsed.suggestion}
@@ -138,14 +138,14 @@ export function CollapsibleErrorAlert({
             </div>
 
             {/* Expandable Technical Details Dropdown */}
-            <div className="border-t border-zinc-100 pt-3">
+            <div className="border-t border-zinc-100 dark:border-zinc-800 pt-3">
                 <button
                     type="button"
                     onClick={() => setIsDetailsOpen((prev) => !prev)}
-                    className="flex items-center justify-between w-full py-2 text-xs font-medium text-zinc-600 hover:text-zinc-900 transition-colors group"
+                    className="flex items-center justify-between w-full py-2 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors group"
                 >
                     <div className="flex items-center gap-1.5">
-                        <Terminal className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-700" />
+                        <Terminal className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300" />
                         <span>
                             {isDetailsOpen
                                 ? locale === "id"
@@ -156,7 +156,7 @@ export function CollapsibleErrorAlert({
                                     : "View Technical Details & Error Log"}
                         </span>
                     </div>
-                    <div className="flex items-center gap-1 text-zinc-400 group-hover:text-zinc-700">
+                    <div className="flex items-center gap-1 text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300">
                         <span className="text-[11px]">
                             {isDetailsOpen
                                 ? locale === "id"

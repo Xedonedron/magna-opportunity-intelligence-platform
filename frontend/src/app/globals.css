@@ -27,22 +27,35 @@
     }
 
     .dark {
+        /* Level 0: Canvas Background (#09090b) */
         --background: 240 10% 3.9%;
         --foreground: 0 0% 98%;
-        --card: 240 10% 3.9%;
+
+        /* Level 2: Elevated Cards & Surfaces (#18181b / zinc-900) */
+        --card: 240 5.9% 10%;
         --card-foreground: 0 0% 98%;
-        --popover: 240 10% 3.9%;
+
+        /* Popovers & Floating Menus (#18181b / zinc-900) */
+        --popover: 240 5.9% 10%;
         --popover-foreground: 0 0% 98%;
+
         --primary: 0 0% 98%;
         --primary-foreground: 240 5.9% 10%;
+
+        /* Secondary & Interactive (#27272a / zinc-800) */
         --secondary: 240 3.7% 15.9%;
         --secondary-foreground: 0 0% 98%;
+
         --muted: 240 3.7% 15.9%;
         --muted-foreground: 240 5% 64.9%;
+
         --accent: 240 3.7% 15.9%;
         --accent-foreground: 0 0% 98%;
+
         --destructive: 0 62.8% 30.6%;
         --destructive-foreground: 0 0% 98%;
+
+        /* Subtle Dark Borders (#27272a / zinc-800) */
         --border: 240 3.7% 15.9%;
         --input: 240 3.7% 15.9%;
         --ring: 240 4.9% 83.9%;
@@ -62,6 +75,53 @@
         @apply bg-background text-foreground antialiased;
         font-feature-settings: "rlig" 1, "calt" 1;
     }
+
+    /* Custom Dark Scrollbar */
+    .dark {
+        scrollbar-color: #3f3f46 #09090b;
+    }
+
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .dark ::-webkit-scrollbar-track {
+        background: #09090b;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #d4d4d8;
+        border-radius: 9999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #a1a1aa;
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+        background: #27272a;
+        border-radius: 9999px;
+    }
+
+    .dark ::-webkit-scrollbar-thumb:hover {
+        background: #3f3f46;
+    }
+
+    /* Chrome Input Autofill Dark Override */
+    .dark input:-webkit-autofill,
+    .dark input:-webkit-autofill:hover,
+    .dark input:-webkit-autofill:focus,
+    .dark textarea:-webkit-autofill,
+    .dark select:-webkit-autofill {
+        -webkit-text-fill-color: #f4f4f5 !important;
+        -webkit-box-shadow: 0 0 0px 1000px #18181b inset !important;
+        transition: background-color 5000s ease-in-out 0s;
+    }
 }
 
 /* Recharts Dark Mode Support */
@@ -80,4 +140,12 @@
 .dark .recharts-cartesian-grid-horizontal line,
 .dark .recharts-cartesian-grid-vertical line {
     stroke: #27272a !important;
+}
+
+.dark .recharts-text.recharts-cartesian-axis-tick-value {
+    fill: #a1a1aa !important;
+}
+
+.dark .recharts-legend-item-text {
+    color: #d4d4d8 !important;
 }
