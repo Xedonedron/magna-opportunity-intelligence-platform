@@ -20,7 +20,7 @@ export function SolutionDistributionChart({ data }: SolutionDistributionChartPro
     if (!data || data.length === 0) {
         return (
             <Card className="p-5">
-                <h3 className="text-sm font-semibold text-zinc-900 mb-4">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                     Solution Distribution
                 </h3>
                 <div className="h-64 flex items-center justify-center text-zinc-400 text-sm">
@@ -37,40 +37,49 @@ export function SolutionDistributionChart({ data }: SolutionDistributionChartPro
     }));
 
     return (
-        <Card className="p-5 shadow-sm border border-zinc-200 dark:border-zinc-800">
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+        <Card className="p-4 sm:p-5">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3 sm:mb-4">
                 Solution Distribution
             </h3>
-            <div className="h-64">
+            <div className="h-[240px] md:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
                             data={chartData}
                             cx="50%"
                             cy="50%"
-                            innerRadius={60}
-                            outerRadius={85}
-                            paddingAngle={3}
+                            innerRadius={45}
+                            outerRadius={75}
+                            paddingAngle={2}
                             dataKey="value"
-                            label={({ name, value }) => `${name}: ${value}`}
-                            labelLine={false}
                         >
                             {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
                         </Pie>
-                        <Tooltip />
+                        <Tooltip
+                            contentStyle={{
+                                backgroundColor: "#18181b",
+                                borderColor: "#27272a",
+                                borderRadius: "8px",
+                                fontSize: "12px",
+                                color: "#f4f4f5",
+                            }}
+                            itemStyle={{ color: "#f4f4f5" }}
+                        />
                     </PieChart>
                 </ResponsiveContainer>
             </div>
-            <div className="flex flex-wrap gap-2.5 mt-4">
+            <div className="flex flex-wrap gap-2 mt-3 sm:mt-4 max-h-24 overflow-y-auto">
                 {chartData.map((item) => (
                     <div key={item.name} className="flex items-center gap-1.5 text-xs">
                         <div
                             className="w-2.5 h-2.5 rounded-full shrink-0"
                             style={{ backgroundColor: item.color }}
                         />
-                        <span className="text-zinc-600 dark:text-zinc-400 font-medium">{item.name}</span>
+                        <span className="text-zinc-600 dark:text-zinc-400 truncate">
+                            {item.name} ({item.value})
+                        </span>
                     </div>
                 ))}
             </div>
