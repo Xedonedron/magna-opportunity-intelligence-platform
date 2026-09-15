@@ -30,7 +30,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
                 <textarea
                     value={report.executive_summary || ""}
                     onChange={(e) => onChange("executive_summary", e.target.value)}
-                    className="w-full min-h-[150px] px-4 py-3 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent resize-y"
+                    className="w-full min-h-[150px] px-4 py-3 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent resize-y placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                     placeholder="Enter executive summary..."
                 />
             </section>
@@ -38,7 +38,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
             {/* Company Overview */}
             <section>
                 <SectionLabel>{sec.companyOverview || "Company Overview"}</SectionLabel>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border border-zinc-200 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50/30 dark:bg-zinc-900/40">
                     <TextInput
                         label="Name"
                         value={report.company_overview?.name || ""}
@@ -92,7 +92,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
                         />
                     </div>
                     <div className="md:col-span-2">
-                        <label className="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">
+                        <label className="block text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                             Key Products
                         </label>
                         <TagInput
@@ -116,7 +116,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
                     <textarea
                         value={report.industry_analysis || ""}
                         onChange={(e) => onChange("industry_analysis", e.target.value)}
-                        className="w-full min-h-[120px] px-4 py-3 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent resize-y"
+                        className="w-full min-h-[120px] px-4 py-3 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent resize-y placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                         placeholder="Enter industry analysis..."
                     />
                 </div>
@@ -125,7 +125,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
                     <textarea
                         value={report.business_model || ""}
                         onChange={(e) => onChange("business_model", e.target.value)}
-                        className="w-full min-h-[120px] px-4 py-3 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent resize-y"
+                        className="w-full min-h-[120px] px-4 py-3 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent resize-y placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                         placeholder="Enter business model..."
                     />
                 </div>
@@ -147,7 +147,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
                     <textarea
                         value={report.customer_need_summary || ""}
                         onChange={(e) => onChange("customer_need_summary", e.target.value)}
-                        className="w-full min-h-[120px] px-4 py-3 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent resize-y"
+                        className="w-full min-h-[120px] px-4 py-3 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent resize-y placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                         placeholder="Enter customer need summary..."
                     />
                 </div>
@@ -184,7 +184,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
                     <SectionLabel>{sec.recommendedQuestions || "Recommended Questions"}</SectionLabel>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div>
-                            <p className="text-xs font-medium text-indigo-600 mb-2">💼 Business Discovery</p>
+                            <p className="text-xs font-medium text-indigo-600 dark:text-indigo-400 mb-2">💼 Business Discovery</p>
                             <ListInput
                                 values={normalizeRecommendedQuestions(report.recommended_questions).business}
                                 onChange={(v) => {
@@ -195,7 +195,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
                             />
                         </div>
                         <div>
-                            <p className="text-xs font-medium text-emerald-600 mb-2">🔧 Technical Discovery</p>
+                            <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 mb-2">🔧 Technical Discovery</p>
                             <ListInput
                                 values={normalizeRecommendedQuestions(report.recommended_questions).technical}
                                 onChange={(v) => {
@@ -234,7 +234,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
 // Helper Components
 function SectionLabel({ children }: { children: React.ReactNode }) {
     return (
-        <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider mb-3">
+        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider mb-3">
             {children}
         </h3>
     );
@@ -253,7 +253,7 @@ function TextInput({
 }) {
     return (
         <div>
-            <label className="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                 {label}
             </label>
             <input
@@ -261,7 +261,7 @@ function TextInput({
                 value={value}
                 placeholder={placeholder}
                 onChange={(e) => onChange(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
             />
         </div>
     );
@@ -303,7 +303,7 @@ function ListInput({
                         type="text"
                         value={item}
                         onChange={(e) => updateItem(index, e.target.value)}
-                        className="flex-1 px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                        className="flex-1 px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent"
                     />
                     <button
                         onClick={() => removeItem(index)}
@@ -320,11 +320,11 @@ function ListInput({
                     onChange={(e) => setNewItem(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addItem())}
                     placeholder={placeholder}
-                    className="flex-1 px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                    className="flex-1 px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent"
                 />
                 <button
                     onClick={addItem}
-                    className="p-2 text-zinc-400 hover:text-zinc-900 transition-colors"
+                    className="p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
                 >
                     <Plus className="w-4 h-4" />
                 </button>
@@ -361,7 +361,7 @@ function TagInput({
                 {values.map((item, index) => (
                     <span
                         key={index}
-                        className="inline-flex items-center gap-1 text-xs bg-zinc-100 text-zinc-700 px-2 py-1 rounded"
+                        className="inline-flex items-center gap-1 text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-2 py-1 rounded"
                     >
                         {item}
                         <button
@@ -380,11 +380,11 @@ function TagInput({
                     onChange={(e) => setNewItem(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addItem())}
                     placeholder={placeholder}
-                    className="flex-1 px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                    className="flex-1 px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent"
                 />
                 <button
                     onClick={addItem}
-                    className="p-2 text-zinc-400 hover:text-zinc-900 transition-colors"
+                    className="p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
                 >
                     <Plus className="w-4 h-4" />
                 </button>
@@ -431,10 +431,10 @@ function UseCasesInput({
             {useCases.map((uc, index) => (
                 <div
                     key={index}
-                    className="border border-zinc-200 rounded-lg p-4 space-y-3"
+                    className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 space-y-3 bg-zinc-50/30 dark:bg-zinc-900/40"
                 >
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-zinc-500">
+                        <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
                             Use Case #{index + 1}
                         </span>
                         <button
@@ -451,7 +451,7 @@ function UseCasesInput({
                             onChange={(v) => updateUseCase(index, "title", v)}
                         />
                         <div>
-                            <label className="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">
+                            <label className="block text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                                 Impact Level
                             </label>
                             <select
@@ -459,7 +459,7 @@ function UseCasesInput({
                                 onChange={(e) =>
                                     updateUseCase(index, "impact_level", e.target.value)
                                 }
-                                className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                                className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent"
                             >
                                 <option value="High">High</option>
                                 <option value="Medium">Medium</option>
@@ -468,13 +468,13 @@ function UseCasesInput({
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">
+                        <label className="block text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                             Description
                         </label>
                         <textarea
                             value={uc.description}
                             onChange={(e) => updateUseCase(index, "description", e.target.value)}
-                            className="w-full min-h-[80px] px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent resize-y"
+                            className="w-full min-h-[80px] px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent resize-y placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                         />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -496,7 +496,7 @@ function UseCasesInput({
                     />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">
+                            <label className="block text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                                 Produk & Vendor Terkait (Tech Stack)
                             </label>
                             <TagInput
@@ -506,7 +506,7 @@ function UseCasesInput({
                             />
                         </div>
                         <div>
-                            <label className="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">
+                            <label className="block text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                                 Smartnet Solutions
                             </label>
                             <TagInput
@@ -520,7 +520,7 @@ function UseCasesInput({
             ))}
             <button
                 onClick={addUseCase}
-                className="w-full py-3 border-2 border-dashed border-zinc-200 rounded-lg text-sm text-zinc-500 hover:border-zinc-300 hover:text-zinc-600 transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-500 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-700 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors flex items-center justify-center gap-2"
             >
                 <Plus className="w-4 h-4" />
                 Add Use Case
@@ -564,10 +564,10 @@ function CompetitorInput({
             {competitors.map((comp, index) => (
                 <div
                     key={index}
-                    className="p-4 border border-zinc-200 rounded-lg space-y-3 bg-zinc-50/50"
+                    className="p-4 border border-zinc-200 dark:border-zinc-800 rounded-lg space-y-3 bg-zinc-50/50 dark:bg-zinc-900/40"
                 >
                     <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                        <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                             Competitor #{index + 1}
                         </span>
                         <button
@@ -596,7 +596,7 @@ function CompetitorInput({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">
+                            <label className="block text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                                 Strengths
                             </label>
                             <TagInput
@@ -606,7 +606,7 @@ function CompetitorInput({
                             />
                         </div>
                         <div>
-                            <label className="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">
+                            <label className="block text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                                 Weaknesses / Gaps
                             </label>
                             <TagInput
@@ -618,7 +618,7 @@ function CompetitorInput({
                     </div>
 
                     <div>
-                        <label className="block text-xs text-zinc-500 uppercase tracking-wider mb-1.5">
+                        <label className="block text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                             Differentiator
                         </label>
                         <input
@@ -626,7 +626,7 @@ function CompetitorInput({
                             value={comp.differentiators || ""}
                             onChange={(e) => updateCompetitor(index, "differentiators", e.target.value)}
                             placeholder="Key differences compared to target company..."
-                            className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                            className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                         />
                     </div>
                 </div>
@@ -635,7 +635,7 @@ function CompetitorInput({
             <button
                 type="button"
                 onClick={addCompetitor}
-                className="w-full py-3 border-2 border-dashed border-zinc-200 rounded-lg text-sm text-zinc-500 hover:border-zinc-300 hover:text-zinc-600 transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-500 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-700 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors flex items-center justify-center gap-2"
             >
                 <Plus className="w-4 h-4" />
                 Add Competitor
@@ -677,7 +677,7 @@ function ReferencesInput({
             {references.map((ref, index) => (
                 <div
                     key={index}
-                    className="flex items-start gap-2 p-3 border border-zinc-200 rounded-lg"
+                    className="flex items-start gap-2 p-3 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900/50"
                 >
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-2">
                         <input
@@ -685,19 +685,19 @@ function ReferencesInput({
                             value={ref.title}
                             onChange={(e) => updateReference(index, "title", e.target.value)}
                             placeholder="Title"
-                            className="px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                            className="px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                         />
                         <input
                             type="url"
                             value={ref.url}
                             onChange={(e) => updateReference(index, "url", e.target.value)}
                             placeholder="URL"
-                            className="px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                            className="px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                         />
                         <select
                             value={ref.type}
                             onChange={(e) => updateReference(index, "type", e.target.value)}
-                            className="px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                            className="px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent"
                         >
                             <option value="website">Website</option>
                             <option value="news">News</option>
@@ -715,7 +715,7 @@ function ReferencesInput({
             ))}
             <button
                 onClick={addReference}
-                className="w-full py-3 border-2 border-dashed border-zinc-200 rounded-lg text-sm text-zinc-500 hover:border-zinc-300 hover:text-zinc-600 transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-500 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-700 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors flex items-center justify-center gap-2"
             >
                 <Plus className="w-4 h-4" />
                 Add Reference

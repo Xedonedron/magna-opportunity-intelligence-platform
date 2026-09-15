@@ -120,7 +120,7 @@ function DocumentCard({
                         onError={() => setThumbnailError(true)}
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-850">
+                    <div className="w-full h-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-800">
                         {getFileIcon(document.url)}
                     </div>
                 )}
@@ -139,14 +139,14 @@ function DocumentCard({
                         <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                                 onClick={onEdit}
-                                className="p-1.5 hover:bg-zinc-100 rounded-md text-zinc-500 hover:text-zinc-700"
+                                className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
                                 title={editTooltip}
                             >
                                 <Pencil className="w-3.5 h-3.5" />
                             </button>
                             <button
                                 onClick={onDelete}
-                                className="p-1.5 hover:bg-red-50 rounded-md text-zinc-500 hover:text-red-600"
+                                className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-md text-zinc-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400"
                                 title={deleteTooltip}
                             >
                                 <Trash2 className="w-3.5 h-3.5" />

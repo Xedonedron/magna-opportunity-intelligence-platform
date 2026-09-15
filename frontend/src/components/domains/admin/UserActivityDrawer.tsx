@@ -212,39 +212,39 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
     return (
         <div className="fixed inset-0 z-50 overflow-hidden bg-black/40 backdrop-blur-sm flex justify-end animate-in fade-in duration-200">
             <div
-                className="w-full max-w-2xl bg-white h-full flex flex-col shadow-2xl border-l border-zinc-200 animate-in slide-in-from-right duration-300"
+                className="w-full max-w-2xl bg-white dark:bg-zinc-900 h-full flex flex-col shadow-2xl border-l border-zinc-200 dark:border-zinc-800 animate-in slide-in-from-right duration-300"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Drawer Header */}
-                <div className="p-6 border-b border-zinc-200 bg-zinc-50/50 flex items-start justify-between gap-4">
+                <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/60 flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3.5 min-w-0">
-                        <div className="w-12 h-12 rounded-full bg-zinc-900 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-sm">
+                        <div className="w-12 h-12 rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center font-bold text-lg shrink-0 shadow-sm">
                             {user.full_name ? user.full_name.charAt(0).toUpperCase() : <User className="w-6 h-6" />}
                         </div>
                         <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <h2 className="text-lg font-bold text-zinc-900 truncate">{user.full_name}</h2>
+                                <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">{user.full_name}</h2>
                                 <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${user.role === "superadmin"
-                                    ? "bg-violet-50 text-violet-700 border-violet-200"
+                                    ? "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-900"
                                     : user.role === "manager"
-                                        ? "bg-blue-50 text-blue-700 border-blue-200"
-                                        : "bg-zinc-100 text-zinc-600 border-zinc-200"
+                                        ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900"
+                                        : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700"
                                     }`}>
                                     {user.role}
                                 </span>
-                                <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${user.is_active ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-red-50 text-red-600 border border-red-200"
+                                <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${user.is_active ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900" : "bg-red-50 text-red-600 border border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900"
                                     }`}>
                                     <span className={`w-1.5 h-1.5 rounded-full ${user.is_active ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`} />
                                     {user.is_active ? "Akun Aktif" : "Akun Nonaktif"}
                                 </span>
                             </div>
-                            <p className="text-xs text-zinc-500 truncate mt-0.5">{user.email}</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate mt-0.5">{user.email}</p>
                         </div>
                     </div>
 
                     <button
                         onClick={onClose}
-                        className="p-2 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-200/60 transition-colors"
+                        className="p-2 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition-colors"
                         title="Tutup"
                     >
                         <X className="w-5 h-5" />
@@ -252,14 +252,14 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
                 </div>
 
                 {/* Telemetry KPI Cards */}
-                <div className="grid grid-cols-3 gap-3 p-4 bg-zinc-100/60 border-b border-zinc-200">
-                    <div className="p-3 bg-white rounded-lg border border-zinc-200 shadow-sm flex flex-col justify-between">
-                        <div className="flex items-center gap-1.5 text-zinc-500 text-[11px] font-semibold uppercase">
+                <div className="grid grid-cols-3 gap-3 p-4 bg-zinc-100/60 dark:bg-zinc-950/40 border-b border-zinc-200 dark:border-zinc-800">
+                    <div className="p-3 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between">
+                        <div className="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400 text-[11px] font-semibold uppercase">
                             <Clock className="w-3.5 h-3.5 text-zinc-400" />
                             <span>Terakhir Interaksi</span>
                         </div>
                         <div className="mt-1.5">
-                            <p className="text-sm font-bold text-zinc-900 leading-tight">
+                            <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-tight">
                                 {formatRelativeTime(lastActiveDate)}
                             </p>
                             <p className="text-[10px] text-zinc-400 font-mono mt-0.5 truncate">
@@ -268,14 +268,14 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
                         </div>
                     </div>
 
-                    <div className="p-3 bg-white rounded-lg border border-zinc-200 shadow-sm flex flex-col justify-between">
-                        <div className="flex items-center gap-1.5 text-zinc-500 text-[11px] font-semibold uppercase">
+                    <div className="p-3 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between">
+                        <div className="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400 text-[11px] font-semibold uppercase">
                             <Calendar className="w-3.5 h-3.5 text-purple-500" />
                             <span>Keaktifan Bulan Ini</span>
                         </div>
                         <div className="mt-1.5">
-                            <p className="text-base font-extrabold text-purple-700 leading-tight">
-                                {daysActive} <span className="text-xs font-normal text-zinc-500">Hari Aktif</span>
+                            <p className="text-base font-extrabold text-purple-700 dark:text-purple-400 leading-tight">
+                                {daysActive} <span className="text-xs font-normal text-zinc-500 dark:text-zinc-400">Hari Aktif</span>
                             </p>
                             <p className="text-[10px] text-zinc-400 mt-0.5">
                                 {actionsThisMonth} aksi bulan ini
@@ -283,14 +283,14 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
                         </div>
                     </div>
 
-                    <div className="p-3 bg-white rounded-lg border border-zinc-200 shadow-sm flex flex-col justify-between">
-                        <div className="flex items-center gap-1.5 text-zinc-500 text-[11px] font-semibold uppercase">
+                    <div className="p-3 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between">
+                        <div className="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400 text-[11px] font-semibold uppercase">
                             <Activity className="w-3.5 h-3.5 text-emerald-500" />
                             <span>Total Aktivitas</span>
                         </div>
                         <div className="mt-1.5">
-                            <p className="text-base font-extrabold text-emerald-700 leading-tight">
-                                {totalAllTime} <span className="text-xs font-normal text-zinc-500">Aksi Total</span>
+                            <p className="text-base font-extrabold text-emerald-700 dark:text-emerald-400 leading-tight">
+                                {totalAllTime} <span className="text-xs font-normal text-zinc-500 dark:text-zinc-400">Aksi Total</span>
                             </p>
                             <p className="text-[10px] text-zinc-400 mt-0.5">
                                 Sejak akun dibuat
@@ -300,10 +300,10 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
                 </div>
 
                 {/* Filter Controls Bar */}
-                <div className="p-4 border-b border-zinc-200 bg-white space-y-3">
+                <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 space-y-3">
                     {/* Time Range Selector */}
                     <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-                        <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider shrink-0 mr-1 flex items-center gap-1">
+                        <span className="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider shrink-0 mr-1 flex items-center gap-1">
                             <Filter className="w-3 h-3" /> Waktu:
                         </span>
                         {[
@@ -319,8 +319,8 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
                                     setPage(1);
                                 }}
                                 className={`text-xs px-2.5 py-1 rounded-full font-medium transition-all shrink-0 ${range === r.id
-                                    ? "bg-zinc-900 text-white shadow-sm"
-                                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                                    ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm"
+                                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                                     }`}
                             >
                                 {r.label}
@@ -330,7 +330,7 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
 
                     {/* Category Selector */}
                     <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-                        <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider shrink-0 mr-1 flex items-center gap-1">
+                        <span className="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider shrink-0 mr-1 flex items-center gap-1">
                             <Layers className="w-3 h-3" /> Kategori:
                         </span>
                         {[
@@ -349,7 +349,7 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
                                 }}
                                 className={`text-xs px-2.5 py-1 rounded-full font-medium transition-all shrink-0 ${category === c.id
                                     ? "bg-emerald-700 text-white shadow-sm"
-                                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                                     }`}
                             >
                                 {c.label}
@@ -360,8 +360,8 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
 
                 {/* Timeline Body */}
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
-                    <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                    <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                             Riwayat Kronologis ({total} Aktivitas Ditemukan)
                         </h3>
                         <Button
@@ -369,7 +369,7 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
                             size="sm"
                             onClick={() => fetchActivities()}
                             disabled={loading}
-                            className="text-xs gap-1.5 py-1 h-7 text-zinc-600"
+                            className="text-xs gap-1.5 py-1 h-7 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700"
                         >
                             <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
                             Segarkan
@@ -377,20 +377,20 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
                     </div>
 
                     {loading ? (
-                        <div className="py-20 flex flex-col items-center justify-center text-zinc-400 gap-3">
-                            <Loader2 className="w-8 h-8 animate-spin text-zinc-600" />
+                        <div className="py-20 flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 gap-3">
+                            <Loader2 className="w-8 h-8 animate-spin text-zinc-600 dark:text-zinc-400" />
                             <p className="text-xs font-medium">Memuat riwayat aktivitas {user.full_name}...</p>
                         </div>
                     ) : activities.length === 0 ? (
-                        <div className="py-16 text-center space-y-2 border border-dashed border-zinc-200 rounded-xl bg-zinc-50">
-                            <AlertCircle className="w-8 h-8 text-zinc-300 mx-auto" />
-                            <p className="text-sm font-semibold text-zinc-700">Belum ada aktivitas tercatat</p>
-                            <p className="text-xs text-zinc-400 max-w-sm mx-auto">
+                        <div className="py-16 text-center space-y-2 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-zinc-900/50">
+                            <AlertCircle className="w-8 h-8 text-zinc-300 dark:text-zinc-600 mx-auto" />
+                            <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Belum ada aktivitas tercatat</p>
+                            <p className="text-xs text-zinc-400 dark:text-zinc-500 max-w-sm mx-auto">
                                 Pengguna ini belum melakukan aktivitas yang sesuai dengan kriteria filter yang Anda pilih.
                             </p>
                         </div>
                     ) : (
-                        <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-zinc-200">
+                        <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-zinc-200 dark:before:bg-zinc-800">
                             {activities.map((act) => {
                                 const isExpanded = !!expandedIds[act.id];
                                 const hasDiff = (act.old_value && Object.keys(act.old_value).length > 0) ||
@@ -400,29 +400,29 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
                                 return (
                                     <div key={act.id} className="relative group">
                                         {/* Dot Indicator */}
-                                        <div className="absolute -left-6 top-1.5 w-3.5 h-3.5 rounded-full bg-white border-2 border-zinc-700 group-hover:border-emerald-600 group-hover:scale-110 transition-all shadow-sm" />
+                                        <div className="absolute -left-6 top-1.5 w-3.5 h-3.5 rounded-full bg-white dark:bg-zinc-900 border-2 border-zinc-700 dark:border-zinc-400 group-hover:border-emerald-600 group-hover:scale-110 transition-all shadow-sm" />
 
-                                        <div className="p-3.5 rounded-xl border border-zinc-200 bg-white hover:border-zinc-300 transition-all shadow-sm space-y-2">
+                                        <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm space-y-2">
                                             {/* Header */}
                                             <div className="flex items-start justify-between gap-3">
                                                 <div className="flex items-center gap-2 flex-wrap">
                                                     {getActionBadge(act.action, act.action_label)}
-                                                    <span className="text-[10px] font-mono text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded border border-zinc-200">
+                                                    <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700">
                                                         {act.entity_type}
                                                     </span>
                                                 </div>
                                                 <div className="text-right shrink-0">
-                                                    <span className="text-xs font-semibold text-zinc-700 block">
+                                                    <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block">
                                                         {formatRelativeTime(act.created_at)}
                                                     </span>
-                                                    <span className="text-[10px] text-zinc-400 font-mono">
+                                                    <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono">
                                                         {formatDateTime(act.created_at)}
                                                     </span>
                                                 </div>
                                             </div>
 
                                             {/* Narrative Description */}
-                                            <p className="text-xs font-medium text-zinc-800 leading-relaxed">
+                                            <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200 leading-relaxed">
                                                 {act.description}
                                             </p>
 
@@ -432,22 +432,22 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
                                                     <button
                                                         type="button"
                                                         onClick={() => toggleExpand(act.id)}
-                                                        className="text-[11px] font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 transition-colors"
+                                                        className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 flex items-center gap-1 transition-colors"
                                                     >
                                                         {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                                                         <span>{isExpanded ? "Sembunyikan Rincian Nilai" : "Lihat Rincian Perubahan Data"}</span>
                                                     </button>
 
                                                     {isExpanded && (
-                                                        <div className="mt-2 p-3 bg-zinc-50 rounded-lg border border-zinc-200 text-xs font-mono space-y-2 animate-in fade-in duration-150">
+                                                        <div className="mt-2 p-3 bg-zinc-50 dark:bg-zinc-800/60 rounded-lg border border-zinc-200 dark:border-zinc-700 text-xs font-mono space-y-2 animate-in fade-in duration-150">
                                                             {act.extra_data?.changed_fields && (
                                                                 <div>
-                                                                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">
+                                                                    <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider block mb-1">
                                                                         Kolom yang Diubah:
                                                                     </span>
                                                                     <div className="flex flex-wrap gap-1">
                                                                         {act.extra_data.changed_fields.map((f: string) => (
-                                                                            <span key={f} className="bg-zinc-200/80 text-zinc-700 px-1.5 py-0.5 rounded text-[10px]">
+                                                                            <span key={f} className="bg-zinc-200/80 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 px-1.5 py-0.5 rounded text-[10px]">
                                                                                 {f}
                                                                             </span>
                                                                         ))}
@@ -455,19 +455,19 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
                                                                 </div>
                                                             )}
 
-                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-zinc-200">
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-zinc-200 dark:border-zinc-700">
                                                                 {act.old_value && (
-                                                                    <div className="p-2 bg-rose-50/50 rounded border border-rose-200/60">
-                                                                        <span className="text-[10px] font-bold text-rose-700 block mb-0.5">Nilai Sebelumnya:</span>
-                                                                        <pre className="text-[10px] text-zinc-700 whitespace-pre-wrap overflow-x-auto max-h-32">
+                                                                    <div className="p-2 bg-rose-50/50 dark:bg-rose-950/20 rounded border border-rose-200/60 dark:border-rose-900/50">
+                                                                        <span className="text-[10px] font-bold text-rose-700 dark:text-rose-400 block mb-0.5">Nilai Sebelumnya:</span>
+                                                                        <pre className="text-[10px] text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap overflow-x-auto max-h-32">
                                                                             {JSON.stringify(act.old_value, null, 2)}
                                                                         </pre>
                                                                     </div>
                                                                 )}
                                                                 {act.new_value && (
-                                                                    <div className="p-2 bg-emerald-50/50 rounded border border-emerald-200/60">
-                                                                        <span className="text-[10px] font-bold text-emerald-700 block mb-0.5">Nilai Baru:</span>
-                                                                        <pre className="text-[10px] text-zinc-700 whitespace-pre-wrap overflow-x-auto max-h-32">
+                                                                    <div className="p-2 bg-emerald-50/50 dark:bg-emerald-950/20 rounded border border-emerald-200/60 dark:border-emerald-900/50">
+                                                                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 block mb-0.5">Nilai Baru:</span>
+                                                                        <pre className="text-[10px] text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap overflow-x-auto max-h-32">
                                                                             {JSON.stringify(act.new_value, null, 2)}
                                                                         </pre>
                                                                     </div>
@@ -480,10 +480,10 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
 
                                             {/* Technical Footer Metadata */}
                                             {(act.ip_address || act.user_agent) && (
-                                                <div className="pt-2 border-t border-zinc-100 flex items-center justify-between text-[10px] text-zinc-400">
+                                                <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[10px] text-zinc-400 dark:text-zinc-500">
                                                     {act.ip_address && (
                                                         <span className="flex items-center gap-1 font-mono">
-                                                            <Globe className="w-3 h-3 text-zinc-300" />
+                                                            <Globe className="w-3 h-3 text-zinc-300 dark:text-zinc-600" />
                                                             IP: {act.ip_address}
                                                         </span>
                                                     )}
@@ -504,9 +504,9 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
 
                 {/* Footer with Pagination */}
                 {totalPages > 1 && (
-                    <div className="p-4 border-t border-zinc-200 bg-zinc-50 flex items-center justify-between text-xs">
-                        <span className="text-zinc-500 font-medium">
-                            Halaman <strong className="text-zinc-900">{page}</strong> dari <strong className="text-zinc-900">{totalPages}</strong> ({total} total aksi)
+                    <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 flex items-center justify-between text-xs">
+                        <span className="text-zinc-500 dark:text-zinc-400 font-medium">
+                            Halaman <strong className="text-zinc-900 dark:text-zinc-100">{page}</strong> dari <strong className="text-zinc-900 dark:text-zinc-100">{totalPages}</strong> ({total} total aksi)
                         </span>
                         <div className="flex items-center gap-2">
                             <Button

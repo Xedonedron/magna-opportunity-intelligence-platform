@@ -96,15 +96,15 @@ export function AddDocumentDialog({
             />
 
             {/* Dialog */}
-            <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div className="relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200">
-                    <h2 className="text-lg font-semibold text-zinc-900">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
+                    <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                         {isEditing ? t.opportunityDetail.documents.editDialogTitle : t.opportunityDetail.documents.addDialogTitle}
                     </h2>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-zinc-100 rounded-lg text-zinc-500 hover:text-zinc-700 transition-colors"
+                        className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -114,7 +114,7 @@ export function AddDocumentDialog({
                 <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto">
                     {/* Title */}
                     <div>
-                        <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
                             {t.opportunityDetail.documents.formTitle} <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -122,14 +122,14 @@ export function AddDocumentDialog({
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder="e.g., Meeting Minutes - Demo Session"
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 text-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 outline-none transition-colors"
+                            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 outline-none transition-colors placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             required
                         />
                     </div>
 
                     {/* URL */}
                     <div>
-                        <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
                             {t.opportunityDetail.documents.formUrl} <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -137,14 +137,14 @@ export function AddDocumentDialog({
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
                             placeholder="https://drive.google.com/..."
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 text-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 outline-none transition-colors"
+                            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 outline-none transition-colors placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             required
                         />
                     </div>
 
                     {/* Description */}
                     <div>
-                        <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
                             {t.opportunityDetail.documents.formDescription}
                         </label>
                         <textarea
@@ -152,13 +152,13 @@ export function AddDocumentDialog({
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="Optional description or notes..."
                             rows={2}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 text-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 outline-none transition-colors resize-none"
+                            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 outline-none transition-colors resize-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                         />
                     </div>
 
                     {/* Label - Single Select Dropdown */}
                     <div ref={dropdownRef} className="relative">
-                        <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
                             {t.opportunityDetail.documents.formLabel}
                         </label>
 
@@ -166,23 +166,23 @@ export function AddDocumentDialog({
                         <button
                             type="button"
                             onClick={() => setShowLabelDropdown(!showLabelDropdown)}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 text-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 outline-none transition-colors text-left flex items-center justify-between bg-white hover:bg-zinc-50"
+                            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 text-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 outline-none transition-colors text-left flex items-center justify-between bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700/50"
                         >
-                            <span className={selectedLabel ? "text-zinc-900" : "text-zinc-400"}>
+                            <span className={selectedLabel ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 dark:text-zinc-500"}>
                                 {selectedLabel || t.opportunityDetail.documents.selectLabel}
                             </span>
-                            <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${showLabelDropdown ? "rotate-180" : ""}`} />
+                            <ChevronDown className={`w-4 h-4 text-zinc-400 dark:text-zinc-500 transition-transform ${showLabelDropdown ? "rotate-180" : ""}`} />
                         </button>
 
                         {/* Dropdown Menu */}
                         {showLabelDropdown && (
-                            <div className="absolute z-10 mt-1 w-full bg-white border border-zinc-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            <div className="absolute z-10 mt-1 w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                                 {/* Clear selection option */}
                                 {selectedLabel && (
                                     <button
                                         type="button"
                                         onClick={clearLabel}
-                                        className="w-full px-3.5 py-2.5 text-left text-sm flex items-center justify-between hover:bg-zinc-50 transition-colors text-zinc-500 border-b border-zinc-100"
+                                        className="w-full px-3.5 py-2.5 text-left text-sm flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-zinc-500 dark:text-zinc-400 border-b border-zinc-100 dark:border-zinc-800"
                                     >
                                         <span>{t.opportunityDetail.documents.clearSelection}</span>
                                         <X className="w-4 h-4" />
@@ -197,18 +197,18 @@ export function AddDocumentDialog({
                                             type="button"
                                             onClick={() => selectLabel(label)}
                                             className={`w-full px-3.5 py-2.5 text-left text-sm flex items-center justify-between transition-colors ${isSelected
-                                                ? "bg-zinc-100 text-zinc-900 font-medium"
-                                                : "hover:bg-zinc-50"
+                                                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium"
+                                                : "hover:bg-zinc-50 dark:hover:bg-zinc-800/60 text-zinc-700 dark:text-zinc-300"
                                                 }`}
                                         >
                                             <span>{label}</span>
-                                            {isSelected && <Check className="w-4 h-4 text-green-600" />}
+                                            {isSelected && <Check className="w-4 h-4 text-green-600 dark:text-green-400" />}
                                         </button>
                                     );
                                 })}
 
                                 {documentLabels.length === 0 && (
-                                    <p className="px-3.5 py-2.5 text-sm text-zinc-500">
+                                    <p className="px-3.5 py-2.5 text-sm text-zinc-500 dark:text-zinc-400">
                                         {t.opportunityDetail.documents.noLabelsAvailable}
                                     </p>
                                 )}

@@ -23,7 +23,7 @@ export function IndustryDistributionChart({ data }: IndustryDistributionChartPro
     if (!data || data.length === 0) {
         return (
             <Card className="p-5">
-                <h3 className="text-sm font-semibold text-zinc-900 mb-4">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                     Industry Distribution
                 </h3>
                 <div className="h-64 flex items-center justify-center text-zinc-400 text-sm">
@@ -63,7 +63,16 @@ export function IndustryDistributionChart({ data }: IndustryDistributionChartPro
                             tickLine={false}
                             allowDecimals={false}
                         />
-                        <Tooltip />
+                        <Tooltip
+                            contentStyle={{
+                                backgroundColor: "#18181b",
+                                borderColor: "#27272a",
+                                borderRadius: "8px",
+                                fontSize: "12px",
+                                color: "#f4f4f5",
+                            }}
+                            itemStyle={{ color: "#f4f4f5" }}
+                        />
                         <Bar dataKey="Opportunity" radius={[4, 4, 0, 0]}>
                             {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color} />

@@ -269,7 +269,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                     value={titleInput}
                                     onChange={(e) => setTitleInput(e.target.value)}
                                     placeholder="Judul / deskripsi versi (contoh: Penambahan konteks switch)..."
-                                    className="px-2.5 py-1 text-xs border border-zinc-300 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900 w-52 sm:w-64"
+                                    className="px-2.5 py-1 text-xs border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 w-52 sm:w-64"
                                     onKeyDown={(e) => {
                                         if (e.key === "Enter") handleSaveTitle();
                                         if (e.key === "Escape") setIsEditingTitle(false);
@@ -402,17 +402,17 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                             {t.opportunityDetail.kyc.confirmRegenerateTitle || "Generate Ulang Laporan KYC"}
                         </h3>
                     </div>
-                    <p className="text-sm text-zinc-600 mb-4">
+                    <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-4">
                         {t.opportunityDetail.kyc.confirmRegenerateDesc || "Analisis AI akan membuat versi baru berdasarkan profil opportunity terkini."}
                     </p>
 
                     <div className="space-y-4 mb-6">
                         <div>
                             <div className="flex items-center justify-between mb-1.5">
-                                <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider">
+                                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
                                     Judul / Label Versi (Opsional)
                                 </label>
-                                <span className="text-[11px] text-zinc-500 font-medium bg-zinc-100 px-2 py-0.5 rounded">
+                                <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded">
                                     Versi v{nextVersion}
                                 </span>
                             </div>
@@ -423,13 +423,13 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                 placeholder="Contoh: Pembaruan spesifikasi server & migrasi compute"
                                 className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100"
                             />
-                            <p className="text-[11px] text-zinc-500 mt-1">
+                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
                                 Label nomor versi (v{nextVersion}) akan disematkan otomatis pada Version History.
                             </p>
                         </div>
 
                         <div>
-                            <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-1.5">
+                            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
                                 Fokus / Instruksi Pembaruan Versi (Opsional)
                             </label>
                             <textarea
@@ -439,13 +439,13 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                 placeholder="Tuliskan arahan spesifik jika konteks berubah, contoh: Fokus pada pengadaan Server On-Premise & migrasi compute. Abaikan kebutuhan WiFi/Network sebelumnya."
                                 className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             />
-                            <p className="text-[11px] text-zinc-500 mt-1">
+                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
                                 AI akan mengisolasi fokus analisis ke arahan ini agar hasil tidak bercampur dengan konteks sebelumnya.
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex justify-end gap-2 pt-3 border-t border-zinc-100">
+                    <div className="flex justify-end gap-2 pt-3 border-t border-zinc-100 dark:border-zinc-800">
                         <Button
                             variant="secondary"
                             onClick={() => setShowConfirmRegenerate(false)}
@@ -519,25 +519,25 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                 <Card className="p-8 max-w-2xl mx-auto border border-zinc-200 dark:border-zinc-800 shadow-sm bg-white dark:bg-zinc-900 mt-4">
                     <div className="text-center mb-6">
                         <div className="inline-flex p-3 rounded-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 mb-3 animate-pulse">
-                            <Loader2 className="w-6 h-6 animate-spin text-zinc-950" />
+                            <Loader2 className="w-6 h-6 animate-spin text-zinc-950 dark:text-zinc-100" />
                         </div>
-                        <h3 className="text-xl font-semibold text-zinc-950">
+                        <h3 className="text-xl font-semibold text-zinc-950 dark:text-zinc-100">
                             Analisis KYC Sedang Berjalan (v{report.version})
                         </h3>
-                        <p className="text-zinc-500 text-sm mt-1">
+                        <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">
                             Magna AI sedang mengumpulkan informasi dari berbagai sumber. Halaman ini akan diperbarui secara otomatis.
                         </p>
                     </div>
 
                     {/* Progress bar with percentage indicator */}
                     <div className="mb-6">
-                        <div className="flex justify-between items-center mb-2 text-xs font-medium text-zinc-500">
+                        <div className="flex justify-between items-center mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                             <span>Progress Analisis</span>
-                            <span className="text-zinc-950 font-semibold">{percent}%</span>
+                            <span className="text-zinc-950 dark:text-zinc-100 font-semibold">{percent}%</span>
                         </div>
-                        <div className="w-full bg-zinc-100 h-2 rounded-full overflow-hidden">
+                        <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
                             <div 
-                                className="bg-zinc-900 h-full transition-all duration-500 ease-out rounded-full"
+                                className="bg-zinc-900 dark:bg-zinc-100 h-full transition-all duration-500 ease-out rounded-full"
                                 style={{ width: `${Math.min(100, Math.max(5, percent))}%` }}
                             />
                         </div>
@@ -546,10 +546,10 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                     {/* Vertical Timeline Steps */}
                     <div className="space-y-6 relative">
                         {/* Background grey vertical connector line */}
-                        <div className="absolute left-[15px] top-3 bottom-3 w-0.5 bg-zinc-100" />
+                        <div className="absolute left-[15px] top-3 bottom-3 w-0.5 bg-zinc-100 dark:bg-zinc-800" />
                         {/* Active green/dark vertical connector line synced with progress */}
                         <div 
-                            className="absolute left-[15px] top-3 w-0.5 bg-zinc-900 transition-all duration-500 ease-out" 
+                            className="absolute left-[15px] top-3 w-0.5 bg-zinc-900 dark:bg-zinc-100 transition-all duration-500 ease-out" 
                             style={{ height: `${timelineLineHeight}%` }}
                         />
                         {steps.map((step) => {
@@ -558,12 +558,12 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                 <div key={step.key} className="flex gap-4 items-start relative z-10">
                                     <div className="flex items-center justify-center">
                                         {state === "completed" && (
-                                            <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-sm">
+                                            <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-sm">
                                                 <CheckCircle2 className="w-4 h-4" />
                                             </div>
                                         )}
                                         {state === "active" && (
-                                            <div className="w-8 h-8 rounded-full bg-zinc-950 border border-zinc-800 flex items-center justify-center text-white shadow-md animate-pulse">
+                                            <div className="w-8 h-8 rounded-full bg-zinc-950 dark:bg-zinc-100 border border-zinc-800 dark:border-zinc-200 flex items-center justify-center text-white dark:text-zinc-950 shadow-md animate-pulse">
                                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                             </div>
                                         )}
@@ -576,19 +576,19 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                     <div className="flex-1 pt-0.5">
                                         <h4 className={`text-sm font-semibold transition-colors ${
                                             state === "active" 
-                                                ? "text-zinc-950" 
+                                                ? "text-zinc-950 dark:text-zinc-100" 
                                                 : state === "completed" 
-                                                    ? "text-zinc-800" 
-                                                    : "text-zinc-400"
+                                                    ? "text-zinc-800 dark:text-zinc-200" 
+                                                    : "text-zinc-400 dark:text-zinc-500"
                                         }`}>
                                             {step.label}
                                         </h4>
                                         <p className={`text-xs mt-0.5 transition-colors ${
                                             state === "active" 
-                                                ? "text-zinc-600" 
+                                                ? "text-zinc-600 dark:text-zinc-300" 
                                                 : state === "completed" 
-                                                    ? "text-zinc-500" 
-                                                    : "text-zinc-400"
+                                                    ? "text-zinc-500 dark:text-zinc-400" 
+                                                    : "text-zinc-400 dark:text-zinc-500"
                                         }`}>
                                             {step.desc}
                                         </p>
@@ -709,11 +709,11 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
 
             {/* Focus Notes banner if present for this version */}
             {report.focus_notes && (
-                <div className="bg-amber-50/80 border border-amber-200/80 text-amber-900 px-4 py-3 rounded-xl text-xs flex items-start gap-2.5 shadow-sm -mt-4">
-                    <Sparkles className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                <div className="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60 text-amber-900 dark:text-amber-200 px-4 py-3 rounded-xl text-xs flex items-start gap-2.5 shadow-sm -mt-4">
+                    <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                     <div className="min-w-0">
-                        <span className="font-semibold text-amber-900">Fokus Analisis Versi v{report.version}: </span>
-                        <span className="text-amber-800/90 whitespace-normal break-words leading-relaxed">
+                        <span className="font-semibold text-amber-900 dark:text-amber-100">Fokus Analisis Versi v{report.version}: </span>
+                        <span className="text-amber-800/90 dark:text-amber-300 whitespace-normal break-words leading-relaxed">
                             {report.focus_notes}
                         </span>
                     </div>
@@ -773,14 +773,14 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                 {report.company_overview.key_products &&
                                     report.company_overview.key_products.length > 0 && (
                                         <div>
-                                            <span className="text-xs text-zinc-500 uppercase tracking-wider">
+                                            <span className="text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                                                 Key Products
                                             </span>
                                             <div className="flex flex-wrap gap-1.5 mt-1.5">
                                                 {report.company_overview.key_products.map((p) => (
                                                     <span
                                                         key={p}
-                                                        className="text-xs bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded"
+                                                        className="text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded"
                                                     >
                                                         {p}
                                                     </span>
@@ -791,7 +791,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                             </div>
                         </div>
                         {report.company_overview.description && (
-                            <p className="text-sm text-zinc-600 leading-relaxed mt-4 pt-4 border-t border-zinc-100">
+                            <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                                 {report.company_overview.description}
                             </p>
                         )}
@@ -806,7 +806,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                         <div>
                             <SectionTitle>{t.opportunityDetail.kyc.sections.industryAnalysis || "Industry Analysis"}</SectionTitle>
                             <Card className="p-6">
-                                <p className="text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
+                                <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
                                     {report.industry_analysis}
                                 </p>
                             </Card>
@@ -816,7 +816,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                         <div>
                             <SectionTitle>{t.opportunityDetail.kyc.sections.businessModel || "Business Model"}</SectionTitle>
                             <Card className="p-6">
-                                <p className="text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
+                                <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
                                     {report.business_model}
                                 </p>
                             </Card>
@@ -833,15 +833,15 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                         {report.competitor_analysis.map((comp, idx) => (
                             <Card key={idx} className="p-5 flex flex-col justify-between border-zinc-200 dark:border-zinc-800">
                                 <div className="space-y-3">
-                                    <div className="flex items-center gap-2 border-b border-zinc-100 pb-3">
-                                        <div className="w-8 h-8 rounded bg-zinc-100 flex items-center justify-center text-zinc-600">
+                                    <div className="flex items-center gap-2 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                                        <div className="w-8 h-8 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300">
                                             <Swords className="w-4 h-4" />
                                         </div>
                                         <div>
                                             <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
                                                 {comp.name}
                                             </h4>
-                                            <span className="text-[11px] font-medium text-zinc-500">
+                                            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
                                                 {comp.market_position || "Competitor"}
                                             </span>
                                         </div>
@@ -849,12 +849,12 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
 
                                     {comp.strengths && comp.strengths.length > 0 && (
                                         <div>
-                                            <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1">
+                                            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">
                                                 Strengths
                                             </span>
                                             <ul className="space-y-1">
                                                 {comp.strengths.map((s, sIdx) => (
-                                                    <li key={sIdx} className="text-xs text-zinc-600 flex items-start gap-1.5">
+                                                    <li key={sIdx} className="text-xs text-zinc-600 dark:text-zinc-300 flex items-start gap-1.5">
                                                         <span className="text-emerald-500 font-bold leading-none mt-0.5">•</span>
                                                         <span>{s}</span>
                                                     </li>
@@ -865,12 +865,12 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
 
                                     {comp.weaknesses && comp.weaknesses.length > 0 && (
                                         <div>
-                                            <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1">
+                                            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">
                                                 Weaknesses / Gaps
                                             </span>
                                             <ul className="space-y-1">
                                                 {comp.weaknesses.map((w, wIdx) => (
-                                                    <li key={wIdx} className="text-xs text-zinc-600 flex items-start gap-1.5">
+                                                    <li key={wIdx} className="text-xs text-zinc-600 dark:text-zinc-300 flex items-start gap-1.5">
                                                         <span className="text-rose-500 font-bold leading-none mt-0.5">•</span>
                                                         <span>{w}</span>
                                                     </li>
@@ -880,11 +880,11 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                     )}
 
                                     {comp.differentiators && (
-                                        <div className="pt-2 border-t border-zinc-100">
-                                            <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider block mb-0.5">
+                                        <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                                            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block mb-0.5">
                                                 Differentiator
                                             </span>
-                                            <p className="text-xs text-zinc-700 italic">
+                                            <p className="text-xs text-zinc-700 dark:text-zinc-300 italic">
                                                 {comp.differentiators}
                                             </p>
                                         </div>
@@ -904,7 +904,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                             <div>
                                 <SectionTitle>{t.opportunityDetail.kyc.sections.customerNeedSummary || "Customer Need Summary"}</SectionTitle>
                                 <Card className="p-6">
-                                    <p className="text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
+                                    <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
                                         {report.customer_need_summary}
                                     </p>
                                 </Card>
@@ -916,7 +916,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                 <Card className="p-6">
                                     <ul className="space-y-2">
                                         {report.potential_pain_points.map((point, i) => (
-                                            <li key={i} className="flex items-start gap-2 text-sm text-zinc-600">
+                                            <li key={i} className="flex items-start gap-2 text-sm text-zinc-600 dark:text-zinc-300">
                                                 <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" />
                                                 {point}
                                             </li>
@@ -951,7 +951,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                             <Card className="p-6">
                                 <ul className="space-y-2">
                                     {report.meeting_objectives.map((obj, i) => (
-                                        <li key={i} className="flex items-start gap-2 text-sm text-zinc-600">
+                                        <li key={i} className="flex items-start gap-2 text-sm text-zinc-600 dark:text-zinc-300">
                                             <Target className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
                                             {obj}
                                         </li>
@@ -969,12 +969,12 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                     <Card className="p-6">
                                         <div className="flex items-center gap-2 mb-4">
                                             <Briefcase className="w-4 h-4 text-indigo-500" />
-                                            <h4 className="text-sm font-semibold text-indigo-700">Business Discovery</h4>
+                                            <h4 className="text-sm font-semibold text-indigo-700 dark:text-indigo-400">Business Discovery</h4>
                                         </div>
-                                        <p className="text-xs text-zinc-400 mb-3">Target: C-Level / Business Owner / VP</p>
+                                        <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-3">Target: C-Level / Business Owner / VP</p>
                                         <ul className="space-y-2">
                                             {rq.business.map((q, i) => (
-                                                <li key={i} className="flex items-start gap-2 text-sm text-zinc-600">
+                                                <li key={i} className="flex items-start gap-2 text-sm text-zinc-600 dark:text-zinc-300">
                                                     <HelpCircle className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
                                                     {q}
                                                 </li>
@@ -986,12 +986,12 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                     <Card className="p-6">
                                         <div className="flex items-center gap-2 mb-4">
                                             <Wrench className="w-4 h-4 text-emerald-500" />
-                                            <h4 className="text-sm font-semibold text-emerald-700">Technical Discovery</h4>
+                                            <h4 className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Technical Discovery</h4>
                                         </div>
-                                        <p className="text-xs text-zinc-400 mb-3">Target: CTO / IT Manager / DevOps / SecOps</p>
+                                        <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-3">Target: CTO / IT Manager / DevOps / SecOps</p>
                                         <ul className="space-y-2">
                                             {rq.technical.map((q, i) => (
-                                                <li key={i} className="flex items-start gap-2 text-sm text-zinc-600">
+                                                <li key={i} className="flex items-start gap-2 text-sm text-zinc-600 dark:text-zinc-300">
                                                     <HelpCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                                                     {q}
                                                 </li>
@@ -1011,14 +1011,14 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                 <section>
                     <SectionTitle>{t.opportunityDetail.kyc.sections.preparationChecklist || "Meeting Preparation Checklist"}</SectionTitle>
                     <Card className="p-0">
-                        <ul className="divide-y divide-zinc-100">
+                        <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
                             {report.preparation_checklist.map((item, idx) => (
                                 <li key={idx} className="p-4 flex gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
                                     <input
                                         type="checkbox"
                                         className="mt-1 w-4 h-4 rounded border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-zinc-900 dark:focus:ring-zinc-100"
                                     />
-                                    <span className="text-sm text-zinc-700">{item}</span>
+                                    <span className="text-sm text-zinc-700 dark:text-zinc-300">{item}</span>
                                 </li>
                             ))}
                         </ul>

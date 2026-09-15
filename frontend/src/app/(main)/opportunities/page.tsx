@@ -233,7 +233,7 @@ export default function OpportunitiesPage() {
 
                 {/* Main Content Area */}
                 {viewMode === "kanban" ? (
-                    <div className={`p-4 bg-zinc-100/40 rounded-b-xl min-h-[500px] transition-opacity duration-150 ${isPlaceholderData ? "opacity-70" : "opacity-100"}`}>
+                    <div className={`p-4 bg-zinc-100/40 dark:bg-zinc-900/30 rounded-b-xl min-h-[500px] transition-opacity duration-150 ${isPlaceholderData ? "opacity-70" : "opacity-100"}`}>
                         {isLoading && !data ? (
                             <div className="p-12 text-center text-zinc-400 text-sm animate-pulse">
                                 Loading Kanban Board...
@@ -317,7 +317,7 @@ export default function OpportunitiesPage() {
                         {/* Desktop Table (visible on >= md) */}
                         <div className={`hidden md:block overflow-x-auto transition-opacity duration-150 ${isPlaceholderData ? "opacity-70" : "opacity-100"}`}>
                             <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-zinc-500 dark:text-zinc-400 uppercase bg-zinc-50 dark:bg-zinc-850 border-b border-zinc-200 dark:border-zinc-800">
+                                <thead className="text-xs text-zinc-500 dark:text-zinc-400 uppercase bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
                                     <tr>
                                         <th className="px-6 py-3 font-medium">Company</th>
                                         <th className="px-6 py-3 font-medium">Status</th>
@@ -414,7 +414,7 @@ export default function OpportunitiesPage() {
                         </div>
 
                         {/* Pagination (visible in list mode) */}
-                        <div className="p-3 sm:p-4 border-t border-zinc-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-zinc-500 bg-zinc-50/50">
+                        <div className="p-3 sm:p-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-zinc-500 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/50">
                             <div>
                                 Showing {data ? (data.page - 1) * data.page_size + 1 : 0} to{" "}
                                 {data ? Math.min(data.page * data.page_size, data.total) : 0} of{" "}

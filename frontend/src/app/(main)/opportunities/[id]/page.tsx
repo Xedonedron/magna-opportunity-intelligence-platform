@@ -324,7 +324,7 @@ export default function OpportunityDetailPage() {
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     <Card className="p-6">
                                         <div className="flex items-center justify-between mb-4">
-                                            <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider">
+                                            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
                                                 {t.opportunityDetail.overview.companyInfo}
                                             </h3>
                                             {canCreateEdit && (

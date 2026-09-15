@@ -103,25 +103,25 @@ export default function ImportLeadsPage() {
             <div>
                 <Link
                     href="/opportunities"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors mb-4"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors mb-4"
                 >
                     <ArrowLeft className="w-4 h-4" /> Back to Opportunities
                 </Link>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+                        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
                             Bulk Import Leads & Opportunities
                         </h1>
-                        <p className="text-sm text-zinc-500 mt-1">
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
                             Unggah spreadsheet CSV/Excel berisi data prospect & kontak untuk mengimpor leads secara otomatis ke MOIP.
                         </p>
                     </div>
                     <Button
                         variant="secondary"
                         onClick={handleDownloadTemplate}
-                        className="gap-2 shrink-0 border-zinc-200"
+                        className="gap-2 shrink-0 border-zinc-200 dark:border-zinc-700"
                     >
-                        <Download className="w-4 h-4 text-zinc-700" />
+                        <Download className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
                         Download Template CSV
                     </Button>
                 </div>
@@ -129,55 +129,55 @@ export default function ImportLeadsPage() {
 
             {/* Feature Highlights */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="p-4 bg-zinc-50/50 border-zinc-200/80">
+                <Card className="p-4 bg-zinc-50/50 dark:bg-zinc-900/50 border-zinc-200/80 dark:border-zinc-800">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-zinc-900 text-white flex items-center justify-center shrink-0">
+                        <div className="w-9 h-9 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center shrink-0">
                             <Users className="w-4 h-4" />
                         </div>
                         <div>
-                            <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">Profil Kontak</h4>
-                            <p className="text-xs text-zinc-500 mt-0.5">Nama PIC, Email, HP/WA otomatis tersimpan rapi.</p>
+                            <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">Profil Kontak</h4>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Nama PIC, Email, HP/WA otomatis tersimpan rapi.</p>
                         </div>
                     </div>
                 </Card>
 
-                <Card className="p-4 bg-zinc-50/50 border-zinc-200/80">
+                <Card className="p-4 bg-zinc-50/50 dark:bg-zinc-900/50 border-zinc-200/80 dark:border-zinc-800">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-zinc-900 text-white flex items-center justify-center shrink-0">
+                        <div className="w-9 h-9 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center shrink-0">
                             <Building2 className="w-4 h-4" />
                         </div>
                         <div>
-                            <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">Normalisasi Data</h4>
-                            <p className="text-xs text-zinc-500 mt-0.5">Format HP (+62) & Domain otomatis dirapikan.</p>
+                            <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">Normalisasi Data</h4>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Format HP (+62) & Domain otomatis dirapikan.</p>
                         </div>
                     </div>
                 </Card>
 
-                <Card className="p-4 bg-zinc-50/50 border-zinc-200/80">
+                <Card className="p-4 bg-zinc-50/50 dark:bg-zinc-900/50 border-zinc-200/80 dark:border-zinc-800">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-zinc-900 text-white flex items-center justify-center shrink-0">
+                        <div className="w-9 h-9 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center shrink-0">
                             <Sparkles className="w-4 h-4" />
                         </div>
                         <div>
-                            <h4 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">AI Auto-KYC</h4>
-                            <p className="text-xs text-zinc-500 mt-0.5">Pipeline AI Intelligence otomatis dipicu per lead.</p>
+                            <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">AI Auto-KYC</h4>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Pipeline AI Intelligence otomatis dipicu per lead.</p>
                         </div>
                     </div>
                 </Card>
             </div>
 
             {/* Upload Zone */}
-            <Card className="p-6 sm:p-8 border-dashed border-2 border-zinc-300">
+            <Card className="p-6 sm:p-8 border-dashed border-2 border-zinc-300 dark:border-zinc-700">
                 <div
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     className={`flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed transition-all cursor-pointer ${
                         isDragging
-                            ? "border-zinc-900 bg-zinc-50 scale-[0.99]"
+                            ? "border-zinc-900 dark:border-zinc-100 bg-zinc-50 dark:bg-zinc-800 scale-[0.99]"
                             : selectedFile
-                            ? "border-emerald-500 bg-emerald-50/30"
-                            : "border-zinc-200 hover:border-zinc-400 bg-white"
+                            ? "border-emerald-500 bg-emerald-50/30 dark:bg-emerald-950/20"
+                            : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-white dark:bg-zinc-900"
                     }`}
                 >
                     <input
@@ -188,36 +188,36 @@ export default function ImportLeadsPage() {
                         id="lead-file-input"
                     />
                     <label htmlFor="lead-file-input" className="w-full flex flex-col items-center cursor-pointer">
-                        <div className="w-14 h-14 rounded-2xl bg-zinc-100 text-zinc-700 flex items-center justify-center mb-4 shadow-inner">
+                        <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center mb-4 shadow-inner">
                             {selectedFile ? (
-                                <FileSpreadsheet className="w-7 h-7 text-emerald-600" />
+                                <FileSpreadsheet className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
                             ) : (
-                                <Upload className="w-7 h-7 text-zinc-600" />
+                                <Upload className="w-7 h-7 text-zinc-600 dark:text-zinc-400" />
                             )}
                         </div>
 
                         {selectedFile ? (
                             <div className="text-center space-y-1">
-                                <p className="text-sm font-semibold text-zinc-900">{selectedFile.name}</p>
-                                <p className="text-xs text-zinc-500">
+                                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{selectedFile.name}</p>
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400">
                                     {(selectedFile.size / 1024).toFixed(1)} KB • Klik atau drag file lain untuk mengganti
                                 </p>
                             </div>
                         ) : (
                             <div className="text-center space-y-1">
-                                <p className="text-sm font-medium text-zinc-900">
+                                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                                     Klik untuk memilih file atau <span className="underline font-semibold">drag & drop</span> di sini
                                 </p>
-                                <p className="text-xs text-zinc-500">Mendukung file format CSV (.csv) atau Excel (.xlsx)</p>
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400">Mendukung file format CSV (.csv) atau Excel (.xlsx)</p>
                             </div>
                         )}
                     </label>
                 </div>
 
                 {/* Submit Action */}
-                <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-zinc-100">
-                    <p className="text-xs text-zinc-500">
-                        Header kolom standar: <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-zinc-800">company_name</code>, <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-zinc-800">contact_name</code>, <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-zinc-800">email</code>, <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-zinc-800">phone</code>
+                <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-zinc-100 dark:border-zinc-800">
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                        Header kolom standar: <code className="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-800 dark:text-zinc-200">company_name</code>, <code className="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-800 dark:text-zinc-200">contact_name</code>, <code className="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-800 dark:text-zinc-200">email</code>, <code className="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-800 dark:text-zinc-200">phone</code>
                     </p>
                     <Button
                         disabled={!selectedFile || importOpportunities.isPending}
@@ -239,26 +239,26 @@ export default function ImportLeadsPage() {
 
             {/* Import Results Summary */}
             {importResult && (
-                <Card className="p-6 border-emerald-200 bg-emerald-50/20 space-y-4">
+                <Card className="p-6 border-emerald-200 dark:border-emerald-900 bg-emerald-50/20 dark:bg-emerald-950/20 space-y-4">
                     <div className="flex items-center gap-3">
-                        <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
+                        <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400 shrink-0" />
                         <div>
-                            <h3 className="text-base font-semibold text-zinc-900">
+                            <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
                                 Impor Berhasil Selesai!
                             </h3>
-                            <p className="text-xs text-zinc-600">
-                                Total <span className="font-bold text-emerald-700">{importResult.imported_count}</span> prospect leads berhasil dimasukkan ke MOIP.
+                            <p className="text-xs text-zinc-600 dark:text-zinc-300">
+                                Total <span className="font-bold text-emerald-700 dark:text-emerald-400">{importResult.imported_count}</span> prospect leads berhasil dimasukkan ke MOIP.
                             </p>
                         </div>
                     </div>
 
                     {importResult.errors && importResult.errors.length > 0 && (
-                        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 space-y-1">
+                        <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-lg text-xs text-amber-800 dark:text-amber-300 space-y-1">
                             <div className="flex items-center gap-1.5 font-semibold">
-                                <AlertCircle className="w-4 h-4 text-amber-600" />
+                                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                                 <span>{importResult.failed_count} baris gagal diimpor:</span>
                             </div>
-                            <ul className="list-disc list-inside space-y-0.5 text-zinc-600 pl-1">
+                            <ul className="list-disc list-inside space-y-0.5 text-zinc-600 dark:text-zinc-300 pl-1">
                                 {importResult.errors.map((err, i) => (
                                     <li key={i}>{err}</li>
                                 ))}
@@ -273,7 +273,7 @@ export default function ImportLeadsPage() {
                                 setSelectedFile(null);
                                 setImportResult(null);
                             }}
-                            className="text-xs border-zinc-200"
+                            className="text-xs border-zinc-200 dark:border-zinc-700"
                         >
                             Impor File Lain
                         </Button>

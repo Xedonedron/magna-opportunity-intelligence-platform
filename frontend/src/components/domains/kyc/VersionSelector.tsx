@@ -74,13 +74,13 @@ export function VersionSelector({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-white border border-zinc-200 rounded-md hover:bg-zinc-50 transition-colors max-w-xs sm:max-w-md text-left"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-white dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors max-w-xs sm:max-w-md text-left"
                 title={currentTitle ? `v${currentVersion.version} - ${currentTitle}` : `v${currentVersion.version}`}
             >
-                <History className="w-4 h-4 text-zinc-500 shrink-0" />
-                <span className="font-semibold text-zinc-900 shrink-0">v{currentVersion.version}</span>
+                <History className="w-4 h-4 text-zinc-500 dark:text-zinc-400 shrink-0" />
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100 shrink-0">v{currentVersion.version}</span>
                 {currentTitle && (
-                    <span className="text-zinc-600 truncate text-xs font-normal">
+                    <span className="text-zinc-600 dark:text-zinc-300 truncate text-xs font-normal">
                         - {currentTitle}
                     </span>
                 )}
@@ -149,8 +149,8 @@ export function VersionSelector({
 
                                         {/* Version Focus Notes with Word Wrap */}
                                         {version.focus_notes && (
-                                            <div className="text-[11px] text-zinc-600 bg-amber-50/70 border border-amber-200/50 rounded px-2 py-1 break-words whitespace-normal leading-snug">
-                                                <span className="font-semibold text-amber-800">Fokus: </span>
+                                            <div className="text-[11px] text-zinc-600 dark:text-zinc-300 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-900/40 rounded px-2 py-1 break-words whitespace-normal leading-snug">
+                                                <span className="font-semibold text-amber-800 dark:text-amber-200">Fokus: </span>
                                                 <span>{version.focus_notes}</span>
                                             </div>
                                         )}

@@ -164,13 +164,13 @@ export default function CreateOpportunityPage() {
         return (
             <div className="p-8 max-w-3xl mx-auto mt-12">
                 <div className="text-center mb-12">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-zinc-900 text-white shadow-xl mb-6">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-xl mb-6">
                         <Zap className="w-8 h-8" />
                     </div>
-                    <h1 className="text-2xl font-semibold text-zinc-900 mb-2">
+                    <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
                         Processing Opportunity
                     </h1>
-                    <p className="text-zinc-500">
+                    <p className="text-zinc-500 dark:text-zinc-400">
                         Magna AI is generating intelligence reports and setting up your workspace.
                     </p>
                 </div>
@@ -184,8 +184,8 @@ export default function CreateOpportunityPage() {
                             <Card
                                 key={item.id}
                                 className={`p-5 transition-all duration-500 ${isActive
-                                    ? "ring-2 ring-zinc-900 shadow-md"
-                                    : "border-zinc-200"
+                                    ? "ring-2 ring-zinc-900 dark:ring-zinc-100 shadow-md"
+                                    : "border-zinc-200 dark:border-zinc-800"
                                     }`}
                             >
                                 <div className="flex items-start gap-4">
@@ -193,9 +193,9 @@ export default function CreateOpportunityPage() {
                                         {isDone ? (
                                             <CheckCircle2 className="w-6 h-6 text-green-500" />
                                         ) : isActive ? (
-                                            <CircleDashed className="w-6 h-6 text-zinc-900 animate-spin" />
+                                            <CircleDashed className="w-6 h-6 text-zinc-900 dark:text-zinc-100 animate-spin" />
                                         ) : (
-                                            <CircleDashed className="w-6 h-6 text-zinc-300" />
+                                            <CircleDashed className="w-6 h-6 text-zinc-300 dark:text-zinc-600" />
                                         )}
                                     </div>
                                     <div
@@ -207,8 +207,8 @@ export default function CreateOpportunityPage() {
                                                     : "opacity-40"
                                         }
                                     >
-                                        <h3 className="font-medium text-zinc-900">{item.title}</h3>
-                                        <p className="text-sm text-zinc-500 mt-1">{item.desc}</p>
+                                        <h3 className="font-medium text-zinc-900 dark:text-zinc-100">{item.title}</h3>
+                                        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{item.desc}</p>
                                     </div>
                                 </div>
                             </Card>
@@ -235,12 +235,12 @@ export default function CreateOpportunityPage() {
             <div>
                 <Link
                     href="/opportunities"
-                    className="text-sm text-zinc-500 hover:text-zinc-900 flex items-center gap-1 mb-4"
+                    className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1 mb-4"
                 >
                     <ChevronRight className="w-4 h-4 rotate-180" /> Back to List
                 </Link>
-                <h1 className="text-2xl font-semibold text-zinc-900">New Opportunity</h1>
-                <p className="text-zinc-500 text-sm mt-1">
+                <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">New Opportunity</h1>
+                <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">
                     Enter details to initiate the AI intelligence process.
                 </p>
             </div>
@@ -249,7 +249,7 @@ export default function CreateOpportunityPage() {
                 <Card className="p-4 sm:p-6">
                     {/* Company Information Section */}
                     <div className="space-y-6">
-                        <h2 className="text-lg font-medium text-zinc-900 border-b border-zinc-100 pb-4">
+                        <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 border-b border-zinc-100 dark:border-zinc-800 pb-4">
                             Company Information
                         </h2>
                         <div className="space-y-4">
@@ -271,7 +271,7 @@ export default function CreateOpportunityPage() {
                                     required
                                     {...register("website")}
                                 />
-                                <p className="text-xs text-zinc-400 mt-1">
+                                <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
                                     Wajib diisi sebagai sumber grounding AI untuk memindai profil dan teknologi perusahaan.
                                 </p>
                                 {errors.website && (
@@ -305,7 +305,7 @@ export default function CreateOpportunityPage() {
                                     onChange={(val) => setValue("industry", val, { shouldValidate: true })}
                                     suggestions={industriesList.length > 0 ? industriesList : getMasterIndustries()}
                                 />
-                                <p className="text-xs text-zinc-400 mt-1">
+                                <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
                                     Wajib diisi untuk analisis tren sektor industri dan pencocokan solusi katalog AI.
                                 </p>
                                 {errors.industry && (
@@ -318,8 +318,8 @@ export default function CreateOpportunityPage() {
                     </div>
 
                     {/* Financial Potential & Schedule Section */}
-                    <div className="space-y-6 mt-8 pt-6 border-t border-zinc-100">
-                        <h2 className="text-lg font-medium text-zinc-900 border-b border-zinc-100 pb-4">
+                    <div className="space-y-6 mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800">
+                        <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 border-b border-zinc-100 dark:border-zinc-800 pb-4">
                             Financial Potential & Meeting Schedule
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -335,7 +335,7 @@ export default function CreateOpportunityPage() {
                                     type="datetime-local"
                                     {...register("estimated_agenda_date")}
                                 />
-                                <p className="text-xs text-zinc-500">
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400">
                                     Pilih tanggal rapat perdana / agenda go-live (opsional jika belum pasti).
                                 </p>
                             </div>
@@ -343,8 +343,8 @@ export default function CreateOpportunityPage() {
                     </div>
 
                     {/* Target Solution & Assignment Section */}
-                    <div className="space-y-6 mt-8 pt-6 border-t border-zinc-100">
-                        <h2 className="text-lg font-medium text-zinc-900 border-b border-zinc-100 pb-4">
+                    <div className="space-y-6 mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800">
+                        <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 border-b border-zinc-100 dark:border-zinc-800 pb-4">
                             Target Solution & Assignment
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -374,8 +374,8 @@ export default function CreateOpportunityPage() {
                     </div>
 
                     {/* Context & Needs Section */}
-                    <div className="space-y-6 mt-8 pt-6 border-t border-zinc-100">
-                        <h2 className="text-lg font-medium text-zinc-900 border-b border-zinc-100 pb-4">
+                    <div className="space-y-6 mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800">
+                        <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 border-b border-zinc-100 dark:border-zinc-800 pb-4">
                             Context & Needs
                         </h2>
                         <div className="space-y-4">
@@ -398,7 +398,7 @@ export default function CreateOpportunityPage() {
                                 {...register("additional_notes")}
                             />
                         </div>
-                        <div className="bg-blue-50 text-blue-800 text-sm p-4 rounded-md flex gap-3">
+                        <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900 text-blue-800 dark:text-blue-300 text-sm p-4 rounded-md flex gap-3">
                             <Activity className="w-5 h-5 shrink-0" />
                             <p>
                                 Upon submission, Magna AI will automatically scan public records
@@ -407,7 +407,7 @@ export default function CreateOpportunityPage() {
                         </div>
                     </div>
 
-                    <div className="mt-8 pt-6 border-t border-zinc-100 flex justify-end">
+                    <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800 flex justify-end">
                         <Button type="submit" className="gap-2">
                             Create Opportunity
                         </Button>

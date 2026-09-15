@@ -53,7 +53,7 @@ export function DashboardFilterSheet({
 
                 <div className="p-4 overflow-y-auto space-y-4 flex-1">
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Pre-Sales</label>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5">Pre-Sales</label>
                         <select
                             value={activePresales || ""}
                             onChange={(e) => onFilterChange({ ...currentFilters, engineer_name: e.target.value || undefined, engineer_id: undefined })}
@@ -65,7 +65,7 @@ export function DashboardFilterSheet({
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Status</label>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5">Status</label>
                         <select
                             value={currentFilters.status || ""}
                             onChange={(e) => onFilterChange({ ...currentFilters, status: e.target.value || undefined })}
@@ -77,7 +77,7 @@ export function DashboardFilterSheet({
                     </div>
 
                     <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 space-y-2">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500">Periode Tanggal</label>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Periode Tanggal</label>
                         <input
                             type="date"
                             value={currentFilters.date_from || ""}

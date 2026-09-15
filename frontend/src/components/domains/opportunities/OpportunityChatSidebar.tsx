@@ -343,7 +343,7 @@ export function OpportunityChatSidebar({
                                 <button
                                     key={idx}
                                     onClick={() => handleSendMessage(sug)}
-                                    className="text-xs text-left text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-100 bg-zinc-50 dark:bg-zinc-850 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200/60 dark:border-zinc-750 p-2 py-2 px-3 rounded-md transition-colors whitespace-normal break-words h-auto"
+                                    className="text-xs text-left text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-100 bg-zinc-50 dark:bg-zinc-800/80 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200/60 dark:border-zinc-700 p-2 py-2 px-3 rounded-md transition-colors whitespace-normal break-words h-auto"
                                 >
                                     {sug}
                                 </button>

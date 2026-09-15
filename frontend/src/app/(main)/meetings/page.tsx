@@ -191,7 +191,7 @@ export default function MeetingsPage() {
 
                                 {/* Expanded Details Section */}
                                 {isExpanded && (
-                                    <div className="border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-850/50 p-6 space-y-6">
+                                    <div className="border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 p-6 space-y-6">
                                         {/* Agenda & Notes */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             {meeting.agenda && meeting.agenda.length > 0 && (

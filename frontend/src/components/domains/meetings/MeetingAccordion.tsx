@@ -100,7 +100,7 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                         </div>
 
                         {isOpen && (
-                            <div className="px-5 py-5 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-850/50 space-y-5">
+                            <div className="px-5 py-5 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 space-y-5">
                                 {/* Participants */}
                                 {meeting.participants &&
                                     meeting.participants.length > 0 && (
@@ -151,7 +151,7 @@ export function MeetingAccordion({ meetings }: MeetingAccordionProps) {
                                             <FileText className="w-3.5 h-3.5" />
                                             {t.opportunityDetail.meetings.notes}
                                         </h4>
-                                        <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed bg-white dark:bg-zinc-850 border border-zinc-100 dark:border-zinc-800 rounded-md p-3">
+                                        <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed bg-white dark:bg-zinc-800/80 border border-zinc-100 dark:border-zinc-800 rounded-md p-3">
                                             {meeting.notes}
                                         </p>
                                     </div>

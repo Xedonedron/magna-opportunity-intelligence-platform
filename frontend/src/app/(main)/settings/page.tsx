@@ -677,16 +677,16 @@ export default function SettingsPage() {
                                         onClick={() => handleProviderChange("google")}
                                         className={`p-3.5 rounded-lg border text-left transition-all flex flex-col justify-between ${!isSuperAdmin ? "opacity-80 cursor-not-allowed " : ""
                                             }${llmProvider === "google"
-                                                ? "border-emerald-600 bg-emerald-50/60 ring-1 ring-emerald-600"
-                                                : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-850 hover:border-zinc-300 dark:hover:border-zinc-600"
+                                                ? "border-emerald-600 bg-emerald-50/60 dark:bg-emerald-950/40 ring-1 ring-emerald-600"
+                                                : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600"
                                             }`}
                                     >
                                         <div>
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Google AI Studio</span>
-                                                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Recommended</span>
+                                                <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold px-2 py-0.5 rounded-full">Recommended</span>
                                             </div>
-                                            <p className="text-xs text-zinc-500 mt-1">
+                                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                                                 Gemma 4 & Gemini models via Google GenAI SDK. Manage your own billing.
                                             </p>
                                         </div>
@@ -698,16 +698,16 @@ export default function SettingsPage() {
                                         onClick={() => handleProviderChange("openai")}
                                         className={`p-3.5 rounded-lg border text-left transition-all flex flex-col justify-between ${!isSuperAdmin ? "opacity-80 cursor-not-allowed " : ""
                                             }${llmProvider === "openai"
-                                                ? "border-zinc-900 bg-zinc-50 ring-1 ring-zinc-900"
-                                                : "border-zinc-200 bg-white hover:border-zinc-300"
+                                                ? "border-zinc-900 dark:border-zinc-100 bg-zinc-50 dark:bg-zinc-800 ring-1 ring-zinc-900 dark:ring-zinc-100"
+                                                : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600"
                                             }`}
                                     >
                                         <div>
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">OpenAI Compatible</span>
-                                                <span className="text-[10px] bg-zinc-100 text-zinc-700 font-bold px-2 py-0.5 rounded-full">CosmosHub</span>
+                                                <span className="text-[10px] bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-bold px-2 py-0.5 rounded-full">CosmosHub</span>
                                             </div>
-                                            <p className="text-xs text-zinc-500 mt-1">
+                                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                                                 GLM-4 Plus, DeepSeek, Minimax & Nemotron via CosmosHub API.
                                             </p>
                                         </div>
@@ -734,9 +734,9 @@ export default function SettingsPage() {
                                     </div>
 
                                     {activeModelList.length === 0 ? (
-                                        <div className="p-4 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-850/50 text-center space-y-1">
-                                            <p className="text-xs font-medium text-zinc-700">Belum ada model tersimpan untuk provider ini</p>
-                                            <p className="text-[11px] text-zinc-500">
+                                        <div className="p-4 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/50 text-center space-y-1">
+                                            <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Belum ada model tersimpan untuk provider ini</p>
+                                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                                                 Ketik nama model pada form di bawah lalu klik <strong>+ Tambah</strong> untuk menambahkan model pertama Anda.
                                             </p>
                                         </div>
@@ -751,7 +751,7 @@ export default function SettingsPage() {
                                                         className={`flex items-center justify-between p-2.5 rounded-lg border text-left transition-all ${
                                                             isActive
                                                                 ? "border-zinc-950 bg-zinc-900 text-white shadow-sm ring-1 ring-zinc-950"
-                                                                : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-850 text-zinc-800 dark:text-zinc-200 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer"
+                                                                : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 cursor-pointer"
                                                         }`}
                                                     >
                                                         <div className="flex items-center gap-2 min-w-0 pr-2">
@@ -1027,7 +1027,7 @@ export default function SettingsPage() {
                                 <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
                                     <Shield className="w-4 h-4 text-zinc-700" /> Privasi & Tampilan Finansial (Financial Privacy)
                                 </h4>
-                                <div className="flex items-center justify-between p-4 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50/50 dark:bg-zinc-850/50">
+                                <div className="flex items-center justify-between p-4 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50/50 dark:bg-zinc-800/40">
                                     <div className="pr-4">
                                         <h5 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Sembunyikan Nilai Potensi (Hide Financial Numbers)</h5>
                                         <p className="text-xs text-zinc-500 mt-0.5">
@@ -1052,7 +1052,7 @@ export default function SettingsPage() {
                                 <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
                                     <DollarSign className="w-4 h-4 text-emerald-600" /> Kurs Valuta AI Token & Cost Monitoring (USD ke IDR)
                                 </h4>
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50/50 dark:bg-zinc-850/50 gap-3">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50/50 dark:bg-zinc-800/40 gap-3">
                                     <div className="pr-4">
                                         <h5 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Nilai Tukar Default (1 USD dalam IDR)</h5>
                                         <p className="text-xs text-zinc-500 mt-0.5">
@@ -1500,14 +1500,14 @@ export default function SettingsPage() {
                                                     <th className="pb-2">ID Entitas</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-zinc-100 text-zinc-700">
+                                            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 text-zinc-700 dark:text-zinc-300">
                                                 {logs.map((log) => (
-                                                    <tr key={log.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-850 transition-colors">
-                                                        <td className="py-2.5 font-mono text-[10px] text-zinc-500">{new Date(log.created_at).toLocaleString("id-ID")}</td>
+                                                    <tr key={log.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                                                        <td className="py-2.5 font-mono text-[10px] text-zinc-500 dark:text-zinc-400">{new Date(log.created_at).toLocaleString("id-ID")}</td>
                                                         <td className="py-2.5 font-medium">{log.user_name} ({log.user_email})</td>
-                                                        <td className="py-2.5"><span className="bg-zinc-100 text-zinc-800 px-2 py-0.5 rounded-full font-medium text-[10px]">{log.action}</span></td>
-                                                        <td className="py-2.5 font-medium text-zinc-600">{log.entity_type}</td>
-                                                        <td className="py-2.5 text-zinc-400 font-mono text-[10px]">{log.entity_id.slice(0, 8)}</td>
+                                                        <td className="py-2.5"><span className="bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 px-2 py-0.5 rounded-full font-medium text-[10px]">{log.action}</span></td>
+                                                        <td className="py-2.5 font-medium text-zinc-600 dark:text-zinc-300">{log.entity_type}</td>
+                                                        <td className="py-2.5 text-zinc-400 dark:text-zinc-500 font-mono text-[10px]">{log.entity_id.slice(0, 8)}</td>
                                                     </tr>
                                                 ))}
                                                 {logs.length === 0 && (
