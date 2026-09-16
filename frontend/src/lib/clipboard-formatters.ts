@@ -170,8 +170,7 @@ export function formatKYCToMarkdown(report: KYCReport, companyName?: string): st
         lines.push("## 12. Referensi & Sumber Data (References)");
         report.references.forEach((ref) => {
             const title = ref.title || ref.url;
-            const type = ref.type ? ` (${ref.type})` : "";
-            lines.push(`- [${title}](${ref.url})${type}`);
+            lines.push(`- [${title}](${ref.url})`);
         });
         lines.push("");
     }

@@ -1042,9 +1042,6 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                     >
                                         <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                                         <span className="truncate">{ref.title || ref.url}</span>
-                                        <span className="text-xs text-zinc-400 capitalize shrink-0">
-                                            ({ref.type})
-                                        </span>
                                     </a>
                                 </li>
                             ))}
