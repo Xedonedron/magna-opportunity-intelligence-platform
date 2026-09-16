@@ -91,11 +91,18 @@ async def run_sectional_kyc_pipeline(
 ) -> dict:
     base_context, use_cases_context, solutions_context, matched_smg_cards = _build_base_context(state)
 
+    strict_json_directive = (
+        "\n\nATURAN FORMAT OUTPUT (SANGAT KETAT - WAJIB DIPATUHI):\n"
+        "1. Kembalikan HANYA teks JSON valid yang sesuai dengan skema yang diminta.\n"
+        "2. JANGAN sertakan kalimat pengantar, basa-basi pembuka, atau penutup (misalnya: 'Berikut adalah...', 'Tentu, ini rancangan...', dll).\n"
+        "3. JANGAN membungkus output dengan markdown code fence (```json ... ```). Mulai langsung dari '{' dan akhiri dengan '}'."
+    )
+
     # --- Phase 1: Foundation Analysis (Parallel Modules 1-3) ---
     logger.info("[KYC Pipeline] Phase 1: Foundation Analysis (Modules 1, 2, 3)...")
-    prompt_mod1 = f"Analisis data profil klien berikut dan hasilkan Module 1: Company Profile (company_overview, business_model, company_location):\n{base_context}"
-    prompt_mod2 = f"Analisis industri dan kompetitor klien berikut untuk Module 2: Industry & Competitors (industry_analysis, competitor_analysis):\n{base_context}"
-    prompt_mod3 = f"Analisis kebutuhan dan kendala operasional klien untuk Module 3: Customer Needs & Pain Points (customer_need_summary, potential_pain_points):\n{base_context}"
+    prompt_mod1 = f"Analisis data profil klien berikut dan hasilkan Module 1: Company Profile (company_overview, business_model, company_location):\n{base_context}{strict_json_directive}"
+    prompt_mod2 = f"Analisis industri dan kompetitor klien berikut untuk Module 2: Industry & Competitors (industry_analysis, competitor_analysis):\n{base_context}{strict_json_directive}"
+    prompt_mod3 = f"Analisis kebutuhan dan kendala operasional klien untuk Module 3: Customer Needs & Pain Points (customer_need_summary, potential_pain_points):\n{base_context}{strict_json_directive}"
 
     mod1, mod2, mod3 = await asyncio.gather(
         invoke_section(llm, CompanyProfileOutput, prompt_mod1, "Module 1", max_retries=3, state=state, clean_json_fn=clean_json_fn),
@@ -119,6 +126,7 @@ ARSITEKTUR DECISION RULES (WAJIB DIPATUHI):
 - Cybersecurity: BeyondTrust PAM/EPM, Fortinet FortiGate, CrowdStrike, Google SecOps/Chronicle.
 - Cloud Data Pipeline/ETL: BigQuery untuk SQL ELT, Dataflow untuk streaming, Dataproc untuk Spark OSS, Cloud Composer untuk DAG orchestration.
 - AI/ML: Vertex AI, Gemini, BigQuery ML.
+{strict_json_directive}
 """
     prompt_mod5 = f"""Susun strategi engagement dan discovery questions presales (Module 5):
 {base_context}
@@ -130,6 +138,7 @@ Bagi discovery questions menjadi dua kategori:
 - "business": Pertanyaan untuk C-Level / Business Owner / VP — fokus pada business driver, ROI, cost of inaction, timeline regulasi, target revenue/efisiensi, pain point operasional bisnis.
 - "technical": Pertanyaan untuk CTO / IT Manager / DevOps / SecOps / Architect — fokus pada arsitektur eksisting, volume data/throughput, integrasi API/IAM, kendala migrasi teknis, stack teknologi, security posture.
 Masing-masing kategori minimal 3-5 pertanyaan.
+{strict_json_directive}
 """
     mod4, mod5 = await asyncio.gather(
         invoke_section(llm, UseCasesOutput, prompt_mod4, "Module 4", max_retries=3, state=state, clean_json_fn=clean_json_fn),
@@ -147,6 +156,7 @@ Needs: {mod3.customer_need_summary}
 Pain points: {', '.join(mod3.potential_pain_points)}
 Use Cases: {', '.join([u.title for u in mod4.use_cases])}
 Target Meeting: {', '.join(mod5.meeting_objectives)}
+{strict_json_directive}
 """
     mod6 = await invoke_section(llm, ExecutiveSummaryOutput, prompt_mod6, "Module 6", max_retries=3, state=state, clean_json_fn=clean_json_fn)
 

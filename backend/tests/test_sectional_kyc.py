@@ -163,3 +163,42 @@ async def test_sectional_pipeline_3phases():
         assert report["customer_need_summary"] == "Core modernization needed"
     finally:
         runner_mod.invoke_section = original_invoke
+
+
+@pytest.mark.asyncio
+async def test_invoke_section_auto_recovery_from_validation_error():
+    """Verify invoke_section auto-recovers when structured output throws ValidationError with markdown fence."""
+    from pydantic import ValidationError
+    from app.services.kyc_pipeline import _clean_and_parse_json
+
+    mock_llm = MagicMock()
+    mock_runnable = MagicMock()
+
+    # Create a real ValidationError by passing markdown/preamble to model_validate_json
+    raw_payload = (
+        'Berikut adalah rancangan...\n```json\n{\n'
+        '  "meeting_objectives": ["Meeting 1"],\n'
+        '  "recommended_questions": {"business": ["B1"], "technical": ["T1"]},\n'
+        '  "preparation_checklist": ["Prep 1"]\n'
+        '}\n```'
+    )
+    try:
+        EngagementStrategyOutput.model_validate_json(raw_payload)
+    except ValidationError as val_err:
+        mock_runnable.ainvoke = AsyncMock(side_effect=val_err)
+
+    mock_llm.with_structured_output.return_value = mock_runnable
+
+    res = await invoke_section(
+        llm=mock_llm,
+        schema_cls=EngagementStrategyOutput,
+        prompt="Test prompt",
+        section_name="Module 5 Recovery Test",
+        clean_json_fn=_clean_and_parse_json,
+    )
+
+    assert res.meeting_objectives == ["Meeting 1"]
+    assert res.recommended_questions.business == ["B1"]
+    assert res.recommended_questions.technical == ["T1"]
+    assert res.preparation_checklist == ["Prep 1"]
+

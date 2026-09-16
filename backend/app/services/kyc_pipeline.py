@@ -105,7 +105,7 @@ def _clean_and_parse_json(content: Any) -> dict:
         candidate = text[: end_idx + 1]
         candidate = re.sub(r",\s*([\}\]])", r"\1", candidate)
         try:
-            return json.loads(candidate)
+            return json.loads(candidate, strict=False)
         except json.JSONDecodeError:
             pass
 
@@ -113,7 +113,7 @@ def _clean_and_parse_json(content: Any) -> dict:
     fixed = re.sub(r'(?<!\\)\r?\n', r'\\n', text)
     fixed = re.sub(r'(?<!\\)\t', r'\\t', fixed)
     try:
-        return json.loads(fixed)
+        return json.loads(fixed, strict=False)
     except Exception:
         pass
 
@@ -154,7 +154,7 @@ def _clean_and_parse_json(content: Any) -> dict:
             repaired += "]"
 
     repaired = re.sub(r",\s*([\}\]])", r"\1", repaired)
-    return json.loads(repaired)
+    return json.loads(repaired, strict=False)
 
 
 # --- LLM Setup ---

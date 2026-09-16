@@ -22,27 +22,66 @@ async def invoke_section(
         try:
             logger.info(f"[KYC Section] Invoking {section_name} (attempt {attempt}/{max_retries})...")
             start_ts = time.time()
+            res = None
             runnable = None
             if hasattr(llm, "with_structured_output"):
                 try:
                     runnable = llm.with_structured_output(schema_cls)
                 except Exception as ex:
-                    logger.warning(f"[KYC Section] with_structured_output failed for {section_name}: {ex}")
+                    logger.warning(f"[KYC Section] with_structured_output setup failed for {section_name}: {ex}")
+                    runnable = None
+
             if runnable is not None:
-                parsed_res = await runnable.ainvoke(prompt)
-                dur = int((time.time() - start_ts) * 1000)
-                if isinstance(parsed_res, schema_cls):
-                    res = parsed_res
-                elif isinstance(parsed_res, dict):
-                    res = schema_cls.model_validate(parsed_res)
-                else:
-                    d = clean_json_fn(str(parsed_res)) if clean_json_fn else {}
-                    res = schema_cls.model_validate(d)
-            else:
+                try:
+                    parsed_res = await runnable.ainvoke(prompt)
+                    if isinstance(parsed_res, schema_cls):
+                        res = parsed_res
+                    elif isinstance(parsed_res, dict):
+                        res = schema_cls.model_validate(parsed_res)
+                    elif clean_json_fn:
+                        d = clean_json_fn(str(parsed_res))
+                        res = schema_cls.model_validate(d)
+                except Exception as structured_err:
+                    recovered = False
+                    raw_from_err = None
+
+                    # 1. Try to extract raw input from Pydantic ValidationError
+                    if hasattr(structured_err, "errors"):
+                        try:
+                            err_list = structured_err.errors()
+                            if err_list and isinstance(err_list, list):
+                                raw_from_err = err_list[0].get("input")
+                        except Exception:
+                            pass
+
+                    # 2. Try to extract raw output from OutputParserException
+                    if not raw_from_err and hasattr(structured_err, "llm_output"):
+                        raw_from_err = getattr(structured_err, "llm_output")
+
+                    # 3. Clean and parse if raw string was extracted
+                    if raw_from_err and clean_json_fn and isinstance(raw_from_err, str):
+                        try:
+                            logger.info(f"[KYC Section] Attempting auto-recovery from error payload for {section_name}...")
+                            d = clean_json_fn(raw_from_err)
+                            res = schema_cls.model_validate(d)
+                            recovered = True
+                            logger.info(f"[KYC Section] Successfully auto-recovered {section_name} via clean_json_fn!")
+                        except Exception as rec_err:
+                            logger.debug(f"[KYC Section] Error payload recovery failed: {rec_err}")
+
+                    if not recovered:
+                        logger.warning(
+                            f"[KYC Section] with_structured_output failed for {section_name}: {structured_err}. Falling back to standard LLM call..."
+                        )
+
+            # Fallback to direct raw invocation if structured output was unavailable or unrecoverable
+            if res is None:
                 raw = await llm.ainvoke(prompt)
-                dur = int((time.time() - start_ts) * 1000)
-                d = clean_json_fn(raw.content) if clean_json_fn else {}
+                raw_text = raw.content if hasattr(raw, "content") else str(raw)
+                d = clean_json_fn(raw_text) if clean_json_fn else {}
                 res = schema_cls.model_validate(d)
+
+            dur = int((time.time() - start_ts) * 1000)
 
             # Record token usage non-blocking
             if state:
