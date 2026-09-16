@@ -202,3 +202,33 @@ async def test_invoke_section_auto_recovery_from_validation_error():
     assert res.recommended_questions.technical == ["T1"]
     assert res.preparation_checklist == ["Prep 1"]
 
+
+def test_company_profile_output_schema_resilience():
+    """Verify CompanyProfileOutput gracefully handles dicts for text fields and strings for overview."""
+    # Scenario 1: LLM returns dicts for business_model and company_location
+    payload_dicts = {
+        "company_overview": {
+            "name": "Microdrama",
+            "description": "Short video platform",
+            "key_products": "Product A, Product B",
+        },
+        "business_model": {"model_type": "B2B & B2C", "revenue": "$11-20B"},
+        "company_location": {"headquarters": "Jakarta, Indonesia"},
+    }
+    model1 = CompanyProfileOutput.model_validate(payload_dicts)
+    assert model1.company_overview.name == "Microdrama"
+    assert "Product A" in model1.company_overview.key_products
+    assert "Model Type: B2B & B2C" in model1.business_model
+    assert "Headquarters: Jakarta, Indonesia" in model1.company_location
+
+    # Scenario 2: LLM returns plain string for company_overview
+    payload_str_overview = {
+        "company_overview": "Microdrama adalah platform hiburan digital yang berkembang pesat.",
+        "business_model": "Subscription model",
+        "company_location": "Global",
+    }
+    model2 = CompanyProfileOutput.model_validate(payload_str_overview)
+    assert model2.company_overview.description == "Microdrama adalah platform hiburan digital yang berkembang pesat."
+    assert model2.business_model == "Subscription model"
+
+

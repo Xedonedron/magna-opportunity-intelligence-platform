@@ -1,7 +1,16 @@
 from pydantic import BaseModel, Field, field_validator, model_validator
 from datetime import datetime
 from uuid import UUID
-from typing import Optional, Any
+from typing import Optional, Any, Union
+
+
+def _coerce_to_clean_string(v: Any) -> str:
+    if isinstance(v, dict):
+        parts = [f"{k.replace('_', ' ').title()}: {val}" for k, val in v.items() if val is not None]
+        return "\n".join(parts) if parts else ""
+    elif isinstance(v, list):
+        return ", ".join(str(item) for item in v if item is not None)
+    return str(v) if v is not None else ""
 
 
 class CompanyOverviewModel(BaseModel):
@@ -11,6 +20,22 @@ class CompanyOverviewModel(BaseModel):
     size: Optional[str] = Field(default="N/A", description="Estimasi jumlah karyawan / skala perusahaan")
     headquarters: Optional[str] = Field(default="N/A", description="Lokasi kantor pusat")
     key_products: list[str] = Field(default_factory=list, description="Lini produk / layanan utama")
+
+    @model_validator(mode="before")
+    @classmethod
+    def coerce_from_any(cls, data: Any) -> Any:
+        if isinstance(data, str):
+            return {"name": "", "description": data}
+        return data
+
+    @field_validator("key_products", mode="before")
+    @classmethod
+    def coerce_key_products(cls, v: Any) -> list[str]:
+        if isinstance(v, str):
+            return [p.strip() for p in v.split(",") if p.strip()]
+        if isinstance(v, list):
+            return [str(p) for p in v]
+        return []
 
 
 class CompetitorItem(BaseModel):
@@ -49,20 +74,44 @@ class UseCaseItem(BaseModel):
 class CompanyProfileOutput(BaseModel):
     """Module 1: Company Profile & Business Footprint"""
     company_overview: CompanyOverviewModel = Field(description="Profil ringkas perusahaan")
-    business_model: str = Field(description="Model bisnis dan revenue stream")
-    company_location: str = Field(description="Lokasi fasilitas operasional dan cakupan geografis")
+    business_model: Union[str, dict[str, Any], list[Any]] = Field(description="Model bisnis dan revenue stream")
+    company_location: Union[str, dict[str, Any], list[Any]] = Field(description="Lokasi fasilitas operasional dan cakupan geografis")
+
+    @field_validator("business_model", "company_location", mode="after")
+    @classmethod
+    def coerce_text_fields(cls, v: Any) -> str:
+        return _coerce_to_clean_string(v)
 
 
 class IndustryCompetitorsOutput(BaseModel):
     """Module 2: Industry Dynamics & Competitors"""
-    industry_analysis: str = Field(description="Analisis mendalam lanskap industri dan tren teknologi")
+    industry_analysis: Union[str, dict[str, Any], list[Any]] = Field(description="Analisis mendalam lanskap industri dan tren teknologi")
     competitor_analysis: list[CompetitorItem] = Field(default_factory=list, description="Daftar kompetitor utama")
+
+    @field_validator("industry_analysis", mode="after")
+    @classmethod
+    def coerce_industry_analysis(cls, v: Any) -> str:
+        return _coerce_to_clean_string(v)
 
 
 class PainPointsNeedsOutput(BaseModel):
     """Module 3: Customer Pain Points & Latent Needs"""
-    customer_need_summary: str = Field(description="Rangkuman latar belakang kebutuhan bisnis & teknis")
+    customer_need_summary: Union[str, dict[str, Any], list[Any]] = Field(description="Rangkuman latar belakang kebutuhan bisnis & teknis")
     potential_pain_points: list[str] = Field(default_factory=list, description="Daftar pain points teknis / operasional")
+
+    @field_validator("customer_need_summary", mode="after")
+    @classmethod
+    def coerce_need_summary(cls, v: Any) -> str:
+        return _coerce_to_clean_string(v)
+
+    @field_validator("potential_pain_points", mode="before")
+    @classmethod
+    def coerce_pain_points(cls, v: Any) -> list[str]:
+        if isinstance(v, str):
+            return [p.strip("- *•\t\r") for p in v.split("\n") if p.strip("- *•\t\r")]
+        if isinstance(v, list):
+            return [str(p) for p in v]
+        return []
 
 
 class UseCasesOutput(BaseModel):
@@ -81,6 +130,15 @@ class CategorizedQuestions(BaseModel):
         description="Pertanyaan teknis arsitektur, kapasitas, integrasi, dan security untuk IT/DevOps/SecOps"
     )
 
+    @field_validator("business", "technical", mode="before")
+    @classmethod
+    def coerce_questions(cls, v: Any) -> list[str]:
+        if isinstance(v, str):
+            return [q.strip("- *•\t\r") for q in v.split("\n") if q.strip("- *•\t\r")]
+        if isinstance(v, list):
+            return [str(q) for q in v]
+        return []
+
 
 class EngagementStrategyOutput(BaseModel):
     """Module 5: Presales Engagement Strategy"""
@@ -91,10 +149,26 @@ class EngagementStrategyOutput(BaseModel):
     )
     preparation_checklist: list[str] = Field(default_factory=list, description="Checklist persiapan teknis dan sales")
 
+    @field_validator("meeting_objectives", "preparation_checklist", mode="before")
+    @classmethod
+    def coerce_list_items(cls, v: Any) -> list[str]:
+        if isinstance(v, str):
+            return [item.strip("- *•\t\r") for item in v.split("\n") if item.strip("- *•\t\r")]
+        if isinstance(v, list):
+            return [str(item) for item in v]
+        return []
+
 
 class ExecutiveSummaryOutput(BaseModel):
     """Module 6: Ultimate Executive Summary (Sintesis Akhir)"""
-    executive_summary: str = Field(description="Sintesis eksekutif C-Level komprehensif 2-3 paragraf")
+    executive_summary: Union[str, dict[str, Any], list[Any]] = Field(description="Sintesis eksekutif C-Level komprehensif 2-3 paragraf")
+
+    @field_validator("executive_summary", mode="after")
+    @classmethod
+    def coerce_executive_summary(cls, v: Any) -> str:
+        if isinstance(v, dict):
+            return "\n\n".join(str(val) for val in v.values() if val)
+        return _coerce_to_clean_string(v)
 
 
 

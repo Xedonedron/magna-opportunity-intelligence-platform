@@ -58,14 +58,19 @@ async def invoke_section(
                     if not raw_from_err and hasattr(structured_err, "llm_output"):
                         raw_from_err = getattr(structured_err, "llm_output")
 
-                    # 3. Clean and parse if raw string was extracted
-                    if raw_from_err and clean_json_fn and isinstance(raw_from_err, str):
+                    # 3. Clean and parse if raw payload was extracted
+                    if raw_from_err:
                         try:
                             logger.info(f"[KYC Section] Attempting auto-recovery from error payload for {section_name}...")
-                            d = clean_json_fn(raw_from_err)
-                            res = schema_cls.model_validate(d)
-                            recovered = True
-                            logger.info(f"[KYC Section] Successfully auto-recovered {section_name} via clean_json_fn!")
+                            if isinstance(raw_from_err, str) and clean_json_fn:
+                                d = clean_json_fn(raw_from_err)
+                                res = schema_cls.model_validate(d)
+                                recovered = True
+                            elif isinstance(raw_from_err, dict):
+                                res = schema_cls.model_validate(raw_from_err)
+                                recovered = True
+                            if recovered:
+                                logger.info(f"[KYC Section] Successfully auto-recovered {section_name} via clean_json_fn!")
                         except Exception as rec_err:
                             logger.debug(f"[KYC Section] Error payload recovery failed: {rec_err}")
 

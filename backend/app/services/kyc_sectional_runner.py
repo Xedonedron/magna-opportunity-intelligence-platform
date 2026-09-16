@@ -100,7 +100,14 @@ async def run_sectional_kyc_pipeline(
 
     # --- Phase 1: Foundation Analysis (Parallel Modules 1-3) ---
     logger.info("[KYC Pipeline] Phase 1: Foundation Analysis (Modules 1, 2, 3)...")
-    prompt_mod1 = f"Analisis data profil klien berikut dan hasilkan Module 1: Company Profile (company_overview, business_model, company_location):\n{base_context}{strict_json_directive}"
+    prompt_mod1 = f"""Analisis data profil klien berikut dan hasilkan Module 1: Company Profile (company_overview, business_model, company_location).
+Struktur output:
+- company_overview: objek JSON berisi nama resmi (name), deskripsi bisnis (description), tahun berdiri (founded), ukuran perusahaan (size), kantor pusat (headquarters), dan daftar produk utama (key_products).
+- business_model: teks narasi ringkas model bisnis dan revenue stream.
+- company_location: teks narasi lokasi kantor pusat dan fasilitas operasional.
+
+Data Profil:
+{base_context}{strict_json_directive}"""
     prompt_mod2 = f"Analisis industri dan kompetitor klien berikut untuk Module 2: Industry & Competitors (industry_analysis, competitor_analysis):\n{base_context}{strict_json_directive}"
     prompt_mod3 = f"Analisis kebutuhan dan kendala operasional klien untuk Module 3: Customer Needs & Pain Points (customer_need_summary, potential_pain_points):\n{base_context}{strict_json_directive}"
 
