@@ -44,11 +44,13 @@ export function IndustryDistributionChart({ data }: IndustryDistributionChartPro
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                 Industry Distribution
             </h3>
-            <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
+            <div className="h-64 outline-none focus:outline-none">
+                <ResponsiveContainer width="100%" height="100%" className="outline-none focus:outline-none">
                     <BarChart
                         data={chartData}
                         margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                        className="outline-none focus:outline-none"
+                        style={{ outline: "none" }}
                     >
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#71717a" strokeOpacity={0.2} />
                         <XAxis
@@ -73,9 +75,9 @@ export function IndustryDistributionChart({ data }: IndustryDistributionChartPro
                             }}
                             itemStyle={{ color: "#f4f4f5" }}
                         />
-                        <Bar dataKey="Opportunity" radius={[4, 4, 0, 0]}>
+                        <Bar dataKey="Opportunity" radius={[4, 4, 0, 0]} className="outline-none focus:outline-none" style={{ outline: "none" }}>
                             {chartData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                <Cell key={`cell-${index}`} fill={entry.color} className="outline-none focus:outline-none" style={{ outline: "none" }} />
                             ))}
                         </Bar>
                     </BarChart>

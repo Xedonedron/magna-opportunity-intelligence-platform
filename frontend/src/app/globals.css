@@ -149,3 +149,28 @@
 .dark .recharts-legend-item-text {
     color: #d4d4d8 !important;
 }
+
+/* Recharts Focus & Tap Outline Reset (Removes browser focus rings & touch highlight on charts) */
+.recharts-wrapper,
+.recharts-wrapper:focus,
+.recharts-wrapper *:focus,
+.recharts-wrapper *:focus-visible,
+.recharts-surface,
+.recharts-surface:focus,
+.recharts-sector:focus,
+.recharts-curve:focus,
+.recharts-bar-rectangle:focus,
+.recharts-responsive-container {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+.recharts-wrapper svg,
+.recharts-wrapper svg:focus,
+.recharts-wrapper path,
+.recharts-wrapper path:focus,
+.recharts-wrapper rect,
+.recharts-wrapper rect:focus,
+.recharts-wrapper g:focus {
+    outline: none !important;
+}

@@ -55,9 +55,9 @@ export function StatusChart({ data }: StatusChartProps) {
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3 sm:mb-4">
                 Status Distribution
             </h3>
-            <div className="h-[240px] md:h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
+            <div className="h-[240px] md:h-64 outline-none focus:outline-none">
+                <ResponsiveContainer width="100%" height="100%" className="outline-none focus:outline-none">
+                    <PieChart className="outline-none focus:outline-none" style={{ outline: "none" }}>
                         <Pie
                             data={chartData}
                             cx="50%"
@@ -66,9 +66,16 @@ export function StatusChart({ data }: StatusChartProps) {
                             outerRadius={75}
                             paddingAngle={2}
                             dataKey="value"
+                            className="outline-none focus:outline-none"
+                            style={{ outline: "none" }}
                         >
                             {chartData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                <Cell
+                                    key={`cell-${index}`}
+                                    fill={entry.color}
+                                    className="outline-none focus:outline-none"
+                                    style={{ outline: "none" }}
+                                />
                             ))}
                         </Pie>
                         <Tooltip

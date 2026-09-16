@@ -41,9 +41,9 @@ export function TrendChart({ data }: TrendChartProps) {
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3 sm:mb-4">
                 30-Day Trend
             </h3>
-            <div className="h-[240px] md:h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData}>
+            <div className="h-[240px] md:h-64 outline-none focus:outline-none">
+                <ResponsiveContainer width="100%" height="100%" className="outline-none focus:outline-none">
+                    <AreaChart data={chartData} className="outline-none focus:outline-none" style={{ outline: "none" }}>
                         <defs>
                             <linearGradient id="colorNew" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
