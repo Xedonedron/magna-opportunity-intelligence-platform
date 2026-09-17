@@ -111,15 +111,15 @@ export default function OpportunityDetailPage() {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col h-full bg-zinc-50 dark:bg-zinc-950">
-                <div className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-8 pt-8 pb-0">
+            <div className="flex flex-col min-h-full bg-zinc-50 dark:bg-zinc-950">
+                <div className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 sm:px-8 pt-6 sm:pt-8 pb-0">
                     <div className="max-w-[1200px] mx-auto">
                         <div className="h-4 w-32 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse mb-4" />
                         <div className="h-8 w-64 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse mb-2" />
-                        <div className="h-4 w-96 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse mb-8" />
-                        <div className="flex gap-6 border-b border-zinc-200 dark:border-zinc-800">
+                        <div className="h-4 w-96 max-w-full bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse mb-8" />
+                        <div className="flex gap-4 sm:gap-6 border-b border-zinc-200 dark:border-zinc-800 overflow-x-auto scrollbar-none">
                             {tabs.map((t) => (
-                                <div key={t.id} className="h-10 w-24 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
+                                <div key={t.id} className="h-10 w-24 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse shrink-0" />
                             ))}
                         </div>
                     </div>
@@ -143,12 +143,12 @@ export default function OpportunityDetailPage() {
     }
 
     return (
-        <div className="flex h-full bg-zinc-50 dark:bg-zinc-950 overflow-hidden w-full">
+        <div className="flex flex-col md:flex-row min-h-full md:h-full w-full bg-zinc-50 dark:bg-zinc-950 md:overflow-hidden">
             {/* Left Content Area */}
-            <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
+            <div className="flex-1 flex flex-col min-w-0 md:h-full md:overflow-y-auto">
                 {/* Opportunity Header */}
-                <div className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 p-4 sm:p-8 pb-0">
-                    <div className="max-w-[1200px] mx-auto space-y-6">
+                <div className="bg-white dark:bg-zinc-900 p-4 sm:p-8 pb-4 sm:pb-6 shrink-0 transition-colors">
+                    <div className="max-w-[1200px] mx-auto space-y-4 sm:space-y-6">
                         <button
                             onClick={() => router.push("/opportunities")}
                             className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1 mb-2"
@@ -256,14 +256,18 @@ export default function OpportunityDetailPage() {
                                 )}
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        {/* Tabs */}
-                        <div className="flex gap-4 sm:gap-6 border-b border-zinc-200 dark:border-zinc-800 translate-y-px overflow-x-auto scrollbar-none whitespace-nowrap pb-0.5">
+                {/* Sticky Subnav Tabs */}
+                <div className="sticky top-0 z-20 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 px-4 sm:px-8 transition-colors shadow-xs">
+                    <div className="max-w-[1200px] mx-auto">
+                        <div className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-none whitespace-nowrap pt-1">
                             {tabs.map((tab) => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`pb-3 sm:pb-4 text-xs sm:text-sm font-medium flex items-center gap-2 border-b-2 transition-colors shrink-0 ${activeTab === tab.id
+                                    className={`pb-3 sm:pb-4 text-xs sm:text-sm font-medium flex items-center gap-2 border-b-2 transition-colors shrink-0 -mb-px ${activeTab === tab.id
                                         ? "border-zinc-900 dark:border-zinc-100 text-zinc-900 dark:text-zinc-100 font-semibold"
                                         : "border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:border-zinc-300 dark:hover:border-zinc-700"
                                         }`}
@@ -276,7 +280,7 @@ export default function OpportunityDetailPage() {
                 </div>
 
                 {/* Tab Content */}
-                <div className="flex-1 overflow-y-auto p-4 sm:p-8">
+                <div className="p-4 sm:p-8">
                     <div className="max-w-[1200px] mx-auto">
                         {activeTab === "overview" && (
                             <div className="space-y-6">
