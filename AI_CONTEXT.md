@@ -682,9 +682,12 @@ type MeetingStatus = 'scheduled' | 'completed' | 'cancelled'
 ### Backend & Services (Docker / Self-Hosted VPS)
 - **Hosting**: Self-hosted on VPS (`root@magnasight`) via Docker Compose.
 - **Active Server Services**: `backend` (FastAPI), `celery` (worker), `postgres` (DB), `redis` (task queue).
-- **Important**: Frontend container is **not** deployed on the VPS. On the server, only build and run backend services:
+- **CI/CD Pipeline**: GitHub Actions (`.github/workflows/deploy.yml`) triggers on push to `main` (paths: `backend/**`, `docker-compose.yml`, `scripts/**`) and deploys to the VPS via SSH using `scripts/deploy_backend.sh`.
+- **Manual Deployment**: Frontend container is **not** deployed on the VPS. On the server, deploy backend services using the unified script:
   ```bash
-  docker compose build --no-cache backend celery
+  ./scripts/deploy_backend.sh
+  # atau manual:
+  docker compose build backend celery
   docker compose up -d backend celery
   ```
 
