@@ -21,6 +21,7 @@ class TimelineEventResponse(BaseModel):
 
 # --- Opportunity ---
 class OpportunityCreate(BaseModel):
+    company_id: uuid.UUID | None = None
     company_name: str = Field(..., min_length=1, max_length=255)
     contact_name: str | None = Field(None, max_length=255)
     website: str = Field(..., min_length=1, max_length=500)
@@ -55,6 +56,7 @@ class OpportunityCreate(BaseModel):
 
 
 class OpportunityUpdate(BaseModel):
+    company_id: uuid.UUID | None = None
     company_name: str | None = Field(None, min_length=1, max_length=255)
     contact_name: str | None = Field(None, max_length=255)
     website: str | None = Field(None, max_length=500)
@@ -82,6 +84,7 @@ class UserBrief(BaseModel):
 
 class OpportunityResponse(BaseModel):
     id: uuid.UUID
+    company_id: uuid.UUID | None = None
     company_name: str
     contact_name: str | None = None
     website: str | None

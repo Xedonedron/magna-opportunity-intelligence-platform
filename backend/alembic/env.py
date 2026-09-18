@@ -11,7 +11,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.core.database import Base
-from app.models import User, Opportunity, TimelineEvent  # noqa: F401
+from app.models import User, Company, Opportunity, TimelineEvent  # noqa: F401
 
 config = context.config
 

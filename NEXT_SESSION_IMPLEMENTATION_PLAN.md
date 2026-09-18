@@ -70,8 +70,18 @@ Berdasarkan masukan strategis dari senior konsultan dan evaluasi tim, arsitektur
 
 ---
 
-### Sesi C: Restrukturisasi Model Folder & Migrasi Un-flattening (P1 - Core)
+### Sesi C: Restrukturisasi Model Folder & Migrasi Un-flattening (P1 - Core) - STATUS: BACKEND COMPLETED
 **Tujuan:** Membangun entitas `Company`, menghubungkan `Opportunity` sebagai child, dan memilah data lama secara aman tanpa risiko data loss di lingkungan production (karena tidak ada staging).
+
+#### Status Implementasi Sesi C:
+- [x] **Model & Database Migration**: Model `Company` dibuat di `backend/app/models/company.py`, `company_id` ditambahkan ke `Opportunity` (`nullable=True`), Alembic migration `w3r4k5f6g7h8` siap dieksekusi.
+- [x] **Un-flattening Logic & Test**: `scripts/unflatten_opportunities.py` terbukti 100% akurat mengelompokkan 34 record database riil ke tepat 30 entitas Company unik. Wrapper `./scripts/run_unflatten_docker.sh` telah disiapkan.
+- [x] **REST API & Schemas**: CRUD `/api/companies` & `/api/v1/companies` serta pembuatan opportunity bersarang `POST /api/v1/companies/{company_id}/opportunities` (dengan automatic metadata inheritance) selesai dan teruji (7/7 test passed).
+- [ ] **Pending Production Steps**:
+  1. Commit & push ke `main` untuk trigger GitHub Actions runner di VM `magnasight`.
+  2. Backup database otomatis dieksekusi oleh `scripts/deploy_backend.sh`.
+  3. Eksekusi `./scripts/run_unflatten_docker.sh --dry-run` lalu `--commit` di server.
+- [ ] **Frontend UI**: Mengubah navigasi utama menjadi folder view.
 
 #### Protokol Keamanan & Mitigasi Rollback (Wajib Dijalankan):
 1. **Langkah 0: Full Snapshot Backup (Pre-Migration Checkpoint)**

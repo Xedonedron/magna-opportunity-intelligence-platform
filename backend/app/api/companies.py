@@ -1,0 +1,326 @@
+from __future__ import annotations
+
+import re
+import uuid
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
+from sqlalchemy import func as sa_func, desc
+
+from app.core.database import get_db
+from app.models.user import User
+from app.models.company import Company
+from app.models.opportunity import Opportunity, TimelineEvent
+from app.models.meeting import Meeting
+from app.schemas.company import (
+    CompanyCreate,
+    CompanyUpdate,
+    CompanyResponse,
+    CompanyDetailResponse,
+    CompanyListResponse,
+    CompanyOpportunityCreate,
+)
+from app.schemas.opportunity import OpportunityResponse
+from app.core.security import get_current_user, require_capability
+from app.services.notification_service import NotificationService
+from app.tasks import (
+    send_opportunity_created_notification,
+    run_kyc_pipeline_task,
+)
+
+router = APIRouter(tags=["companies"])
+
+# Legal regex for canonical normalized name
+LEGAL_PREFIX_RE = re.compile(r"^(pt\.?|cv\.?|ud\.?|yayasan|koperasi|perum)\s+", re.IGNORECASE)
+LEGAL_SUFFIX_RE = re.compile(r"\s+(tbk\.?|\(persero\)|persero|ltd\.?|inc\.?|llc\.?)$", re.IGNORECASE)
+PUNCTUATION_RE = re.compile(r"[^\w\s]")
+
+
+def compute_normalized_name(name: str) -> str:
+    key = name.strip().lower()
+    key = LEGAL_PREFIX_RE.sub("", key).strip()
+    key = LEGAL_SUFFIX_RE.sub("", key).strip()
+    key = PUNCTUATION_RE.sub(" ", key)
+    key = re.sub(r"\s+", " ", key).strip()
+    return key or name.strip().lower()
+
+
+@router.get("", response_model=CompanyListResponse)
+async def list_companies(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    search: Optional[str] = None,
+    industry: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """List companies with pagination, search, and opportunity counts."""
+    query = db.query(Company)
+
+    if search:
+        search_clean = f"%{search.strip().lower()}%"
+        query = query.filter(
+            sa_func.lower(Company.name).like(search_clean)
+            | sa_func.lower(Company.normalized_name).like(search_clean)
+            | sa_func.lower(Company.industry).like(search_clean)
+        )
+
+    if industry:
+        query = query.filter(Company.industry == industry)
+
+    total = query.count()
+
+    companies = (
+        query.order_by(desc(Company.created_at))
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+
+    items = []
+    for c in companies:
+        resp = CompanyResponse(
+            id=c.id,
+            name=c.name,
+            normalized_name=c.normalized_name,
+            website=c.website,
+            industry=c.industry,
+            business_process=c.business_process,
+            employee_count=c.employee_count,
+            tech_stack=c.tech_stack,
+            opportunities_count=len(c.opportunities),
+            created_at=c.created_at,
+            updated_at=c.updated_at,
+        )
+        items.append(resp)
+
+    return CompanyListResponse(
+        items=items,
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.post("", response_model=CompanyResponse, status_code=status.HTTP_201_CREATED)
+async def create_company(
+    data: CompanyCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_capability("create_edit")),
+):
+    """Create a new company folder."""
+    norm_name = compute_normalized_name(data.name)
+
+    # Check if duplicate company exists
+    existing = db.query(Company).filter(Company.normalized_name == norm_name).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Company with similar name already exists: '{existing.name}' (id: {existing.id})",
+        )
+
+    company = Company(
+        name=data.name.strip(),
+        normalized_name=norm_name,
+        website=data.website,
+        industry=data.industry,
+        business_process=data.business_process,
+        employee_count=data.employee_count,
+        tech_stack=data.tech_stack or [],
+    )
+    db.add(company)
+    db.commit()
+    db.refresh(company)
+
+    return CompanyResponse(
+        id=company.id,
+        name=company.name,
+        normalized_name=company.normalized_name,
+        website=company.website,
+        industry=company.industry,
+        business_process=company.business_process,
+        employee_count=company.employee_count,
+        tech_stack=company.tech_stack,
+        opportunities_count=0,
+        created_at=company.created_at,
+        updated_at=company.updated_at,
+    )
+
+
+@router.get("/{company_id}", response_model=CompanyDetailResponse)
+async def get_company(
+    company_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get company detail including its list of child opportunities."""
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    opp_responses = [
+        OpportunityResponse.model_validate(opp)
+        for opp in company.opportunities
+    ]
+
+    return CompanyDetailResponse(
+        id=company.id,
+        name=company.name,
+        normalized_name=company.normalized_name,
+        website=company.website,
+        industry=company.industry,
+        business_process=company.business_process,
+        employee_count=company.employee_count,
+        tech_stack=company.tech_stack,
+        opportunities_count=len(company.opportunities),
+        created_at=company.created_at,
+        updated_at=company.updated_at,
+        opportunities=opp_responses,
+    )
+
+
+@router.patch("/{company_id}", response_model=CompanyResponse)
+async def update_company(
+    company_id: uuid.UUID,
+    data: CompanyUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_capability("create_edit")),
+):
+    """Update company details."""
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    update_dict = data.model_dump(exclude_unset=True)
+
+    if "name" in update_dict and update_dict["name"]:
+        update_dict["name"] = update_dict["name"].strip()
+        update_dict["normalized_name"] = compute_normalized_name(update_dict["name"])
+
+    for k, v in update_dict.items():
+        setattr(company, k, v)
+
+    db.commit()
+    db.refresh(company)
+
+    return CompanyResponse(
+        id=company.id,
+        name=company.name,
+        normalized_name=company.normalized_name,
+        website=company.website,
+        industry=company.industry,
+        business_process=company.business_process,
+        employee_count=company.employee_count,
+        tech_stack=company.tech_stack,
+        opportunities_count=len(company.opportunities),
+        created_at=company.created_at,
+        updated_at=company.updated_at,
+    )
+
+
+@router.delete("/{company_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_company(
+    company_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_capability("delete")),
+):
+    """Delete a company and its child opportunities."""
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    db.delete(company)
+    db.commit()
+    return None
+
+
+@router.post("/{company_id}/opportunities", response_model=OpportunityResponse, status_code=status.HTTP_201_CREATED)
+async def create_company_opportunity(
+    company_id: uuid.UUID,
+    data: CompanyOpportunityCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_capability("create_edit")),
+):
+    """Create a new child opportunity nested under a company.
+    Automatically inherits company name, website, and industry from the parent company folder.
+    """
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Parent company not found")
+
+    # Inherit and construct company_name & product
+    deal_title = data.deal_title.strip() if data.deal_title else None
+    product = data.product or deal_title or "General Solution"
+    
+    # Store clean company name, or with deal title suffix for backward compat
+    eff_company_name = company.name
+
+    opportunity = Opportunity(
+        company_id=company.id,
+        company_name=eff_company_name,
+        contact_name=data.contact_name,
+        website=company.website,
+        email=data.email,
+        phone=data.phone,
+        industry=company.industry,
+        product=product,
+        customer_needs=data.customer_needs,
+        additional_notes=data.additional_notes,
+        potential_revenue=data.potential_revenue,
+        estimated_agenda_date=data.estimated_agenda_date,
+        meeting_schedule=data.meeting_schedule,
+        assigned_engineer=data.assigned_engineer,
+        created_by=current_user.id,
+        status=data.status or "New",
+    )
+    db.add(opportunity)
+    db.flush()
+
+    # Create meeting record if schedule provided
+    if data.meeting_schedule:
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        m_dt = data.meeting_schedule if data.meeting_schedule.tzinfo else data.meeting_schedule.replace(tzinfo=timezone.utc)
+        opportunity.status = "Meeting Scheduled" if m_dt > now else "Meeting Done"
+
+        initial_meeting = Meeting(
+            opportunity_id=opportunity.id,
+            title=f"Initial Discovery Call - {company.name} ({product})",
+            date=data.meeting_schedule,
+            location="Online / Google Meet",
+            notes=f"Initial meeting for {company.name} > {product}.",
+            created_by=current_user.id,
+        )
+        db.add(initial_meeting)
+
+    # Log timeline event
+    timeline_event = TimelineEvent(
+        opportunity_id=opportunity.id,
+        actor_id=current_user.id,
+        actor_name=current_user.full_name,
+        action="Opportunity Created",
+        description=f"Opportunity for {company.name} ({product}) was created under folder '{company.name}'.",
+        event_type="create",
+    )
+    db.add(timeline_event)
+
+    # Dispatch notification
+    NotificationService.notify_opportunity_created(
+        db, opportunity, actor_id=current_user.id
+    )
+
+    db.commit()
+    db.refresh(opportunity)
+
+    # Trigger async notifications and kyc
+    try:
+        send_opportunity_created_notification.delay(str(opportunity.id))
+    except Exception:
+        pass
+
+    try:
+        run_kyc_pipeline_task.delay(str(opportunity.id))
+    except Exception:
+        pass
+
+    return OpportunityResponse.model_validate(opportunity)

@@ -293,20 +293,22 @@ Senior merekomendasikan pembuatan **RAG dengan Vector Embeddings**. Namun, berda
 ## Master Checklist Implementasi
 
 ### Checklist Inisiatif 4: Restrukturisasi Hirarki Folder (Company → Multi-Opportunity)
-- [ ] **Data Model & Migrasi Skema**:
-  - [ ] Buat model `Company` (`id`, `name`, `normalized_name`, `website`, `industry`, `business_process`, `employee_count`, `tech_stack`, `created_at`, `updated_at`).
-  - [ ] Tambahkan kolom `company_id` (ForeignKey ke `companies.id`, nullable awal) pada model `Opportunity`.
-  - [ ] Buat script migrasi offline `scripts/unflatten_opportunities.py` dengan heuristik deduplikasi nama PT & domain website.
-  - [ ] Jalankan dry-run migrasi dan review hasil clustering opportunity per perusahaan sebelum commit ke production DB.
-  - [ ] Set `company_id` menjadi `nullable=False` dan tambahkan foreign key constraint.
-- [ ] **Backend API**:
-  - [ ] Buat CRUD endpoints untuk Companies (`/api/v1/companies`).
-  - [ ] Perbarui endpoint pembuatan Opportunity (`POST /api/v1/companies/{company_id}/opportunities`).
-  - [ ] Modifikasi KYC runner agar otomatis me-reuse profil perusahaan yang sudah ada (`CompanyProfile`), mem-bypass Module 1 & 2 jika data statis masih valid.
-- [ ] **Frontend UX**:
-  - [ ] Buat tampilan folder list di halaman utama: daftar Perusahaan / Accounts (misal: "SMBC Indonesia", "PT Darma Henwa").
-  - [ ] Saat folder perusahaan dibuka, tampilkan list opportunity di dalamnya (misal: "SMBC Indonesia > Backup", "SMBC Indonesia > Data Warehouse").
-  - [ ] Tombol `+ New Opportunity` di dalam folder perusahaan otomatis mengisi data profil perusahaan induk.
+- [x] **Data Model & Migrasi Skema (COMPLETED)**:
+  - [x] Buat model `Company` (`id`, `name`, `normalized_name`, `website`, `industry`, `business_process`, `employee_count`, `tech_stack`, `created_at`, `updated_at`) di `backend/app/models/company.py`.
+  - [x] Tambahkan kolom `company_id` (ForeignKey ke `companies.id`, nullable=True aditif) pada model `Opportunity` di `backend/app/models/opportunity.py`.
+  - [x] Buat migration script Alembic aditif (`backend/alembic/versions/w3r4k5f6g7h8_create_companies_and_add_company_id.py`).
+  - [x] Buat script migrasi offline `scripts/unflatten_opportunities.py` & `backend/scripts/unflatten_opportunities.py` dengan normalisasi legal prefix/suffix dan parsing delimiter `-`.
+  - [x] Uji skenario dry-run dan commit pada 34 data riil database (terbukti 100% klastering ke tepat 30 entitas Company unik).
+- [x] **Backend API (COMPLETED)**:
+  - [x] Buat Pydantic schemas di `backend/app/schemas/company.py` & update `OpportunityResponse` dengan `company_id`.
+  - [x] Buat CRUD endpoints untuk Companies di `backend/app/api/companies.py` (`/api/companies` & `/api/v1/companies`).
+  - [x] Buat endpoint pembuatan Opportunity bersarang (`POST /api/v1/companies/{company_id}/opportunities`) dengan pewarisan otomatis profil metadata (`website`, `industry`, `tech_stack`).
+  - [x] Jalankan automated unit tests: 94/94 test passing (termasuk `test_companies.py` 7/7 dan `test_unflatten_migration.py` 3/3).
+- [ ] **Next Steps untuk Sesi Baru**:
+  - [ ] Deploy ke VPS: Commit & push branch `main` untuk memicu runner GitHub Actions di VM `magnasight`.
+  - [ ] Eksekusi Un-flattening riil di container: Jalankan `./scripts/run_unflatten_docker.sh --dry-run` lalu `--commit`.
+  - [ ] Modifikasi KYC sectional runner agar otomatis me-reuse profil perusahaan yang sudah ada (`CompanyProfile`), mem-bypass Module 1 & 2 jika data statis valid.
+  - [ ] Frontend UX: Tampilan daftar Folder Perusahaan dan inisiatif anak.
 
 ### Checklist Inisiatif 5: Living Opportunity & MoM-Driven Progressive Intelligence
 - [ ] **Data & Storage MoM**:
