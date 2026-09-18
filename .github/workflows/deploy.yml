@@ -26,44 +26,49 @@ jobs:
     name: Deploy Backend & Celery on VPS
     runs-on: self-hosted
     steps:
-            - name: Update and Deploy Backend
+      - name: Update and Deploy Backend
         run: |
           set -e
           echo "========================================================"
           echo "🚀 Menerima trigger CI/CD untuk Commit: $GITHUB_SHA"
           echo "========================================================"
 
-          # Auto-detect lokasi folder MOIP
+          # 1. Deteksi otomatis direktori project MOIP di server
           TARGET_DIR=""
-          for candidate in \
-            "/root/magna-opportunity-intelligence-platform" \
-            "/magna-opportunity-intelligence-platform" \
-            "$HOME/magna-opportunity-intelligence-platform" \
-            "/root/projects/magna-opportunity-intelligence-platform" \
-            "/home/robi_firmansyah/magna-opportunity-intelligence-platform"; do
-            if [ -d "$candidate" ] && [ -f "$candidate/docker-compose.yml" ]; then
-              TARGET_DIR="$candidate"
+          CANDIDATES=(
+            "/root/magna-opportunity-intelligence-platform"
+            "/magna-opportunity-intelligence-platform"
+            "/root/projects/magna-opportunity-intelligence-platform"
+            "$HOME/magna-opportunity-intelligence-platform"
+            "/home/robi_firmansyah/magna-opportunity-intelligence-platform"
+          )
+
+          for dir in "${CANDIDATES[@]}"; do
+            if [ -d "$dir" ] && [ -f "$dir/docker-compose.yml" ]; then
+              TARGET_DIR="$dir"
               break
             fi
           done
 
-          # Jika masih belum ketemu, cari file docker-compose.yml MOIP
+          # Fallback: scan direktori jika path kandidat di atas belum cocok
           if [ -z "$TARGET_DIR" ]; then
-            TARGET_DIR=$(find /root /home /var/www / -maxdepth 3 -name "docker-compose.yml" -path "*magna*" 2>/dev/null | head -1 | xargs -r dirname || true)
+            TARGET_DIR=$(find /root /home / -maxdepth 3 -name "docker-compose.yml" -path "*magna*" 2>/dev/null | head -1 | xargs -r dirname || true)
           fi
 
           if [ -z "$TARGET_DIR" ] || [ ! -d "$TARGET_DIR" ]; then
-            echo "❌ Error: Folder project MOIP tidak ditemukan di server!"
+            echo "❌ Error: Direktori project MOIP tidak ditemukan di server!"
             exit 1
           fi
 
           echo "📁 Ditemukan di direktori: $TARGET_DIR"
           cd "$TARGET_DIR"
 
+          # 2. Ambil update kode terbaru
           echo "📥 Mengambil perubahan terbaru dari Git..."
           git fetch origin main
           git pull origin main
 
+          # 3. Jalankan otomasi deployment backend & celery
           echo "⚙️ Menjalankan script deployment..."
           chmod +x scripts/deploy_backend.sh
           NO_CACHE="${{ github.event.inputs.no_cache || 'false' }}" bash scripts/deploy_backend.sh
