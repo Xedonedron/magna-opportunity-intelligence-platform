@@ -7,10 +7,14 @@ Dokumen ini merangkum rencana arsitektur dan peningkatan strategis untuk platfor
 ---
 
 ## Daftar Isi
-1. [Inisiatif 1: Generation by Section & Native Structured Output](#inisiatif-1-generation-by-section--native-structured-output)
+1. [Inisiatif 1: Generation by Section & Native Structured Output (Implemented)](#inisiatif-1-generation-by-section--native-structured-output)
 2. [Inisiatif 2: Penyempurnaan Target Personas (UX & Schema)](#inisiatif-2-penyempurnaan-target-personas-ux--schema)
 3. [Inisiatif 3: RAG & Vector Embeddings untuk Magna Solutions Catalog](#inisiatif-3-rag--vector-embeddings-untuk-magna-solutions-catalog)
-4. [Rencana Fase Eksekusi & Prioritas](#rencana-fase-eksekusi--prioritas)
+4. [Inisiatif 4: Restrukturisasi Hirarki Entitas (Company/Account → Multi-Opportunity Folder Model)](#inisiatif-4-restrukturisasi-hirarki-entitas-companyaccount--multi-opportunity-folder-model)
+5. [Inisiatif 5: Living Opportunity Lifecycle & MoM-Driven Progressive Intelligence](#inisiatif-5-living-opportunity-lifecycle--mom-driven-progressive-intelligence)
+6. [Inisiatif 6: Digitalisasi Internal Sales Playbook & "How-to" Presales Framework](#inisiatif-6-digitalisasi-internal-sales-playbook--how-to-presales-framework)
+7. [Inisiatif 7: Katalog Produk Terstruktur & Analisis Pragmatis (RAG Vector vs. Metadata Filtering)](#inisiatif-7-katalog-produk-terstruktur--analisis-pragmatis-rag-vector-vs-metadata-filtering)
+8. [Rencana Fase Eksekusi & Prioritas](#rencana-fase-eksekusi--prioritas)
 
 ---
 
@@ -146,13 +150,143 @@ Katalog solusi resmi SMG wajib ditambahkan 2 kartu solusi strategis:
 
 ---
 
-## Rencana Fase Eksekusi & Prioritas
+## Inisiatif 4: Restrukturisasi Hirarki Entitas (Company/Account → Multi-Opportunity Folder Model)
+
+### 4.1 Latar Belakang & Akar Masalah
+Saat ini, seluruh entitas opportunity di MOIP dilebur (*flattened*) dengan acuan utama `company_name`:
+- **Masalah Versi vs Inisiatif**: Versioning (`v1`, `v2`, `v3`) secara semantik dirancang untuk **drift informasi seiring waktu** pada satu inisiatif bisnis yang sama.
+- **Konflik Multi-Opportunity**: Ketika satu klien besar (misal: PT Telkom, PT Darma Henwa, atau Bank Mandiri) memiliki beberapa proyek/kebutuhan terpisah (misal: Proyek 1 = Cloud Infrastructure Migration; Proyek 2 = Predictive Maintenance IoT; Proyek 3 = Big Data Warehouse), sistem saat ini memaksa user membuat opportunity baru yang mengulang riset perusahaan dari nol atau salah memanfaatkan versi untuk membedakan proyek.
+
+### 4.2 Desain Arsitektur Baru: Model Folder (Account Hierarchy)
+
+```mermaid
+graph TD
+    subgraph Layer 1: Account / Company Level (Folder Induk)
+        Comp[Company Profile: PT Darma Henwa]
+        CompInfo[Informasi Statis / Minim Berubah:
+        - Industri & Sub-Sektor
+        - Proses Bisnis Inti & Model Operasional
+        - Estimasi Skala & Jumlah Karyawan
+        - Profil Eksekutif & Stakeholder Kunci
+        - Jejak Teknologi / Tech Footprint Umum]
+        Comp --> CompInfo
+    end
+
+    subgraph Layer 2: Opportunities / Deals (Proyek Terpisah)
+        Comp --> Opp1[Opportunity A: Fleet Predictive Maintenance]
+        Comp --> Opp2[Opportunity B: On-Premise Data Mart Modernization]
+        Comp --> Opp3[Opportunity C: Network SD-WAN Integration]
+    end
+
+    subgraph Layer 3: Living KYC & Longitudinal Tracking
+        Opp1 --> KYC_A1[v1: Initial Discovery]
+        Opp1 --> MoM1[Input MoM Meeting 1]
+        MoM1 --> KYC_A2[v2: Deep Scoping & Technical Architecture]
+    end
+```
+
+### 4.3 Keuntungan Konkret & Optimasi Token:
+1. **Zero Redundant KYC**: Saat user membuat Opportunity baru pada perusahaan yang sudah terdaftar, backend langsung mewarisi (*inherit*) data Company Profile & Industry Analysis tanpa perlu memicu scraping web, riset Google, atau eksekusi LLM Module 1 & 2 dari nol.
+2. **Penghematan Token & Latensi**: Menghemat **~40% s/d 60% token konsumsi** per opportunity baru di bawah satu perusahaan yang sama, serta memangkas waktu generasi pipeline hingga separuhnya.
+3. **Data Integrity**: Profil perusahaan di-maintain sebagai *Single Source of Truth* yang bisa di-refresh secara berkala (misal: per semester/kuartal), terpisah dari status deal opportunity yang dinamis.
+
+---
+
+## Inisiatif 5: Living Opportunity Lifecycle & MoM-Driven Progressive Intelligence
+
+### 5.1 Mengubah Paradigma: Dari "One-Off App" Menjadi "Living Deal Assistant"
+Saat ini MOIP rentan dianggap sebagai aplikasi sekali pakai (*one-off tool*) karena rekomendasi use case dan pertanyaan discovery hanya difokuskan pada pertemuan pertama (*first/initial meeting*). Begitu meeting pertama selesai, platform kehilangan relevansi.
+
+### 5.2 Alur Progresif Berbasis MoM (Minutes of Meeting)
+Untuk menjadikannya asisten presales berkelanjutan sepanjang siklus deal (*sales cycle*):
+1. **Input MoM Terstruktur (Text / Markdown / Audio Transcript)**:
+   - Fitur dokumen yang saat ini berupa drop link Google Drive ditingkatkan dengan editor teks/markdown langsung untuk mencatat Minutes of Meeting (MoM), feedback klien, dan poin kesepakatan.
+2. **Contextual Progressive Versioning**:
+   - **Version 1 (Pre-Meeting / Initial)**: Menghasilkan pertanyaan eksploratif makro (*broad qualification*, identifikasi *latent pain points*, pemetaan stakeholder).
+   - **Meeting Execution**: Sales/Presales menjalankan meeting berbekal panduan v1, lalu menginput MoM ke dalam platform.
+   - **Version 2 (Post-Meeting / Deep Scoping)**: Pipeline membaca MoM terbaru. Sistem tidak lagi menanyakan *"Berapa jumlah server Anda?"*, melainkan menghasilkan analisis lanjutan:
+     - Mengidentifikasi *objections* klien yang muncul di MoM.
+     - Merevisi use case solusi sesuai limitasi anggaran/infrastruktur yang diungkapkan klien.
+     - Menghasilkan daftar pertanyaan teknis lanjutan (*deep-dive architecture checklist*) untuk meeting tahap kedua dengan tim teknis klien.
+
+---
+
+## Inisiatif 6: Digitalisasi Internal Sales Playbook & "How-to" Presales Framework
+
+### 6.1 Latar Belakang: Menangkap Institutional Knowledge
+Tim internal Magna telah memiliki playbook/framework teruji yang selama ini dicatat manual (buku/handwritten):
+- Pertanyaan kunci yang **terbukti efektif memenangkan deal** di tiap awal meeting.
+- Pola dialog untuk menggali kebutuhan laten klien (*probing scripts*).
+- Teknik *bridging* (menjembatani keluhan operasional klien ke solusi yang bisa diimplementasikan Magna).
+- Panduan pitching taktis sesuai persona lawan bicara (C-Level vs Head of IT vs Ops).
+
+### 6.2 Alur Digitalisasi & Integrasi ke Sistem
+```mermaid
+flowchart LR
+    Handwritten[Buku / Catatan Manual Tim] --> Scan[Scan PDF Beresolusi Tinggi]
+    Scan --> OCR[OCR & Pembersihan Teks]
+    OCR --> StructuredKB[Playbook Terstruktur: Markdown & JSON Rules]
+    StructuredKB --> SystemPrompt[Injeksi ke Prompt Module 4 & 5]
+    SystemPrompt --> OpinionatedKYC[Output Rekomendasi Khas Magna]
+```
+
+1. **Digitalisasi**: Catatan tangan di-scan ke PDF $\rightarrow$ diproses menjadi Markdown terstruktur di repositori knowledge internal (`backend/app/data/playbook/`).
+2. **Transformasi Nilai**: MOIP bertransformasi dari sekadar agregator artikel marketing generik menjadi **asisten strategis yang mengadopsi insting dan metodologi konsultan presales terbaik Magna**.
+
+---
+
+## Inisiatif 7: Katalog Produk Terstruktur & Analisis Pragmatis (RAG Vector vs. Metadata Filtering)
+
+### 7.1 Skema Metadata Katalog Produk Terstruktur
+Seluruh produk dan portofolio solusi (Google Cloud Platform, Google Workspace, Google Maps Platform, Network, Data Analytics, Infra, AI/ML, Open Source) distandarisasi ke dalam skema katalog kaya metadata:
+
+| Field | Tipe | Contoh Nilai / Deskripsi |
+|---|---|---|
+| `product_id` | string | `gcp-bigquery`, `magna-edw-greenplum`, `gws-enterprise` |
+| `name` | string | On-Premise EDW with Greenplum Database |
+| `vendor_partner` | string | VMware Tanzu / Dell / Google / Cisco |
+| `solution_domain` | string | `Data & Analytics`, `Cloud & Infra`, `Workplace`, `Networking`, `AI` |
+| `deployment_modes` | list[enum] | `["on_prem", "hybrid"]` atau `["cloud"]` |
+| `target_personas` | list[string] | `["CIO", "Head of Data", "VP Infrastructure"]` |
+| `pain_point_triggers`| list[string] | `["biaya egress cloud membengkak", "kepatuhan residensi data OJK", "query reporting lambat"]` |
+| `bridging_dialogue` | string | Panduan kalimat transisi dari masalah klien ke penawaran produk ini |
+| `collateral_references`| list[dict] | Artikel marketing, success story, atau proposal referensi yang pernah dikerjakan |
+
+### 7.2 Evaluasi Kritis: RAG Vector Embeddings vs. Deterministic Metadata Filtering + LLM In-Context
+
+Senior merekomendasikan pembuatan **RAG dengan Vector Embeddings**. Namun, berdasarkan prinsip rekayasa sistem yang pragmatis (*essential-first optimization*), kita harus mengevaluasi trade-off secara objektif:
+
+#### Perbandingan Pendekatan:
+
+| Parameter | Pendekatan RAG Vector Penuh | Pendekatan Pragmatis: Metadata Filtering + In-Context Prompt |
+|---|---|---|
+| **Kompleksitas Infra** | Tinggi (Butuh vector DB/pgvector, embedding model lifecycle, chunking, indexing pipeline) | **Sangat Rendah** (JSON/Database relational biasa, zero new infrastructure) |
+| **Akurasi Filtering (Zero False Positive)** | Rawan (Cosine similarity sering menarik artikel cloud untuk klien yang wajib on-prem jika kemiripan semantik tinggi) | **100% Deterministik** (Hard constraints: `deployment_mode == 'on_prem'` mutlak tidak akan memasukkan produk cloud murni) |
+| **Skala Data Saat Ini** | Overkill untuk katalog portofolio berjumlah 30–60 produk dan 1 buku playbook | **Sangat Pas** (Katalog 50 produk hanya memakan ~6.000–8.000 token; pas dalam context window LLM modern) |
+| **Pemanfaatan Context & Cache** | Tidak memanfaatkan prompt cache secara optimal karena potongan teks bervariasi | **Optimal**: Memanfaatkan Google Gemini context caching (prompt cache hit rate mencapai **>80%**, biaya per token turun drastis) |
+| **Titik Kegagalan (Point of Failure)** | Tambahan latensi embedding API call + risiko kegagalan koneksi DB vektor | **Nol risiko runtime baru**, eksekusi in-memory langsung |
+
+#### Rekomendasi Arsitektural:
+1. **Fase 1 (Pragmatic First - Saat Ini)**:
+   - Gunakan **Deterministic Metadata Filter + In-Context Injection**.
+   - Saring kandidat produk berdasarkan: Industri klien, preferensi deployment (*on-prem / cloud / hybrid*), dan domain kebutuhan.
+   - Masukkan katalog yang relevan beserta Playbook rules langsung ke prompt Module 4 & 5. Dengan context window besar (Gemini / Claude) dan prompt caching, pendekatan ini jauh lebih cepat, akurat, dan anti-halusinasi.
+2. **Fase 2 (Hybrid RAG - Saat Skala Menuntut)**:
+   - Jika dokumen pendukung internal (whitepapers, proposal teknis lampau, MoM historis ribuan halaman) sudah mencapai ratusan dokumen tak terstruktur, barulah terapkan *in-memory cosine similarity* dengan embedding ringan (`text-embedding-004`) secara bertahap.
+
+---
+
+## Rencana Fase Eksekusi & Prioritas (Updated)
 
 | No | Inisiatif | Estimasi Kompleksitas | Komponen Terdampak | Prioritas |
 |---|---|---|---|---|
-| 1 | **Katalog RAG & Solusi Greenplum/SQL Server** | Menengah | `backend` (`solutions_catalog.py`, `embedding_service.py`, data kartu) | **Tinggi (P1)** |
-| 2 | **Penyempurnaan Target Personas (Others & Subtitle)** | Rendah - Menengah | `frontend` (`TargetPersonaTab.tsx`), `backend` (`persona_service.py`) | **Tinggi (P1)** |
-| 3 | **Sectional KYC Generation & Structured Output** | Menengah - Tinggi | `backend` (`kyc_pipeline.py`, schema Pydantic) | **Strategis (P2)** |
+| 1 | **Sectional KYC Generation & Structured Output** | Selesai | `backend` (`kyc_sectional_runner.py`, `kyc_invoker.py`, `schemas/kyc.py`) | **COMPLETED** |
+| 2 | **Katalog Produk Terstruktur & Metadata Rules (Fase 1)** | Rendah - Menengah | `backend` (`data/products_catalog.json`, prompt Module 4) | **Tinggi (P1)** |
+| 3 | **Digitalisasi Playbook Internal ke Structured Knowledge** | Rendah (Data) | OCR scanning, `backend/app/data/playbook/`, prompt Module 5 | **Tinggi (P1)** |
+| 4 | **Restrukturisasi Hirarki: Company → Multi-Opportunity** | Menengah | Database Schema (`models/`), API endpoints, Frontend UI Navigation | **Tinggi (P1)** |
+| 5 | **Living Opportunity: Input MoM & Dynamic Re-KYC (v2+)** | Menengah | `models/`, `kyc_pipeline.py`, Frontend Document & MoM tab | **Menengah (P2)** |
+| 6 | **Penyempurnaan Target Personas (Others & Subtitle)** | Rendah | `frontend` (`TargetPersonaTab.tsx`), `backend` (`persona_service.py`) | **Menengah (P2)** |
+| 7 | **Hybrid Vector RAG untuk Unstructured Historical Proposal** | Menengah - Tinggi | `pgvector` / in-memory embeddings, retrieval service | **Jangka Panjang (P3)** |
 
 ---
 *Dokumen ini merupakan acuan resmi untuk iterasi pengembangan berikutnya di MOIP.*
