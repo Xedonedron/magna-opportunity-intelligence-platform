@@ -12,6 +12,7 @@ from app.core.celery_app import celery_app
 from app.core.database import SessionLocal
 from app.models.notification import Notification
 from app.models.opportunity import Opportunity
+from app.models.company import Company
 from app.models.user import User
 from app.services.email_service import email_service
 from app.services.calendar_service import calendar_service
@@ -285,6 +286,50 @@ def run_kyc_pipeline_task(
         update_progress("received", 15)
         time.sleep(1.5)
 
+        # Check for company profile to reuse (Zero-Redundant KYC)
+        effective_company_id = opportunity.company_id
+        existing_company_profile = None
+
+        if not effective_company_id and opportunity.company_name:
+            from app.api.companies import compute_normalized_name
+            norm_name = compute_normalized_name(opportunity.company_name)
+            matched_company = db.query(Company).filter(
+                (Company.normalized_name == norm_name) |
+                (Company.normalized_name == f"{norm_name} indonesia") |
+                (Company.normalized_name == norm_name.removesuffix(" indonesia").strip())
+            ).first()
+            if matched_company:
+                effective_company_id = matched_company.id
+                opportunity.company_id = matched_company.id
+                db.commit()
+
+        if effective_company_id:
+            prior_kyc = (
+                db.query(KYCReport)
+                .join(Opportunity, Opportunity.id == KYCReport.opportunity_id)
+                .filter(
+                    Opportunity.company_id == effective_company_id,
+                    KYCReport.status == "completed",
+                    KYCReport.company_overview.isnot(None),
+                )
+                .order_by(KYCReport.completed_at.desc(), KYCReport.created_at.desc())
+                .first()
+            )
+            if prior_kyc and prior_kyc.company_overview:
+                existing_company_profile = {
+                    "company_overview": prior_kyc.company_overview,
+                    "industry_analysis": prior_kyc.industry_analysis,
+                    "competitor_analysis": prior_kyc.competitor_analysis or [],
+                    "business_model": prior_kyc.business_model or "",
+                    "company_location": prior_kyc.company_location or "",
+                    "source_opportunity_id": str(prior_kyc.opportunity_id),
+                    "source_kyc_version": prior_kyc.version,
+                }
+                logger.info(
+                    f"[KYC Task] Found existing completed KYC profile for Company {effective_company_id} "
+                    f"from Opportunity {prior_kyc.opportunity_id} (v{prior_kyc.version}). Reusing Module 1 & 2."
+                )
+
         # Run the async pipeline with in-place retry for transient errors
         effective_focus = focus_notes or (kyc_report.focus_notes if kyc_report else None)
         max_task_retries = 3
@@ -314,6 +359,8 @@ def run_kyc_pipeline_task(
                         source_type=source_type,
                         focus_notes=effective_focus,
                         model_name=model_name,
+                        company_id=str(effective_company_id) if effective_company_id else None,
+                        existing_company_profile=existing_company_profile,
                     )
                 )
             except Exception as task_exc:
@@ -356,14 +403,29 @@ def run_kyc_pipeline_task(
             opportunity.status = "Ready Meeting"
 
             # Add timeline event
+            reused_flag = result.get("reused_company_profile", False)
+            desc = "AI KYC report generated successfully."
+            if reused_flag:
+                desc = "AI KYC report generated successfully (reused verified company profile - Modules 1 & 2 cached)."
+
             timeline_complete = TimelineEvent(
                 opportunity_id=opportunity.id,
                 actor_name="System",
                 action=f"KYC Completed (v{next_version})",
-                description="AI KYC report generated successfully.",
+                description=desc,
                 event_type="system",
             )
             db.add(timeline_complete)
+
+            # Auto-enrich Company business process & industry if empty
+            if effective_company_id:
+                comp_rec = db.query(Company).filter(Company.id == effective_company_id).first()
+                if comp_rec:
+                    if not comp_rec.industry and opportunity.industry:
+                        comp_rec.industry = opportunity.industry
+                    if not comp_rec.business_process and result.get("business_model"):
+                        comp_rec.business_process = str(result["business_model"])
+                    db.add(comp_rec)
 
             # In-app notifications for all stakeholders & superadmins
             NotificationService.notify_kyc_completed(

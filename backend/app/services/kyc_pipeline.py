@@ -51,6 +51,10 @@ class KYCState(TypedDict):
     source_type: Optional[str]
     focus_notes: Optional[str]
     model_name: Optional[str]
+    company_id: Optional[str]
+    existing_company_profile: Optional[dict]
+    reused_company_profile: Optional[bool]
+    deployment_preference: Optional[str]
 
     # Intermediate results
     search_results: dict
@@ -208,26 +212,34 @@ async def research_node(state: KYCState, config: Optional[RunnableConfig] = None
     logger.info(f"[KYC Pipeline] Research node: {state['company_name']}")
     await _update_progress(config, "fetching_web", 40)
 
-    # Web search
-    search_results = web_search_service.search_company(
-        company_name=state["company_name"],
-        website=state.get("website"),
-    )
-
-    # Pre-verify live availability of search result links
-    if search_results.get("company_info"):
-        search_results["company_info"] = await link_verifier_service.filter_and_verify_sources(
-            search_results["company_info"], timeout=3.0
+    # Web search & crawling
+    existing_profile = state.get("existing_company_profile")
+    if existing_profile and existing_profile.get("company_overview"):
+        logger.info(
+            f"[KYC Pipeline] Research node: Reusing existing verified company profile for {state['company_name']}. Skipping redundant company web search."
         )
-    if search_results.get("news"):
-        search_results["news"] = await link_verifier_service.filter_and_verify_sources(
-            search_results["news"], timeout=3.0
+        search_results = {"company_answer": "", "company_info": [], "news": []}
+        website_content = None
+    else:
+        search_results = web_search_service.search_company(
+            company_name=state["company_name"],
+            website=state.get("website"),
         )
 
-    # Crawl website if available
-    website_content = None
-    if state.get("website"):
-        website_content = await web_crawler_service.crawl_website(state["website"])
+        # Pre-verify live availability of search result links
+        if search_results.get("company_info"):
+            search_results["company_info"] = await link_verifier_service.filter_and_verify_sources(
+                search_results["company_info"], timeout=3.0
+            )
+        if search_results.get("news"):
+            search_results["news"] = await link_verifier_service.filter_and_verify_sources(
+                search_results["news"], timeout=3.0
+            )
+
+        # Crawl website if available
+        website_content = None
+        if state.get("website"):
+            website_content = await web_crawler_service.crawl_website(state["website"])
 
     await _update_progress(config, "fetching_industry", 65)
 
@@ -305,6 +317,9 @@ async def run_kyc_pipeline(
     source_type: str = "automatic",
     focus_notes: Optional[str] = None,
     model_name: Optional[str] = None,
+    company_id: Optional[str] = None,
+    existing_company_profile: Optional[dict] = None,
+    deployment_preference: Optional[str] = None,
 ) -> dict[str, Any]:
     """Run the full KYC pipeline and return the report data.
 
@@ -331,6 +346,10 @@ async def run_kyc_pipeline(
         "source_type": source_type,
         "focus_notes": focus_notes,
         "model_name": model_name,
+        "company_id": company_id,
+        "existing_company_profile": existing_company_profile,
+        "reused_company_profile": False,
+        "deployment_preference": deployment_preference,
         "search_results": {},
         "website_content": None,
         "industry_use_cases": [],
@@ -373,6 +392,7 @@ async def run_kyc_pipeline(
             "recommended_questions": result.get("recommended_questions", {"business": [], "technical": []}),
             "preparation_checklist": result.get("preparation_checklist", []),
             "references": result.get("references", []),
+            "reused_company_profile": result.get("reused_company_profile", False),
             "model_name": model_name,
             "completed_at": datetime.now(timezone.utc).isoformat(),
         }

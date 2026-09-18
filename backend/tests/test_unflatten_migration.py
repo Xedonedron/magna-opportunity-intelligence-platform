@@ -190,3 +190,34 @@ def test_unflatten_dry_run_and_commit_in_db(db: Session, test_user: User):
     prodia_comp = db.query(Company).filter(Company.normalized_name == "prodia widyahusada").first()
     assert prodia_comp is not None
     assert len(prodia_comp.opportunities) == 3
+
+
+def test_consolidate_danone_subsidiary_variant():
+    """Verify 'Danone' and 'Danone Indonesia' automatically consolidate into 'Danone Indonesia' cluster."""
+    from scripts.unflatten_opportunities import cluster_opportunities, OpportunityRecord
+
+    recs = [
+        OpportunityRecord(
+            id="e05cd214-1111-2222-3333-444455556666",
+            company_name="Danone Indonesia",
+            industry="Food & Beverage",
+            customer_needs="F&B Supply Chain Analytics",
+        ),
+        OpportunityRecord(
+            id="9a7d081f-1111-2222-3333-444455556666",
+            company_name="Danone",
+            industry="Food & Beverage",
+            customer_needs="Enterprise Cloud & Workplace Modernization",
+            assigned_engineer="Devi",
+        ),
+    ]
+
+    clusters = cluster_opportunities(recs)
+    assert len(clusters) == 1
+    assert "danone indonesia" in clusters
+    danone_cluster = clusters["danone indonesia"]
+    assert danone_cluster.chosen_name == "Danone Indonesia"
+    assert len(danone_cluster.opportunities) == 2
+    opp_ids = {o.id for o in danone_cluster.opportunities}
+    assert "e05cd214-1111-2222-3333-444455556666" in opp_ids
+    assert "9a7d081f-1111-2222-3333-444455556666" in opp_ids

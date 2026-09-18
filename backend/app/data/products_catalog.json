@@ -1,0 +1,558 @@
+[
+  {
+    "product_id": "magna-edw-greenplum",
+    "name": "On-Premise Enterprise Data Warehouse (EDW) with Greenplum Database",
+    "vendor_partner": "VMware Tanzu / Dell Technologies",
+    "solution_domain": "Data & Analytics",
+    "deployment_modes": ["on_prem"],
+    "target_personas": ["Head of Data", "Enterprise Data Architect", "CIO", "VP Engineering"],
+    "pain_point_triggers": [
+      "biaya egress cloud membengkak",
+      "kepatuhan residensi data OJK",
+      "kepatuhan regulasi Bank Indonesia",
+      "query reporting lambat",
+      "skala data 10 TB - 100 TB+",
+      "kebutuhan single source of truth on-premise",
+      "database OLTP terbebani query analitik",
+      "server fisik data warehouse lokal"
+    ],
+    "target_industries": ["Banking", "Financial Services", "Healthcare", "Government", "Insurance", "Manufacturing"],
+    "bridging_dialogue": "Jika Bapak/Ibu terkendala regulasi residensi data finansial atau biaya cloud egress yang terus membengkak, kami merekomendasikan arsitektur Greenplum MPP on-premise yang mampu mengeksekusi query kompleks skala 100 TB+ secara paralel tanpa data meninggalkan data center lokal.",
+    "collateral_references": [
+      {
+        "title": "On-Premise Enterprise Data Warehouse (EDW) with Greenplum Database",
+        "url": "https://smartnetmagna.com/solutions/greenplum-edw"
+      }
+    ]
+  },
+  {
+    "product_id": "mssql-modernization",
+    "name": "Microsoft SQL Server Modernization, Performance Tuning & Hybrid Data Mart",
+    "vendor_partner": "Microsoft / Magna Data Practice",
+    "solution_domain": "Data & Analytics",
+    "deployment_modes": ["on_prem", "hybrid"],
+    "target_personas": ["Head of Database", "Lead DBA", "CTO", "VP IT Operations"],
+    "pain_point_triggers": [
+      "bottleneck query database",
+      "deadlock transaksi puncak",
+      "biaya lisensi SQL Server per-core tinggi",
+      "indeks database tidak teroptimasi",
+      "kebutuhan hybrid data mart",
+      "pelaporan laporan harian membebani server produksi"
+    ],
+    "target_industries": ["Banking", "Retail", "Manufacturing", "Healthcare", "Distribution", "Public Sector"],
+    "bridging_dialogue": "Banyak klien kami mengalami degradasi performa SQL Server seiring bertambahnya volume transaksi. Melalui indexing modern Columnstore, memory tuning, dan arsitektur data mart terpisah, kami dapat meningkatkan throughput query hingga 10x tanpa perlu membeli lisensi core tambahan.",
+    "collateral_references": [
+      {
+        "title": "Microsoft SQL Server Modernization, Performance Tuning & Hybrid Data Mart",
+        "url": "https://smartnetmagna.com/solutions/sql-server-modernization"
+      }
+    ]
+  },
+  {
+    "product_id": "gcp-bigquery",
+    "name": "Google Cloud BigQuery Serverless Cloud Data Warehouse & Predictive Analytics",
+    "vendor_partner": "Google Cloud",
+    "solution_domain": "Data & Analytics",
+    "deployment_modes": ["cloud"],
+    "target_personas": ["Chief Data Officer", "Head of BI", "Data Analytics Manager", "Head of Digital"],
+    "pain_point_triggers": [
+      "infrastruktur data silo",
+      "maintenance server data warehouse rumit",
+      "waktu generasi laporan harian berjam-jam",
+      "kebutuhan federasi SQL dan AI generatif",
+      "skalabilitas komputasi analitik otomatis"
+    ],
+    "target_industries": ["Retail", "FMCG", "Fintech", "Telecommunications", "Media", "Logistics", "E-Commerce"],
+    "bridging_dialogue": "Dengan BigQuery, tim data tidak lagi terbebani maintenance infrastruktur dan provisi server. Anda bisa menjalankan query analitik skala petabyte dalam hitungan detik dengan integrasi langsung ke Gemini AI dan visualisasi Looker.",
+    "collateral_references": [
+      {
+        "title": "Centralized People Analytics & Data Management dengan BigQuery",
+        "url": "https://smartnetmagna.com/case-study/people-analytics-bigquery"
+      },
+      {
+        "title": "BigQuery x Gemini AI: Generative Analytics & Enterprise BI",
+        "url": "https://smartnetmagna.com/solutions/bigquery-gemini-ai"
+      }
+    ]
+  },
+  {
+    "product_id": "gcp-dataflow-composer",
+    "name": "Enterprise Cloud Data Pipeline (ELT/ETL) with Dataflow & Cloud Composer",
+    "vendor_partner": "Google Cloud",
+    "solution_domain": "Data & Analytics",
+    "deployment_modes": ["cloud", "hybrid"],
+    "target_personas": ["Head of Data Engineering", "Enterprise Architect", "Lead Data Engineer"],
+    "pain_point_triggers": [
+      "pipeline ETL sering putus di tengah jalan",
+      "batch processing lambat",
+      "orkestrasi cron job berantakan tanpa monitoring",
+      "kebutuhan streaming ingestion real-time",
+      "Change Data Capture (CDC) dari database on-premise"
+    ],
+    "target_industries": ["Banking", "Retail", "Supply Chain", "Fintech", "Healthcare"],
+    "bridging_dialogue": "Untuk menjamin data pipeline yang handal dan tervisiualisasi tanpa downtime, kami mengombinasikan Apache Airflow (Cloud Composer) dengan Apache Beam (Dataflow) untuk auto-scaling pipeline baik batch maupun streaming.",
+    "collateral_references": [
+      {
+        "title": "Modern Enterprise Data Warehouse & Cloud Data Pipeline (ELT/ETL)",
+        "url": "https://smartnetmagna.com/solutions/data-pipeline-elt"
+      },
+      {
+        "title": "Real-Time Store CDC & Retail Inventory Pipeline (Studi Kasus Planet Ban)",
+        "url": "https://smartnetmagna.com/case-study/planet-ban-cdc"
+      }
+    ]
+  },
+  {
+    "product_id": "gcp-vertex-ai",
+    "name": "Enterprise ML & AI Operations with Vertex AI & Google Gemini",
+    "vendor_partner": "Google Cloud",
+    "solution_domain": "AI & Machine Learning",
+    "deployment_modes": ["cloud", "hybrid"],
+    "target_personas": ["Chief AI Officer", "Head of Digital Transformation", "CIO", "Head of Product"],
+    "pain_point_triggers": [
+      "kebutuhan implementasi chatbot AI enterprise",
+      "integrasi model LLM ke sistem inti perusahaan",
+      "prediksi churn dan rekomendasi personalisasi",
+      "keamanan data privat saat menggunakan AI generatif"
+    ],
+    "target_industries": ["Banking", "Retail", "Insurance", "Telecommunications", "Media", "Public Sector"],
+    "bridging_dialogue": "Vertex AI memfasilitasi integrasi model fondasi Google Gemini dengan data privat enterprise melalui teknik RAG dan grounding, menjamin keamanan data korporat dan 0% data training publik.",
+    "collateral_references": [
+      {
+        "title": "Enterprise ML & AI Operations dengan Vertex AI",
+        "url": "https://smartnetmagna.com/solutions/vertex-ai-operations"
+      }
+    ]
+  },
+  {
+    "product_id": "malika-ai-procurement",
+    "name": "MALIKA Enterprise AI Procurement Intelligence & Document Analytics",
+    "vendor_partner": "Magna AI Labs / Google Cloud",
+    "solution_domain": "AI & Machine Learning",
+    "deployment_modes": ["cloud", "hybrid", "on_prem"],
+    "target_personas": ["VP Procurement", "Head of Supply Chain", "CFO", "CIO"],
+    "pain_point_triggers": [
+      "verifikasi invoice dan faktur manual yang memakan waktu",
+      "pemrosesan dokumen penawaran vendor lambat",
+      "risiko manipulasi atau kecurangan harga vendor",
+      "katalog barang tidak standar antar cabang"
+    ],
+    "target_industries": ["Manufacturing", "Mining", "Supply Chain", "Retail", "Oil & Gas", "Healthcare"],
+    "bridging_dialogue": "MALIKA memanfaatkan multimodal AI untuk mengotomatisasi ekstraksi ribuan dokumen penawaran dan faktur, mencocokkan harga pasar secara real-time, dan memangkas waktu review dari hitungan hari menjadi detik.",
+    "collateral_references": [
+      {
+        "title": "Enterprise AI Procurement Intelligence & Document Analytics (MALIKA)",
+        "url": "https://smartnetmagna.com/case-study/malika-ai-procurement"
+      }
+    ]
+  },
+  {
+    "product_id": "ai-speech-transcription",
+    "name": "Enterprise Speech-to-Text & Clinical/Customer Conversation Analytics",
+    "vendor_partner": "Magna AI Labs / Google Cloud",
+    "solution_domain": "AI & Machine Learning",
+    "deployment_modes": ["cloud", "hybrid", "on_prem"],
+    "target_personas": ["Head of IT", "Medical Director", "Customer Experience Director", "VP Operations"],
+    "pain_point_triggers": [
+      "pencatatan diagnosa medis manual memakan waktu dokter",
+      "audio rekaman call center tidak teranalisis",
+      "kebutuhan transkripsi Bahasa Indonesia dan istilah medis/finansial",
+      "integrasi EMR/CRM lambat"
+    ],
+    "target_industries": ["Healthcare", "Hospital", "Banking", "Insurance", "Telecommunications"],
+    "bridging_dialogue": "Solusi Speech AI kami dikustomisasi khusus untuk aksen Indonesia dan jargon spesifik industri (medis/perbankan), secara otomatis merangkum percakapan langsung ke sistem EMR atau CRM tanpa dokter/agen mengetik manual.",
+    "collateral_references": [
+      {
+        "title": "Clinical Audio Transcription & Speech AI Solution",
+        "url": "https://smartnetmagna.com/solutions/clinical-speech-ai"
+      }
+    ]
+  },
+  {
+    "product_id": "dell-poweredge-servers",
+    "name": "Dell PowerEdge Enterprise High-Density Compute & Storage Foundation",
+    "vendor_partner": "Dell Technologies",
+    "solution_domain": "Cloud & Infrastructure",
+    "deployment_modes": ["on_prem"],
+    "target_personas": ["Head of Infrastructure", "IT Operations Director", "Data Center Manager"],
+    "pain_point_triggers": [
+      "kebutuhan server fisik lokal",
+      "server lama sudah end-of-life",
+      "batasan kepatuhan residensi data internal",
+      "biaya cloud mahal untuk beban kerja intensif komputasi konstan",
+      "peremajaan rack server atau blade server data center"
+    ],
+    "target_industries": ["Banking", "Financial Services", "Government", "Manufacturing", "Hospital", "Education"],
+    "bridging_dialogue": "Untuk beban kerja inti yang menuntut latensi mikrodetik dan kendali fisik penuh, kami mengonfigurasi Dell PowerEdge Rack & Blade Server generasi terbaru dengan efisiensi termal dan redundansi hardware enterprise.",
+    "collateral_references": [
+      {
+        "title": "AI-Ready High-Performance Infrastructure Foundation",
+        "url": "https://smartnetmagna.com/solutions/high-performance-infrastructure"
+      }
+    ]
+  },
+  {
+    "product_id": "nutanix-hci",
+    "name": "Nutanix Cloud Platform & Hyperconverged Infrastructure (HCI)",
+    "vendor_partner": "Nutanix",
+    "solution_domain": "Cloud & Infrastructure",
+    "deployment_modes": ["on_prem", "hybrid"],
+    "target_personas": ["VP Infrastructure", "Enterprise Cloud Architect", "CIO", "Head of IT"],
+    "pain_point_triggers": [
+      "kompleksitas pengelolaan 3-tier compute-san-storage",
+      "kenaikan lisensi VMware yang drastis",
+      "kebutuhan modernisasi data center fisik",
+      "skalabilitas infrastruktur on-premise lambat",
+      "kebutuhan private cloud mandiri"
+    ],
+    "target_industries": ["Banking", "Insurance", "Public Sector", "Healthcare", "Aviation", "Manufacturing"],
+    "bridging_dialogue": "Nutanix mengonsolidasikan server, storage, dan visualisasi ke dalam satu platform software-defined. Solusi ini menjadi alternatif utama migrasi VMware bebas lisensi rumit, sekaligus siap hybrid cloud.",
+    "collateral_references": [
+      {
+        "title": "Hyperconverged Infrastructure (HCI) untuk Digital Banking",
+        "url": "https://smartnetmagna.com/solutions/hci-digital-banking"
+      }
+    ]
+  },
+  {
+    "product_id": "sangfor-hci",
+    "name": "Sangfor Enterprise Hyperconverged Infrastructure & Cloud Platform",
+    "vendor_partner": "Sangfor Technologies",
+    "solution_domain": "Cloud & Infrastructure",
+    "deployment_modes": ["on_prem"],
+    "target_personas": ["Head of IT", "Infrastructure Lead", "IT Manager"],
+    "pain_point_triggers": [
+      "budget infrastruktur terbatas namun butuh HCI andal",
+      "migrasi dari server fisik tradisional",
+      "proteksi keamanan terintegrasi di level virtualisasi",
+      "virtualisasi data center lokal"
+    ],
+    "target_industries": ["Education", "Regional Government", "Mid-Enterprise", "Healthcare", "Manufacturing"],
+    "bridging_dialogue": "Sangfor HCI menawarkan paket lengkap komputasi, storage, virtualisasi, dan keamanan bawaan dengan TCO yang sangat kompetitif untuk modernisasi data center lokal Anda.",
+    "collateral_references": [
+      {
+        "title": "Sangfor HCI Enterprise Modernization",
+        "url": "https://smartnetmagna.com/solutions/sangfor-hci"
+      }
+    ]
+  },
+  {
+    "product_id": "all-flash-storage",
+    "name": "Enterprise NVMe All-Flash SAN/NAS Storage Architecture",
+    "vendor_partner": "Dell Technologies / NetApp",
+    "solution_domain": "Cloud & Infrastructure",
+    "deployment_modes": ["on_prem"],
+    "target_personas": ["Head of Storage & Backup", "Database Administrator", "Infrastructure Manager"],
+    "pain_point_triggers": [
+      "I/O bottleneck pada database transaksional OLTP",
+      "waktu backup & restore melebihi window operasional",
+      "storage lama berbasis spinning disk lambat",
+      "kebutuhan storage SAN/NAS kecepatan tinggi di data center"
+    ],
+    "target_industries": ["Healthcare", "Hospital", "Banking", "Telecommunications", "Media"],
+    "bridging_dialogue": "Dengan mengadopsi storage all-flash NVMe enterprise, kami mengeliminasi storage latency bottleneck hingga di bawah 1 milidetik untuk mendukung sistem mission-critical 24/7.",
+    "collateral_references": [
+      {
+        "title": "High-Performance All-Flash Storage untuk Rekam Medis Rumah Sakit",
+        "url": "https://smartnetmagna.com/solutions/all-flash-storage-healthcare"
+      }
+    ]
+  },
+  {
+    "product_id": "gcp-infrastructure-migration",
+    "name": "Google Cloud Compute Engine & Enterprise Workload Migration",
+    "vendor_partner": "Google Cloud",
+    "solution_domain": "Cloud & Infrastructure",
+    "deployment_modes": ["cloud"],
+    "target_personas": ["CIO", "VP Engineering", "Cloud Architect", "Head of IT"],
+    "pain_point_triggers": [
+      "hardware data center on-premise memasuki masa sewa/EOL",
+      "biaya listrik dan maintenance data center tinggi",
+      "kebutuhan elastisitas kapasitas saat peak season",
+      "migrasi workload Windows/Linux ke cloud publik"
+    ],
+    "target_industries": ["Multifinance", "Fintech", "E-Commerce", "Logistics", "Digital Media", "Retail"],
+    "bridging_dialogue": "Magna telah tersertifikasi Google Cloud Partner dalam memimpin migrasi workload enterprise dengan zero downtime melalui metodologi lift-and-shift teruji dan modernisasi arsitektur bertahap.",
+    "collateral_references": [
+      {
+        "title": "Cloud Infrastructure Modernization untuk Bisnis Multifinance",
+        "url": "https://smartnetmagna.com/solutions/cloud-infra-multifinance"
+      },
+      {
+        "title": "Secure Digital Transformation with Google Cloud Platform (GCP)",
+        "url": "https://smartnetmagna.com/solutions/gcp-digital-transformation"
+      }
+    ]
+  },
+  {
+    "product_id": "gcp-gke-kubernetes",
+    "name": "Google Kubernetes Engine (GKE) Enterprise & Microservices Platform",
+    "vendor_partner": "Google Cloud",
+    "solution_domain": "Cloud & Infrastructure",
+    "deployment_modes": ["cloud", "hybrid"],
+    "target_personas": ["Head of DevOps", "VP Engineering", "Chief Architect"],
+    "pain_point_triggers": [
+      "deployment aplikasi monolitik lambat",
+      "kegagalan rilis software mengganggu operasional",
+      "manajemen container multi-cluster sulit",
+      "kebutuhan modernisasi microservices"
+    ],
+    "target_industries": ["Fintech", "Banking", "E-Commerce", "Digital Native", "Telecommunications"],
+    "bridging_dialogue": "GKE Enterprise menyediakan platform orkestrasi container paling matang dengan fitur auto-scaling, keamanan otomatis, dan observability terintegrasi untuk tim engineering Anda.",
+    "collateral_references": [
+      {
+        "title": "Google Kubernetes Engine (GKE) Enterprise Application Orchestration",
+        "url": "https://smartnetmagna.com/solutions/gke-enterprise-orchestration"
+      }
+    ]
+  },
+  {
+    "product_id": "hybrid-backup-dr",
+    "name": "Enterprise Immutable Backup & Disaster Recovery (Veeam / Dell Data Protection)",
+    "vendor_partner": "Veeam Software / Dell Technologies / Google Cloud Storage",
+    "solution_domain": "Cloud & Infrastructure",
+    "deployment_modes": ["on_prem", "hybrid", "cloud"],
+    "target_personas": ["Head of Security", "Head of Infrastructure", "IT Disaster Recovery Lead", "CIO"],
+    "pain_point_triggers": [
+      "ancaman ransomware mengunci backup data",
+      "RPO dan RTO tidak memenuhi audit OJK/regulator",
+      "tidak adanya replikasi data ke luar lokasi fisik (offsite copy)",
+      "kebutuhan cadangan data immutable WORM pasca insiden PDN"
+    ],
+    "target_industries": ["Banking", "Financial Services", "Healthcare", "Government", "Insurance", "Utilities"],
+    "bridging_dialogue": "Untuk mencegah kerugian total pasca insiden siber, kami mengimplementasikan arsitektur 3-2-1-1-0 dengan immutability (WORM storage) sehingga file backup mustahil diubah atau dihapus oleh peretas sekalipun.",
+    "collateral_references": [
+      {
+        "title": "Enterprise Cloud Backup & Disaster Recovery Pasca PDN Incident",
+        "url": "https://smartnetmagna.com/solutions/enterprise-backup-dr-pdn"
+      }
+    ]
+  },
+  {
+    "product_id": "gws-enterprise",
+    "name": "Google Workspace Enterprise & Gemini for Productivity Transformation",
+    "vendor_partner": "Google Cloud",
+    "solution_domain": "Enterprise Workplace",
+    "deployment_modes": ["cloud"],
+    "target_personas": ["Head of People / HR", "Head of IT", "Operations Director", "CFO"],
+    "pain_point_triggers": [
+      "kapasitas inbox email internal penuh",
+      "kolaborasi antar divisi lambat dan file tersebar tidak aman",
+      "lisensi email on-premise lama memakan biaya server besar",
+      "kebutuhan AI assistant penulisan dan rangkuman meeting otomatis",
+      "migrasi email dari Zimbra atau Microsoft 365"
+    ],
+    "target_industries": ["Education", "Government", "Enterprise", "Retail", "Manufacturing", "Media"],
+    "bridging_dialogue": "Google Workspace menghadirkan ruang kolaborasi real-time berbasis cloud kelas dunia yang dilengkapi Gemini AI untuk memangkas waktu administratif pembuatan dokumen dan meeting hingga 30%.",
+    "collateral_references": [
+      {
+        "title": "Google Workspace Enterprise Migration & Productivity Modernization",
+        "url": "https://smartnetmagna.com/solutions/google-workspace-migration"
+      }
+    ]
+  },
+  {
+    "product_id": "maps-fleet-location",
+    "name": "Google Maps Platform: Fleet Tracking & Location Intelligence",
+    "vendor_partner": "Google Maps Platform / Google Cloud",
+    "solution_domain": "Cloud & Infrastructure",
+    "deployment_modes": ["cloud"],
+    "target_personas": ["Head of Logistics", "VP Supply Chain", "Chief Operating Officer", "Product Manager"],
+    "pain_point_triggers": [
+      "biaya armada bahan bakar membengkak akibat rute tidak optimal",
+      "pelacakan kurir / pengiriman tidak akurat",
+      "kesulitan validasi alamat pelanggan e-commerce / fintech",
+      "kebutuhan optimasi jarak tempuh dan ETA akurat"
+    ],
+    "target_industries": ["Logistics", "Courier", "Supply Chain", "Ride-Hailing", "E-Commerce", "Field Operations"],
+    "bridging_dialogue": "Melalui integrasi Google Maps Routes API dan Fleet Engine, kami membantu perusahaan logistik dan distribusi memangkas jarak tempuh armada hingga 15% dan memberikan estimasi waktu tiba (ETA) akurat ke pelanggan.",
+    "collateral_references": [
+      {
+        "title": "Google Maps Platform: Fleet Tracking & Location Intelligence",
+        "url": "https://smartnetmagna.com/solutions/maps-fleet-tracking"
+      }
+    ]
+  },
+  {
+    "product_id": "beyondtrust-pam-epm",
+    "name": "BeyondTrust Privileged Access Management (PAM) & Endpoint Privilege Management (EPM)",
+    "vendor_partner": "BeyondTrust",
+    "solution_domain": "Cybersecurity & Identity",
+    "deployment_modes": ["on_prem", "hybrid", "cloud"],
+    "target_personas": ["CISO", "Head of Information Security", "IT Risk & Compliance Lead", "IT Auditor"],
+    "pain_point_triggers": [
+      "password akun admin server dishare bersama tanpa jejak audit",
+      "vendor pihak ketiga memiliki akses tak terbatas ke server inti",
+      "user laptop kantor memiliki hak local admin yang rentan malware",
+      "temuan audit kepatuhan ISO 27001 / OJK terkait akses istimewa"
+    ],
+    "target_industries": ["Banking", "Financial Services", "Telecommunications", "Healthcare", "Government", "Insurance"],
+    "bridging_dialogue": "BeyondTrust mengisolasi kredensial tingkat tinggi dan menerapkan prinsip Least Privilege serta audit rekaman sesi real-time, memastikan tidak ada lagi pembagian password root/administrator secara bebas.",
+    "collateral_references": [
+      {
+        "title": "Privileged Access Management (PAM) untuk Akses Kritis IT",
+        "url": "https://smartnetmagna.com/solutions/beyondtrust-pam"
+      },
+      {
+        "title": "Endpoint Privilege Management (EPM) & Least-Privilege Architecture",
+        "url": "https://smartnetmagna.com/solutions/beyondtrust-epm"
+      }
+    ]
+  },
+  {
+    "product_id": "fortinet-ngfw",
+    "name": "Fortinet FortiGate Next-Generation Firewall & Secure SD-WAN",
+    "vendor_partner": "Fortinet",
+    "solution_domain": "Cybersecurity & Identity",
+    "deployment_modes": ["on_prem", "hybrid"],
+    "target_personas": ["Head of Network Security", "Network Operations Lead", "CISO", "VP Infrastructure"],
+    "pain_point_triggers": [
+      "firewall lama lambat saat inspeksi SSL/TLS",
+      "koneksi antar kantor cabang sering putus dan biaya MPLS mahal",
+      "serangan intrusi dan malware menembus perimeter jaringan",
+      "kebutuhan SD-WAN terintegrasi keamanan"
+    ],
+    "target_industries": ["Retail", "Banking", "Manufacturing", "Healthcare", "Education", "Distribution"],
+    "bridging_dialogue": "FortiGate menyatukan kapabilitas proteksi ancaman terdepan dengan integrasi SD-WAN, menurunkan biaya bandwidth cabang hingga 40% sekaligus memperkuat postur keamanan jaringan fisik dan cabang.",
+    "collateral_references": [
+      {
+        "title": "Zero Trust Architecture: Identity & Context-Aware Perimeter",
+        "url": "https://smartnetmagna.com/solutions/zero-trust-architecture"
+      }
+    ]
+  },
+  {
+    "product_id": "crowdstrike-edr",
+    "name": "CrowdStrike Falcon Next-Gen Antivirus (NGAV) & Enterprise EDR/XDR",
+    "vendor_partner": "CrowdStrike",
+    "solution_domain": "Cybersecurity & Identity",
+    "deployment_modes": ["cloud", "hybrid"],
+    "target_personas": ["SOC Manager", "Head of Information Security", "CISO"],
+    "pain_point_triggers": [
+      "antivirus tradisional berbasis signature gagal mendeteksi ransomware modern",
+      "waktu investigasi insiden keamanan berhari-hari",
+      "laptop karyawan di luar kantor tidak terproteksi",
+      "kebutuhan endpoint protection terpusat berbasis cloud"
+    ],
+    "target_industries": ["Financial Services", "Retail", "Technology", "Healthcare", "Professional Services"],
+    "bridging_dialogue": "CrowdStrike Falcon beroperasi menggunakan arsitektur cloud native single-agent dengan AI behavioral analysis untuk menghentikan serangan ransomware sebelum sempat mengenkripsi file perusahaan.",
+    "collateral_references": [
+      {
+        "title": "Resilient Endpoint Security & Advanced Ransomware Containment",
+        "url": "https://smartnetmagna.com/solutions/resilient-endpoint-security"
+      }
+    ]
+  },
+  {
+    "product_id": "campus-lan-cisco",
+    "name": "Enterprise Wired LAN & Core Switching Infrastructure (Cisco Catalyst / Huawei)",
+    "vendor_partner": "Cisco Systems / Huawei",
+    "solution_domain": "Enterprise Networking",
+    "deployment_modes": ["on_prem"],
+    "target_personas": ["Head of Network", "IT Infrastructure Lead", "Facility IT Manager"],
+    "pain_point_triggers": [
+      "peremajaan core switch data center yang sudah usang",
+      "bottleneck throughput kabel antar lantai atau gedung",
+      "switch sering hang saat beban transaksi puncak",
+      "kebutuhan PoE+ untuk CCTV dan Access Point",
+      "jaringan fisik kampus / gedung kantor"
+    ],
+    "target_industries": ["Healthcare", "Hospital", "Banking", "Education", "Government", "Manufacturing"],
+    "bridging_dialogue": "Kami mendesain arsitektur LAN kampus dan data center berkinerja tinggi dengan Cisco Catalyst atau Huawei CloudEngine yang dilengkapi fitur stackable redundansi, menjamin ketersediaan jaringan tanpa single-point-of-failure.",
+    "collateral_references": [
+      {
+        "title": "High-Density Healthcare Wired & Wireless LAN Infrastructure",
+        "url": "https://smartnetmagna.com/solutions/healthcare-lan-infrastructure"
+      }
+    ]
+  },
+  {
+    "product_id": "enterprise-wifi",
+    "name": "Enterprise High-Density Wireless LAN (Aruba / Cisco Catalyst Center Wi-Fi 6)",
+    "vendor_partner": "HPE Aruba / Cisco Systems",
+    "solution_domain": "Enterprise Networking",
+    "deployment_modes": ["on_prem"],
+    "target_personas": ["Head of IT", "Network Administrator", "Hospitality/Healthcare Operations Lead"],
+    "pain_point_triggers": [
+      "sinyal Wi-Fi putus-putus di area padat pengunjung/karyawan",
+      "roaming tidak mulus saat pengguna berpindah ruangan",
+      "keamanan Wi-Fi tamu belum terisolasi dari jaringan korporat",
+      "access point sering kelebihan beban koneksi simultan"
+    ],
+    "target_industries": ["Hospital", "Healthcare", "Education", "Hospitality", "Office Tower", "Retail Mall"],
+    "bridging_dialogue": "Dengan implementasi Wi-Fi 6 dari Aruba atau Cisco, seluruh karyawan dan tamu mendapatkan akses internet berkecepatan tinggi dengan segmentasi Zero Trust dan manajemen RF cerdas.",
+    "collateral_references": [
+      {
+        "title": "High-Density Healthcare Wired & Wireless LAN Infrastructure",
+        "url": "https://smartnetmagna.com/solutions/healthcare-lan-infrastructure"
+      }
+    ]
+  },
+  {
+    "product_id": "gcp-secops-chronicle",
+    "name": "Google Security Operations (Chronicle SIEM & SOAR Modernization)",
+    "vendor_partner": "Google Cloud",
+    "solution_domain": "Cybersecurity & Identity",
+    "deployment_modes": ["cloud"],
+    "target_personas": ["CISO", "Head of SOC", "Lead Incident Responder"],
+    "pain_point_triggers": [
+      "biaya lisensi SIEM on-premise membengkak seiring bertambahnya volume log",
+      "waktu retensi log keamanan terbatas karena kapasitas storage penuh",
+      "analis SOC kewalahan oleh jutaan alert palsu",
+      "pencarian investigasi ancaman memakan waktu berjam-jam"
+    ],
+    "target_industries": ["Banking", "Fintech", "Telecommunications", "E-Commerce", "Government"],
+    "bridging_dialogue": "Google SecOps memungkinkan penyimpanan log keamanan skala petabyte hingga 1 tahun penuh dengan biaya flat, dilengkapi pencarian sub-detik dan otomasi respon ancaman playbook SOAR.",
+    "collateral_references": [
+      {
+        "title": "Modern SIEM & Security Operations Center (SOC) Modernization",
+        "url": "https://smartnetmagna.com/solutions/modern-siem-soc"
+      }
+    ]
+  },
+  {
+    "product_id": "gcp-cloud-dlp",
+    "name": "Google Cloud Sensitive Data Protection (Cloud DLP & Data Governance)",
+    "vendor_partner": "Google Cloud",
+    "solution_domain": "Cybersecurity & Identity",
+    "deployment_modes": ["cloud", "hybrid"],
+    "target_personas": ["Data Protection Officer (DPO)", "Head of Compliance", "Head of Data", "CISO"],
+    "pain_point_triggers": [
+      "kewajiban kepatuhan terhadap UU Perlindungan Data Pribadi (UU PDP)",
+      "data NIK, nomor rekening, dan informasi medis tersimpan tanpa enkripsi atau masking",
+      "kebocoran data sensitif saat data ditransfer ke environment staging atau analytics",
+      "audit tata kelola data privasi"
+    ],
+    "target_industries": ["Banking", "Insurance", "Healthcare", "Fintech", "E-Commerce", "Government"],
+    "bridging_dialogue": "Cloud DLP secara otomatis memindai, mengklasifikasi, dan melakukan de-identifikasi (masking, tokenization, pseudonymization) terhadap data PII sensitif sehingga organisasi patuh penuh pada regulasi UU PDP.",
+    "collateral_references": [
+      {
+        "title": "Automated Cloud DLP untuk Pencegahan Kebocoran Data Sensitif",
+        "url": "https://smartnetmagna.com/solutions/cloud-dlp-protection"
+      }
+    ]
+  },
+  {
+    "product_id": "vmware-exit-strategy",
+    "name": "VMware Workload Modernization & Multi-Platform Exit Strategy",
+    "vendor_partner": "Nutanix / Google Cloud (GCVE) / Sangfor",
+    "solution_domain": "Cloud & Infrastructure",
+    "deployment_modes": ["hybrid", "on_prem", "cloud"],
+    "target_personas": ["CIO", "CFO", "VP Infrastructure", "Head of Cloud"],
+    "pain_point_triggers": [
+      "kenaikan biaya pembaruan lisensi VMware Broadcom yang melonjak tajam 2x hingga 5x",
+      "perubahan model lisensi perpetual menjadi subscription core yang membebani CAPEX",
+      "kebutuhan alternatif platform virtualisasi tanpa mengorbankan stabilitas enterprise",
+      "rencana migrasi VMware ke cloud atau alternatif HCI"
+    ],
+    "target_industries": ["Banking", "Insurance", "Public Sector", "Healthcare", "Manufacturing", "Telecommunications"],
+    "bridging_dialogue": "Kami menyediakan advisory dan eksekusi migrasi workloads VMware ke Nutanix AHV, Sangfor HCI, atau Google Cloud VMware Engine (GCVE), mengamankan kepastian biaya operasional jangka panjang dan fleksibilitas lisensi.",
+    "collateral_references": [
+      {
+        "title": "VMware Exit Strategy & Workload Modernization ke Cloud / Kube",
+        "url": "https://smartnetmagna.com/solutions/vmware-exit-strategy"
+      }
+    ]
+  }
+]

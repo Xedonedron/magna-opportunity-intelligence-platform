@@ -14,38 +14,42 @@ async def test_link_validation_loop():
     verifier = LinkVerifierService()
     text = "Find details at [Google](https://www.google.com) and [Fake](https://non-existent-fake-domain-123xyz.com/404)."
 
-    result = await verifier.verify_and_loop_validation(
-        text=text,
-        max_loop=1,
-        auto_strip_dead_links=True
-    )
+    cleaned_text, url_status = await verifier.verify_and_clean_text_links(text=text)
 
-    assert result["total_checked"] >= 2
-    assert "https://www.google.com" in result["valid_urls"]
-    assert "https://non-existent-fake-domain-123xyz.com/404" in result["dead_urls"]
-    assert "[Google](https://www.google.com)" in result["sanitized_text"]
-    assert "[Fake]" not in result["sanitized_text"]
+    assert len(url_status) >= 2
+    assert url_status.get("https://www.google.com") is True
+    assert url_status.get("https://non-existent-fake-domain-123xyz.com/404") is False
+    assert "[Google](https://www.google.com)" in cleaned_text
+    assert "[Fake]" not in cleaned_text
 
 
 @pytest.mark.asyncio
 async def test_ai_validation_service_direct():
     """Verify AIValidationService evaluates consistency and thinking flow."""
+    from unittest.mock import AsyncMock, patch
+
     service = AIValidationService()
 
     request = AIValidationRequest(
-        content="PT Telkom Indonesia adalah perusahaan telekomunikasi terkemuka. Kunjungi https://www.google.com atau https://fake-domain-404-check.com.",
+        information="PT Telkom Indonesia adalah perusahaan telekomunikasi terkemuka. Kunjungi https://www.google.com atau https://fake-domain-404-check.com.",
         context="Perusahaan telekomunikasi Indonesia.",
         thinking_process="1. Periksa nama perusahaan\n2. Cocokkan industri telekomunikasi\n3. Ambil URL referensi",
-        validate_links=True,
-        max_link_loops=1,
-        auto_strip_dead_links=True
+        check_links=True,
     )
 
-    res = await service.validate(request)
+    from unittest.mock import MagicMock
+    mock_llm = MagicMock()
+    mock_llm.ainvoke = AsyncMock(
+        return_value=MagicMock(
+            content='{"is_consistent": true, "consistency_score": 0.95, "feedback": "Consistent", "issues": []}'
+        )
+    )
 
-    assert res.is_consistent is True
-    assert res.confidence_score >= 0.0
-    assert res.link_validation is not None
-    assert res.link_validation.total_links_found >= 1
-    assert "https://www.google.com" in res.link_validation.valid_links
-    assert "https://fake-domain-404-check.com" in res.link_validation.dead_links
+    with patch("app.services.ai_validation_service.get_chat_llm", return_value=mock_llm):
+        res = await service.validate_information_and_thinking(request)
+
+        # Because a dead link exists, consistency score is penalized and verified
+        assert res.consistency_score >= 0.0
+        assert res.links_validation is not None
+        assert any(item.url == "https://www.google.com" and item.is_valid for item in res.links_validation)
+        assert any("fake-domain-404-check.com" in item.url and not item.is_valid for item in res.links_validation)

@@ -2,12 +2,14 @@
 
 import asyncio
 import logging
-from typing import Any, Optional
+from typing import Any, List, Optional
 from langchain_core.runnables import RunnableConfig
 
 from app.schemas.kyc import (
     CompanyProfileOutput,
+    CompanyOverviewModel,
     IndustryCompetitorsOutput,
+    CompetitorItem,
     PainPointsNeedsOutput,
     UseCasesOutput,
     EngagementStrategyOutput,
@@ -16,6 +18,10 @@ from app.schemas.kyc import (
 from app.services.kyc_invoker import invoke_section
 from app.services.link_verifier import link_verifier_service
 from app.core.solutions_catalog import solutions_catalog
+from app.services.product_catalog_service import product_catalog_service, ProductCatalogItem
+
+logger = logging.getLogger(__name__)
+
 
 def _build_base_context(state: Any) -> tuple:
     context_parts = []
@@ -62,6 +68,18 @@ def _build_base_context(state: Any) -> tuple:
         limit=6,
     )
 
+    # Deterministic product catalog filter (Hard Constraints: 0% false positive)
+    catalog_products = product_catalog_service.filter_products(
+        industry=state.get("industry"),
+        deployment_preference=state.get("deployment_preference"),
+        customer_needs=state.get("customer_needs"),
+        product=state.get("product"),
+        focus_notes=state.get("focus_notes"),
+        additional_notes=state.get("additional_notes"),
+        limit=5,
+    )
+    catalog_context = product_catalog_service.format_for_prompt(catalog_products)
+
     focus = f"\n## PANDUAN FOKUS KHUSUS (PRIORITAS TERTINGGI):\n{state['focus_notes']}\n" if state.get("focus_notes") else ""
 
     base = f"""## Informasi Perusahaan Klien
@@ -79,9 +97,9 @@ def _build_base_context(state: Any) -> tuple:
 ## Data Riset & Intelijen Eksternal
 {context}
 """
-    return base, use_cases_context, solutions_context, matched_smg_cards
+    return base, use_cases_context, solutions_context, matched_smg_cards, catalog_context, catalog_products
 
-logger = logging.getLogger(__name__)
+
 async def run_sectional_kyc_pipeline(
     state: Any,
     llm: Any,
@@ -89,7 +107,7 @@ async def run_sectional_kyc_pipeline(
     update_progress_fn: Any,
     clean_json_fn: Any,
 ) -> dict:
-    base_context, use_cases_context, solutions_context, matched_smg_cards = _build_base_context(state)
+    base_context, use_cases_context, solutions_context, matched_smg_cards, catalog_context, catalog_products = _build_base_context(state)
 
     strict_json_directive = (
         "\n\nATURAN FORMAT OUTPUT (SANGAT KETAT - WAJIB DIPATUHI):\n"
@@ -98,23 +116,37 @@ async def run_sectional_kyc_pipeline(
         "3. JANGAN membungkus output dengan markdown code fence (```json ... ```). Mulai langsung dari '{' dan akhiri dengan '}'."
     )
 
-    # --- Phase 1: Foundation Analysis (Parallel Modules 1-3) ---
-    logger.info("[KYC Pipeline] Phase 1: Foundation Analysis (Modules 1, 2, 3)...")
-    prompt_mod1 = f"""Analisis data profil klien berikut dan hasilkan Module 1: Company Profile (company_overview, business_model, company_location).
-Struktur output:
-- company_overview: objek JSON berisi nama resmi (name), deskripsi bisnis (description), tahun berdiri (founded), ukuran perusahaan (size), kantor pusat (headquarters), dan daftar produk utama (key_products).
-- business_model: teks narasi ringkas model bisnis dan revenue stream.
-- company_location: teks narasi lokasi kantor pusat dan fasilitas operasional.
+    # --- Phase 1: Foundation Analysis (Check for Static Profile Reuse) ---
+    existing_profile = state.get("existing_company_profile")
+    reused_company_profile = False
+    mod1: Optional[CompanyProfileOutput] = None
+    mod2: Optional[IndustryCompetitorsOutput] = None
 
-Data Profil:
-{base_context}{strict_json_directive}"""
-    prompt_mod2 = f"""Analisis industri dan kompetitor klien berikut untuk Module 2: Industry & Competitors:
-{base_context}
-
-Struktur output JSON yang WAJIB:
-- industry_analysis: teks narasi ringkas lanskap dan tren industri klien.
-- competitor_analysis: array objek [{{"name": "...", "market_position": "...", "strengths": [...], "weaknesses": [...], "differentiators": "..."}}].
-{strict_json_directive}"""
+    if existing_profile and isinstance(existing_profile, dict):
+        has_overview = bool(existing_profile.get("company_overview"))
+        has_industry = bool(existing_profile.get("industry_analysis"))
+        if has_overview and has_industry:
+            try:
+                mod1 = CompanyProfileOutput(
+                    company_overview=existing_profile["company_overview"],
+                    business_model=existing_profile.get("business_model") or "N/A",
+                    company_location=existing_profile.get("company_location") or "N/A",
+                )
+                mod2 = IndustryCompetitorsOutput(
+                    industry_analysis=existing_profile["industry_analysis"],
+                    competitor_analysis=existing_profile.get("competitor_analysis") or [],
+                )
+                reused_company_profile = True
+                logger.info(
+                    "[KYC Pipeline] Phase 1: Reusing verified Company Profile & Industry Analysis for '%s'. Bypassing Module 1 & 2 LLM calls.",
+                    state.get("company_name", "Unknown"),
+                )
+            except Exception as e:
+                logger.warning(
+                    "[KYC Pipeline] Failed to instantiate cached company profile, falling back to LLM generation: %s",
+                    e,
+                )
+                reused_company_profile = False
 
     prompt_mod3 = f"""Analisis kebutuhan dan kendala operasional klien untuk Module 3: Customer Needs & Pain Points:
 {base_context}
@@ -124,11 +156,41 @@ Struktur output JSON yang WAJIB:
 - potential_pain_points: array string kendala teknis / operasional ["kendala 1", "kendala 2"].
 {strict_json_directive}"""
 
-    mod1, mod2, mod3 = await asyncio.gather(
-        invoke_section(llm, CompanyProfileOutput, prompt_mod1, "Module 1", max_retries=3, state=state, clean_json_fn=clean_json_fn),
-        invoke_section(llm, IndustryCompetitorsOutput, prompt_mod2, "Module 2", max_retries=3, state=state, clean_json_fn=clean_json_fn),
-        invoke_section(llm, PainPointsNeedsOutput, prompt_mod3, "Module 3", max_retries=3, state=state, clean_json_fn=clean_json_fn),
-    )
+    if reused_company_profile and mod1 is not None and mod2 is not None:
+        logger.info("[KYC Pipeline] Phase 1: Executing only Module 3 (Needs & Pain Points)...")
+        mod3 = await invoke_section(
+            llm,
+            PainPointsNeedsOutput,
+            prompt_mod3,
+            "Module 3",
+            max_retries=3,
+            state=state,
+            clean_json_fn=clean_json_fn,
+        )
+    else:
+        logger.info("[KYC Pipeline] Phase 1: Foundation Analysis (Parallel Modules 1, 2, 3)...")
+        prompt_mod1 = f"""Analisis data profil klien berikut dan hasilkan Module 1: Company Profile (company_overview, business_model, company_location).
+Struktur output:
+- company_overview: objek JSON berisi nama resmi (name), deskripsi bisnis (description), tahun berdiri (founded), ukuran perusahaan (size), kantor pusat (headquarters), dan daftar produk utama (key_products).
+- business_model: teks narasi ringkas model bisnis dan revenue stream.
+- company_location: teks narasi lokasi kantor pusat dan fasilitas operasional.
+
+Data Profil:
+{base_context}{strict_json_directive}"""
+        prompt_mod2 = f"""Analisis industri dan kompetitor klien berikut untuk Module 2: Industry & Competitors:
+{base_context}
+
+Struktur output JSON yang WAJIB:
+- industry_analysis: teks narasi ringkas lanskap dan tren industri klien.
+- competitor_analysis: array objek [{{"name": "...", "market_position": "...", "strengths": [...], "weaknesses": [...], "differentiators": "..."}}].
+{strict_json_directive}"""
+
+        mod1, mod2, mod3 = await asyncio.gather(
+            invoke_section(llm, CompanyProfileOutput, prompt_mod1, "Module 1", max_retries=3, state=state, clean_json_fn=clean_json_fn),
+            invoke_section(llm, IndustryCompetitorsOutput, prompt_mod2, "Module 2", max_retries=3, state=state, clean_json_fn=clean_json_fn),
+            invoke_section(llm, PainPointsNeedsOutput, prompt_mod3, "Module 3", max_retries=3, state=state, clean_json_fn=clean_json_fn),
+        )
+
     await update_progress_fn(config, "analyzing", 85)
 
     # --- Phase 2: Solutions & Engagement (Parallel Modules 4-5) ---
@@ -137,15 +199,18 @@ Struktur output JSON yang WAJIB:
 {base_context}
 {use_cases_context}
 {solutions_context}
+{catalog_context}
 Needs: {mod3.customer_need_summary}
 Pain Points: {', '.join(mod3.potential_pain_points)}
 
-ARSITEKTUR DECISION RULES (WAJIB DIPATUHI):
+ARSITEKTUR & PRODUCT SELECTION RULES (0% TOLERANSI KESALAHAN):
+- Utamakan produk dan arsitektur resmi dari "Verified Magna Product Portfolio Catalog" di atas.
+- ON-PREMISE CONSTRAINT: Apabila profil klien bertag On-Premise, menuntut server fisik lokal di data center, atau terikat regulasi kepatuhan data residensi OJK/BI, DILARANG KERAS merekomendasikan BigQuery, Vertex AI cloud publik, atau Google Workspace. Gunakan Greenplum MPP, Dell PowerEdge, Nutanix HCI, Sangfor HCI, atau Microsoft SQL Server Modernization.
 - On-Premise Compute/Storage: Dell Technologies, HPE, Nutanix, VMware, Sangfor. JANGAN gunakan BigQuery/Vertex AI untuk permintaan server fisik kecuali hybrid/cloud migration diminta.
 - Campus LAN/WiFi: Cisco Catalyst, Aruba (HPE Networking), Huawei, Extreme Networks. JANGAN campur dengan SecOps/cloud warehouse.
 - Cybersecurity: BeyondTrust PAM/EPM, Fortinet FortiGate, CrowdStrike, Google SecOps/Chronicle.
 - Cloud Data Pipeline/ETL: BigQuery untuk SQL ELT, Dataflow untuk streaming, Dataproc untuk Spark OSS, Cloud Composer untuk DAG orchestration.
-- AI/ML: Vertex AI, Gemini, BigQuery ML.
+- AI/ML: Vertex AI, Gemini, BigQuery ML, MALIKA Procurement AI, Clinical Speech AI.
 
 Struktur output JSON yang WAJIB (use_cases adalah array):
 {{
@@ -230,16 +295,26 @@ Struktur output JSON yang WAJIB:
                 "category": "Solusi Resmi & Case Study SMG",
             })
 
+    # Also inject references from verified catalog products
+    for prod in catalog_products:
+        for ref in prod.collateral_references:
+            if ref.get("url"):
+                raw_refs.append({
+                    "title": ref.get("title") or prod.name,
+                    "url": ref["url"],
+                    "category": "Solusi Resmi & Case Study SMG",
+                })
+
     verified_refs = await link_verifier_service.sanitize_references_and_sources(raw_refs, search_results=search, timeout=3.0)
 
     # Build lookup of verified SMG URLs for case_study attachment
     verified_smg_urls = {r["url"] for r in verified_refs if r.get("category") == "Solusi Resmi & Case Study SMG"}
 
-    # Post-process use cases: attach case_study_url from matched SMG cards
+    # Post-process use cases: attach case_study_url from matched SMG cards and catalog products
     use_case_dicts = []
     for uc in mod4.use_cases:
         uc_dict = uc.model_dump()
-        # Match by product overlap between use case and SMG cards
+        # Match by product overlap between use case and SMG cards / catalog products
         uc_products = set(p.lower() for p in (uc_dict.get("google_products") or []))
         best_card = None
         best_overlap = 0
@@ -254,6 +329,19 @@ Struktur output JSON yang WAJIB:
         if best_card:
             uc_dict["case_study_url"] = best_card.source_url
             uc_dict["case_study_title"] = best_card.title
+        elif not uc_dict.get("case_study_url"):
+            # Fallback to catalog product references
+            for prod in catalog_products:
+                prod_names = {prod.name.lower(), prod.product_id.lower()}
+                if any(p in pn or pn in p for p in uc_products for pn in prod_names):
+                    for ref in prod.collateral_references:
+                        if ref.get("url") in verified_smg_urls or ref.get("url"):
+                            uc_dict["case_study_url"] = ref.get("url")
+                            uc_dict["case_study_title"] = ref.get("title") or prod.name
+                            break
+                    if uc_dict.get("case_study_url"):
+                        break
+
         use_case_dicts.append(uc_dict)
 
     impact_order = {"High": 0, "Medium": 1, "Low": 2}
@@ -276,5 +364,5 @@ Struktur output JSON yang WAJIB:
         "recommended_questions": mod5.recommended_questions.model_dump(),
         "preparation_checklist": mod5.preparation_checklist,
         "references": verified_refs,
+        "reused_company_profile": reused_company_profile,
     }
-

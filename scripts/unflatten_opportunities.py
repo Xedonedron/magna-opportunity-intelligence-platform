@@ -152,7 +152,28 @@ def cluster_opportunities(records: list[OpportunityRecord]) -> dict[str, Company
             if not cluster.industry and rec.industry:
                 cluster.industry = rec.industry
 
-    return clusters
+    # --- Second Pass: Merge geographic subsidiary variants (e.g. 'Danone' into 'Danone Indonesia') ---
+    merged_clusters: dict[str, CompanyCluster] = dict(clusters)
+    for key in list(clusters.keys()):
+        if key not in merged_clusters:
+            continue
+        geo_target_key = f"{key} indonesia"
+        if geo_target_key in merged_clusters and geo_target_key != key:
+            base_cluster = merged_clusters.pop(key)
+            target_cluster = merged_clusters[geo_target_key]
+            target_cluster.opportunities.extend(base_cluster.opportunities)
+            if not target_cluster.website and base_cluster.website:
+                target_cluster.website = base_cluster.website
+            if not target_cluster.industry and base_cluster.industry:
+                target_cluster.industry = base_cluster.industry
+            logger.info(
+                "Consolidated subsidiary cluster '%s' into '%s' (%d total opportunities)",
+                base_cluster.chosen_name,
+                target_cluster.chosen_name,
+                len(target_cluster.opportunities),
+            )
+
+    return merged_clusters
 
 
 def run_unflatten_migration(
