@@ -43,14 +43,8 @@ Berdasarkan masukan strategis dari senior konsultan dan evaluasi tim, arsitektur
 
 ## 3. Rencana Kerja Per Sesi (Vertical Slices)
 
-### Sesi A: Katalog Produk Terstruktur & Metadata Rules (P1) - STATUS: SELESAI (100%)
-**Tujuan:** Menyediakan referensi portofolio produk Magna yang kaya metadata untuk mengeliminasi rekomendasi produk halusinasi.
-
-**Tasks & Status:**
-1. [x] **Products Catalog**: File `backend/app/data/products_catalog.json` berisi 24 produk resmi Magna (`deployment_modes`: on_prem, cloud, hybrid).
-2. [x] **Deterministic Filter Service**: `backend/app/services/product_catalog_service.py` untuk filtering deterministik (0% false positive rule-based filtering).
-3. [x] **Grounding Module 4**: Sambungkan filter ke Module 4 (*Use Cases*) di `kyc_sectional_runner.py`.
-4. [x] **Testing & Verification**: 5/5 unit tests di `test_product_catalog.py` lulus 100%.
+### Sesi A: Katalog Produk Terstruktur - STATUS: DROPPED / REVERTED (KEMBALI KE EXISTING)
+**Catatan:** Dihapus atas arahan user karena konten katalog dinilai tidak sesuai/halu. Sistem kembali 100% ke pipeline eksisting (`solutions_catalog` terkurasi resmi SMG) dan berfokus penuh pada **Arsitektur Folder & Workspace Dokumen per Opportunity**.
 
 ---
 

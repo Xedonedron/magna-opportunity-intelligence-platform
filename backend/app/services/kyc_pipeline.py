@@ -54,7 +54,6 @@ class KYCState(TypedDict):
     company_id: Optional[str]
     existing_company_profile: Optional[dict]
     reused_company_profile: Optional[bool]
-    deployment_preference: Optional[str]
 
     # Intermediate results
     search_results: dict
@@ -319,7 +318,6 @@ async def run_kyc_pipeline(
     model_name: Optional[str] = None,
     company_id: Optional[str] = None,
     existing_company_profile: Optional[dict] = None,
-    deployment_preference: Optional[str] = None,
 ) -> dict[str, Any]:
     """Run the full KYC pipeline and return the report data.
 
@@ -349,7 +347,6 @@ async def run_kyc_pipeline(
         "company_id": company_id,
         "existing_company_profile": existing_company_profile,
         "reused_company_profile": False,
-        "deployment_preference": deployment_preference,
         "search_results": {},
         "website_content": None,
         "industry_use_cases": [],

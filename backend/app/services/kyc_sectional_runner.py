@@ -18,7 +18,6 @@ from app.schemas.kyc import (
 from app.services.kyc_invoker import invoke_section
 from app.services.link_verifier import link_verifier_service
 from app.core.solutions_catalog import solutions_catalog
-from app.services.product_catalog_service import product_catalog_service, ProductCatalogItem
 
 logger = logging.getLogger(__name__)
 
@@ -68,18 +67,6 @@ def _build_base_context(state: Any) -> tuple:
         limit=6,
     )
 
-    # Deterministic product catalog filter (Hard Constraints: 0% false positive)
-    catalog_products = product_catalog_service.filter_products(
-        industry=state.get("industry"),
-        deployment_preference=state.get("deployment_preference"),
-        customer_needs=state.get("customer_needs"),
-        product=state.get("product"),
-        focus_notes=state.get("focus_notes"),
-        additional_notes=state.get("additional_notes"),
-        limit=5,
-    )
-    catalog_context = product_catalog_service.format_for_prompt(catalog_products)
-
     focus = f"\n## PANDUAN FOKUS KHUSUS (PRIORITAS TERTINGGI):\n{state['focus_notes']}\n" if state.get("focus_notes") else ""
 
     base = f"""## Informasi Perusahaan Klien
@@ -97,7 +84,7 @@ def _build_base_context(state: Any) -> tuple:
 ## Data Riset & Intelijen Eksternal
 {context}
 """
-    return base, use_cases_context, solutions_context, matched_smg_cards, catalog_context, catalog_products
+    return base, use_cases_context, solutions_context, matched_smg_cards
 
 
 async def run_sectional_kyc_pipeline(
@@ -107,7 +94,7 @@ async def run_sectional_kyc_pipeline(
     update_progress_fn: Any,
     clean_json_fn: Any,
 ) -> dict:
-    base_context, use_cases_context, solutions_context, matched_smg_cards, catalog_context, catalog_products = _build_base_context(state)
+    base_context, use_cases_context, solutions_context, matched_smg_cards = _build_base_context(state)
 
     strict_json_directive = (
         "\n\nATURAN FORMAT OUTPUT (SANGAT KETAT - WAJIB DIPATUHI):\n"
@@ -199,18 +186,15 @@ Struktur output JSON yang WAJIB:
 {base_context}
 {use_cases_context}
 {solutions_context}
-{catalog_context}
 Needs: {mod3.customer_need_summary}
 Pain Points: {', '.join(mod3.potential_pain_points)}
 
-ARSITEKTUR & PRODUCT SELECTION RULES (0% TOLERANSI KESALAHAN):
-- Utamakan produk dan arsitektur resmi dari "Verified Magna Product Portfolio Catalog" di atas.
-- ON-PREMISE CONSTRAINT: Apabila profil klien bertag On-Premise, menuntut server fisik lokal di data center, atau terikat regulasi kepatuhan data residensi OJK/BI, DILARANG KERAS merekomendasikan BigQuery, Vertex AI cloud publik, atau Google Workspace. Gunakan Greenplum MPP, Dell PowerEdge, Nutanix HCI, Sangfor HCI, atau Microsoft SQL Server Modernization.
+ARSITEKTUR DECISION RULES (WAJIB DIPATUHI):
 - On-Premise Compute/Storage: Dell Technologies, HPE, Nutanix, VMware, Sangfor. JANGAN gunakan BigQuery/Vertex AI untuk permintaan server fisik kecuali hybrid/cloud migration diminta.
 - Campus LAN/WiFi: Cisco Catalyst, Aruba (HPE Networking), Huawei, Extreme Networks. JANGAN campur dengan SecOps/cloud warehouse.
 - Cybersecurity: BeyondTrust PAM/EPM, Fortinet FortiGate, CrowdStrike, Google SecOps/Chronicle.
 - Cloud Data Pipeline/ETL: BigQuery untuk SQL ELT, Dataflow untuk streaming, Dataproc untuk Spark OSS, Cloud Composer untuk DAG orchestration.
-- AI/ML: Vertex AI, Gemini, BigQuery ML, MALIKA Procurement AI, Clinical Speech AI.
+- AI/ML: Vertex AI, Gemini, BigQuery ML.
 
 Struktur output JSON yang WAJIB (use_cases adalah array):
 {{
@@ -295,26 +279,16 @@ Struktur output JSON yang WAJIB:
                 "category": "Solusi Resmi & Case Study SMG",
             })
 
-    # Also inject references from verified catalog products
-    for prod in catalog_products:
-        for ref in prod.collateral_references:
-            if ref.get("url"):
-                raw_refs.append({
-                    "title": ref.get("title") or prod.name,
-                    "url": ref["url"],
-                    "category": "Solusi Resmi & Case Study SMG",
-                })
-
     verified_refs = await link_verifier_service.sanitize_references_and_sources(raw_refs, search_results=search, timeout=3.0)
 
     # Build lookup of verified SMG URLs for case_study attachment
     verified_smg_urls = {r["url"] for r in verified_refs if r.get("category") == "Solusi Resmi & Case Study SMG"}
 
-    # Post-process use cases: attach case_study_url from matched SMG cards and catalog products
+    # Post-process use cases: attach case_study_url from matched SMG cards
     use_case_dicts = []
     for uc in mod4.use_cases:
         uc_dict = uc.model_dump()
-        # Match by product overlap between use case and SMG cards / catalog products
+        # Match by product overlap between use case and SMG cards
         uc_products = set(p.lower() for p in (uc_dict.get("google_products") or []))
         best_card = None
         best_overlap = 0
@@ -329,18 +303,6 @@ Struktur output JSON yang WAJIB:
         if best_card:
             uc_dict["case_study_url"] = best_card.source_url
             uc_dict["case_study_title"] = best_card.title
-        elif not uc_dict.get("case_study_url"):
-            # Fallback to catalog product references
-            for prod in catalog_products:
-                prod_names = {prod.name.lower(), prod.product_id.lower()}
-                if any(p in pn or pn in p for p in uc_products for pn in prod_names):
-                    for ref in prod.collateral_references:
-                        if ref.get("url") in verified_smg_urls or ref.get("url"):
-                            uc_dict["case_study_url"] = ref.get("url")
-                            uc_dict["case_study_title"] = ref.get("title") or prod.name
-                            break
-                    if uc_dict.get("case_study_url"):
-                        break
 
         use_case_dicts.append(uc_dict)
 

@@ -333,14 +333,8 @@ Senior merekomendasikan pembuatan **RAG dengan Vector Embeddings**. Namun, berda
   - [ ] Muat playbook rules ke memory helper di `backend/app/services/playbook_service.py`.
   - [ ] Suntikkan segmen playbook yang relevan ke dalam prompt Module 5 (*Presales Engagement Strategy*) dan Module 4 (*Use Cases*).
 
-### Checklist Inisiatif 7: Katalog Produk Terstruktur & Pragmatic Metadata (COMPLETED 100%)
-- [x] **Schema & Data Portofolio (COMPLETED)**:
-  - [x] Buat file referensi `backend/app/data/products_catalog.json` berisi seluruh portofolio produk Magna (GCP, GWS, Maps, Greenplum EDW, SQL Server Modernization, Network, AI).
-  - [x] Lengkapi metadata setiap produk: `deployment_modes` (`on_prem`, `cloud`, `hybrid`), `solution_domain`, `target_personas`, `pain_point_triggers`, `case_study_ref`.
-- [x] **Deterministic Filtering Logic (COMPLETED)**:
-  - [x] Implementasikan helper filter di `product_catalog_service.py`: menyaring produk secara presisi berdasarkan parameter opportunity (`industry`, `deployment_preference`, `customer_needs`).
-  - [x] Pastikan 0% false positive (produk cloud murni tidak pernah direkomendasikan jika klien menuntut on-premise).
-  - [x] Sambungkan ke Module 4 di `kyc_sectional_runner.py` dan uji 5/5 unit tests di `test_product_catalog.py`.
+### Inisiatif Katalog Produk Terstruktur (DROPPED / REVERTED)
+- Dihapus atas arahan user karena konten katalog dinilai tidak sesuai/halu. Sistem kembali ke pipeline eksisting (`solutions_catalog` resmi SMG) dan berfokus penuh pada **Hirarki Folder & Workspace Dokumen per Opportunity**.
 
 ---
 *Dokumen ini merupakan acuan resmi untuk iterasi pengembangan berikutnya di MOIP.*
