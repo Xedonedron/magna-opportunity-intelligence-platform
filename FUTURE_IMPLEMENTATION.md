@@ -289,4 +289,56 @@ Senior merekomendasikan pembuatan **RAG dengan Vector Embeddings**. Namun, berda
 | 7 | **Hybrid Vector RAG untuk Unstructured Historical Proposal** | Menengah - Tinggi | `pgvector` / in-memory embeddings, retrieval service | **Jangka Panjang (P3)** |
 
 ---
+
+## Master Checklist Implementasi
+
+### Checklist Inisiatif 4: Restrukturisasi Hirarki Folder (Company → Multi-Opportunity)
+- [ ] **Data Model & Migrasi Skema**:
+  - [ ] Buat model `Company` (`id`, `name`, `normalized_name`, `website`, `industry`, `business_process`, `employee_count`, `tech_stack`, `created_at`, `updated_at`).
+  - [ ] Tambahkan kolom `company_id` (ForeignKey ke `companies.id`, nullable awal) pada model `Opportunity`.
+  - [ ] Buat script migrasi offline `scripts/unflatten_opportunities.py` dengan heuristik deduplikasi nama PT & domain website.
+  - [ ] Jalankan dry-run migrasi dan review hasil clustering opportunity per perusahaan sebelum commit ke production DB.
+  - [ ] Set `company_id` menjadi `nullable=False` dan tambahkan foreign key constraint.
+- [ ] **Backend API**:
+  - [ ] Buat CRUD endpoints untuk Companies (`/api/v1/companies`).
+  - [ ] Perbarui endpoint pembuatan Opportunity (`POST /api/v1/companies/{company_id}/opportunities`).
+  - [ ] Modifikasi KYC runner agar otomatis me-reuse profil perusahaan yang sudah ada (`CompanyProfile`), mem-bypass Module 1 & 2 jika data statis masih valid.
+- [ ] **Frontend UX**:
+  - [ ] Buat tampilan folder list di halaman utama: daftar Perusahaan / Accounts (misal: "SMBC Indonesia", "PT Darma Henwa").
+  - [ ] Saat folder perusahaan dibuka, tampilkan list opportunity di dalamnya (misal: "SMBC Indonesia > Backup", "SMBC Indonesia > Data Warehouse").
+  - [ ] Tombol `+ New Opportunity` di dalam folder perusahaan otomatis mengisi data profil perusahaan induk.
+
+### Checklist Inisiatif 5: Living Opportunity & MoM-Driven Progressive Intelligence
+- [ ] **Data & Storage MoM**:
+  - [ ] Tambahkan kolom `mom_notes` (Text/Markdown) dan relasi `meeting_id` pendukung pada `kyc_reports` atau tabel `OpportunityDocument`.
+  - [ ] Buat endpoint `POST /api/v1/opportunities/{id}/mom` untuk menyimpan ringkasan hasil meeting atau transcript.
+- [ ] **Pipeline Re-Generation Berkelanjutan (v2+)**:
+  - [ ] Sesuaikan prompt Module 4 (Use Cases) dan Module 5 (Engagement Strategy) agar menerima konteks `mom_history`.
+  - [ ] Ubah generation objectives pada version > 1: beralih dari *broad discovery* ke *objection handling, technical qualification, & scoping checklist*.
+- [ ] **Frontend Interface**:
+  - [ ] Tambahkan tab / modal "Input Minutes of Meeting (MoM)" dengan Markdown editor pada detail Opportunity.
+  - [ ] Tambahkan tombol "Generate Next Stage KYC (v2)" yang terintegrasi dengan konteks MoM terbaru.
+
+### Checklist Inisiatif 6: Digitalisasi Internal Sales Playbook
+- [ ] **Akuisisi & Strukturisasi Data**:
+  - [ ] Scan dokumen fisik/buku catatan playbook presales internal ke PDF resolusi tinggi.
+  - [ ] Ekstrak teks via OCR/manual formatting menjadi format Markdown terstruktur di `backend/app/data/playbook/`.
+  - [ ] Bagi ke dalam 3 segmen inti:
+    - [ ] `winning_questions.md`: Pertanyaan pembuka dan penggali kebutuhan per industri.
+    - [ ] `bridging_tactics.md`: Logika transisi dari keluhan/pain points ke solusi produk Magna.
+    - [ ] `pitching_personas.md`: Sudut pandang dialog untuk CIO, CFO, dan Head of Infrastructure.
+- [ ] **Injeksi ke Sectional Pipeline**:
+  - [ ] Muat playbook rules ke memory helper di `backend/app/services/playbook_service.py`.
+  - [ ] Suntikkan segmen playbook yang relevan ke dalam prompt Module 5 (*Presales Engagement Strategy*) dan Module 4 (*Use Cases*).
+
+### Checklist Inisiatif 7: Katalog Produk Terstruktur & Pragmatic Metadata
+- [ ] **Schema & Data Portofolio**:
+  - [ ] Buat file referensi `backend/app/data/products_catalog.json` berisi seluruh portofolio produk Magna (GCP, GWS, Maps, Greenplum EDW, SQL Server Modernization, Network, AI).
+  - [ ] Lengkapi metadata setiap produk: `deployment_modes` (`on_prem`, `cloud`, `hybrid`), `solution_domain`, `target_personas`, `pain_point_triggers`, `case_study_ref`.
+- [ ] **Deterministic Filtering Logic**:
+  - [ ] Implementasikan helper filter di `solutions_catalog.py`: menyaring produk secara presisi berdasarkan parameter opportunity (`industry`, `deployment_preference`, `customer_needs`).
+  - [ ] Pastikan 0% false positive (misal: produk cloud murni tidak pernah direkomendasikan jika klien menuntut on-premise).
+  - [ ] Uji performa caching prompt pada LLM dengan format katalog JSON ringkas.
+
+---
 *Dokumen ini merupakan acuan resmi untuk iterasi pengembangan berikutnya di MOIP.*
