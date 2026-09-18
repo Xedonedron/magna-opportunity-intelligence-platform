@@ -69,6 +69,20 @@ class UseCaseItem(BaseModel):
                 data["vendor_products"] = data["google_products"]
         return data
 
+    @field_validator("title", "description", "problem_solved", "how_it_works", "business_impact", mode="before")
+    @classmethod
+    def coerce_text_fields(cls, v: Any) -> str:
+        return _coerce_to_clean_string(v)
+
+    @field_validator("google_products", "vendor_products", "smartnet_solutions", mode="before")
+    @classmethod
+    def coerce_product_lists(cls, v: Any) -> list[str]:
+        if isinstance(v, str):
+            return [p.strip() for p in v.split(",") if p.strip()]
+        if isinstance(v, list):
+            return [str(p) for p in v]
+        return []
+
 
 # --- Sectional KYC Structured Output Schemas (Inisiatif 1) ---
 class CompanyProfileOutput(BaseModel):
@@ -117,6 +131,19 @@ class PainPointsNeedsOutput(BaseModel):
 class UseCasesOutput(BaseModel):
     """Module 4: Technical Architecture & Presales Use Cases"""
     use_cases: list[UseCaseItem] = Field(default_factory=list, description="Daftar use case arsitektural terurut")
+
+    @model_validator(mode="before")
+    @classmethod
+    def coerce_use_cases(cls, data: Any) -> Any:
+        if isinstance(data, list):
+            return {"use_cases": data}
+        if isinstance(data, dict):
+            if "use_cases" not in data:
+                for alias in ("useCases", "items", "cases", "use_case", "data", "solutions"):
+                    if alias in data and isinstance(data[alias], list):
+                        data["use_cases"] = data[alias]
+                        break
+        return data
 
 
 class CategorizedQuestions(BaseModel):

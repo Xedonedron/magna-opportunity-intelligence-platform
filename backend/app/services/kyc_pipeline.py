@@ -87,20 +87,36 @@ def _clean_and_parse_json(content: Any) -> dict:
     text = content.strip()
 
     # 1. Extract markdown fence if present
-    fence_match = re.search(r"```(?:json)?\s*([\s\S]*?)(?:```|$)", text, re.IGNORECASE)
-    if fence_match and fence_match.group(1).strip():
-        text = fence_match.group(1).strip()
+    json_fence_match = re.search(r"```(?:json)\s*([\s\S]*?)(?:```|$)", text, re.IGNORECASE)
+    if json_fence_match and json_fence_match.group(1).strip():
+        text = json_fence_match.group(1).strip()
+    else:
+        fence_match = re.search(r"```(?:\w+)?\s*([\s\S]*?)(?:```|$)", text)
+        if fence_match and fence_match.group(1).strip():
+            candidate = fence_match.group(1).strip()
+            if "{" in candidate or "[" in candidate:
+                text = candidate
 
-    # 2. Slice from first '{'
-    start_idx = text.find("{")
-    if start_idx != -1:
-        text = text[start_idx:]
+    # 2. Slice from first '{' or '['
+    start_obj = text.find("{")
+    start_arr = text.find("[")
+    if start_obj == -1 and start_arr == -1:
+        raise ValueError(f"No JSON object or array found in AI model response: {text[:120]}")
+
+    if start_obj != -1 and (start_arr == -1 or start_obj < start_arr):
+        start_idx = start_obj
+        end_char = "}"
+    else:
+        start_idx = start_arr
+        end_char = "]"
+
+    text = text[start_idx:]
 
     # 3. Clean trailing commas inside arrays/objects (e.g. ", }", ", ]")
     text = re.sub(r",\s*([\}\]])", r"\1", text)
 
     # 4. Try standard JSON parse on balanced substring first
-    end_idx = text.rfind("}")
+    end_idx = text.rfind(end_char)
     if end_idx != -1:
         candidate = text[: end_idx + 1]
         candidate = re.sub(r",\s*([\}\]])", r"\1", candidate)

@@ -108,8 +108,21 @@ Struktur output:
 
 Data Profil:
 {base_context}{strict_json_directive}"""
-    prompt_mod2 = f"Analisis industri dan kompetitor klien berikut untuk Module 2: Industry & Competitors (industry_analysis, competitor_analysis):\n{base_context}{strict_json_directive}"
-    prompt_mod3 = f"Analisis kebutuhan dan kendala operasional klien untuk Module 3: Customer Needs & Pain Points (customer_need_summary, potential_pain_points):\n{base_context}{strict_json_directive}"
+    prompt_mod2 = f"""Analisis industri dan kompetitor klien berikut untuk Module 2: Industry & Competitors:
+{base_context}
+
+Struktur output JSON yang WAJIB:
+- industry_analysis: teks narasi ringkas lanskap dan tren industri klien.
+- competitor_analysis: array objek [{{"name": "...", "market_position": "...", "strengths": [...], "weaknesses": [...], "differentiators": "..."}}].
+{strict_json_directive}"""
+
+    prompt_mod3 = f"""Analisis kebutuhan dan kendala operasional klien untuk Module 3: Customer Needs & Pain Points:
+{base_context}
+
+Struktur output JSON yang WAJIB:
+- customer_need_summary: teks narasi ringkas kebutuhan bisnis dan teknis klien.
+- potential_pain_points: array string kendala teknis / operasional ["kendala 1", "kendala 2"].
+{strict_json_directive}"""
 
     mod1, mod2, mod3 = await asyncio.gather(
         invoke_section(llm, CompanyProfileOutput, prompt_mod1, "Module 1", max_retries=3, state=state, clean_json_fn=clean_json_fn),
@@ -133,6 +146,22 @@ ARSITEKTUR DECISION RULES (WAJIB DIPATUHI):
 - Cybersecurity: BeyondTrust PAM/EPM, Fortinet FortiGate, CrowdStrike, Google SecOps/Chronicle.
 - Cloud Data Pipeline/ETL: BigQuery untuk SQL ELT, Dataflow untuk streaming, Dataproc untuk Spark OSS, Cloud Composer untuk DAG orchestration.
 - AI/ML: Vertex AI, Gemini, BigQuery ML.
+
+Struktur output JSON yang WAJIB (use_cases adalah array):
+{{
+  "use_cases": [
+    {{
+      "title": "Judul use case arsitektural",
+      "description": "Deskripsi singkat implementasi",
+      "problem_solved": "Masalah spesifik yang diselesaikan",
+      "how_it_works": "Arsitektur teknis dan alur integrasi solusi",
+      "business_impact": "Dampak bisnis terukur / ROI / efisiensi operasional",
+      "google_products": ["Produk vendor / teknologi"],
+      "smartnet_solutions": ["Solusi resmi Smartnet Magna Global"],
+      "impact_level": "High"
+    }}
+  ]
+}}
 {strict_json_directive}
 """
     prompt_mod5 = f"""Susun strategi engagement dan discovery questions presales (Module 5):
@@ -145,6 +174,16 @@ Bagi discovery questions menjadi dua kategori:
 - "business": Pertanyaan untuk C-Level / Business Owner / VP — fokus pada business driver, ROI, cost of inaction, timeline regulasi, target revenue/efisiensi, pain point operasional bisnis.
 - "technical": Pertanyaan untuk CTO / IT Manager / DevOps / SecOps / Architect — fokus pada arsitektur eksisting, volume data/throughput, integrasi API/IAM, kendala migrasi teknis, stack teknologi, security posture.
 Masing-masing kategori minimal 3-5 pertanyaan.
+
+Struktur output JSON yang WAJIB:
+{{
+  "meeting_objectives": ["Objektif 1", "Objektif 2"],
+  "recommended_questions": {{
+    "business": ["Pertanyaan bisnis 1", "Pertanyaan bisnis 2"],
+    "technical": ["Pertanyaan teknis 1", "Pertanyaan teknis 2"]
+  }},
+  "preparation_checklist": ["Checklist persiapan 1", "Checklist persiapan 2"]
+}}
 {strict_json_directive}
 """
     mod4, mod5 = await asyncio.gather(
@@ -163,6 +202,11 @@ Needs: {mod3.customer_need_summary}
 Pain points: {', '.join(mod3.potential_pain_points)}
 Use Cases: {', '.join([u.title for u in mod4.use_cases])}
 Target Meeting: {', '.join(mod5.meeting_objectives)}
+
+Struktur output JSON yang WAJIB:
+{{
+  "executive_summary": "Teks narasi Executive Summary 2-3 paragraf komprehensif..."
+}}
 {strict_json_directive}
 """
     mod6 = await invoke_section(llm, ExecutiveSummaryOutput, prompt_mod6, "Module 6", max_retries=3, state=state, clean_json_fn=clean_json_fn)

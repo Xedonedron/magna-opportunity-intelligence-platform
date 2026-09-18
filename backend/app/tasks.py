@@ -16,6 +16,7 @@ from app.models.user import User
 from app.services.email_service import email_service
 from app.services.calendar_service import calendar_service
 from app.services.notification_service import NotificationService
+from app.services import kyc_pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -204,7 +205,6 @@ def run_kyc_pipeline_task(
 
     from app.models.kyc_report import KYCReport
     from app.models.opportunity import TimelineEvent
-    from app.services.kyc_pipeline import run_kyc_pipeline
 
     db = SessionLocal()
     try:
@@ -285,25 +285,54 @@ def run_kyc_pipeline_task(
         update_progress("received", 15)
         time.sleep(1.5)
 
-        # Run the async pipeline
+        # Run the async pipeline with in-place retry for transient errors
         effective_focus = focus_notes or (kyc_report.focus_notes if kyc_report else None)
-        result = asyncio.run(
-            run_kyc_pipeline(
-                company_name=opportunity.company_name,
-                customer_needs=opportunity.customer_needs,
-                website=opportunity.website,
-                industry=opportunity.industry,
-                product=opportunity.product,
-                additional_notes=opportunity.additional_notes,
-                on_progress=update_progress,
-                opportunity_id=str(opportunity.id),
-                user_id=str(opportunity.created_by) if opportunity.created_by else None,
-                kyc_version=next_version,
-                source_type=source_type,
-                focus_notes=effective_focus,
-                model_name=model_name,
+        max_task_retries = 3
+        result = {}
+        last_pipeline_error = None
+
+        for attempt in range(1, max_task_retries + 1):
+            if attempt > 1:
+                logger.info(
+                    f"[KYC Task] In-place retry attempt {attempt}/{max_task_retries} for opportunity {opportunity.id} (v{next_version})..."
+                )
+                update_progress("analyzing", 75)
+
+            try:
+                result = asyncio.run(
+                    kyc_pipeline.run_kyc_pipeline(
+                        company_name=opportunity.company_name,
+                        customer_needs=opportunity.customer_needs,
+                        website=opportunity.website,
+                        industry=opportunity.industry,
+                        product=opportunity.product,
+                        additional_notes=opportunity.additional_notes,
+                        on_progress=update_progress,
+                        opportunity_id=str(opportunity.id),
+                        user_id=str(opportunity.created_by) if opportunity.created_by else None,
+                        kyc_version=next_version,
+                        source_type=source_type,
+                        focus_notes=effective_focus,
+                        model_name=model_name,
+                    )
+                )
+            except Exception as task_exc:
+                logger.error(f"[KYC Task] Pipeline exception on attempt {attempt}: {task_exc}")
+                result = {"status": "failed", "error": str(task_exc)}
+
+            if result.get("status") == "completed":
+                break
+
+            last_pipeline_error = result.get("error", "Unknown error")
+            if not _is_retryable_kyc_error(last_pipeline_error) or attempt == max_task_retries:
+                break
+
+            retry_delay = attempt * 3
+            logger.warning(
+                f"[KYC Task] Attempt {attempt}/{max_task_retries} for v{next_version} failed with transient error: {last_pipeline_error}. "
+                f"Retrying in-place in {retry_delay}s without creating a new version..."
             )
-        )
+            time.sleep(retry_delay)
 
         if result.get("status") == "completed":
             # Save results to KYC report
@@ -351,8 +380,8 @@ def run_kyc_pipeline_task(
                 "version": next_version,
             }
         else:
-            # Pipeline failed
-            err_msg = result.get("error", "Unknown error")
+            # Pipeline failed after all retries exhausted
+            err_msg = result.get("error") or last_pipeline_error or "Unknown error"
             kyc_report.status = "failed"
             kyc_report.error_message = err_msg
             opportunity.status = old_status  # Revert status
@@ -389,6 +418,26 @@ def run_kyc_pipeline_task(
         return {"status": "error", "message": str(e)}
     finally:
         db.close()
+
+
+def _is_retryable_kyc_error(err_msg: str) -> bool:
+    """Determine if a pipeline failure is transient/retryable in-place on the existing report version."""
+    if not err_msg:
+        return False
+    msg_lower = err_msg.lower()
+    fatal_patterns = [
+        "no llm api key",
+        "api key not found",
+        "invalid api key",
+        "authentication failed",
+        "opportunity not found",
+        "account suspended",
+        "billing disabled",
+    ]
+    for pattern in fatal_patterns:
+        if pattern in msg_lower:
+            return False
+    return True
 
 
 @celery_app.task(name="tasks.send_meeting_reminder")

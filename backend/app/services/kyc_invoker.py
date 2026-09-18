@@ -24,6 +24,25 @@ async def invoke_section(
             start_ts = time.time()
             res = None
             runnable = None
+
+            # Prepare prompt with dynamic error feedback if retrying
+            current_prompt = prompt
+            if attempt > 1 and last_error:
+                err_summary = str(last_error)
+                if len(err_summary) > 200:
+                    err_summary = err_summary[:200] + "..."
+                corrective_header = (
+                    f"### PERINGATAN PERBAIKAN FORMAT (PERCOBAAN {attempt}/{max_retries}):\n"
+                    f"Upaya sebelumnya GAGAL divalidasi karena error: {err_summary}\n"
+                    "Alasan: Model mengembalikan format teks narasi, tabel markdown, atau teks bebas non-JSON.\n"
+                    "INSTRUKSI WAJIB DIPATUHI:\n"
+                    "1. Kembalikan HANYA dokumen JSON valid yang sesuai dengan skema yang diminta.\n"
+                    "2. Mulai respons langsung dengan '{' dan akhiri dengan '}'.\n"
+                    "3. DILARANG KERAS menyertakan kalimat pengantar ('Berikut adalah...', 'Tentu...'), penjelasan, atau format tabel markdown (| col | col |).\n"
+                    "4. Seluruh isi jawaban harus berada di dalam struktur field JSON yang diminta.\n\n"
+                )
+                current_prompt = corrective_header + prompt
+
             if hasattr(llm, "with_structured_output"):
                 try:
                     runnable = llm.with_structured_output(schema_cls)
@@ -33,10 +52,12 @@ async def invoke_section(
 
             if runnable is not None:
                 try:
-                    parsed_res = await runnable.ainvoke(prompt)
+                    parsed_res = await runnable.ainvoke(current_prompt)
                     if isinstance(parsed_res, schema_cls):
                         res = parsed_res
                     elif isinstance(parsed_res, dict):
+                        res = schema_cls.model_validate(parsed_res)
+                    elif isinstance(parsed_res, list) and hasattr(schema_cls, "model_validate"):
                         res = schema_cls.model_validate(parsed_res)
                     elif clean_json_fn:
                         d = clean_json_fn(str(parsed_res))
@@ -66,7 +87,7 @@ async def invoke_section(
                                 d = clean_json_fn(raw_from_err)
                                 res = schema_cls.model_validate(d)
                                 recovered = True
-                            elif isinstance(raw_from_err, dict):
+                            elif isinstance(raw_from_err, (dict, list)):
                                 res = schema_cls.model_validate(raw_from_err)
                                 recovered = True
                             if recovered:
@@ -81,7 +102,7 @@ async def invoke_section(
 
             # Fallback to direct raw invocation if structured output was unavailable or unrecoverable
             if res is None:
-                raw = await llm.ainvoke(prompt)
+                raw = await llm.ainvoke(current_prompt)
                 raw_text = raw.content if hasattr(raw, "content") else str(raw)
                 d = clean_json_fn(raw_text) if clean_json_fn else {}
                 res = schema_cls.model_validate(d)
