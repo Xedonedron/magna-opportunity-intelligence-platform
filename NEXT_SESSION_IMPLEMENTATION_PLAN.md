@@ -71,13 +71,34 @@ Berdasarkan masukan strategis dari senior konsultan dan evaluasi tim, arsitektur
 ---
 
 ### Sesi C: Restrukturisasi Model Folder & Migrasi Un-flattening (P1 - Core)
-**Tujuan:** Membangun entitas `Company`, menghubungkan `Opportunity` sebagai child, dan memilah data lama secara aman.
+**Tujuan:** Membangun entitas `Company`, menghubungkan `Opportunity` sebagai child, dan memilah data lama secara aman tanpa risiko data loss di lingkungan production (karena tidak ada staging).
+
+#### Protokol Keamanan & Mitigasi Rollback (Wajib Dijalankan):
+1. **Langkah 0: Full Snapshot Backup (Pre-Migration Checkpoint)**
+   Sebelum menyentuh skema atau menjalankan script migrasi apa pun, jalankan script backup otomatis:
+   ```bash
+   ./scripts/backup_database.sh
+   ```
+   Script ini menghasilkan snapshot terkompresi `backups/moip_db_backup_<timestamp>.sql.gz`.
+2. **Prinsip Migrasi Aditif (Non-Destructive Schema)**:
+   - DILARANG menghapus (*DROP*) kolom atau tabel existing (`company_name` pada tabel `opportunities` tetap dipertahankan sebagai fallback).
+   - Buat tabel baru `companies`.
+   - Tambahkan kolom baru `company_id` pada `opportunities` sebagai `nullable=True`.
+   - Dengan pendekatan ini, jika frontend/backend versi lama masih membaca kolom lama, sistem TIDAK AKAN ERROR (*zero downtime*).
+3. **Dry-Run & Staging Preview**:
+   Script `scripts/unflatten_opportunities.py` wajib dijalankan dengan mode preview (`--dry-run`) terlebih dahulu untuk memverifikasi pemetaan 34 data riil sebelum menulis ke database.
+4. **Prosedur Rollback Cepat (1-Command Emergency Recovery)**:
+   Jika terjadi anomali data atau migrasi gagal, cukup eksekusi script restore:
+   ```bash
+   ./scripts/restore_database.sh ./backups/moip_db_backup_<timestamp>.sql.gz
+   ```
+   Database akan langsung kembali 100% ke kondisi awal sebelum migrasi.
 
 **Tasks:**
 1. **Database Schema**:
    - Buat model `Company` di `backend/app/models/company.py`.
-   - Tambahkan `company_id` pada `backend/app/models/opportunity.py` (relasi Foreign Key).
-   - Buat migration script Alembic.
+   - Tambahkan `company_id` pada `backend/app/models/opportunity.py` (relasi Foreign Key, `nullable=True` aditif).
+   - Buat migration script Alembic aditif.
 2. **Offline Data Migration Script (`scripts/unflatten_opportunities.py`)**:
    - Script deduplikasi nama perusahaan (normalisasi nama PT, website canonical).
    - Algoritma pemilahan baris opportunity di bawah perusahaan yang sama:
