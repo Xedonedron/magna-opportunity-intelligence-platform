@@ -26,24 +26,38 @@ jobs:
     name: Deploy Backend & Celery on VPS
     runs-on: self-hosted
     steps:
-      - name: Update and Deploy Backend
+            - name: Update and Deploy Backend
         run: |
           set -e
           echo "========================================================"
           echo "🚀 Menerima trigger CI/CD untuk Commit: $GITHUB_SHA"
           echo "========================================================"
 
-          # Direktori project MOIP di VPS
-          TARGET_DIR="/magna-opportunity-intelligence-platform"
-          if [ ! -d "$TARGET_DIR" ]; then
-            if [ -d "$HOME/projects/magna-opportunity-intelligence-platform" ]; then
-              TARGET_DIR="$HOME/projects/magna-opportunity-intelligence-platform"
-            elif [ -d "/root/projects/magna-opportunity-intelligence-platform" ]; then
-              TARGET_DIR="/root/projects/magna-opportunity-intelligence-platform"
+          # Auto-detect lokasi folder MOIP
+          TARGET_DIR=""
+          for candidate in \
+            "/root/magna-opportunity-intelligence-platform" \
+            "/magna-opportunity-intelligence-platform" \
+            "$HOME/magna-opportunity-intelligence-platform" \
+            "/root/projects/magna-opportunity-intelligence-platform" \
+            "/home/robi_firmansyah/magna-opportunity-intelligence-platform"; do
+            if [ -d "$candidate" ] && [ -f "$candidate/docker-compose.yml" ]; then
+              TARGET_DIR="$candidate"
+              break
             fi
+          done
+
+          # Jika masih belum ketemu, cari file docker-compose.yml MOIP
+          if [ -z "$TARGET_DIR" ]; then
+            TARGET_DIR=$(find /root /home /var/www / -maxdepth 3 -name "docker-compose.yml" -path "*magna*" 2>/dev/null | head -1 | xargs -r dirname || true)
           fi
 
-          echo "📁 Masuk ke direktori: $TARGET_DIR"
+          if [ -z "$TARGET_DIR" ] || [ ! -d "$TARGET_DIR" ]; then
+            echo "❌ Error: Folder project MOIP tidak ditemukan di server!"
+            exit 1
+          fi
+
+          echo "📁 Ditemukan di direktori: $TARGET_DIR"
           cd "$TARGET_DIR"
 
           echo "📥 Mengambil perubahan terbaru dari Git..."
