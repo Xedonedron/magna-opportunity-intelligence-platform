@@ -32,6 +32,7 @@ export interface TimelineEvent {
 
 export interface Opportunity {
     id: string;
+    company_id?: string | null;
     company_name: string;
     contact_name: string | null;
     website: string | null;

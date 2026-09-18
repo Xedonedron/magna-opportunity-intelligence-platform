@@ -43,20 +43,18 @@ Berdasarkan masukan strategis dari senior konsultan dan evaluasi tim, arsitektur
 
 ## 3. Rencana Kerja Per Sesi (Vertical Slices)
 
-### Sesi A: Katalog Produk Terstruktur & Metadata Rules (P1)
+### Sesi A: Katalog Produk Terstruktur & Metadata Rules (P1) - STATUS: SELESAI (100%)
 **Tujuan:** Menyediakan referensi portofolio produk Magna yang kaya metadata untuk mengeliminasi rekomendasi produk halusinasi.
 
-**Tasks:**
-1. Buat file `backend/app/data/products_catalog.json` berisi data produk Magna dengan skema metadata lengkap (`deployment_modes`, `solution_domain`, `target_personas`, `pain_point_triggers`).
-2. Buat service `backend/app/services/product_catalog_service.py` untuk filtering deterministik:
-   - Filter berdasarkan parameter industri klien.
-   - Filter berdasarkan batasan deployment (misal: mutlak *on-premise* vs *cloud*).
-3. Sambungkan hasil filter ke prompt Module 4 (*Use Cases*) di `kyc_sectional_runner.py`.
-4. Tambahkan unit test untuk memastikan 0% false positive rekomendasi cloud pada klien bertag on-premise.
+**Tasks & Status:**
+1. [x] **Products Catalog**: File `backend/app/data/products_catalog.json` berisi 24 produk resmi Magna (`deployment_modes`: on_prem, cloud, hybrid).
+2. [x] **Deterministic Filter Service**: `backend/app/services/product_catalog_service.py` untuk filtering deterministik (0% false positive rule-based filtering).
+3. [x] **Grounding Module 4**: Sambungkan filter ke Module 4 (*Use Cases*) di `kyc_sectional_runner.py`.
+4. [x] **Testing & Verification**: 5/5 unit tests di `test_product_catalog.py` lulus 100%.
 
 ---
 
-### Sesi B: Digitalisasi & Integrasi Internal Sales Playbook (P1)
+### Sesi B: Digitalisasi & Integrasi Internal Sales Playbook (P1) - NEXT UP (PRIORITAS SESI BERIKUTNYA)
 **Tujuan:** Mengintegrasikan framework "how-to" presales internal ke dalam rekomendasi strategi meeting.
 
 **Tasks:**
@@ -70,18 +68,19 @@ Berdasarkan masukan strategis dari senior konsultan dan evaluasi tim, arsitektur
 
 ---
 
-### Sesi C: Restrukturisasi Model Folder & Migrasi Un-flattening (P1 - Core) - STATUS: BACKEND COMPLETED
-**Tujuan:** Membangun entitas `Company`, menghubungkan `Opportunity` sebagai child, dan memilah data lama secara aman tanpa risiko data loss di lingkungan production (karena tidak ada staging).
+### Sesi C: Restrukturisasi Model Folder & Migrasi Un-flattening (P1 - Core) - STATUS: SELESAI (100%)
+**Tujuan:** Membangun entitas `Company`, menghubungkan `Opportunity` sebagai child, dan memilah data lama secara aman tanpa risiko data loss di lingkungan production.
 
 #### Status Implementasi Sesi C:
-- [x] **Model & Database Migration**: Model `Company` dibuat di `backend/app/models/company.py`, `company_id` ditambahkan ke `Opportunity` (`nullable=True`), Alembic migration `w3r4k5f6g7h8` siap dieksekusi.
-- [x] **Un-flattening Logic & Test**: `scripts/unflatten_opportunities.py` terbukti 100% akurat mengelompokkan 34 record database riil ke tepat 30 entitas Company unik. Wrapper `./scripts/run_unflatten_docker.sh` telah disiapkan.
-- [x] **REST API & Schemas**: CRUD `/api/companies` & `/api/v1/companies` serta pembuatan opportunity bersarang `POST /api/v1/companies/{company_id}/opportunities` (dengan automatic metadata inheritance) selesai dan teruji (7/7 test passed).
-- [ ] **Pending Production Steps**:
-  1. Commit & push ke `main` untuk trigger GitHub Actions runner di VM `magnasight`.
-  2. Backup database otomatis dieksekusi oleh `scripts/deploy_backend.sh`.
-  3. Eksekusi `./scripts/run_unflatten_docker.sh --dry-run` lalu `--commit` di server.
-- [ ] **Frontend UI**: Mengubah navigasi utama menjadi folder view.
+- [x] **Model & Database Migration**: Model `Company` dibuat di `backend/app/models/company.py`, `company_id` ditambahkan ke `Opportunity` (`nullable=True`), Alembic migration `w3r4k5f6g7h8` aktif di DB.
+- [x] **Un-flattening Logic & Test**: `scripts/unflatten_opportunities.py` mengelompokkan data riil ke entitas Company unik, termasuk konsolidasi cerdas dua record Danone (`9a7d081f` dan `e05cd214`) di bawah parent `Danone Indonesia`.
+- [x] **REST API & Schemas**: CRUD `/api/companies` & `/api/v1/companies` serta pembuatan opportunity bersarang `POST /api/v1/companies/{company_id}/opportunities`.
+- [x] **Production Migration**: `./scripts/run_unflatten_docker.sh --commit` telah sukses dijalankan langsung di database server `magnasight`.
+- [x] **Frontend UI (Company Folder View)**: 
+  - `frontend/src/components/domains/opportunities/CompanyFolderView.tsx` terpasang.
+  - Tampilan hierarki Company Folders aktif sebagai tampilan utama dengan toggle `Folders` | `List` | `Kanban`.
+  - Fitur modal "New Deal" langsung di dalam folder perusahaan (mewarisi data profil perusahaan secara otomatis).
+- [x] **Zero-Redundant KYC Reuse**: Otomatis me-reuse profil statis perusahaan (Module 1 & 2 di-bypass jika company sudah memiliki KYC completed valid).
 
 #### Protokol Keamanan & Mitigasi Rollback (Wajib Dijalankan):
 1. **Langkah 0: Full Snapshot Backup (Pre-Migration Checkpoint)**

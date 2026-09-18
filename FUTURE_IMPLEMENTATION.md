@@ -304,13 +304,13 @@ Senior merekomendasikan pembuatan **RAG dengan Vector Embeddings**. Namun, berda
   - [x] Buat CRUD endpoints untuk Companies di `backend/app/api/companies.py` (`/api/companies` & `/api/v1/companies`).
   - [x] Buat endpoint pembuatan Opportunity bersarang (`POST /api/v1/companies/{company_id}/opportunities`) dengan pewarisan otomatis profil metadata (`website`, `industry`, `tech_stack`).
   - [x] Jalankan automated unit tests: 94/94 test passing (termasuk `test_companies.py` 7/7 dan `test_unflatten_migration.py` 3/3).
-- [ ] **Next Steps untuk Sesi Baru**:
-  - [ ] Deploy ke VPS: Commit & push branch `main` untuk memicu runner GitHub Actions di VM `magnasight`.
-  - [ ] Eksekusi Un-flattening riil di container: Jalankan `./scripts/run_unflatten_docker.sh --dry-run` lalu `--commit`.
-  - [ ] Modifikasi KYC sectional runner agar otomatis me-reuse profil perusahaan yang sudah ada (`CompanyProfile`), mem-bypass Module 1 & 2 jika data statis valid.
-  - [ ] Frontend UX: Tampilan daftar Folder Perusahaan dan inisiatif anak.
+- [x] **Deployment, Production Un-flattening & Frontend UX (COMPLETED)**:
+  - [x] Deploy ke VPS: Commit & push branch `main` untuk memicu runner GitHub Actions di VM `magnasight`.
+  - [x] Eksekusi Un-flattening riil di container: Jalankan `./scripts/run_unflatten_docker.sh --dry-run` lalu `--commit` (termasuk konsolidasi cerdas Danone & Danone Indonesia).
+  - [x] Modifikasi KYC sectional runner agar otomatis me-reuse profil perusahaan yang sudah ada (`CompanyProfile`), mem-bypass Module 1 & 2 jika data statis valid.
+  - [x] Frontend UX: Tampilan daftar Folder Perusahaan (`CompanyFolderView.tsx`) dan inisiatif anak dengan toggle Folders/List/Kanban serta modal New Deal kontekstual.
 
-### Checklist Inisiatif 5: Living Opportunity & MoM-Driven Progressive Intelligence
+### Checklist Inisiatif 5: Living Opportunity & MoM-Driven Progressive Intelligence (PRIORITAS SETELAH PLAYBOOK)
 - [ ] **Data & Storage MoM**:
   - [ ] Tambahkan kolom `mom_notes` (Text/Markdown) dan relasi `meeting_id` pendukung pada `kyc_reports` atau tabel `OpportunityDocument`.
   - [ ] Buat endpoint `POST /api/v1/opportunities/{id}/mom` untuk menyimpan ringkasan hasil meeting atau transcript.
@@ -321,7 +321,7 @@ Senior merekomendasikan pembuatan **RAG dengan Vector Embeddings**. Namun, berda
   - [ ] Tambahkan tab / modal "Input Minutes of Meeting (MoM)" dengan Markdown editor pada detail Opportunity.
   - [ ] Tambahkan tombol "Generate Next Stage KYC (v2)" yang terintegrasi dengan konteks MoM terbaru.
 
-### Checklist Inisiatif 6: Digitalisasi Internal Sales Playbook
+### Checklist Inisiatif 6: Digitalisasi Internal Sales Playbook (NEXT UP - PRIORITAS UTAMA SESI BERIKUTNYA)
 - [ ] **Akuisisi & Strukturisasi Data**:
   - [ ] Scan dokumen fisik/buku catatan playbook presales internal ke PDF resolusi tinggi.
   - [ ] Ekstrak teks via OCR/manual formatting menjadi format Markdown terstruktur di `backend/app/data/playbook/`.
@@ -333,14 +333,14 @@ Senior merekomendasikan pembuatan **RAG dengan Vector Embeddings**. Namun, berda
   - [ ] Muat playbook rules ke memory helper di `backend/app/services/playbook_service.py`.
   - [ ] Suntikkan segmen playbook yang relevan ke dalam prompt Module 5 (*Presales Engagement Strategy*) dan Module 4 (*Use Cases*).
 
-### Checklist Inisiatif 7: Katalog Produk Terstruktur & Pragmatic Metadata
-- [ ] **Schema & Data Portofolio**:
-  - [ ] Buat file referensi `backend/app/data/products_catalog.json` berisi seluruh portofolio produk Magna (GCP, GWS, Maps, Greenplum EDW, SQL Server Modernization, Network, AI).
-  - [ ] Lengkapi metadata setiap produk: `deployment_modes` (`on_prem`, `cloud`, `hybrid`), `solution_domain`, `target_personas`, `pain_point_triggers`, `case_study_ref`.
-- [ ] **Deterministic Filtering Logic**:
-  - [ ] Implementasikan helper filter di `solutions_catalog.py`: menyaring produk secara presisi berdasarkan parameter opportunity (`industry`, `deployment_preference`, `customer_needs`).
-  - [ ] Pastikan 0% false positive (misal: produk cloud murni tidak pernah direkomendasikan jika klien menuntut on-premise).
-  - [ ] Uji performa caching prompt pada LLM dengan format katalog JSON ringkas.
+### Checklist Inisiatif 7: Katalog Produk Terstruktur & Pragmatic Metadata (COMPLETED 100%)
+- [x] **Schema & Data Portofolio (COMPLETED)**:
+  - [x] Buat file referensi `backend/app/data/products_catalog.json` berisi seluruh portofolio produk Magna (GCP, GWS, Maps, Greenplum EDW, SQL Server Modernization, Network, AI).
+  - [x] Lengkapi metadata setiap produk: `deployment_modes` (`on_prem`, `cloud`, `hybrid`), `solution_domain`, `target_personas`, `pain_point_triggers`, `case_study_ref`.
+- [x] **Deterministic Filtering Logic (COMPLETED)**:
+  - [x] Implementasikan helper filter di `product_catalog_service.py`: menyaring produk secara presisi berdasarkan parameter opportunity (`industry`, `deployment_preference`, `customer_needs`).
+  - [x] Pastikan 0% false positive (produk cloud murni tidak pernah direkomendasikan jika klien menuntut on-premise).
+  - [x] Sambungkan ke Module 4 di `kyc_sectional_runner.py` dan uji 5/5 unit tests di `test_product_catalog.py`.
 
 ---
 *Dokumen ini merupakan acuan resmi untuk iterasi pengembangan berikutnya di MOIP.*

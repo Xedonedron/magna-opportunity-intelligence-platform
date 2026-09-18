@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Search, ChevronRight, ChevronLeft, Trash2, LayoutGrid, List, Upload, X } from "lucide-react";
+import { Plus, Search, ChevronRight, ChevronLeft, Trash2, LayoutGrid, List, Upload, X, Folder } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { KanbanBoard } from "@/components/domains/opportunities/KanbanBoard";
+import { CompanyFolderView } from "@/components/domains/opportunities/CompanyFolderView";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useOpportunities, useDeleteOpportunity } from "@/hooks/use-opportunities";
 import { timeAgo, formatCurrency } from "@/lib/utils";
@@ -22,7 +23,7 @@ export default function OpportunitiesPage() {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("");
     const [engineerFilter, setEngineerFilter] = useState<string>("");
-    const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+    const [viewMode, setViewMode] = useState<"list" | "kanban" | "folders">("folders");
     const [user, setUser] = useState<any>(null);
     const [hideFinancialNumbers, setHideFinancialNumbers] = useState(false);
     const [presalesList, setPresalesList] = useState<string[]>(DEFAULT_PRESALES);
@@ -44,7 +45,7 @@ export default function OpportunitiesPage() {
             }
         }
         const storedView = localStorage.getItem("moip_opportunities_view");
-        if (storedView === "kanban" || storedView === "list") {
+        if (storedView === "kanban" || storedView === "list" || storedView === "folders") {
             setViewMode(storedView);
         }
         api.get("/api/admin/settings")
@@ -60,7 +61,7 @@ export default function OpportunitiesPage() {
             .catch((err) => console.warn("Failed to fetch master presales", err));
     }, []);
 
-    const handleViewModeChange = (mode: "list" | "kanban") => {
+    const handleViewModeChange = (mode: "list" | "kanban" | "folders") => {
         setViewMode(mode);
         localStorage.setItem("moip_opportunities_view", mode);
     };
@@ -208,6 +209,17 @@ export default function OpportunitiesPage() {
                     <div className="flex items-center bg-zinc-200/80 dark:bg-zinc-800 p-1 rounded-lg border border-zinc-300/70 dark:border-zinc-700 transition-colors">
                         <button
                             type="button"
+                            onClick={() => handleViewModeChange("folders")}
+                            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-md transition-all ${
+                                viewMode === "folders"
+                                    ? "bg-white dark:bg-zinc-900 text-indigo-600 dark:text-indigo-400 shadow-xs"
+                                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                            }`}
+                        >
+                            <Folder className="w-3.5 h-3.5" /> Folders
+                        </button>
+                        <button
+                            type="button"
                             onClick={() => handleViewModeChange("list")}
                             className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-md transition-all ${
                                 viewMode === "list"
@@ -232,7 +244,18 @@ export default function OpportunitiesPage() {
                 </div>
 
                 {/* Main Content Area */}
-                {viewMode === "kanban" ? (
+                {viewMode === "folders" ? (
+                    <CompanyFolderView
+                        search={search}
+                        engineerFilter={engineerFilter}
+                        presalesList={presalesList}
+                        hideFinancialNumbers={
+                            hideFinancialNumbers ||
+                            user?.role === "engineer" ||
+                            user?.role === "viewer"
+                        }
+                    />
+                ) : viewMode === "kanban" ? (
                     <div className={`p-4 bg-zinc-100/40 dark:bg-zinc-900/30 rounded-b-xl min-h-[500px] transition-opacity duration-150 ${isPlaceholderData ? "opacity-70" : "opacity-100"}`}>
                         {isLoading && !data ? (
                             <div className="p-12 text-center text-zinc-400 text-sm animate-pulse">
