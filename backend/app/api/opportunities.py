@@ -144,8 +144,33 @@ async def create_opportunity(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_capability("create_edit")),
 ):
-    """Create a new opportunity. Auto-logs timeline event."""
+    """Create a new opportunity. Auto-logs timeline event and links or creates company folder."""
+    # Auto-link to existing Company or create a new Company folder
+    target_company_id = data.company_id
+    if not target_company_id and data.company_name:
+        from app.models.company import Company
+        from app.api.companies import compute_normalized_name
+        norm_name = compute_normalized_name(data.company_name)
+        comp = db.query(Company).filter(Company.normalized_name == norm_name).first()
+        if comp:
+            target_company_id = comp.id
+            if not comp.website and data.website:
+                comp.website = data.website
+            if not comp.industry and data.industry:
+                comp.industry = data.industry
+        else:
+            new_comp = Company(
+                name=data.company_name.strip(),
+                normalized_name=norm_name,
+                website=data.website,
+                industry=data.industry,
+            )
+            db.add(new_comp)
+            db.flush()
+            target_company_id = new_comp.id
+
     opportunity = Opportunity(
+        company_id=target_company_id,
         company_name=data.company_name,
         contact_name=data.contact_name,
         website=data.website,

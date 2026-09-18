@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
     Folder,
     FolderOpen,
+    FolderPlus,
     Plus,
     ChevronDown,
     ChevronRight,
@@ -16,10 +17,19 @@ import {
     Calendar,
     Loader2,
     X,
+    CheckCircle2,
+    Sparkles,
 } from "lucide-react";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/Button";
-import { useCompanies, useCompany, useCreateCompanyOpportunity } from "@/hooks/use-companies";
+import { MultiSelect } from "@/components/ui/Input";
+import {
+    useCompanies,
+    useCompany,
+    useCreateCompany,
+    useCreateCompanyOpportunity,
+} from "@/hooks/use-companies";
+import { DEFAULT_TARGET_SOLUTIONS } from "@/lib/master-data";
 import { formatCurrency, timeAgo } from "@/lib/utils";
 import type { Company } from "@/types/company";
 import type { Opportunity } from "@/types/opportunity";
@@ -39,6 +49,7 @@ export function CompanyFolderView({
 }: CompanyFolderViewProps) {
     const [expandedCompanyIds, setExpandedCompanyIds] = useState<Set<string>>(new Set());
     const [modalCompany, setModalCompany] = useState<Company | null>(null);
+    const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
 
     // Fetch companies list
     const { data: companiesData, isLoading } = useCompanies({
@@ -85,9 +96,35 @@ export function CompanyFolderView({
                 <h3 className="text-base font-semibold text-zinc-800 dark:text-zinc-200">
                     No Company Folders Found
                 </h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                    {search ? "No companies matched your search criteria." : "No companies available in the platform."}
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1 max-w-md mx-auto">
+                    {search
+                        ? "No companies matched your search criteria."
+                        : "No company folders available yet. Create a company folder or register a new opportunity."}
                 </p>
+                <div className="flex items-center justify-center gap-3 mt-5">
+                    <Button
+                        size="sm"
+                        onClick={() => setIsCreateCompanyOpen(true)}
+                        className="h-8 text-xs font-medium flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white"
+                    >
+                        <FolderPlus className="w-3.5 h-3.5" />
+                        <span>New Company Folder</span>
+                    </Button>
+                    <Link href="/opportunities/create">
+                        <Button
+                            size="sm"
+                            variant="secondary"
+                            className="h-8 text-xs font-medium flex items-center gap-1.5"
+                        >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>New Opportunity</span>
+                        </Button>
+                    </Link>
+                </div>
+
+                {isCreateCompanyOpen && (
+                    <CreateCompanyModal onClose={() => setIsCreateCompanyOpen(false)} />
+                )}
             </div>
         );
     }
@@ -102,14 +139,24 @@ export function CompanyFolderView({
                     </span>
                     <span className="text-zinc-400 dark:text-zinc-600">•</span>
                     <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Hierarchical Deal Intelligence
+                        Hierarchical Opportunity Intelligence
                     </span>
                 </div>
                 <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsCreateCompanyOpen(true)}
+                        className="h-7 text-xs font-medium flex items-center gap-1.5 border-indigo-200 dark:border-indigo-900/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
+                    >
+                        <FolderPlus className="w-3.5 h-3.5" />
+                        <span>New Company Folder</span>
+                    </Button>
+                    <span className="text-zinc-300 dark:text-zinc-700">|</span>
                     <button
                         type="button"
                         onClick={expandAll}
-                        className="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 px-2.5 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                        className="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 px-2 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                     >
                         Expand All
                     </button>
@@ -117,7 +164,7 @@ export function CompanyFolderView({
                     <button
                         type="button"
                         onClick={collapseAll}
-                        className="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 px-2.5 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                        className="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 px-2 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                     >
                         Collapse All
                     </button>
@@ -134,7 +181,7 @@ export function CompanyFolderView({
                             company={company}
                             isExpanded={isExpanded}
                             onToggle={() => toggleExpand(company.id)}
-                            onAddDeal={() => setModalCompany(company)}
+                            onAddOppty={() => setModalCompany(company)}
                             engineerFilter={engineerFilter}
                             hideFinancialNumbers={hideFinancialNumbers}
                         />
@@ -142,13 +189,18 @@ export function CompanyFolderView({
                 })}
             </div>
 
-            {/* Modal Quick Create Deal */}
+            {/* Modal Quick Create Oppty */}
             {modalCompany && (
-                <CreateCompanyDealModal
+                <CreateCompanyOpptyModal
                     company={modalCompany}
                     presalesList={presalesList}
                     onClose={() => setModalCompany(null)}
                 />
+            )}
+
+            {/* Modal Create Company Folder */}
+            {isCreateCompanyOpen && (
+                <CreateCompanyModal onClose={() => setIsCreateCompanyOpen(false)} />
             )}
         </div>
     );
@@ -158,49 +210,40 @@ function CompanyCard({
     company,
     isExpanded,
     onToggle,
-    onAddDeal,
+    onAddOppty,
     engineerFilter,
     hideFinancialNumbers,
 }: {
     company: Company;
     isExpanded: boolean;
     onToggle: () => void;
-    onAddDeal: () => void;
+    onAddOppty: () => void;
     engineerFilter: string;
     hideFinancialNumbers: boolean;
 }) {
-    // Only fetch opportunities details when this card is expanded
-    const { data: detailData, isLoading: isDetailLoading } = useCompany(
-        isExpanded ? company.id : ""
-    );
-
-    let opportunities = detailData?.opportunities || [];
-    if (engineerFilter) {
-        opportunities = opportunities.filter((o) => o.assigned_engineer === engineerFilter);
-    }
-
-    const count = company.opportunities_count;
+    const count = company.opportunities_count ?? 0;
+    const hasActiveKyC = !!company.cached_kyc_data;
 
     return (
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden transition-all shadow-xs hover:border-zinc-300 dark:hover:border-zinc-700">
-            {/* Folder Header Row */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-xs transition-all duration-200 hover:border-zinc-300 dark:hover:border-zinc-700">
+            {/* Header row (The Folder Container) */}
             <div
                 onClick={onToggle}
-                className="p-4 flex items-center justify-between cursor-pointer select-none bg-zinc-50/40 dark:bg-zinc-800/30 hover:bg-zinc-100/60 dark:hover:bg-zinc-800/60 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 cursor-pointer select-none bg-zinc-50/40 dark:bg-zinc-900/40 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors gap-3"
             >
-                <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-center gap-3">
                     <button
                         type="button"
-                        className="text-zinc-500 dark:text-zinc-400 p-1 hover:bg-zinc-200/60 dark:hover:bg-zinc-700 rounded-md transition-colors"
+                        className="p-1 rounded-md text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition-colors"
                     >
                         {isExpanded ? (
-                            <ChevronDown className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                            <ChevronDown className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
                         ) : (
-                            <ChevronRight className="w-4 h-4" />
+                            <ChevronRight className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
                         )}
                     </button>
 
-                    <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-900/60 text-indigo-600 dark:text-indigo-400 shrink-0">
+                    <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
                         {isExpanded ? (
                             <FolderOpen className="w-5 h-5" />
                         ) : (
@@ -208,165 +251,198 @@ function CompanyCard({
                         )}
                     </div>
 
-                    <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-base truncate">
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">
                                 {company.name}
                             </h3>
-                            {company.industry && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
-                                    {company.industry}
+                            {hasActiveKyC && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                                    <Sparkles className="w-2.5 h-2.5" />
+                                    KYC Profile
                                 </span>
                             )}
-                            <span
-                                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
-                                    count > 1
-                                        ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
-                                        : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
-                                }`}
-                            >
-                                {count} {count === 1 ? "Deal" : "Deals"}
-                            </span>
                         </div>
-
-                        {company.website && (
-                            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5 truncate flex items-center gap-1">
-                                <span>{company.website.replace(/^https?:\/\//, "")}</span>
-                            </p>
-                        )}
+                        <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                            {company.industry && <span>{company.industry}</span>}
+                            {company.industry && company.website && <span>•</span>}
+                            {company.website && (
+                                <a
+                                    href={
+                                        company.website.startsWith("http")
+                                            ? company.website
+                                            : `https://${company.website}`
+                                    }
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1"
+                                >
+                                    <span>{company.website}</span>
+                                    <ExternalLink className="w-2.5 h-2.5" />
+                                </a>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                {/* Right Action buttons */}
-                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                    <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={onAddDeal}
-                        className="h-8 text-xs font-medium flex items-center gap-1 border border-zinc-200 dark:border-zinc-700"
-                    >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>New Deal</span>
-                    </Button>
+                <div className="flex items-center gap-3 pl-8 sm:pl-0 justify-between sm:justify-end">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                            {count} {count === 1 ? "Oppty" : "Opptys"}
+                        </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onAddOppty();
+                            }}
+                            className="h-8 text-xs font-medium border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
+                        >
+                            <Plus className="w-3.5 h-3.5 mr-1" />
+                            <span>New Oppty</span>
+                        </Button>
+                    </div>
                 </div>
             </div>
 
-            {/* Expanded Child Deals List */}
+            {/* Expanded Child Opportunities List */}
             {isExpanded && (
-                <div className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/90 p-4 sm:p-5">
-                    {/* Company Profile Brief */}
-                    {(company.business_process || company.tech_stack) && (
-                        <div className="mb-4 p-3 bg-zinc-50 dark:bg-zinc-800/40 rounded-lg border border-zinc-200/80 dark:border-zinc-800 text-xs text-zinc-600 dark:text-zinc-400 space-y-1">
-                            {company.business_process && (
-                                <p>
-                                    <strong className="text-zinc-700 dark:text-zinc-300">
-                                        Core Process:
-                                    </strong>{" "}
-                                    {company.business_process}
-                                </p>
-                            )}
-                        </div>
-                    )}
-
-                    {isDetailLoading ? (
-                        <div className="flex items-center justify-center p-8 gap-2 text-zinc-400 text-xs">
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Loading deals for {company.name}...
-                        </div>
-                    ) : opportunities.length === 0 ? (
-                        <div className="text-center py-6 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg">
-                            <p className="text-xs text-zinc-500">
-                                {engineerFilter
-                                    ? "No deals assigned to this engineer under this company."
-                                    : "No deals recorded yet."}
-                            </p>
-                            <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={onAddDeal}
-                                className="mt-2 text-xs"
-                            >
-                                <Plus className="w-3 h-3 mr-1" /> Add First Deal
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="divide-y divide-zinc-100 dark:divide-zinc-800/70">
-                            {opportunities.map((opp) => (
-                                <DealRow
-                                    key={opp.id}
-                                    opportunity={opp}
-                                    hideFinancialNumbers={hideFinancialNumbers}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </div>
+                <CompanyChildOpportunities
+                    companyId={company.id}
+                    companyName={company.name}
+                    engineerFilter={engineerFilter}
+                    hideFinancialNumbers={hideFinancialNumbers}
+                    onAddOppty={onAddOppty}
+                />
             )}
         </div>
     );
 }
 
-function DealRow({
-    opportunity,
+function CompanyChildOpportunities({
+    companyId,
+    companyName,
+    engineerFilter,
     hideFinancialNumbers,
+    onAddOppty,
 }: {
-    opportunity: Opportunity;
+    companyId: string;
+    companyName: string;
+    engineerFilter: string;
     hideFinancialNumbers: boolean;
+    onAddOppty: () => void;
 }) {
-    const dealTitle =
-        opportunity.product ||
-        (opportunity.company_name.includes(" - ")
-            ? opportunity.company_name.split(" - ").slice(1).join(" - ")
-            : opportunity.customer_needs.slice(0, 60));
+    const { data: detail, isLoading } = useCompany(companyId);
+
+    if (isLoading) {
+        return (
+            <div className="p-6 text-center text-xs text-zinc-400 flex items-center justify-center gap-2 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/20 dark:bg-zinc-900/20">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Loading opportunities for {companyName}...
+            </div>
+        );
+    }
+
+    const opps = (detail?.opportunities || []).filter((opp) => {
+        if (!engineerFilter) return true;
+        return opp.assigned_engineer === engineerFilter;
+    });
+
+    if (opps.length === 0) {
+        return (
+            <div className="py-8 px-4 text-center border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/20 dark:bg-zinc-900/20">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    {engineerFilter
+                        ? "No opportunities assigned to this engineer under this company."
+                        : "No opportunities recorded yet."}
+                </p>
+                <button
+                    type="button"
+                    onClick={onAddOppty}
+                    className="inline-flex items-center text-xs text-indigo-600 dark:text-indigo-400 font-medium hover:underline mt-2"
+                >
+                    <Plus className="w-3 h-3 mr-1" /> Add First Oppty
+                </button>
+            </div>
+        );
+    }
 
     return (
-        <div className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40 px-3 rounded-lg transition-colors group">
-            <div className="min-w-0 flex-1">
+        <div className="border-t border-zinc-200 dark:border-zinc-800 divide-y divide-zinc-100 dark:divide-zinc-800/80 bg-zinc-50/10 dark:bg-zinc-900/10">
+            {opps.map((opp) => (
+                <OpptyRow
+                    key={opp.id}
+                    opp={opp}
+                    hideFinancialNumbers={hideFinancialNumbers}
+                />
+            ))}
+        </div>
+    );
+}
+
+function OpptyRow({
+    opp,
+    hideFinancialNumbers,
+}: {
+    opp: Opportunity;
+    hideFinancialNumbers: boolean;
+}) {
+    const opptyTitle = opp.deal_title || opp.product || "Opportunity";
+
+    return (
+        <div className="p-3.5 sm:px-6 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="space-y-1 sm:max-w-md">
                 <div className="flex items-center gap-2 flex-wrap">
                     <Link
-                        href={`/opportunities/${opportunity.id}`}
-                        className="font-medium text-sm text-zinc-900 dark:text-zinc-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5"
+                        href={`/opportunities/${opp.id}`}
+                        className="font-medium text-zinc-900 dark:text-zinc-100 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1.5"
                     >
-                        <span>{dealTitle || "Opportunity Deal"}</span>
-                        <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 text-zinc-400 transition-opacity" />
+                        <Briefcase className="w-3.5 h-3.5 text-zinc-400" />
+                        <span>{opptyTitle}</span>
                     </Link>
-                    <StatusBadge status={opportunity.status} />
+                    <StatusBadge status={opp.status} />
                 </div>
-
-                <div className="flex items-center gap-3 text-xs text-zinc-400 dark:text-zinc-500 mt-1 flex-wrap">
-                    {opportunity.assigned_engineer ? (
-                        <span className="flex items-center gap-1 text-zinc-600 dark:text-zinc-300 font-medium">
-                            <User className="w-3 h-3" />
-                            {opportunity.assigned_engineer}
-                        </span>
-                    ) : (
-                        <span className="text-amber-600 dark:text-amber-400 italic">
-                            Unassigned
-                        </span>
-                    )}
-
-                    {!hideFinancialNumbers && opportunity.potential_revenue && (
-                        <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-                            <DollarSign className="w-3 h-3" />
-                            {formatCurrency(opportunity.potential_revenue)}
-                        </span>
-                    )}
-
-                    <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {timeAgo(opportunity.updated_at || opportunity.created_at)}
-                    </span>
-                </div>
+                {opp.customer_needs && (
+                    <p className="text-zinc-500 dark:text-zinc-400 text-[11px] line-clamp-1">
+                        {opp.customer_needs}
+                    </p>
+                )}
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
-                <Link href={`/opportunities/${opportunity.id}`}>
-                    <Button
-                        size="sm"
-                        variant="secondary"
-                        className="h-7 text-xs font-medium hover:border-indigo-300 dark:hover:border-indigo-700"
-                    >
-                        Open KYC
+            <div className="flex items-center gap-4 sm:gap-6 flex-wrap sm:flex-nowrap justify-between sm:justify-end text-zinc-500 dark:text-zinc-400">
+                {opp.assigned_engineer ? (
+                    <div className="flex items-center gap-1.5">
+                        <User className="w-3 h-3 text-zinc-400" />
+                        <span>{opp.assigned_engineer}</span>
+                    </div>
+                ) : (
+                    <span className="text-zinc-400 italic">Unassigned</span>
+                )}
+
+                {!hideFinancialNumbers && (
+                    <div className="flex items-center gap-1 text-zinc-800 dark:text-zinc-200 font-medium">
+                        <DollarSign className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                        <span>
+                            {opp.potential_revenue
+                                ? formatCurrency(opp.potential_revenue)
+                                : "-"}
+                        </span>
+                    </div>
+                )}
+
+                <div className="flex items-center gap-1 text-[11px] text-zinc-400">
+                    <Calendar className="w-3 h-3" />
+                    <span>{timeAgo(opp.created_at)}</span>
+                </div>
+
+                <Link href={`/opportunities/${opp.id}`}>
+                    <Button variant="ghost" size="sm" className="h-7 text-xs px-2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">
+                        View
                     </Button>
                 </Link>
             </div>
@@ -374,7 +450,7 @@ function DealRow({
     );
 }
 
-function CreateCompanyDealModal({
+function CreateCompanyOpptyModal({
     company,
     presalesList,
     onClose,
@@ -385,10 +461,13 @@ function CreateCompanyDealModal({
 }) {
     const createMutation = useCreateCompanyOpportunity();
     const [dealTitle, setDealTitle] = useState("");
-    const [product, setProduct] = useState("");
+    const [selectedSolutions, setSelectedSolutions] = useState<string[]>([]);
+    const [specificProduct, setSpecificProduct] = useState("");
     const [customerNeeds, setCustomerNeeds] = useState("");
     const [assignedEngineer, setAssignedEngineer] = useState("");
     const [potentialRevenue, setPotentialRevenue] = useState("");
+    const [estimatedAgendaDate, setEstimatedAgendaDate] = useState("");
+    const [additionalNotes, setAdditionalNotes] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -398,32 +477,47 @@ function CreateCompanyDealModal({
             return;
         }
 
+        // Combine solution domain with specific products
+        let combinedProduct = "";
+        if (selectedSolutions.length > 0 && specificProduct.trim()) {
+            combinedProduct = `${selectedSolutions.join(", ")} (${specificProduct.trim()})`;
+        } else if (selectedSolutions.length > 0) {
+            combinedProduct = selectedSolutions.join(", ");
+        } else if (specificProduct.trim()) {
+            combinedProduct = specificProduct.trim();
+        }
+
         try {
             await createMutation.mutateAsync({
                 companyId: company.id,
                 input: {
                     deal_title: dealTitle.trim() || undefined,
-                    product: product.trim() || undefined,
+                    product: combinedProduct || undefined,
                     customer_needs: customerNeeds.trim(),
                     assigned_engineer: assignedEngineer || undefined,
                     potential_revenue: potentialRevenue ? parseFloat(potentialRevenue) : undefined,
+                    estimated_agenda_date: estimatedAgendaDate
+                        ? new Date(estimatedAgendaDate).toISOString()
+                        : undefined,
+                    additional_notes: additionalNotes.trim() || undefined,
                 },
             });
             onClose();
         } catch (err: any) {
-            setErrorMsg(err?.response?.data?.detail || "Failed to create child opportunity deal.");
+            setErrorMsg(err?.response?.data?.detail || "Failed to create opportunity.");
         }
     };
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 w-full max-w-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-                <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/40">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 w-full max-w-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 my-8">
+                {/* Header */}
+                <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/60 dark:bg-zinc-800/40">
                     <div>
-                        <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">
-                            New Deal under {company.name}
+                        <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm flex items-center gap-1.5">
+                            <span>New Oppty under {company.name}</span>
                         </h3>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                             Inherits company profile (Module 1 & 2 cached for zero redundant KYC)
                         </p>
                     </div>
@@ -436,16 +530,35 @@ function CreateCompanyDealModal({
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-4 space-y-3.5 text-sm">
+                {/* Company Context Banner */}
+                <div className="px-4 py-2.5 bg-indigo-50/60 dark:bg-indigo-950/30 border-b border-indigo-100/80 dark:border-indigo-900/40 flex items-center justify-between text-xs flex-wrap gap-2">
+                    <div className="flex items-center gap-2 text-indigo-900 dark:text-indigo-200 font-medium">
+                        <Building2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                        <span>{company.name}</span>
+                        {company.industry && (
+                            <span className="text-zinc-500 dark:text-zinc-400">• {company.industry}</span>
+                        )}
+                        {company.website && (
+                            <span className="text-zinc-500 dark:text-zinc-400">• {company.website}</span>
+                        )}
+                    </div>
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                        Zero KYC Redundancy
+                    </span>
+                </div>
+
+                <form onSubmit={handleSubmit} className="p-4 space-y-3.5 text-sm max-h-[80vh] overflow-y-auto">
                     {errorMsg && (
                         <div className="p-2.5 rounded-md bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 text-xs text-red-600 dark:text-red-400">
                             {errorMsg}
                         </div>
                     )}
 
+                    {/* Oppty Initiative Title */}
                     <div>
                         <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                            Deal Initiative Title
+                            Oppty Initiative Title
                         </label>
                         <input
                             type="text"
@@ -456,19 +569,34 @@ function CreateCompanyDealModal({
                         />
                     </div>
 
+                    {/* Target Solution Domain */}
                     <div>
                         <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                             Product / Solution Domain
                         </label>
+                        <MultiSelect
+                            options={DEFAULT_TARGET_SOLUTIONS}
+                            value={selectedSolutions}
+                            onChange={setSelectedSolutions}
+                            placeholder="Select target solution domain(s)..."
+                        />
+                    </div>
+
+                    {/* Specific Products / Technologies */}
+                    <div>
+                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                            Specific Products / Technologies (Optional)
+                        </label>
                         <input
                             type="text"
                             placeholder="e.g. BigQuery, Greenplum EDW, Nutanix, Palo Alto"
-                            value={product}
-                            onChange={(e) => setProduct(e.target.value)}
+                            value={specificProduct}
+                            onChange={(e) => setSpecificProduct(e.target.value)}
                             className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
                         />
                     </div>
 
+                    {/* Customer Needs & Problem Statement */}
                     <div>
                         <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                             Customer Needs & Problem Statement <span className="text-red-500">*</span>
@@ -483,7 +611,8 @@ function CreateCompanyDealModal({
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    {/* Pre-sales & Potential Revenue */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                                 Assigned Pre-Sales
@@ -515,7 +644,35 @@ function CreateCompanyDealModal({
                         </div>
                     </div>
 
-                    <div className="pt-2 flex items-center justify-end gap-2 border-t border-zinc-200 dark:border-zinc-800">
+                    {/* Agenda Meeting Date */}
+                    <div>
+                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                            Estimasi Tanggal Agenda / Initial Meeting (Opsional)
+                        </label>
+                        <input
+                            type="datetime-local"
+                            value={estimatedAgendaDate}
+                            onChange={(e) => setEstimatedAgendaDate(e.target.value)}
+                            className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                        />
+                    </div>
+
+                    {/* Additional Notes / AI Context */}
+                    <div>
+                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                            Additional Context for AI (Optional)
+                        </label>
+                        <textarea
+                            rows={2}
+                            placeholder="Catatan teknis tambahan atau instruksi spesifik untuk pipeline intelligence..."
+                            value={additionalNotes}
+                            onChange={(e) => setAdditionalNotes(e.target.value)}
+                            className="w-full p-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                        />
+                    </div>
+
+                    {/* Form Action Buttons */}
+                    <div className="pt-3 flex items-center justify-end gap-2 border-t border-zinc-200 dark:border-zinc-800">
                         <Button
                             type="button"
                             variant="secondary"
@@ -534,10 +691,175 @@ function CreateCompanyDealModal({
                             {createMutation.isPending ? (
                                 <>
                                     <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
-                                    Creating Deal...
+                                    Creating Oppty...
                                 </>
                             ) : (
-                                "Create Deal"
+                                "Create Oppty"
+                            )}
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
+function CreateCompanyModal({ onClose }: { onClose: () => void }) {
+    const createMutation = useCreateCompany();
+    const [name, setName] = useState("");
+    const [website, setWebsite] = useState("");
+    const [industry, setIndustry] = useState("");
+    const [contactName, setContactName] = useState("");
+    const [contactEmail, setContactEmail] = useState("");
+    const [contactPhone, setContactPhone] = useState("");
+    const [errorMsg, setErrorMsg] = useState("");
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!name.trim()) {
+            setErrorMsg("Nama perusahaan wajib diisi.");
+            return;
+        }
+
+        try {
+            await createMutation.mutateAsync({
+                name: name.trim(),
+                website: website.trim() || undefined,
+                industry: industry.trim() || undefined,
+                contact_name: contactName.trim() || undefined,
+                contact_email: contactEmail.trim() || undefined,
+                contact_phone: contactPhone.trim() || undefined,
+            });
+            onClose();
+        } catch (err: any) {
+            setErrorMsg(err?.response?.data?.detail || "Gagal membuat folder perusahaan.");
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 my-8">
+                <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/60 dark:bg-zinc-800/40">
+                    <div>
+                        <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm flex items-center gap-1.5">
+                            <FolderPlus className="w-4 h-4 text-indigo-600" />
+                            <span>New Company Folder</span>
+                        </h3>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                            Daftarkan entitas folder klien untuk mengelompokkan opportunity.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 rounded-md"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="p-4 space-y-3.5 text-sm">
+                    {errorMsg && (
+                        <div className="p-2.5 rounded-md bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 text-xs text-red-600 dark:text-red-400">
+                            {errorMsg}
+                        </div>
+                    )}
+
+                    <div>
+                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                            Nama Perusahaan <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="e.g. PT Telekomunikasi Selular / Asuransi Jasindo"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                            required
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                                Website (Opsional)
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="e.g. jasindo.co.id"
+                                value={website}
+                                onChange={(e) => setWebsite(e.target.value)}
+                                className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                                Industri (Opsional)
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="e.g. Financial Services"
+                                value={industry}
+                                onChange={(e) => setIndustry(e.target.value)}
+                                className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 space-y-2.5">
+                        <span className="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+                            Informasi Kontak Utama (Opsional)
+                        </span>
+                        <div className="space-y-2">
+                            <input
+                                type="text"
+                                placeholder="Nama Kontak Person"
+                                value={contactName}
+                                onChange={(e) => setContactName(e.target.value)}
+                                className="w-full h-8 px-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                            />
+                            <div className="grid grid-cols-2 gap-2">
+                                <input
+                                    type="email"
+                                    placeholder="Email"
+                                    value={contactEmail}
+                                    onChange={(e) => setContactEmail(e.target.value)}
+                                    className="w-full h-8 px-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Nomor Telepon"
+                                    value={contactPhone}
+                                    onChange={(e) => setContactPhone(e.target.value)}
+                                    className="w-full h-8 px-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="pt-3 flex items-center justify-end gap-2 border-t border-zinc-200 dark:border-zinc-800">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={onClose}
+                            className="text-xs"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            size="sm"
+                            disabled={createMutation.isPending}
+                            className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
+                        >
+                            {createMutation.isPending ? (
+                                <>
+                                    <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                                    Creating Folder...
+                                </>
+                            ) : (
+                                "Create Folder"
                             )}
                         </Button>
                     </div>
