@@ -119,3 +119,63 @@ Bagi AI Agent yang membaca dokumen ini di sesi baru:
    - Baca `NEXT_SESSION_IMPLEMENTATION_PLAN.md` (dokumen ini) untuk urutan eksekusi sesi.
 3. **Tanyakan kepada Dan**:
    - *"Apakah kita langsung mulai dari **Sesi A (Katalog Produk Terstruktur & Metadata Rules)** atau Dan sudah memiliki transkrip file PDF playbook untuk **Sesi B**?"*
+
+---
+
+## 5. Baseline Data Riil dari Database (Snapshot 34 Records)
+
+Data aktual yang diekstrak langsung dari container `moip_postgres` (`opportunities`):
+
+```text
+d3b61780-d1e0-45d6-9511-68a63d5e69d6 | Advisains
+1b8ceb79-ee0f-4ac6-9540-0782f5b4c76a | Asuransi Jasindo
+a9654bfd-365f-4500-b28b-e482c3e52bcd | Bank bjb
+fde3dca5-0b55-48f3-b2d0-9ce1e8a6f712 | Bappeda Kutai Kertanegara
+876c4e2c-d01a-4e52-9fe3-4fe832d92171 | Bintang 7
+bfe49482-1318-4a12-baee-27849cf4c248 | Cardig Aero Services
+fcb71609-1403-45b4-b4ef-d0b14fc76a80 | Dana Pensiun Bank Mandiri
+5c4af4ab-9d69-4f24-bd71-6582f2b5e550 | Era ventura indonesia
+97b7f9ab-59ee-4ccd-9209-73b4ea603399 | Gibox Digital Asia
+f0a55a78-d295-4028-beb3-e9c8d5699b16 | Indoprima Group
+41a836f8-d915-45b1-b7a6-8935b1780883 | JNE
+08f6d884-c9ae-49ff-bc77-ffb280ba0ea0 | Kalbe Farma
+77061fec-5ce3-45fe-9c4e-a25861f71e8d | Microdrama
+6959aa68-8d97-4bd9-be44-c215cd6d08b6 | Nodeflux
+b1f530cd-6d5e-41b2-a632-06aea4efe099 | Omnicare
+9ae9b99c-0353-43ab-9bdb-0d86174d68db | PT BRI Life
+983f350d-046b-4590-9b4f-37dc5d74832e | PT Cahaya Matahari Prima
+61af6e00-402d-4f3e-bab6-e7835dc853c6 | PT Cardig Aero Services
+dae70398-0859-4f34-8d3a-8635359fbf0d | PT Darma Henwa
+2f098736-b1ca-49d1-9cd9-b4299148f276 | PT Giordano Indonesia
+bd7a795f-df4f-4c9e-9579-150565c276a1 | PT Inovasi Lintas Media
+888a826a-f4d2-4d46-ba04-36586f82172c | PT Prodia Widyahusada Tbk
+1fe85034-c554-46d8-97fb-f8ed0186f5ec | PT Prodia Widyahusada Tbk
+b6c24fa9-2955-4371-a151-c72f01c96e4a | PT Prodia Widyahusada Tbk
+bd5db437-d3d8-4793-b53c-380c8cec251c | PT SMBC Indonesia
+c3daedc5-0a14-4e0d-9615-e0ebc2e3d20c | PT SPR Langgak
+88ee72bb-80c3-4594-b499-ea33b068c39b | PT. Indoteknik Dotcom Gemilang
+81585f2e-0471-42bd-aa1c-a4638997a915 | Penerbit Erlangga
+392a3e5c-2d92-4635-9fa6-c62ea0cbc04c | SCSKIDN
+f75cffe3-8c07-4f18-b487-eca25d7e3794 | SMC RS Telogorejo
+47a4bbfe-cb59-444f-9677-8bd7a4e0a5f4 | Sampoerna Schools Systems - Custom Dashboard
+a3841240-6f09-4bb8-a6d8-9532550cb680 | Sampoerna Schools Systems - Gemini Enterprise
+b20ee900-e86c-4c91-a365-884c0ab3d7b7 | Semen Baturaja Tbk
+2b76e96d-24af-4346-873c-d4badc64a3db | Top Group
+```
+
+### Pemetaan Target Un-flattening Berdasarkan Data Aktual:
+1. **Pola Delimiter Tanda Hubung (`Company - Project Title`)**:
+   - `Sampoerna Schools Systems` $\rightarrow$
+     - Oppty 1 (`47a4bbfe`): Custom Dashboard
+     - Oppty 2 (`a3841240`): Gemini Enterprise
+2. **Pola Normalisasi Legal Prefix PT**:
+   - `PT Cardig Aero Services` $\rightarrow$
+     - Oppty 1 (`bfe49482`): On-Premise to GCP Infrastructure Migration
+     - Oppty 2 (`61af6e00`): AI/ML Solutions Exploration
+3. **Pola Multiple Oppty / Duplicate Review pada PT yang Sama**:
+   - `PT Prodia Widyahusada Tbk` $\rightarrow$
+     - Oppty 1 (`1fe85034` & `888a826a`): AI Speech-to-Text Transkrip Audio Dokter
+     - Oppty 2 (`b6c24fa9`): Real-Time Data Analytics
+4. **Pola Single Oppty (26 Perusahaan lainnya)**:
+   - Menghasilkan 1 folder Company dengan 1 child Opportunity awal.
+
