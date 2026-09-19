@@ -47,8 +47,18 @@ logger = logging.getLogger("unflatten")
 
 
 # --- Legal entity patterns ---
-LEGAL_PREFIX_RE = re.compile(r"^(pt\.?|cv\.?|ud\.?|yayasan|koperasi|perum)\s+", re.IGNORECASE)
-LEGAL_SUFFIX_RE = re.compile(r"\s+(tbk\.?|\(persero\)|persero|ltd\.?|inc\.?|llc\.?)$", re.IGNORECASE)
+LEGAL_PREFIX_PATTERN = re.compile(
+    r"^(pt\.?|cv\.?|ud\.?|yayasan|koperasi|perum|perusahaan\s+perseroan|pd\.?|firma)\s+",
+    re.IGNORECASE,
+)
+LEGAL_SUFFIX_PATTERN = re.compile(
+    r"[\s,]+(\(?persero\)?|tbk\.?|ltd\.?|inc\.?|llc\.?|corp\.?|corporation|holding|holdings|co\.?|gmbh|bhd\.?|pte\.?\s*ltd\.?)$",
+    re.IGNORECASE,
+)
+STANDALONE_LEGAL_TOKENS = re.compile(
+    r"\b(persero|tbk)\b",
+    re.IGNORECASE,
+)
 PUNCTUATION_RE = re.compile(r"[^\w\s]")
 
 
@@ -66,6 +76,8 @@ def normalize_company_name(raw_name: str) -> tuple[str, Optional[str], str]:
         ('Cardig Aero Services', None, 'cardig aero services')
     - 'PT Prodia Widyahusada Tbk' ->
         ('PT Prodia Widyahusada Tbk', None, 'prodia widyahusada')
+    - 'PT Telkom Indonesia (Persero) Tbk' ->
+        ('PT Telkom Indonesia (Persero) Tbk', None, 'telkom indonesia')
     """
     clean_raw = raw_name.strip()
     extracted_title: Optional[str] = None
@@ -79,15 +91,22 @@ def normalize_company_name(raw_name: str) -> tuple[str, Optional[str], str]:
 
     # Create canonical normalized key for clustering
     key = base_name.lower()
-    # Strip legal prefix
-    key = LEGAL_PREFIX_RE.sub("", key).strip()
-    # Strip legal suffix
-    key = LEGAL_SUFFIX_RE.sub("", key).strip()
-    # Remove punctuation & collapse whitespaces
+    
+    # Iteratively strip legal prefixes and suffixes
+    changed = True
+    while changed:
+        old = key
+        key = LEGAL_PREFIX_PATTERN.sub("", key).strip()
+        key = LEGAL_SUFFIX_PATTERN.sub("", key).strip()
+        key = re.sub(r"\(\s*\)", "", key).strip()
+        changed = (key != old)
+
+    # Strip standalone residual persero / tbk enclosed in parentheses or punctuation
+    key = STANDALONE_LEGAL_TOKENS.sub(" ", key)
     key = PUNCTUATION_RE.sub(" ", key)
     key = re.sub(r"\s+", " ", key).strip()
 
-    return base_name, extracted_title, key
+    return base_name, extracted_title, key or base_name.lower()
 
 
 @dataclass

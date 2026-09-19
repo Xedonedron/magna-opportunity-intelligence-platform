@@ -382,15 +382,15 @@ Memindahkan kepemilikan kontak ke level **Perusahaan (Folder Induk)** dengan rel
   - [x] Eksekusi Un-flattening riil di container: Jalankan `./scripts/run_unflatten_docker.sh --dry-run` lalu `--commit` (termasuk konsolidasi cerdas Danone & Danone Indonesia).
   - [x] Modifikasi KYC sectional runner agar otomatis me-reuse profil perusahaan yang sudah ada (`CompanyProfile`), mem-bypass Module 1 & 2 jika data statis valid.
   - [x] Frontend UX: Tampilan daftar Folder Perusahaan (`CompanyFolderView.tsx`) dan inisiatif anak dengan toggle Folders/List/Kanban serta modal New Deal kontekstual.
-- [ ] **Refinement UX Folder & Interactive Deduplication (Inisiatif 4.4 & 4.5 - P1 Immediate)**:
+- [x] **Refinement UX Folder & Interactive Deduplication (Inisiatif 4.4 & 4.5 - COMPLETED)**:
   - [x] Tambahkan tombol `Trash2` (Delete Opportunity) pada baris `OpptyRow` di `CompanyFolderView.tsx` lengkap dengan proteksi `canDelete` dan dialog konfirmasi.
   - [x] Hapus field opsional *"Specific Products / Technologies (Optional)"* pada `CreateCompanyOpptyModal` di `CompanyFolderView.tsx` agar form seragam dengan standar utama.
   - [x] Terapkan active creation UX: Tampilkan step progress animation saat submit deal dari modal folder dan auto-redirect ke detail opportunity (`/opportunities/[id]`) untuk memantau KYC.
   - [x] Tambahkan tombol Hapus Folder Perusahaan (`Trash2`) pada kartu folder: hanya aktif jika folder kosong (0 deal) dan role user memiliki capability `delete` (proteksi delete-orphan cascade).
   - [x] Implementasikan fitur Pindahkan Peluang (`FolderSymlink`) antar folder perusahaan dengan sinkronisasi metadata dan riwayat timeline deal otomatis.
-  - [ ] Implementasikan live search/autocomplete `Company Name` pada `frontend/src/app/(main)/opportunities/create/page.tsx`.
-  - [ ] Tambahkan dialog konfirmasi interaktif deteksi fuzzy similarity ("Apakah oppty ini untuk [Nama Perusahaan Eksisting]?") untuk mencegah duplikasi folder dan pemborosan token KYC.
-  - [ ] Sempurnakan regex `compute_normalized_name` di backend agar rekursif memotong kombinasi suffix hukum ganda (misal `(Persero) Tbk`).
+  - [x] Implementasikan live search/autocomplete `Company Name` pada `frontend/src/app/(main)/opportunities/create/page.tsx`.
+  - [x] Tambahkan dialog konfirmasi interaktif deteksi fuzzy similarity ("Apakah oppty ini untuk [Nama Perusahaan Eksisting]?") untuk mencegah duplikasi folder dan pemborosan token KYC.
+  - [x] Sempurnakan regex `compute_normalized_name` di backend agar rekursif memotong kombinasi suffix hukum ganda (misal `(Persero) Tbk`).
 
 ### Checklist Inisiatif 8: Direktori Stakeholder Perusahaan (Company People Directory)
 - [ ] **Data Model & Database Migration**:

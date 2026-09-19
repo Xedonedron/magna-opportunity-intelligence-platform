@@ -51,3 +51,17 @@ export interface CompanyOpportunityCreateInput {
     assigned_engineer?: string;
     status?: string;
 }
+
+export interface CompanySimilarityMatch {
+    company: Company;
+    similarity_score: number;
+    match_type: "exact_normalized" | "fuzzy" | "token_overlap";
+}
+
+export interface CompanySimilarityCheckResponse {
+    query: string;
+    normalized_query: string;
+    exact_match: Company | null;
+    has_similar: boolean;
+    matches: CompanySimilarityMatch[];
+}

@@ -118,3 +118,17 @@ class CompanyOpportunityCreate(BaseModel):
     meeting_schedule: Optional[datetime] = None
     assigned_engineer: Optional[str] = None
     status: str = Field("New", max_length=50)
+
+
+class CompanySimilarityMatch(BaseModel):
+    company: CompanyResponse
+    similarity_score: float = Field(..., ge=0.0, le=1.0)
+    match_type: str = Field("fuzzy", description="exact_normalized | fuzzy | token_overlap")
+
+
+class CompanySimilarityCheckResponse(BaseModel):
+    query: str
+    normalized_query: str
+    exact_match: Optional[CompanyResponse] = None
+    has_similar: bool = False
+    matches: list[CompanySimilarityMatch] = []

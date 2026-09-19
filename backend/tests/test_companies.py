@@ -246,3 +246,86 @@ def test_move_opportunity_between_companies(
     assert opp.company_id == comp_b.id
     assert opp.company_name == "Company Beta"
 
+
+def test_recursive_normalization_compound_suffixes():
+    from app.api.companies import compute_normalized_name
+
+    cases = [
+        ("PT Telkom Indonesia (Persero) Tbk", "telkom indonesia"),
+        ("PT. Telkom Indonesia, Tbk.", "telkom indonesia"),
+        ("Telkom Indonesia", "telkom indonesia"),
+        ("PT Bank Mandiri (Persero) Tbk", "bank mandiri"),
+        ("Bank Mandiri", "bank mandiri"),
+        ("PT Bank Central Asia Tbk", "bank central asia"),
+        ("Cardig Aero Services", "cardig aero services"),
+        ("PT Cardig Aero Services", "cardig aero services"),
+        ("PT Prodia Widyahusada Tbk", "prodia widyahusada"),
+        ("PT. Indoteknik Dotcom Gemilang", "indoteknik dotcom gemilang"),
+    ]
+    for raw, expected in cases:
+        assert compute_normalized_name(raw) == expected, f"Failed for {raw}"
+
+
+def test_check_company_similarity_exact_and_fuzzy(client: TestClient, auth_headers: dict[str, str], db: Session):
+    comp = Company(
+        id=uuid.uuid4(),
+        name="PT Telkom Indonesia (Persero) Tbk",
+        normalized_name="telkom indonesia",
+        website="https://telkom.co.id",
+        industry="Telecommunications",
+    )
+    db.add(comp)
+    db.commit()
+
+    # Exact match via alternate typing
+    res_exact = client.get(
+        "/api/v1/companies/check-similarity",
+        params={"name": "Telkom Indonesia"},
+        headers=auth_headers,
+    )
+    assert res_exact.status_code == 200
+    data_exact = res_exact.json()
+    assert data_exact["has_similar"] is True
+    assert data_exact["exact_match"] is not None
+    assert data_exact["exact_match"]["id"] == str(comp.id)
+
+    # Fuzzy match via partial brand name
+    res_fuzzy = client.get(
+        "/api/v1/companies/check-similarity",
+        params={"name": "Telkom"},
+        headers=auth_headers,
+    )
+    assert res_fuzzy.status_code == 200
+    data_fuzzy = res_fuzzy.json()
+    assert data_fuzzy["has_similar"] is True
+    assert len(data_fuzzy["matches"]) >= 1
+    assert data_fuzzy["matches"][0]["company"]["id"] == str(comp.id)
+    assert data_fuzzy["matches"][0]["similarity_score"] >= 0.70
+
+
+def test_check_company_similarity_prevents_false_positives_indonesia(
+    client: TestClient, auth_headers: dict[str, str], db: Session
+):
+    comp = Company(
+        id=uuid.uuid4(),
+        name="Danone Indonesia",
+        normalized_name="danone indonesia",
+        website="https://danone.co.id",
+        industry="FMCG",
+    )
+    db.add(comp)
+    db.commit()
+
+    # Searching Google Indonesia should NOT flag Danone Indonesia despite both containing 'Indonesia'
+    res = client.get(
+        "/api/v1/companies/check-similarity",
+        params={"name": "Google Indonesia"},
+        headers=auth_headers,
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["exact_match"] is None
+    # No matches should exceed the 0.70 threshold
+    danone_matches = [m for m in data["matches"] if m["company"]["id"] == str(comp.id)]
+    assert len(danone_matches) == 0
+

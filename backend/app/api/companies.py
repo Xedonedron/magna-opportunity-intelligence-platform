@@ -12,6 +12,7 @@ from app.models.user import User
 from app.models.company import Company
 from app.models.opportunity import Opportunity, TimelineEvent
 from app.models.meeting import Meeting
+import difflib
 from app.schemas.company import (
     CompanyCreate,
     CompanyUpdate,
@@ -19,6 +20,8 @@ from app.schemas.company import (
     CompanyDetailResponse,
     CompanyListResponse,
     CompanyOpportunityCreate,
+    CompanySimilarityMatch,
+    CompanySimilarityCheckResponse,
 )
 from app.schemas.opportunity import OpportunityResponse
 from app.core.security import get_current_user, require_capability
@@ -31,18 +34,85 @@ from app.tasks import (
 router = APIRouter(tags=["companies"])
 
 # Legal regex for canonical normalized name
-LEGAL_PREFIX_RE = re.compile(r"^(pt\.?|cv\.?|ud\.?|yayasan|koperasi|perum)\s+", re.IGNORECASE)
-LEGAL_SUFFIX_RE = re.compile(r"\s+(tbk\.?|\(persero\)|persero|ltd\.?|inc\.?|llc\.?)$", re.IGNORECASE)
+LEGAL_PREFIX_PATTERN = re.compile(
+    r"^(pt\.?|cv\.?|ud\.?|yayasan|koperasi|perum|perusahaan\s+perseroan|pd\.?|firma)\s+",
+    re.IGNORECASE,
+)
+LEGAL_SUFFIX_PATTERN = re.compile(
+    r"[\s,]+(\(?persero\)?|tbk\.?|ltd\.?|inc\.?|llc\.?|corp\.?|corporation|holding|holdings|co\.?|gmbh|bhd\.?|pte\.?\s*ltd\.?)$",
+    re.IGNORECASE,
+)
+STANDALONE_LEGAL_TOKENS = re.compile(
+    r"\b(persero|tbk)\b",
+    re.IGNORECASE,
+)
 PUNCTUATION_RE = re.compile(r"[^\w\s]")
+COMMON_GENERIC_TOKENS = re.compile(
+    r"\b(indonesia|persero|tbk|group|nusantara|asia|global)\b",
+    re.IGNORECASE,
+)
 
 
 def compute_normalized_name(name: str) -> str:
+    """Recursively strip legal prefixes and suffixes from company name to generate
+    a canonical normalized key.
+    Handles compound/multi-suffixes like 'PT Telkom Indonesia (Persero) Tbk' -> 'telkom indonesia'.
+    """
+    if not name:
+        return ""
     key = name.strip().lower()
-    key = LEGAL_PREFIX_RE.sub("", key).strip()
-    key = LEGAL_SUFFIX_RE.sub("", key).strip()
+
+    # Iteratively strip legal prefixes and suffixes
+    changed = True
+    while changed:
+        old = key
+        key = LEGAL_PREFIX_PATTERN.sub("", key).strip()
+        key = LEGAL_SUFFIX_PATTERN.sub("", key).strip()
+        key = re.sub(r"\(\s*\)", "", key).strip()
+        changed = (key != old)
+
+    # Strip standalone residual persero / tbk enclosed in parentheses or punctuation
+    key = STANDALONE_LEGAL_TOKENS.sub(" ", key)
     key = PUNCTUATION_RE.sub(" ", key)
     key = re.sub(r"\s+", " ", key).strip()
     return key or name.strip().lower()
+
+
+def compute_similarity_score(q_norm: str, target_norm: str) -> float:
+    """Calculates a robust similarity score between two normalized company names.
+    Includes token overlap, sequence matching, and penalty for matching only generic words (e.g. 'Indonesia').
+    """
+    if not q_norm or not target_norm:
+        return 0.0
+    if q_norm == target_norm:
+        return 1.0
+
+    # Core distinctive terms without common generic words
+    core_q = COMMON_GENERIC_TOKENS.sub("", q_norm).strip()
+    core_target = COMMON_GENERIC_TOKENS.sub("", target_norm).strip()
+
+    if not core_q or not core_target:
+        return difflib.SequenceMatcher(None, q_norm, target_norm).ratio()
+
+    if core_q == core_target:
+        return 0.95
+
+    core_ratio = difflib.SequenceMatcher(None, core_q, core_target).ratio()
+    full_ratio = difflib.SequenceMatcher(None, q_norm, target_norm).ratio()
+
+    q_tokens = set(core_q.split())
+    t_tokens = set(core_target.split())
+    overlap = q_tokens & t_tokens
+
+    if overlap:
+        overlap_score = len(overlap) / max(len(q_tokens), len(t_tokens))
+        is_substring = core_q in core_target or core_target in core_q
+        base_score = max(core_ratio, overlap_score)
+        if is_substring:
+            base_score = max(base_score, 0.85)
+        return min(1.0, base_score)
+
+    return min(core_ratio, full_ratio * 0.5)
 
 
 @router.get("", response_model=CompanyListResponse)
@@ -99,6 +169,81 @@ async def list_companies(
         total=total,
         page=page,
         page_size=page_size,
+    )
+
+
+@router.get("/check-similarity", response_model=CompanySimilarityCheckResponse)
+async def check_company_similarity(
+    name: str = Query(..., min_length=1, description="Raw or typed company name to check for duplicates"),
+    threshold: float = Query(0.70, ge=0.0, le=1.0, description="Similarity threshold (0.0 - 1.0)"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Check if a company name has exact or fuzzy duplicates in the database.
+    Used for live autocomplete deduplication guards before creating opportunities or folders.
+    """
+    norm_query = compute_normalized_name(name)
+    all_companies = db.query(Company).all()
+
+    exact_match: Optional[CompanyResponse] = None
+    matches: list[CompanySimilarityMatch] = []
+
+    for c in all_companies:
+        resp = CompanyResponse(
+            id=c.id,
+            name=c.name,
+            normalized_name=c.normalized_name,
+            website=c.website,
+            industry=c.industry,
+            business_process=c.business_process,
+            employee_count=c.employee_count,
+            tech_stack=c.tech_stack,
+            opportunities_count=len(c.opportunities),
+            created_at=c.created_at,
+            updated_at=c.updated_at,
+        )
+
+        # 1. Exact normalized match
+        if c.normalized_name == norm_query:
+            if not exact_match:
+                exact_match = resp
+            matches.append(
+                CompanySimilarityMatch(
+                    company=resp,
+                    similarity_score=1.0,
+                    match_type="exact_normalized",
+                )
+            )
+            continue
+
+        # 2. Fuzzy similarity check
+        score = compute_similarity_score(norm_query, c.normalized_name)
+        if score >= threshold:
+            match_type = "fuzzy"
+            if norm_query in c.normalized_name or c.normalized_name in norm_query:
+                match_type = "token_overlap"
+            matches.append(
+                CompanySimilarityMatch(
+                    company=resp,
+                    similarity_score=round(score, 2),
+                    match_type=match_type,
+                )
+            )
+
+    # Sort matches by similarity descending, then by opportunities count
+    matches.sort(
+        key=lambda m: (m.similarity_score, m.company.opportunities_count),
+        reverse=True,
+    )
+
+    top_matches = matches[:5]
+
+    return CompanySimilarityCheckResponse(
+        query=name,
+        normalized_query=norm_query,
+        exact_match=exact_match,
+        has_similar=len(top_matches) > 0,
+        matches=top_matches,
     )
 
 

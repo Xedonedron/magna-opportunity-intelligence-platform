@@ -18,6 +18,10 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Select, SuggestedInput, MultiSelect } from "@/components/ui/Input";
 import { useCreateOpportunity } from "@/hooks/use-opportunities";
+import { checkCompanySimilarity } from "@/hooks/use-companies";
+import type { Company, CompanySimilarityMatch } from "@/types/company";
+import { CompanyAutocompleteInput } from "@/components/domains/opportunities/CompanyAutocompleteInput";
+import { DuplicateCompanyConfirmModal } from "@/components/domains/opportunities/DuplicateCompanyConfirmModal";
 
 import { getMasterIndustries, getMasterPresales, fetchMasterData, DEFAULT_TARGET_SOLUTIONS } from "@/lib/master-data";
 
@@ -71,6 +75,18 @@ export default function CreateOpportunityPage() {
     const [pipelineState, setPipelineState] = useState(0);
     const [createdId, setCreatedId] = useState<string | null>(null);
 
+    const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+    const [isCheckingSimilarity, setIsCheckingSimilarity] = useState(false);
+    const [duplicateCheckModal, setDuplicateCheckModal] = useState<{
+        isOpen: boolean;
+        match: CompanySimilarityMatch | null;
+        pendingData: FormData | null;
+    }>({
+        isOpen: false,
+        match: null,
+        pendingData: null,
+    });
+
     const defaultDate = new Date();
     defaultDate.setHours(defaultDate.getHours() + 1, 0, 0, 0);
     const defaultDateStr = new Date(defaultDate.getTime() - defaultDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
@@ -113,7 +129,7 @@ export default function CreateOpportunityPage() {
 
     const activePresales = presalesList.length > 0 ? presalesList : getMasterPresales();
 
-    const onSubmit = async (data: FormData) => {
+    const executeSubmit = async (data: FormData, targetCompanyId?: string | null) => {
         setIsSubmitting(true);
         setPipelineState(1);
 
@@ -128,6 +144,7 @@ export default function CreateOpportunityPage() {
                 : `https://${trimmedWebsite}`;
 
             const payload = {
+                company_id: targetCompanyId !== undefined ? targetCompanyId : (selectedCompany?.id || null),
                 company_name: data.company_name.trim(),
                 website: formattedWebsite,
                 email: data.email || null,
@@ -157,6 +174,70 @@ export default function CreateOpportunityPage() {
             setIsSubmitting(false);
             setPipelineState(0);
         }
+    };
+
+    const onSubmit = async (data: FormData) => {
+        // If user already linked an existing company via autocomplete, proceed directly
+        if (selectedCompany) {
+            await executeSubmit(data, selectedCompany.id);
+            return;
+        }
+
+        // Fuzzy similarity check before creating a new company folder
+        try {
+            setIsCheckingSimilarity(true);
+            const simResult = await checkCompanySimilarity(data.company_name.trim());
+            setIsCheckingSimilarity(false);
+
+            if (simResult.has_similar && simResult.matches.length > 0) {
+                const topMatch = simResult.matches[0];
+                setDuplicateCheckModal({
+                    isOpen: true,
+                    match: topMatch,
+                    pendingData: data,
+                });
+                return;
+            }
+        } catch (err) {
+            console.error("Similarity check error, proceeding directly:", err);
+            setIsCheckingSimilarity(false);
+        }
+
+        await executeSubmit(data, null);
+    };
+
+    const handleConfirmLink = async () => {
+        if (!duplicateCheckModal.match || !duplicateCheckModal.pendingData) return;
+        const matchedComp = duplicateCheckModal.match.company;
+        setSelectedCompany(matchedComp);
+
+        const dataToSubmit = { ...duplicateCheckModal.pendingData };
+        if (matchedComp.name) {
+            dataToSubmit.company_name = matchedComp.name;
+            setValue("company_name", matchedComp.name);
+        }
+        if (matchedComp.website && (!dataToSubmit.website || dataToSubmit.website.trim() === "")) {
+            dataToSubmit.website = matchedComp.website;
+            setValue("website", matchedComp.website);
+        }
+        if (matchedComp.industry && (!dataToSubmit.industry || dataToSubmit.industry.trim() === "")) {
+            dataToSubmit.industry = matchedComp.industry;
+            setValue("industry", matchedComp.industry);
+        }
+
+        setDuplicateCheckModal({ isOpen: false, match: null, pendingData: null });
+        await executeSubmit(dataToSubmit, matchedComp.id);
+    };
+
+    const handleConfirmNew = async () => {
+        if (!duplicateCheckModal.pendingData) return;
+        const dataToSubmit = { ...duplicateCheckModal.pendingData };
+        setDuplicateCheckModal({ isOpen: false, match: null, pendingData: null });
+        await executeSubmit(dataToSubmit, null);
+    };
+
+    const handleCancelModal = () => {
+        setDuplicateCheckModal({ isOpen: false, match: null, pendingData: null });
     };
 
     // AI Pipeline View
@@ -253,17 +334,28 @@ export default function CreateOpportunityPage() {
                             Company Information
                         </h2>
                         <div className="space-y-4">
-                            <Input
-                                label="Company Name"
-                                placeholder="e.g. Acme Corp"
+                            <CompanyAutocompleteInput
+                                value={watch("company_name") || ""}
+                                onChange={(val) => {
+                                    setValue("company_name", val, { shouldValidate: true });
+                                }}
+                                selectedCompany={selectedCompany}
+                                onSelectCompany={(comp) => {
+                                    setSelectedCompany(comp);
+                                    setValue("company_name", comp.name, { shouldValidate: true });
+                                    if (comp.website) {
+                                        setValue("website", comp.website, { shouldValidate: true });
+                                    }
+                                    if (comp.industry) {
+                                        setValue("industry", comp.industry, { shouldValidate: true });
+                                    }
+                                }}
+                                onClearCompany={() => {
+                                    setSelectedCompany(null);
+                                }}
                                 required
-                                {...register("company_name")}
+                                error={errors.company_name?.message}
                             />
-                            {errors.company_name && (
-                                <p className="text-xs text-red-500">
-                                    {errors.company_name.message}
-                                </p>
-                            )}
                             <div>
                                 <Input
                                     label="Website URL"
@@ -408,12 +500,32 @@ export default function CreateOpportunityPage() {
                     </div>
 
                     <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800 flex justify-end">
-                        <Button type="submit" className="gap-2">
-                            Create Opportunity
+                        <Button type="submit" disabled={isSubmitting || isCheckingSimilarity} className="gap-2">
+                            {isCheckingSimilarity ? (
+                                <>
+                                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    <span>Memeriksa Perusahaan...</span>
+                                </>
+                            ) : (
+                                "Create Opportunity"
+                            )}
                         </Button>
                     </div>
                 </Card>
             </form>
+
+            {/* Duplicate Company Detection Confirmation Modal */}
+            {duplicateCheckModal.isOpen && duplicateCheckModal.match && (
+                <DuplicateCompanyConfirmModal
+                    isOpen={duplicateCheckModal.isOpen}
+                    queryName={duplicateCheckModal.pendingData?.company_name || ""}
+                    matchedCompany={duplicateCheckModal.match.company}
+                    similarityScore={duplicateCheckModal.match.similarity_score}
+                    onConfirmLink={handleConfirmLink}
+                    onConfirmNew={handleConfirmNew}
+                    onCancel={handleCancelModal}
+                />
+            )}
         </div>
     );
 }

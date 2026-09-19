@@ -8,8 +8,25 @@ import type {
     CompanyListResponse,
     CompanyCreateInput,
     CompanyOpportunityCreateInput,
+    CompanySimilarityCheckResponse,
 } from "@/types/company";
 import type { Opportunity } from "@/types/opportunity";
+
+export async function checkCompanySimilarity(name: string, threshold: number = 0.70): Promise<CompanySimilarityCheckResponse> {
+    const { data } = await api.get<CompanySimilarityCheckResponse>("/api/v1/companies/check-similarity", {
+        params: { name, threshold },
+    });
+    return data;
+}
+
+export function useCompanySimilarity(name: string, threshold: number = 0.70, enabled: boolean = true) {
+    return useQuery({
+        queryKey: ["company-similarity", name, threshold],
+        queryFn: () => checkCompanySimilarity(name, threshold),
+        enabled: enabled && !!name.trim(),
+        staleTime: 30000,
+    });
+}
 
 export function useCompanies(params?: {
     page?: number;
