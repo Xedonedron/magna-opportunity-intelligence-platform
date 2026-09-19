@@ -14,6 +14,9 @@ class CompanyBase(BaseModel):
     business_process: Optional[str] = None
     employee_count: Optional[str] = Field(None, max_length=100)
     tech_stack: Optional[list[str] | dict[str, Any]] = None
+    contact_name: Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
 
     @field_validator("website")
     @classmethod

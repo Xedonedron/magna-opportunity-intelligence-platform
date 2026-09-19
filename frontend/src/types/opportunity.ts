@@ -34,6 +34,7 @@ export interface Opportunity {
     id: string;
     company_id?: string | null;
     company_name: string;
+    deal_title?: string | null;
     contact_name: string | null;
     website: string | null;
     email: string | null;

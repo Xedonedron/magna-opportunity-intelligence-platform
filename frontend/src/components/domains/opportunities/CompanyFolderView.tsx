@@ -222,7 +222,7 @@ function CompanyCard({
     hideFinancialNumbers: boolean;
 }) {
     const count = company.opportunities_count ?? 0;
-    const hasActiveKyC = !!company.cached_kyc_data;
+    const hasActiveKyC = !!company.business_process || !!company.cached_kyc_data;
 
     return (
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-xs transition-all duration-200 hover:border-zinc-300 dark:hover:border-zinc-700">

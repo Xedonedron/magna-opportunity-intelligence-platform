@@ -217,6 +217,101 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
         return () => window.removeEventListener("beforeunload", handleBeforeUnload);
     }, [hasUnsavedChanges]);
 
+    // Enhanced Regenerate Modal Dialog
+    const renderRegenerateModal = () => {
+        if (!showConfirmRegenerate) return null;
+
+        const hasExistingVersions = (versionsData?.items && versionsData.items.length > 0) || !!report;
+        const currentMax = versionsData?.items.reduce((max, v) => Math.max(max, v.version), 0) || report?.version || 0;
+        const nextVersion = hasExistingVersions ? currentMax + 1 : 1;
+        const isFirstGeneration = !hasExistingVersions;
+
+        return (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <Card className="p-6 max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-150">
+                    <div className="flex items-center gap-2 mb-3">
+                        <RefreshCw className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
+                        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                            {isFirstGeneration
+                                ? (t.opportunityDetail.kyc.generateButton || "Generate Laporan KYC")
+                                : (t.opportunityDetail.kyc.confirmRegenerateTitle || "Generate Ulang Laporan KYC")}
+                        </h3>
+                    </div>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-4">
+                        {isFirstGeneration
+                            ? "Analisis AI akan membuat laporan intelijen KYC komprehensif berdasarkan profil opportunity ini."
+                            : (t.opportunityDetail.kyc.confirmRegenerateDesc || "Analisis AI akan membuat versi baru berdasarkan profil opportunity terkini.")}
+                    </p>
+
+                    <div className="space-y-4 mb-6">
+                        <div>
+                            <div className="flex items-center justify-between mb-1.5">
+                                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                                    Judul / Label Versi (Opsional)
+                                </label>
+                                <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded">
+                                    Versi v{nextVersion}
+                                </span>
+                            </div>
+                            <input
+                                type="text"
+                                value={regenerateTitle}
+                                onChange={(e) => setRegenerateTitle(e.target.value)}
+                                placeholder={isFirstGeneration ? "Contoh: Analisis Awal Profil & Kebutuhan Solusi" : "Contoh: Pembaruan spesifikasi server & migrasi compute"}
+                                className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+                            />
+                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
+                                Label nomor versi (v{nextVersion}) akan disematkan otomatis pada Version History.
+                            </p>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
+                                Fokus / Instruksi Analisis (Opsional)
+                            </label>
+                            <textarea
+                                rows={3}
+                                value={regenerateFocus}
+                                onChange={(e) => setRegenerateFocus(e.target.value)}
+                                placeholder="Tuliskan arahan spesifik jika ada, contoh: Fokus pada pengadaan Server On-Premise & migrasi compute. Prioritaskan solusi multi-vendor."
+                                className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                            />
+                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
+                                AI akan mengarahkan fokus analisis ke instruksi ini.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setShowConfirmRegenerate(false)}
+                            disabled={regenerate.isPending}
+                        >
+                            {t.common.cancel}
+                        </Button>
+                        <Button 
+                            onClick={handleConfirmRegenerate}
+                            disabled={regenerate.isPending}
+                            className="gap-2"
+                        >
+                            {regenerate.isPending ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Sparkles className="w-4 h-4" />
+                            )}
+                            {regenerate.isPending
+                                ? "Memulai Analisis..."
+                                : isFirstGeneration
+                                    ? "Mulai Analisis KYC"
+                                    : "Generate Versi Baru"}
+                        </Button>
+                    </div>
+                </Card>
+            </div>
+        );
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center py-24">
@@ -388,101 +483,6 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
             </div>
         </div>
     );
-
-    // Enhanced Regenerate Modal Dialog
-    const renderRegenerateModal = () => {
-        if (!showConfirmRegenerate) return null;
-
-        const hasExistingVersions = (versionsData?.items && versionsData.items.length > 0) || !!report;
-        const currentMax = versionsData?.items.reduce((max, v) => Math.max(max, v.version), 0) || report?.version || 0;
-        const nextVersion = hasExistingVersions ? currentMax + 1 : 1;
-        const isFirstGeneration = !hasExistingVersions;
-
-        return (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                <Card className="p-6 max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-150">
-                    <div className="flex items-center gap-2 mb-3">
-                        <RefreshCw className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
-                        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                            {isFirstGeneration
-                                ? (t.opportunityDetail.kyc.generateButton || "Generate Laporan KYC")
-                                : (t.opportunityDetail.kyc.confirmRegenerateTitle || "Generate Ulang Laporan KYC")}
-                        </h3>
-                    </div>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-4">
-                        {isFirstGeneration
-                            ? "Analisis AI akan membuat laporan intelijen KYC komprehensif berdasarkan profil opportunity ini."
-                            : (t.opportunityDetail.kyc.confirmRegenerateDesc || "Analisis AI akan membuat versi baru berdasarkan profil opportunity terkini.")}
-                    </p>
-
-                    <div className="space-y-4 mb-6">
-                        <div>
-                            <div className="flex items-center justify-between mb-1.5">
-                                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
-                                    Judul / Label Versi (Opsional)
-                                </label>
-                                <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded">
-                                    Versi v{nextVersion}
-                                </span>
-                            </div>
-                            <input
-                                type="text"
-                                value={regenerateTitle}
-                                onChange={(e) => setRegenerateTitle(e.target.value)}
-                                placeholder={isFirstGeneration ? "Contoh: Analisis Awal Profil & Kebutuhan Solusi" : "Contoh: Pembaruan spesifikasi server & migrasi compute"}
-                                className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100"
-                            />
-                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-                                Label nomor versi (v{nextVersion}) akan disematkan otomatis pada Version History.
-                            </p>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
-                                Fokus / Instruksi Analisis (Opsional)
-                            </label>
-                            <textarea
-                                rows={3}
-                                value={regenerateFocus}
-                                onChange={(e) => setRegenerateFocus(e.target.value)}
-                                placeholder="Tuliskan arahan spesifik jika ada, contoh: Fokus pada pengadaan Server On-Premise & migrasi compute. Prioritaskan solusi multi-vendor."
-                                className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
-                            />
-                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-                                AI akan mengarahkan fokus analisis ke instruksi ini.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="flex justify-end gap-2 pt-3 border-t border-zinc-100 dark:border-zinc-800">
-                        <Button
-                            variant="secondary"
-                            onClick={() => setShowConfirmRegenerate(false)}
-                            disabled={regenerate.isPending}
-                        >
-                            {t.common.cancel}
-                        </Button>
-                        <Button 
-                            onClick={handleConfirmRegenerate}
-                            disabled={regenerate.isPending}
-                            className="gap-2"
-                        >
-                            {regenerate.isPending ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                                <Sparkles className="w-4 h-4" />
-                            )}
-                            {regenerate.isPending
-                                ? "Memulai Analisis..."
-                                : isFirstGeneration
-                                    ? "Mulai Analisis KYC"
-                                    : "Generate Versi Baru"}
-                        </Button>
-                    </div>
-                </Card>
-            </div>
-        );
-    };
 
     if (report.status === "running") {
         const currentStep = report.progress_step || "received";

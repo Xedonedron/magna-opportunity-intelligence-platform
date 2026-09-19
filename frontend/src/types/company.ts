@@ -9,6 +9,7 @@ export interface Company {
     business_process: string | null;
     employee_count: string | null;
     tech_stack: string[] | Record<string, any> | null;
+    cached_kyc_data?: Record<string, any> | null;
     opportunities_count: number;
     created_at: string;
     updated_at: string;
@@ -32,6 +33,9 @@ export interface CompanyCreateInput {
     business_process?: string | null;
     employee_count?: string | null;
     tech_stack?: string[] | Record<string, any> | null;
+    contact_name?: string | null;
+    contact_email?: string | null;
+    contact_phone?: string | null;
 }
 
 export interface CompanyOpportunityCreateInput {
