@@ -174,15 +174,15 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
             const cleanTitle = cleanVersionTitle(regenerateTitle) || undefined;
             const cleanFocus = regenerateFocus.trim() || undefined;
             await regenerate.mutateAsync({
-                source_type: "manual_regenerate",
+                source_type: report ? "manual_regenerate" : "automatic",
                 title: cleanTitle,
                 focus_notes: cleanFocus,
             });
             setShowConfirmRegenerate(false);
             setSelectedReportId(null); // Auto-track latestReport
-            toast.success("Regenerasi KYC berhasil dimulai.");
+            toast.success("Analisis KYC berhasil dimulai.");
         } catch (error) {
-            toast.error("Gagal memulai regenerasi KYC.");
+            toast.error("Gagal memulai analisis KYC.");
         }
     };
 
@@ -227,23 +227,26 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
 
     if (!report) {
         return (
-            <Card className="p-12 text-center">
-                <Zap className="w-12 h-12 mx-auto mb-4 text-zinc-200" />
-                <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">{t.opportunityDetail.kyc.noReportTitle}</h3>
-                <p className="text-zinc-500 mb-6 max-w-md mx-auto">
-                    {t.opportunityDetail.kyc.noReportDesc}
-                </p>
-                {canGenerate && (
-                    <Button onClick={handleRegenerateClick} disabled={regenerate.isPending}>
-                        {regenerate.isPending ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                            <Zap className="w-4 h-4 mr-2" />
-                        )}
-                        {t.opportunityDetail.kyc.generateButton}
-                    </Button>
-                )}
-            </Card>
+            <>
+                <Card className="p-12 text-center">
+                    <Zap className="w-12 h-12 mx-auto mb-4 text-zinc-200" />
+                    <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">{t.opportunityDetail.kyc.noReportTitle}</h3>
+                    <p className="text-zinc-500 mb-6 max-w-md mx-auto">
+                        {t.opportunityDetail.kyc.noReportDesc}
+                    </p>
+                    {canGenerate && (
+                        <Button onClick={handleRegenerateClick} disabled={regenerate.isPending}>
+                            {regenerate.isPending ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                                <Zap className="w-4 h-4 mr-2" />
+                            )}
+                            {t.opportunityDetail.kyc.generateButton}
+                        </Button>
+                    )}
+                </Card>
+                {renderRegenerateModal()}
+            </>
         );
     }
 
@@ -390,8 +393,10 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
     const renderRegenerateModal = () => {
         if (!showConfirmRegenerate) return null;
 
-        const currentMax = versionsData?.items.reduce((max, v) => Math.max(max, v.version), 0) || report?.version || 1;
-        const nextVersion = currentMax + 1;
+        const hasExistingVersions = (versionsData?.items && versionsData.items.length > 0) || !!report;
+        const currentMax = versionsData?.items.reduce((max, v) => Math.max(max, v.version), 0) || report?.version || 0;
+        const nextVersion = hasExistingVersions ? currentMax + 1 : 1;
+        const isFirstGeneration = !hasExistingVersions;
 
         return (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -399,11 +404,15 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                     <div className="flex items-center gap-2 mb-3">
                         <RefreshCw className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
                         <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                            {t.opportunityDetail.kyc.confirmRegenerateTitle || "Generate Ulang Laporan KYC"}
+                            {isFirstGeneration
+                                ? (t.opportunityDetail.kyc.generateButton || "Generate Laporan KYC")
+                                : (t.opportunityDetail.kyc.confirmRegenerateTitle || "Generate Ulang Laporan KYC")}
                         </h3>
                     </div>
                     <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-4">
-                        {t.opportunityDetail.kyc.confirmRegenerateDesc || "Analisis AI akan membuat versi baru berdasarkan profil opportunity terkini."}
+                        {isFirstGeneration
+                            ? "Analisis AI akan membuat laporan intelijen KYC komprehensif berdasarkan profil opportunity ini."
+                            : (t.opportunityDetail.kyc.confirmRegenerateDesc || "Analisis AI akan membuat versi baru berdasarkan profil opportunity terkini.")}
                     </p>
 
                     <div className="space-y-4 mb-6">
@@ -420,7 +429,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                 type="text"
                                 value={regenerateTitle}
                                 onChange={(e) => setRegenerateTitle(e.target.value)}
-                                placeholder="Contoh: Pembaruan spesifikasi server & migrasi compute"
+                                placeholder={isFirstGeneration ? "Contoh: Analisis Awal Profil & Kebutuhan Solusi" : "Contoh: Pembaruan spesifikasi server & migrasi compute"}
                                 className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100"
                             />
                             <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
@@ -430,17 +439,17 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
 
                         <div>
                             <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
-                                Fokus / Instruksi Pembaruan Versi (Opsional)
+                                Fokus / Instruksi Analisis (Opsional)
                             </label>
                             <textarea
                                 rows={3}
                                 value={regenerateFocus}
                                 onChange={(e) => setRegenerateFocus(e.target.value)}
-                                placeholder="Tuliskan arahan spesifik jika konteks berubah, contoh: Fokus pada pengadaan Server On-Premise & migrasi compute. Abaikan kebutuhan WiFi/Network sebelumnya."
+                                placeholder="Tuliskan arahan spesifik jika ada, contoh: Fokus pada pengadaan Server On-Premise & migrasi compute. Prioritaskan solusi multi-vendor."
                                 className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             />
                             <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-                                AI akan mengisolasi fokus analisis ke arahan ini agar hasil tidak bercampur dengan konteks sebelumnya.
+                                AI akan mengarahkan fokus analisis ke instruksi ini.
                             </p>
                         </div>
                     </div>
@@ -463,7 +472,11 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                             ) : (
                                 <Sparkles className="w-4 h-4" />
                             )}
-                            {regenerate.isPending ? "Memulai Analisis..." : "Generate Versi Baru"}
+                            {regenerate.isPending
+                                ? "Memulai Analisis..."
+                                : isFirstGeneration
+                                    ? "Mulai Analisis KYC"
+                                    : "Generate Versi Baru"}
                         </Button>
                     </div>
                 </Card>

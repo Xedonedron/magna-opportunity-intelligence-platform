@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -9,6 +10,7 @@ from app.core.database import get_db
 from app.models.user import User
 from app.models.opportunity import Opportunity, TimelineEvent, OpportunityDocument
 from app.models.meeting import Meeting
+from app.models.kyc_report import KYCReport
 from app.schemas.opportunity import (
     OpportunityCreate,
     OpportunityUpdate,
@@ -29,6 +31,8 @@ from app.tasks import (
 from app.models.notification import Notification
 from app.services.notification_service import NotificationService
 from app.core.solutions_catalog import solutions_catalog
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/opportunities", tags=["opportunities"])
 
@@ -216,6 +220,21 @@ async def create_opportunity(
         event_type="create",
     )
 
+    # Create initial placeholder KYC report (v1) with running status so UI tracks progress immediately
+    initial_kyc_report = KYCReport(
+        id=uuid.uuid4(),
+        opportunity_id=opportunity.id,
+        version=1,
+        status="running",
+        source_type="automatic",
+        progress_step="received",
+        progress_percent=15,
+        created_by=current_user.id,
+    )
+    db.add(initial_kyc_report)
+    if not data.meeting_schedule:
+        opportunity.status = "KYC Running"
+
     # In-app notifications for superadmins & stakeholders (excluding creator)
     NotificationService.notify_opportunity_created(
         db, opportunity, actor_id=current_user.id
@@ -226,14 +245,14 @@ async def create_opportunity(
     # Trigger async notification (backup)
     try:
         send_opportunity_created_notification.delay(str(opportunity.id))
-    except Exception:
-        pass  # Don't fail the request if notification fails
+    except Exception as exc:
+        logger.error(f"Failed to dispatch opportunity created notification: {exc}")
 
     # Trigger AI KYC pipeline automatically
     try:
         run_kyc_pipeline_task.delay(str(opportunity.id), source_type="automatic")
-    except Exception:
-        pass  # Don't fail the request if KYC trigger fails
+    except Exception as exc:
+        logger.error(f"Failed to dispatch automatic KYC task: {exc}")
 
     return opportunity
 

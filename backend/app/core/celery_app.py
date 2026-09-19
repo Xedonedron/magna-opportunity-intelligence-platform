@@ -22,3 +22,22 @@ celery_app.conf.update(
 
 # Auto-discover tasks
 celery_app.autodiscover_tasks(["app.tasks"])
+
+
+@celery_app.on_after_configure.connect
+def setup_periodic_tasks(sender, **kwargs):
+    pass
+
+
+from celery.signals import worker_process_init
+
+
+@worker_process_init.connect
+def init_celery_worker_process(**kwargs):
+    """
+    Dispose of connection pool inherited from parent process so that each
+    Celery prefork worker process creates its own independent PostgreSQL connections.
+    Prevents 'error with status PGRES_TUPLES_OK' and column collision errors.
+    """
+    from app.core.database import engine
+    engine.dispose(close=False)
