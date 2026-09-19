@@ -9,6 +9,7 @@ import type {
     CompanyCreateInput,
     CompanyOpportunityCreateInput,
     CompanySimilarityCheckResponse,
+    CompanyKYCSummary,
 } from "@/types/company";
 import type { Opportunity } from "@/types/opportunity";
 
@@ -64,6 +65,18 @@ export function useCompany(id: string) {
         queryKey: ["company", id],
         queryFn: async () => {
             const { data } = await api.get<CompanyDetail>(`/api/v1/companies/${id}`);
+            return data;
+        },
+        enabled: !!id,
+    });
+}
+
+export function useCompanyKYCSummary(id: string | null | undefined) {
+    return useQuery({
+        queryKey: ["company", id, "kyc-summary"],
+        queryFn: async () => {
+            if (!id) return null;
+            const { data } = await api.get<CompanyKYCSummary>(`/api/v1/companies/${id}/kyc-summary`);
             return data;
         },
         enabled: !!id,

@@ -40,6 +40,7 @@ import {
 import { useDeleteOpportunity, useUpdateOpportunity } from "@/hooks/use-opportunities";
 import { DEFAULT_TARGET_SOLUTIONS } from "@/lib/master-data";
 import { formatCurrency, timeAgo } from "@/lib/utils";
+import { CompanyDetailDrawer } from "@/components/domains/companies/CompanyDetailDrawer";
 import type { Company } from "@/types/company";
 import type { Opportunity } from "@/types/opportunity";
 
@@ -60,6 +61,8 @@ export function CompanyFolderView({
 }: CompanyFolderViewProps) {
     const [expandedCompanyIds, setExpandedCompanyIds] = useState<Set<string>>(new Set());
     const [modalCompany, setModalCompany] = useState<Company | null>(null);
+    const [drawerCompany, setDrawerCompany] = useState<Company | null>(null);
+
     const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
     const [deleteCompanyTarget, setDeleteCompanyTarget] = useState<{ id: string; name: string } | null>(null);
@@ -255,6 +258,7 @@ export function CompanyFolderView({
                             onDelete={handleDelete}
                             onDeleteCompany={(e) => handleDeleteCompany(e, { id: company.id, name: company.name })}
                             onMoveOppty={handleMoveOppty}
+                            onOpenDrawer={() => setDrawerCompany(company)}
                         />
                     );
                 })}
@@ -309,6 +313,15 @@ export function CompanyFolderView({
                 onConfirm={confirmDeleteCompany}
                 onClose={() => setDeleteCompanyTarget(null)}
             />
+
+            {/* Drawer Company KYC & Stakeholders */}
+            <CompanyDetailDrawer
+                company={drawerCompany}
+                isOpen={!!drawerCompany}
+                onClose={() => setDrawerCompany(null)}
+                canEdit={true}
+            />
+
         </div>
     );
 }
@@ -324,6 +337,7 @@ function CompanyCard({
     onDelete,
     onDeleteCompany,
     onMoveOppty,
+    onOpenDrawer,
 }: {
     company: Company;
     isExpanded: boolean;
@@ -335,6 +349,7 @@ function CompanyCard({
     onDelete: (e: React.MouseEvent | null, id: string, name: string) => void;
     onDeleteCompany: (e: React.MouseEvent) => void;
     onMoveOppty: (e: React.MouseEvent | null, opp: Opportunity, currentCompanyName: string) => void;
+    onOpenDrawer: () => void;
 }) {
     const count = company.opportunities_count ?? 0;
     const hasActiveKyC = !!company.business_process || !!company.cached_kyc_data;
@@ -368,14 +383,30 @@ function CompanyCard({
 
                     <div>
                         <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onOpenDrawer();
+                                }}
+                                className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline transition-colors text-left"
+                                title="Buka Detail Perusahaan & Stakeholders"
+                            >
                                 {company.name}
-                            </h3>
+                            </button>
                             {hasActiveKyC && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onOpenDrawer();
+                                    }}
+                                    className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors cursor-pointer"
+                                    title="Lihat KYC Intelligence"
+                                >
                                     <Sparkles className="w-2.5 h-2.5" />
                                     KYC Profile
-                                </span>
+                                </button>
                             )}
                         </div>
                         <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">

@@ -12,6 +12,7 @@ from app.models.user import User
 from app.models.company import Company
 from app.models.opportunity import Opportunity, TimelineEvent
 from app.models.meeting import Meeting
+from app.models.kyc_report import KYCReport
 from urllib.parse import urlparse
 
 from app.schemas.company import (
@@ -23,6 +24,7 @@ from app.schemas.company import (
     CompanyOpportunityCreate,
     CompanySimilarityMatch,
     CompanySimilarityCheckResponse,
+    CompanyKYCSummaryResponse,
 )
 from app.schemas.opportunity import OpportunityResponse
 from app.core.security import get_current_user, require_capability
@@ -351,6 +353,58 @@ async def get_company(
         created_at=company.created_at,
         updated_at=company.updated_at,
         opportunities=opp_responses,
+    )
+
+
+@router.get("/{company_id}/kyc-summary", response_model=CompanyKYCSummaryResponse)
+async def get_company_kyc_summary(
+    company_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get aggregated/latest KYC report insights for a company.
+    Finds the most recent completed KYC report from any child opportunity.
+    """
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    # Find latest completed KYCReport across all opportunities under this company
+    latest_kyc = (
+        db.query(KYCReport, Opportunity)
+        .join(Opportunity, Opportunity.id == KYCReport.opportunity_id)
+        .filter(
+            Opportunity.company_id == company_id,
+            KYCReport.status == "completed",
+            KYCReport.company_overview.isnot(None),
+        )
+        .order_by(KYCReport.completed_at.desc(), KYCReport.created_at.desc())
+        .first()
+    )
+
+    if not latest_kyc:
+        return CompanyKYCSummaryResponse(
+            company_id=company.id,
+            company_name=company.name,
+            has_kyc=False,
+        )
+
+    kyc_report, opp = latest_kyc
+    return CompanyKYCSummaryResponse(
+        company_id=company.id,
+        company_name=company.name,
+        has_kyc=True,
+        source_opportunity_id=opp.id,
+        source_opportunity_title=opp.product or opp.company_name,
+        kyc_version=kyc_report.version,
+        completed_at=kyc_report.completed_at,
+        executive_summary=kyc_report.executive_summary,
+        company_overview=kyc_report.company_overview,
+        industry_analysis=kyc_report.industry_analysis,
+        business_model=kyc_report.business_model,
+        company_location=kyc_report.company_location,
+        competitor_analysis=kyc_report.competitor_analysis,
+        potential_pain_points=kyc_report.potential_pain_points,
     )
 
 

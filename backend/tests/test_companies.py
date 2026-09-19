@@ -439,3 +439,72 @@ def test_create_opportunity_domain_autolink(client: TestClient, auth_headers: di
     data = res.json()
     assert data["company_id"] == str(comp.id)
 
+
+def test_get_company_kyc_summary_no_kyc(client: TestClient, auth_headers: dict[str, str], db: Session):
+    comp = Company(
+        id=uuid.uuid4(),
+        name="Empty Corp",
+        normalized_name="empty corp",
+    )
+    db.add(comp)
+    db.commit()
+
+    res = client.get(f"/api/v1/companies/{comp.id}/kyc-summary", headers=auth_headers)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["has_kyc"] is False
+    assert data["company_name"] == "Empty Corp"
+    assert data["company_overview"] is None
+
+
+def test_get_company_kyc_summary_with_completed_kyc(client: TestClient, auth_headers: dict[str, str], db: Session):
+    from app.models.kyc_report import KYCReport
+    from app.models.user import User
+    from datetime import datetime, timezone
+
+    user = db.query(User).first()
+
+    comp = Company(
+        id=uuid.uuid4(),
+        name="PT Indofood Sukses Makmur",
+        normalized_name="indofood sukses makmur",
+        industry="FMCG",
+    )
+    db.add(comp)
+    db.commit()
+
+    opp = Opportunity(
+        id=uuid.uuid4(),
+        company_id=comp.id,
+        company_name="PT Indofood Sukses Makmur",
+        product="SAP on Cloud",
+        customer_needs="ERP migration",
+        created_by=user.id,
+    )
+    db.add(opp)
+    db.commit()
+
+    kyc = KYCReport(
+        id=uuid.uuid4(),
+        opportunity_id=opp.id,
+        version=1,
+        status="completed",
+        executive_summary="Indofood is leading FMCG manufacturer.",
+        company_overview={"name": "PT Indofood Sukses Makmur", "description": "FMCG giant", "headquarters": "Jakarta"},
+        industry_analysis="Food & Beverage market overview",
+        business_model="B2B & B2C distribution",
+        completed_at=datetime.now(timezone.utc),
+    )
+    db.add(kyc)
+    db.commit()
+
+    res = client.get(f"/api/v1/companies/{comp.id}/kyc-summary", headers=auth_headers)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["has_kyc"] is True
+    assert data["company_name"] == "PT Indofood Sukses Makmur"
+    assert data["source_opportunity_id"] == str(opp.id)
+    assert data["company_overview"]["headquarters"] == "Jakarta"
+    assert data["executive_summary"] == "Indofood is leading FMCG manufacturer."
+    assert data["industry_analysis"] == "Food & Beverage market overview"
+

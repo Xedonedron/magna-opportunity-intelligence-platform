@@ -132,3 +132,20 @@ class CompanySimilarityCheckResponse(BaseModel):
     exact_match: Optional[CompanyResponse] = None
     has_similar: bool = False
     matches: list[CompanySimilarityMatch] = []
+
+class CompanyKYCSummaryResponse(BaseModel):
+    company_id: uuid.UUID
+    company_name: str
+    has_kyc: bool
+    source_opportunity_id: Optional[uuid.UUID] = None
+    source_opportunity_title: Optional[str] = None
+    kyc_version: Optional[int] = None
+    completed_at: Optional[datetime] = None
+    executive_summary: Optional[str] = None
+    company_overview: Optional[dict[str, Any]] = None
+    industry_analysis: Optional[str] = None
+    business_model: Optional[str] = None
+    company_location: Optional[str] = None
+    competitor_analysis: Optional[list[Any]] = None
+    potential_pain_points: Optional[list[Any]] = None
+

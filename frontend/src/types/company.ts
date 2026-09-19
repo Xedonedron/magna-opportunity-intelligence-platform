@@ -65,3 +65,33 @@ export interface CompanySimilarityCheckResponse {
     has_similar: boolean;
     matches: CompanySimilarityMatch[];
 }
+
+export interface CompanyKYCSummary {
+    company_id: string;
+    company_name: string;
+    has_kyc: boolean;
+    source_opportunity_id?: string | null;
+    source_opportunity_title?: string | null;
+    kyc_version?: number | null;
+    completed_at?: string | null;
+    executive_summary?: string | null;
+    company_overview?: {
+        name?: string;
+        description?: string;
+        founded?: string;
+        size?: string;
+        headquarters?: string;
+        key_products?: string[];
+    } | null;
+    industry_analysis?: string | null;
+    business_model?: string | null;
+    company_location?: string | null;
+    competitor_analysis?: Array<{
+        name: string;
+        market_position?: string;
+        strengths?: string[];
+        weaknesses?: string[];
+    }> | null;
+    potential_pain_points?: string[] | null;
+}
+
