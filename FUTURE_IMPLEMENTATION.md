@@ -391,6 +391,10 @@ Memindahkan kepemilikan kontak ke level **Perusahaan (Folder Induk)** dengan rel
   - [x] Implementasikan live search/autocomplete `Company Name` pada `frontend/src/app/(main)/opportunities/create/page.tsx`.
   - [x] Tambahkan dialog konfirmasi interaktif deteksi fuzzy similarity ("Apakah oppty ini untuk [Nama Perusahaan Eksisting]?") untuk mencegah duplikasi folder dan pemborosan token KYC.
   - [x] Sempurnakan regex `compute_normalized_name` di backend agar rekursif memotong kombinasi suffix hukum ganda (misal `(Persero) Tbk`).
+  - [x] Implementasikan Domain-Based Matching (`extract_root_domain`) dengan penanganan ccTLD ganda (`.co.id`, `.com.sg`), normalisasi subdomain (`enterprise.telkom.co.id` -> `telkom.co.id`), dan penyaringan shared public domains.
+  - [x] Integrasikan verifikasi root domain pada endpoint `GET /api/v1/companies/check-similarity` dengan 100% confidence match type `domain_match`.
+  - [x] Terapkan domain-first deduplication cascade pada pembuatan peluang (`create_opportunity`) dan task Celery KYC reuse.
+  - [x] Buat Alembic migration untuk backfill `normalized_name` pada seluruh entitas perusahaan eksisting.
 
 ### Checklist Inisiatif 8: Direktori Stakeholder Perusahaan (Company People Directory)
 - [ ] **Data Model & Database Migration**:

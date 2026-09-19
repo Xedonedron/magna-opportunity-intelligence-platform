@@ -186,7 +186,7 @@ export default function CreateOpportunityPage() {
         // Fuzzy similarity check before creating a new company folder
         try {
             setIsCheckingSimilarity(true);
-            const simResult = await checkCompanySimilarity(data.company_name.trim());
+            const simResult = await checkCompanySimilarity(data.company_name.trim(), data.website.trim());
             setIsCheckingSimilarity(false);
 
             if (simResult.has_similar && simResult.matches.length > 0) {
@@ -521,6 +521,7 @@ export default function CreateOpportunityPage() {
                     queryName={duplicateCheckModal.pendingData?.company_name || ""}
                     matchedCompany={duplicateCheckModal.match.company}
                     similarityScore={duplicateCheckModal.match.similarity_score}
+                    matchType={duplicateCheckModal.match.match_type}
                     onConfirmLink={handleConfirmLink}
                     onConfirmNew={handleConfirmNew}
                     onCancel={handleCancelModal}

@@ -290,14 +290,28 @@ def run_kyc_pipeline_task(
         effective_company_id = opportunity.company_id
         existing_company_profile = None
 
-        if not effective_company_id and opportunity.company_name:
-            from app.api.companies import compute_normalized_name
-            norm_name = compute_normalized_name(opportunity.company_name)
-            matched_company = db.query(Company).filter(
-                (Company.normalized_name == norm_name) |
-                (Company.normalized_name == f"{norm_name} indonesia") |
-                (Company.normalized_name == norm_name.removesuffix(" indonesia").strip())
-            ).first()
+        if not effective_company_id and (opportunity.website or opportunity.company_name):
+            from app.api.companies import compute_normalized_name, extract_root_domain
+            matched_company = None
+
+            # 1. Match by root domain if website exists
+            opp_domain = extract_root_domain(opportunity.website) if opportunity.website else None
+            if opp_domain:
+                comps = db.query(Company).filter(Company.website.isnot(None)).all()
+                for c in comps:
+                    if extract_root_domain(c.website) == opp_domain:
+                        matched_company = c
+                        break
+
+            # 2. Fallback to normalized company name
+            if not matched_company and opportunity.company_name:
+                norm_name = compute_normalized_name(opportunity.company_name)
+                matched_company = db.query(Company).filter(
+                    (Company.normalized_name == norm_name) |
+                    (Company.normalized_name == f"{norm_name} indonesia") |
+                    (Company.normalized_name == norm_name.removesuffix(" indonesia").strip())
+                ).first()
+
             if matched_company:
                 effective_company_id = matched_company.id
                 opportunity.company_id = matched_company.id

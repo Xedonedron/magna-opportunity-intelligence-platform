@@ -9,6 +9,7 @@ interface DuplicateCompanyConfirmModalProps {
     queryName: string;
     matchedCompany: Company;
     similarityScore: number;
+    matchType?: string;
     onConfirmLink: () => void;
     onConfirmNew: () => void;
     onCancel: () => void;
@@ -19,12 +20,14 @@ export function DuplicateCompanyConfirmModal({
     queryName,
     matchedCompany,
     similarityScore,
+    matchType,
     onConfirmLink,
     onConfirmNew,
     onCancel,
 }: DuplicateCompanyConfirmModalProps) {
     if (!isOpen) return null;
 
+    const isDomainMatch = matchType === "domain_match";
     const matchPercent = Math.round(similarityScore * 100);
 
     return (
@@ -38,10 +41,12 @@ export function DuplicateCompanyConfirmModal({
                         </div>
                         <div>
                             <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-base">
-                                Perusahaan Serupa Terdeteksi
+                                {isDomainMatch ? "Website Domain Cocok (100% Match)" : "Perusahaan Serupa Terdeteksi"}
                             </h3>
                             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                                Kemiripan nama entitas terdeteksi ({matchPercent}% match).
+                                {isDomainMatch
+                                    ? "Domain URL yang Anda masukkan terdaftar pada perusahaan ini."
+                                    : `Kemiripan nama entitas terdeteksi (${matchPercent}% match).`}
                             </p>
                         </div>
                     </div>

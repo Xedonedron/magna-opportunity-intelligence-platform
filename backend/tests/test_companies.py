@@ -329,3 +329,96 @@ def test_check_company_similarity_prevents_false_positives_indonesia(
     danone_matches = [m for m in data["matches"] if m["company"]["id"] == str(comp.id)]
     assert len(danone_matches) == 0
 
+
+def test_extract_root_domain_various_formats():
+    from app.api.companies import extract_root_domain
+
+    assert extract_root_domain("https://www.telkom.co.id/id/about") == "telkom.co.id"
+    assert extract_root_domain("https://enterprise.telkom.co.id/products") == "telkom.co.id"
+    assert extract_root_domain("http://sub.danone.com") == "danone.com"
+    assert extract_root_domain("www.bankmandiri.co.id") == "bankmandiri.co.id"
+    assert extract_root_domain("https://portal.bankmandiri.co.id/login") == "bankmandiri.co.id"
+    assert extract_root_domain("https://cas.co.id:8080/path") == "cas.co.id"
+    # Public/shared domains must return None
+    assert extract_root_domain("https://instagram.com/mycompany") is None
+    assert extract_root_domain("https://linktr.ee/sales_magna") is None
+    assert extract_root_domain("https://sites.google.com/view/test") is None
+    assert extract_root_domain("") is None
+    assert extract_root_domain(None) is None
+
+
+def test_check_company_similarity_with_domain_match(client: TestClient, auth_headers: dict[str, str], db: Session):
+    comp = Company(
+        id=uuid.uuid4(),
+        name="PT Cardig Aero Services Tbk",
+        normalized_name="cardig aero services",
+        website="https://cas.co.id",
+        industry="Aviation & Logistics",
+    )
+    db.add(comp)
+    db.commit()
+
+    # User types completely different name 'CAS Logistics' but inputs 'https://www.cas.co.id/portal'
+    res = client.get(
+        "/api/v1/companies/check-similarity",
+        params={
+            "name": "CAS Logistics",
+            "website": "https://www.cas.co.id/portal",
+        },
+        headers=auth_headers,
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["has_similar"] is True
+    assert data["exact_match"] is not None
+    assert data["exact_match"]["id"] == str(comp.id)
+    assert len(data["matches"]) >= 1
+    assert data["matches"][0]["match_type"] == "domain_match"
+    assert data["matches"][0]["similarity_score"] == 1.0
+
+
+def test_create_company_domain_conflict(client: TestClient, auth_headers: dict[str, str], db: Session):
+    comp = Company(
+        id=uuid.uuid4(),
+        name="PT Telkom Indonesia",
+        normalized_name="telkom indonesia",
+        website="https://telkom.co.id",
+        industry="Telecommunications",
+    )
+    db.add(comp)
+    db.commit()
+
+    # Attempting to register another company folder with the same domain should raise 409 Conflict
+    payload = {
+        "name": "Telkom Enterprise Division",
+        "website": "https://enterprise.telkom.co.id",
+        "industry": "Telecommunications",
+    }
+    res = client.post("/api/v1/companies", json=payload, headers=auth_headers)
+    assert res.status_code == 409
+    assert "telkom.co.id" in res.json()["detail"]
+
+
+def test_create_opportunity_domain_autolink(client: TestClient, auth_headers: dict[str, str], db: Session):
+    comp = Company(
+        id=uuid.uuid4(),
+        name="PT Prodia Widyahusada Tbk",
+        normalized_name="prodia widyahusada",
+        website="https://prodia.co.id",
+        industry="Healthcare",
+    )
+    db.add(comp)
+    db.commit()
+
+    # Opportunity created without company_id but with matching domain 'prodia.co.id'
+    payload = {
+        "company_name": "Prodia Diagnostic Laboratory",
+        "website": "https://www.prodia.co.id/id/layanan",
+        "industry": "Healthcare",
+        "customer_needs": "Health record system integration",
+    }
+    res = client.post("/api/opportunities", json=payload, headers=auth_headers)
+    assert res.status_code == 201
+    data = res.json()
+    assert data["company_id"] == str(comp.id)
+

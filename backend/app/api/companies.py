@@ -12,7 +12,9 @@ from app.models.user import User
 from app.models.company import Company
 from app.models.opportunity import Opportunity, TimelineEvent
 from app.models.meeting import Meeting
+from urllib.parse import urlparse
 import difflib
+
 from app.schemas.company import (
     CompanyCreate,
     CompanyUpdate,
@@ -32,6 +34,60 @@ from app.tasks import (
 )
 
 router = APIRouter(tags=["companies"])
+
+DOUBLE_SLDS = {
+    "co.id", "ac.id", "go.id", "or.id", "sch.id", "web.id",
+    "mil.id", "co.uk", "com.sg", "com.my", "co.jp", "com.au",
+}
+PUBLIC_SHARED_DOMAINS = {
+    "instagram.com", "facebook.com", "linkedin.com", "twitter.com",
+    "x.com", "linktr.ee", "sites.google.com", "github.com",
+    "wa.me", "bit.ly", "google.com", "youtube.com", "drive.google.com",
+}
+
+
+def extract_root_domain(url: str | None) -> str | None:
+    """Extracts the clean apex/root domain from a website URL.
+    Handles schemes, ports, paths, subdomains, and Indonesian ccTLDs (.co.id).
+    Filters out common public social/shared media domains to prevent false pooling.
+
+    Examples:
+    - 'https://www.telkom.co.id/id/about' -> 'telkom.co.id'
+    - 'https://enterprise.telkom.co.id' -> 'telkom.co.id'
+    - 'http://cas.co.id:8080' -> 'cas.co.id'
+    - 'danone.com/' -> 'danone.com'
+    - 'https://instagram.com/mybrand' -> None
+    """
+    if not url or not url.strip():
+        return None
+    u = url.strip().lower()
+    if not (u.startswith("http://") or u.startswith("https://")):
+        u = "https://" + u
+    try:
+        parsed = urlparse(u)
+        hostname = parsed.hostname or ""
+    except Exception:
+        return None
+
+    hostname = hostname.split(":")[0].strip(".")
+    hostname = re.sub(r"^(www\d?|m)\.", "", hostname)
+    if not hostname or "." not in hostname:
+        return None
+
+    parts = hostname.split(".")
+    if len(parts) >= 3:
+        last_two = ".".join(parts[-2:])
+        if last_two in DOUBLE_SLDS:
+            apex = ".".join(parts[-3:])
+        else:
+            apex = ".".join(parts[-2:])
+    else:
+        apex = hostname
+
+    if apex in PUBLIC_SHARED_DOMAINS or hostname in PUBLIC_SHARED_DOMAINS:
+        return None
+    return apex
+
 
 # Legal regex for canonical normalized name
 LEGAL_PREFIX_PATTERN = re.compile(
@@ -175,14 +231,16 @@ async def list_companies(
 @router.get("/check-similarity", response_model=CompanySimilarityCheckResponse)
 async def check_company_similarity(
     name: str = Query(..., min_length=1, description="Raw or typed company name to check for duplicates"),
+    website: Optional[str] = Query(None, description="Company website URL to match against registered root domains"),
     threshold: float = Query(0.70, ge=0.0, le=1.0, description="Similarity threshold (0.0 - 1.0)"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Check if a company name has exact or fuzzy duplicates in the database.
+    """Check if a company name or website domain has exact or fuzzy duplicates in the database.
     Used for live autocomplete deduplication guards before creating opportunities or folders.
     """
     norm_query = compute_normalized_name(name)
+    query_domain = extract_root_domain(website) if website else None
     all_companies = db.query(Company).all()
 
     exact_match: Optional[CompanyResponse] = None
@@ -203,7 +261,21 @@ async def check_company_similarity(
             updated_at=c.updated_at,
         )
 
-        # 1. Exact normalized match
+        # 1. Root Domain Match (Highest priority & 100% confidence)
+        c_domain = extract_root_domain(c.website) if c.website else None
+        if query_domain and c_domain and query_domain == c_domain:
+            if not exact_match:
+                exact_match = resp
+            matches.append(
+                CompanySimilarityMatch(
+                    company=resp,
+                    similarity_score=1.0,
+                    match_type="domain_match",
+                )
+            )
+            continue
+
+        # 2. Exact normalized match
         if c.normalized_name == norm_query:
             if not exact_match:
                 exact_match = resp
@@ -255,8 +327,19 @@ async def create_company(
 ):
     """Create a new company folder."""
     norm_name = compute_normalized_name(data.name)
+    input_domain = extract_root_domain(data.website) if data.website else None
 
-    # Check if duplicate company exists
+    # Check 1: Duplicate root domain check (hard constraint)
+    if input_domain:
+        comps_with_web = db.query(Company).filter(Company.website.isnot(None)).all()
+        for comp in comps_with_web:
+            if extract_root_domain(comp.website) == input_domain:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Company with website domain '{input_domain}' already exists: '{comp.name}' (id: {comp.id})",
+                )
+
+    # Check 2: Duplicate normalized name check
     existing = db.query(Company).filter(Company.normalized_name == norm_name).first()
     if existing:
         raise HTTPException(

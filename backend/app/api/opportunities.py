@@ -152,27 +152,44 @@ async def create_opportunity(
     """Create a new opportunity. Auto-logs timeline event and links or creates company folder."""
     # Auto-link to existing Company or create a new Company folder
     target_company_id = data.company_id
-    if not target_company_id and data.company_name:
+    if not target_company_id:
         from app.models.company import Company
-        from app.api.companies import compute_normalized_name
-        norm_name = compute_normalized_name(data.company_name)
-        comp = db.query(Company).filter(Company.normalized_name == norm_name).first()
-        if comp:
-            target_company_id = comp.id
-            if not comp.website and data.website:
-                comp.website = data.website
-            if not comp.industry and data.industry:
-                comp.industry = data.industry
-        else:
-            new_comp = Company(
-                name=data.company_name.strip(),
-                normalized_name=norm_name,
-                website=data.website,
-                industry=data.industry,
-            )
-            db.add(new_comp)
-            db.flush()
-            target_company_id = new_comp.id
+        from app.api.companies import compute_normalized_name, extract_root_domain
+
+        # 1. Primary Gold Standard: Match by Root Domain if website is provided
+        req_domain = extract_root_domain(data.website) if data.website else None
+        matched_by_domain = None
+        if req_domain:
+            comps_with_web = db.query(Company).filter(Company.website.isnot(None)).all()
+            for comp in comps_with_web:
+                if extract_root_domain(comp.website) == req_domain:
+                    matched_by_domain = comp
+                    break
+
+        if matched_by_domain:
+            target_company_id = matched_by_domain.id
+            if not matched_by_domain.industry and data.industry:
+                matched_by_domain.industry = data.industry
+        elif data.company_name:
+            # 2. Secondary: Fallback to normalized company name
+            norm_name = compute_normalized_name(data.company_name)
+            comp = db.query(Company).filter(Company.normalized_name == norm_name).first()
+            if comp:
+                target_company_id = comp.id
+                if not comp.website and data.website:
+                    comp.website = data.website
+                if not comp.industry and data.industry:
+                    comp.industry = data.industry
+            else:
+                new_comp = Company(
+                    name=data.company_name.strip(),
+                    normalized_name=norm_name,
+                    website=data.website,
+                    industry=data.industry,
+                )
+                db.add(new_comp)
+                db.flush()
+                target_company_id = new_comp.id
 
     opportunity = Opportunity(
         company_id=target_company_id,
