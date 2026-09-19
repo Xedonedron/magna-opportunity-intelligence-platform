@@ -76,3 +76,17 @@ export function useCreateCompanyOpportunity() {
         },
     });
 }
+
+export function useDeleteCompany() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (companyId: string) => {
+            await api.delete(`/api/v1/companies/${companyId}`);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["companies"] });
+            queryClient.invalidateQueries({ queryKey: ["opportunities"] });
+        },
+    });
+}
+

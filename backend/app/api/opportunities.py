@@ -9,6 +9,7 @@ from sqlalchemy import func as sa_func
 from app.core.database import get_db
 from app.models.user import User
 from app.models.opportunity import Opportunity, TimelineEvent, OpportunityDocument
+from app.models.company import Company
 from app.models.meeting import Meeting
 from app.models.kyc_report import KYCReport
 from app.schemas.opportunity import (
@@ -294,7 +295,36 @@ async def update_opportunity(
             detail=f"Invalid status. Must be one of: {', '.join(VALID_STATUSES)}",
         )
 
+    # Handle company_id change (Move Opportunity to another company folder)
+    if "company_id" in update_data:
+        new_comp_id = update_data["company_id"]
+        old_comp_id = opportunity.company_id
+        if new_comp_id != old_comp_id:
+            if new_comp_id is not None:
+                target_company = db.query(Company).filter(Company.id == new_comp_id).first()
+                if not target_company:
+                    raise HTTPException(status_code=404, detail="Target company not found")
+                old_comp_name = opportunity.company_name
+                opportunity.company_id = target_company.id
+                opportunity.company_name = target_company.name
+                if target_company.website:
+                    opportunity.website = target_company.website
+                if target_company.industry:
+                    opportunity.industry = target_company.industry
+                _log_timeline(
+                    db,
+                    opportunity.id,
+                    current_user,
+                    "Opportunity Moved",
+                    f"Opportunity moved from folder '{old_comp_name}' to '{target_company.name}'.",
+                    event_type="update",
+                )
+            else:
+                opportunity.company_id = None
+
     for field, value in update_data.items():
+        if field == "company_id":
+            continue
         setattr(opportunity, field, value)
 
     # Sync meeting_schedule with Meeting table

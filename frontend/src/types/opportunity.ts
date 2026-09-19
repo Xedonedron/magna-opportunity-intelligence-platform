@@ -116,6 +116,7 @@ export interface OpportunityCreateInput {
 }
 
 export interface OpportunityUpdateInput {
+    company_id?: string | null;
     company_name?: string;
     website?: string | null;
     email?: string | null;

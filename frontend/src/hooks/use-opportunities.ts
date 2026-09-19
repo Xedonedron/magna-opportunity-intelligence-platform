@@ -67,6 +67,8 @@ export function useUpdateOpportunity() {
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["opportunities"] });
             queryClient.invalidateQueries({ queryKey: ["opportunity", data.id] });
+            queryClient.invalidateQueries({ queryKey: ["companies"] });
+            queryClient.invalidateQueries({ queryKey: ["company"] });
         },
     });
 }

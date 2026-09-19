@@ -193,3 +193,56 @@ def test_create_nested_opportunity_inherits_metadata(
     assert opp_db is not None
     assert opp_db.company_id == comp.id
     assert opp_db.company.name == "PT SMBC Indonesia"
+
+
+def test_move_opportunity_between_companies(
+    client: TestClient, auth_headers: dict[str, str], db: Session, test_user: User
+):
+    comp_a = Company(
+        id=uuid.uuid4(),
+        name="Company Alpha",
+        normalized_name="company alpha",
+        website="https://alpha.com",
+        industry="Technology",
+    )
+    comp_b = Company(
+        id=uuid.uuid4(),
+        name="Company Beta",
+        normalized_name="company beta",
+        website="https://beta.com",
+        industry="Logistics",
+    )
+    db.add_all([comp_a, comp_b])
+    db.commit()
+
+    opp = Opportunity(
+        id=uuid.uuid4(),
+        company_id=comp_a.id,
+        company_name=comp_a.name,
+        website=comp_a.website,
+        industry=comp_a.industry,
+        customer_needs="Alpha deal needs",
+        created_by=test_user.id,
+        status="New",
+    )
+    db.add(opp)
+    db.commit()
+
+    # Move to comp_b via PATCH
+    res = client.patch(
+        f"/api/opportunities/{opp.id}",
+        json={"company_id": str(comp_b.id)},
+        headers=auth_headers,
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["company_id"] == str(comp_b.id)
+    assert data["company_name"] == "Company Beta"
+    assert data["website"] == "https://beta.com"
+    assert data["industry"] == "Logistics"
+
+    # Verify DB relationship
+    db.refresh(opp)
+    assert opp.company_id == comp_b.id
+    assert opp.company_name == "Company Beta"
+

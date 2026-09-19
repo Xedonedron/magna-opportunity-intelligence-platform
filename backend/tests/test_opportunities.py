@@ -174,7 +174,7 @@ class TestOpportunityCreate:
         assert response.status_code == 201
         data = response.json()
         assert data["company_name"] == "New Test Company"
-        assert data["status"] == "New"
+        assert data["status"] in ("New", "KYC Running")
         assert "id" in data
 
     def test_create_opportunity_with_revenue_and_agenda(

@@ -24,6 +24,7 @@ import {
     Trash2,
     Zap,
     CircleDashed,
+    FolderSymlink,
 } from "lucide-react";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/Button";
@@ -34,8 +35,9 @@ import {
     useCompany,
     useCreateCompany,
     useCreateCompanyOpportunity,
+    useDeleteCompany,
 } from "@/hooks/use-companies";
-import { useDeleteOpportunity } from "@/hooks/use-opportunities";
+import { useDeleteOpportunity, useUpdateOpportunity } from "@/hooks/use-opportunities";
 import { DEFAULT_TARGET_SOLUTIONS } from "@/lib/master-data";
 import { formatCurrency, timeAgo } from "@/lib/utils";
 import type { Company } from "@/types/company";
@@ -60,7 +62,10 @@ export function CompanyFolderView({
     const [modalCompany, setModalCompany] = useState<Company | null>(null);
     const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+    const [deleteCompanyTarget, setDeleteCompanyTarget] = useState<{ id: string; name: string } | null>(null);
+    const [moveTargetOppty, setMoveTargetOppty] = useState<{ opp: Opportunity; currentCompanyName: string } | null>(null);
     const deleteMutation = useDeleteOpportunity();
+    const deleteCompanyMutation = useDeleteCompany();
 
     const effectiveCanDelete =
         canDelete ??
@@ -89,6 +94,28 @@ export function CompanyFolderView({
             toast.error(err?.response?.data?.detail || "Gagal menghapus peluang");
             console.error("Gagal menghapus peluang", err);
         }
+    };
+
+    const handleDeleteCompany = (e: React.MouseEvent, company: { id: string; name: string }) => {
+        e.stopPropagation();
+        setDeleteCompanyTarget(company);
+    };
+
+    const confirmDeleteCompany = async () => {
+        if (!deleteCompanyTarget) return;
+        try {
+            await deleteCompanyMutation.mutateAsync(deleteCompanyTarget.id);
+            toast.success(`Folder perusahaan "${deleteCompanyTarget.name}" berhasil dihapus`);
+            setDeleteCompanyTarget(null);
+        } catch (err: any) {
+            toast.error(err?.response?.data?.detail || "Gagal menghapus folder perusahaan");
+            console.error("Gagal menghapus folder perusahaan", err);
+        }
+    };
+
+    const handleMoveOppty = (e: React.MouseEvent | null, opp: Opportunity, currentCompanyName: string) => {
+        if (e) e.stopPropagation();
+        setMoveTargetOppty({ opp, currentCompanyName });
     };
 
     // Fetch companies list
@@ -226,6 +253,8 @@ export function CompanyFolderView({
                             hideFinancialNumbers={hideFinancialNumbers}
                             canDelete={effectiveCanDelete}
                             onDelete={handleDelete}
+                            onDeleteCompany={(e) => handleDeleteCompany(e, { id: company.id, name: company.name })}
+                            onMoveOppty={handleMoveOppty}
                         />
                     );
                 })}
@@ -245,6 +274,16 @@ export function CompanyFolderView({
                 <CreateCompanyModal onClose={() => setIsCreateCompanyOpen(false)} />
             )}
 
+            {/* Modal Move Opportunity to Another Company */}
+            {moveTargetOppty && (
+                <MoveCompanyOpptyModal
+                    opp={moveTargetOppty.opp}
+                    currentCompanyName={moveTargetOppty.currentCompanyName}
+                    companies={companies}
+                    onClose={() => setMoveTargetOppty(null)}
+                />
+            )}
+
             {/* Custom Confirm Dialog for Delete Opportunity */}
             <ConfirmDialog
                 isOpen={!!deleteTarget}
@@ -256,6 +295,19 @@ export function CompanyFolderView({
                 isLoading={deleteMutation.isPending}
                 onConfirm={confirmDelete}
                 onClose={() => setDeleteTarget(null)}
+            />
+
+            {/* Custom Confirm Dialog for Delete Company Folder */}
+            <ConfirmDialog
+                isOpen={!!deleteCompanyTarget}
+                title="Hapus Folder Perusahaan"
+                description={`Apakah Anda yakin ingin menghapus folder perusahaan "${deleteCompanyTarget?.name}"? Folder kosong ini akan dihapus secara permanen.`}
+                confirmText="Hapus Folder"
+                cancelText="Batal"
+                variant="danger"
+                isLoading={deleteCompanyMutation.isPending}
+                onConfirm={confirmDeleteCompany}
+                onClose={() => setDeleteCompanyTarget(null)}
             />
         </div>
     );
@@ -270,6 +322,8 @@ function CompanyCard({
     hideFinancialNumbers,
     canDelete,
     onDelete,
+    onDeleteCompany,
+    onMoveOppty,
 }: {
     company: Company;
     isExpanded: boolean;
@@ -279,6 +333,8 @@ function CompanyCard({
     hideFinancialNumbers: boolean;
     canDelete?: boolean;
     onDelete: (e: React.MouseEvent | null, id: string, name: string) => void;
+    onDeleteCompany: (e: React.MouseEvent) => void;
+    onMoveOppty: (e: React.MouseEvent | null, opp: Opportunity, currentCompanyName: string) => void;
 }) {
     const count = company.opportunities_count ?? 0;
     const hasActiveKyC = !!company.business_process || !!company.cached_kyc_data;
@@ -365,6 +421,29 @@ function CompanyCard({
                             <Plus className="w-3.5 h-3.5 mr-1" />
                             <span>New Oppty</span>
                         </Button>
+
+                        {canDelete && (
+                            count > 0 ? (
+                                <button
+                                    type="button"
+                                    disabled
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="p-1.5 rounded-md text-zinc-300 dark:text-zinc-600 cursor-not-allowed transition-colors"
+                                    title="Folder hanya dapat dihapus jika kosong (0 deal). Pindahkan atau hapus semua deal terlebih dahulu."
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={onDeleteCompany}
+                                    className="p-1.5 rounded-md text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
+                                    title="Hapus folder perusahaan (kosong)"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            )
+                        )}
                     </div>
                 </div>
             </div>
@@ -379,6 +458,7 @@ function CompanyCard({
                     canDelete={canDelete}
                     onDelete={onDelete}
                     onAddOppty={onAddOppty}
+                    onMove={onMoveOppty}
                 />
             )}
         </div>
@@ -393,6 +473,7 @@ function CompanyChildOpportunities({
     canDelete,
     onDelete,
     onAddOppty,
+    onMove,
 }: {
     companyId: string;
     companyName: string;
@@ -401,6 +482,7 @@ function CompanyChildOpportunities({
     canDelete?: boolean;
     onDelete: (e: React.MouseEvent | null, id: string, name: string) => void;
     onAddOppty: () => void;
+    onMove: (e: React.MouseEvent | null, opp: Opportunity, currentCompanyName: string) => void;
 }) {
     const { data: detail, isLoading } = useCompany(companyId);
 
@@ -443,9 +525,11 @@ function CompanyChildOpportunities({
                 <OpptyRow
                     key={opp.id}
                     opp={opp}
+                    companyName={companyName}
                     hideFinancialNumbers={hideFinancialNumbers}
                     canDelete={canDelete}
                     onDelete={onDelete}
+                    onMove={onMove}
                 />
             ))}
         </div>
@@ -454,14 +538,18 @@ function CompanyChildOpportunities({
 
 function OpptyRow({
     opp,
+    companyName,
     hideFinancialNumbers,
     canDelete,
     onDelete,
+    onMove,
 }: {
     opp: Opportunity;
+    companyName: string;
     hideFinancialNumbers: boolean;
     canDelete?: boolean;
     onDelete: (e: React.MouseEvent | null, id: string, name: string) => void;
+    onMove: (e: React.MouseEvent | null, opp: Opportunity, currentCompanyName: string) => void;
 }) {
     const opptyTitle = opp.deal_title || opp.product || "Opportunity";
 
@@ -512,6 +600,16 @@ function OpptyRow({
                 </div>
 
                 <div className="flex items-center gap-1">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => onMove(e, opp, companyName)}
+                        className="h-7 px-2 text-xs text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 flex items-center gap-1 transition-colors"
+                        title="Pindahkan deal ke folder perusahaan lain"
+                    >
+                        <FolderSymlink className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Pindah</span>
+                    </Button>
                     <Link href={`/opportunities/${opp.id}`}>
                         <Button variant="ghost" size="sm" className="h-7 text-xs px-2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">
                             View
@@ -1030,3 +1128,140 @@ function CreateCompanyModal({ onClose }: { onClose: () => void }) {
         </div>
     );
 }
+
+function MoveCompanyOpptyModal({
+    opp,
+    currentCompanyName,
+    companies,
+    onClose,
+}: {
+    opp: Opportunity;
+    currentCompanyName: string;
+    companies: Company[];
+    onClose: () => void;
+}) {
+    const [targetCompanyId, setTargetCompanyId] = useState<string>("");
+    const updateOpptyMutation = useUpdateOpportunity();
+    const title = opp.deal_title || opp.product || "Opportunity";
+
+    const availableCompanies = companies.filter((c) => c.id !== opp.company_id);
+
+    const handleMove = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!targetCompanyId) {
+            toast.error("Pilih folder perusahaan tujuan");
+            return;
+        }
+        const targetCompany = companies.find((c) => c.id === targetCompanyId);
+        try {
+            await updateOpptyMutation.mutateAsync({
+                id: opp.id,
+                input: { company_id: targetCompanyId },
+            });
+            toast.success(
+                `Peluang "${title}" berhasil dipindahkan ke folder "${targetCompany?.name || "tujuan"}"`
+            );
+            onClose();
+        } catch (err: any) {
+            toast.error(err?.response?.data?.detail || "Gagal memindahkan peluang");
+            console.error("Gagal memindahkan peluang", err);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 my-8">
+                <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/60 dark:bg-zinc-800/40">
+                    <div>
+                        <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm flex items-center gap-1.5">
+                            <FolderSymlink className="w-4 h-4 text-indigo-600" />
+                            <span>Pindahkan Peluang</span>
+                        </h3>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                            Alihkan deal ini ke folder klien / entitas perusahaan lain.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 rounded-md"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+
+                <form onSubmit={handleMove} className="p-4 space-y-4 text-sm">
+                    <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700/60 space-y-1.5 text-xs">
+                        <div className="flex items-center justify-between">
+                            <span className="text-zinc-500 dark:text-zinc-400">Peluang:</span>
+                            <span className="font-semibold text-zinc-800 dark:text-zinc-200 line-clamp-1 max-w-[240px]">
+                                {title}
+                            </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-zinc-500 dark:text-zinc-400">Folder Saat Ini:</span>
+                            <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                                {currentCompanyName || "Tanpa Perusahaan"}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                            Pilih Folder Perusahaan Tujuan <span className="text-red-500">*</span>
+                        </label>
+                        {availableCompanies.length === 0 ? (
+                            <p className="text-xs text-amber-600 dark:text-amber-400 p-2.5 bg-amber-50 dark:bg-amber-950/30 rounded-md border border-amber-200 dark:border-amber-900/60">
+                                Tidak ada folder perusahaan lain yang tersedia. Buat folder perusahaan baru terlebih dahulu.
+                            </p>
+                        ) : (
+                            <select
+                                value={targetCompanyId}
+                                onChange={(e) => setTargetCompanyId(e.target.value)}
+                                className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                required
+                            >
+                                <option value="" disabled>
+                                    -- Pilih Perusahaan Tujuan --
+                                </option>
+                                {availableCompanies.map((c) => (
+                                    <option key={c.id} value={c.id}>
+                                        {c.name} {c.industry ? `(${c.industry})` : ""}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+
+                    <div className="pt-3 flex items-center justify-end gap-2 border-t border-zinc-200 dark:border-zinc-800">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={onClose}
+                            className="text-xs"
+                        >
+                            Batal
+                        </Button>
+                        <Button
+                            type="submit"
+                            size="sm"
+                            disabled={!targetCompanyId || updateOpptyMutation.isPending}
+                            className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
+                        >
+                            {updateOpptyMutation.isPending ? (
+                                <>
+                                    <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                                    Memindahkan...
+                                </>
+                            ) : (
+                                "Pindahkan Peluang"
+                            )}
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+

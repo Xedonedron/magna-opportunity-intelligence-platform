@@ -386,6 +386,8 @@ Memindahkan kepemilikan kontak ke level **Perusahaan (Folder Induk)** dengan rel
   - [x] Tambahkan tombol `Trash2` (Delete Opportunity) pada baris `OpptyRow` di `CompanyFolderView.tsx` lengkap dengan proteksi `canDelete` dan dialog konfirmasi.
   - [x] Hapus field opsional *"Specific Products / Technologies (Optional)"* pada `CreateCompanyOpptyModal` di `CompanyFolderView.tsx` agar form seragam dengan standar utama.
   - [x] Terapkan active creation UX: Tampilkan step progress animation saat submit deal dari modal folder dan auto-redirect ke detail opportunity (`/opportunities/[id]`) untuk memantau KYC.
+  - [x] Tambahkan tombol Hapus Folder Perusahaan (`Trash2`) pada kartu folder: hanya aktif jika folder kosong (0 deal) dan role user memiliki capability `delete` (proteksi delete-orphan cascade).
+  - [x] Implementasikan fitur Pindahkan Peluang (`FolderSymlink`) antar folder perusahaan dengan sinkronisasi metadata dan riwayat timeline deal otomatis.
   - [ ] Implementasikan live search/autocomplete `Company Name` pada `frontend/src/app/(main)/opportunities/create/page.tsx`.
   - [ ] Tambahkan dialog konfirmasi interaktif deteksi fuzzy similarity ("Apakah oppty ini untuk [Nama Perusahaan Eksisting]?") untuk mencegah duplikasi folder dan pemborosan token KYC.
   - [ ] Sempurnakan regex `compute_normalized_name` di backend agar rekursif memotong kombinasi suffix hukum ganda (misal `(Persero) Tbk`).
