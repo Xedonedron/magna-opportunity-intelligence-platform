@@ -238,8 +238,6 @@ async def check_company_similarity(
 
         # 2. Exact normalized match (100% confidence)
         if c.normalized_name == norm_query:
-            if not exact_match:
-                exact_match = resp
             matches.append(
                 CompanySimilarityMatch(
                     company=resp,
@@ -247,6 +245,17 @@ async def check_company_similarity(
                     match_type="exact_normalized",
                 )
             )
+
+    # Sort matches: prioritize domain_match, then the folder with the most active opportunities
+    matches.sort(
+        key=lambda m: (
+            1 if m.match_type == "domain_match" else 0,
+            m.company.opportunities_count,
+        ),
+        reverse=True,
+    )
+
+    exact_match = matches[0].company if matches else None
 
     return CompanySimilarityCheckResponse(
         query=name,
