@@ -197,27 +197,33 @@ Berdasarkan evaluasi penggunaan nyata pada antarmuka Folder:
 1. **Tombol Delete Opportunity pada Folder View**:
    - Di List View, aksi delete opportunity sudah terintegrasi dengan proteksi hak akses `canDelete` (`admin` atau role dengan kapabilitas `delete`).
    - Pada Folder View (`CompanyFolderView.tsx`), tombol aksi pada tiap baris opportunity anak (`OpptyRow`) wajib dilengkapi tombol `Trash2` (Delete) yang memicu dialog konfirmasi dan mutasi `useDeleteOpportunity` yang sama demi konsistensi kontrol data.
-2. **Standardisasi Form & Eliminasi Field "Specific Products / Technologies"**:
+2. **Standardisasi Form & Eliminasi Field "Specific Products / Technologies (Optional)"**:
    - Pada modal quick-create opportunity di dalam folder (`CreateCompanyOpptyModal`), terdapat input opsional *"Specific Products / Technologies (Optional)"* yang tidak ada pada form standar utama `+ New Opportunity`.
    - Field tersebut dieliminasi agar input produk target seragam 100% menggunakan MultiSelect preset domain (`DEFAULT_TARGET_SOLUTIONS`).
 3. **Active Creation UX & Seamless Transition ke KYC**:
    - Pembuatan opportunity dari dalam modal folder sebelumnya bersifat pasif (modal langsung tertutup dan user ditinggal di halaman folder tanpa umpan balik visual).
    - Alur ini diubah agar menampilkan modal status pembuatan interaktif (progres multi-tahap: Workspace $\rightarrow$ KYC Analysis $\rightarrow$ Preparation) dan secara otomatis mengarahkan user ke halaman `/opportunities/[id]` untuk langsung memantau proses KYC yang sedang berjalan.
 
-### 4.5 Interactive Company Deduplication & Fuzzy Resolution
-Mencegah duplikasi folder perusahaan dan pemborosan kuota AI akibat perbedaan penulisan nama entitas:
+### 4.5 Deterministic Company Deduplication (Domain-Based & Recursive Legal Normalization)
+Mencegah duplikasi folder perusahaan dan pemborosan kuota AI secara **100% Deterministik** tanpa heuristik fuzzy yang rentan memicu false-positive dialog:
 1. **Identifikasi Akar Masalah**:
-   - Fungsi normalisasi eksisting (`compute_normalized_name`) hanya menghapus legal suffix satu kali di ujung string.
-   - Contoh kasus: Entitas terdaftar `"PT Telkom Indonesia (Persero) Tbk"` dinormalisasi menjadi `"telkom indonesia persero"` (karena suffix regex hanya memotong `" Tbk"` dan menyisakan `"persero"`).
+   - Fungsi normalisasi sebelumnya (`compute_normalized_name`) hanya menghapus legal suffix satu kali di ujung string.
+   - Contoh kasus: Entitas terdaftar `"PT Telkom Indonesia (Persero) Tbk"` dinormalisasi menjadi `"telkom indonesia persero"` (karena regex hanya memotong `" Tbk"` dan menyisakan `"persero"`).
    - Ketika user lain membuat opportunity baru dengan nama `"Telkom Indonesia"`, string ternormalisasi menjadi `"telkom indonesia"`. Sistem menganggap keduanya sebagai perusahaan berbeda karena kegagalan *exact match*.
    - **Dampak**: Terbentuk 2 folder terpisah untuk perusahaan yang sama, serta worker Celery memicu KYC pipeline v1 dari nol (pemborosan kuota API LLM dan scraping web).
-2. **Mekanisme Interaktif & Fuzzy Suggestion**:
-   - **Live Autocomplete / Search**: Pada form `New Opportunity`, field `Company Name` dilengkapi pencarian live (*debounced search*) ke direktori `companies` eksisting.
-   - **Interactive Confirmation Dialog**: Jika user menginput nama yang memiliki kemiripan tinggi (fuzzy score $\ge 70\%$ atau kesamaan kata kunci seperti "Telkom"), sebelum opportunity disimpan, sistem menampilkan modal konfirmasi:
-     > *"Kami mendeteksi perusahaan serupa di sistem: **PT Telkom Indonesia (Persero) Tbk**. Apakah opportunity ini ditujukan untuk perusahaan tersebut?"*
-     > - **[Ya, Masukkan ke Folder Ini]**: Menautkan opportunity ke `company_id` eksisting, mewarisi profil statis perusahaan, dan **menghemat token KYC hingga ~50%**.
-     > - **[Bukan, Buat Folder Baru]**: Melanjutkan pembuatan perusahaan baru jika entitas tersebut memang berbeda secara hukum/operasional.
-   - **Penyempurnaan Normalisasi Backend**: Sempurnakan regex stripping legalitas di backend agar membersihkan kombinasi prefix/suffix berlapis secara rekursif (misal: strip `Tbk`, strip `Persero`, strip singkatan `PT`/`CV`).
+2. **Mengapa Heuristik Fuzzy Dieliminasi**:
+   - Pada form pendaftaran Opportunity, kolom **Website URL \*** berstatus **wajib (mandatory)**.
+   - Heuristik fuzzy kemiripan nama string ($\ge 70\%$) terbukti berisiko memunculkan *false-alarm* yang mengganggu user (contoh: *Astra Graphia* vs *Astra Honda Motor*, padahal dari website domain jelas entitas berbeda).
+   - Sistem beralih penuh ke **Cascade 2 Tingkat yang 100% Deterministik & Anti-Ambigu**:
+     - **Tingkat 1: Root / Apex Domain Matching**: Ekstraksi domain bersih via `extract_root_domain()` yang menangani subdomain (`enterprise.telkom.co.id` $\rightarrow$ `telkom.co.id`), ccTLD ganda (`.co.id`, `.com.sg`), dan memfilter domain sosial/publik (`instagram.com`, `linktr.ee`).
+     - **Tingkat 2: Recursive Normalized Legal Name**: Pemotongan rekursif seluruh kombinasi legal prefix (`PT`, `CV`, `Perum`) dan legal suffix (`(Persero) Tbk`, `Holding`, `Ltd`).
+3. **Mekanisme Interaktif & Prioritas Deal Terbanyak**:
+   - **Live Autocomplete**: Pada form `New Opportunity`, field `Company Name` dilengkapi pencarian live (*debounced search*) ke direktori `companies` eksisting.
+   - **Interactive Confirmation Dialog**: Jika user melewati autocomplete, sistem mengevaluasi domain & nama legal saat submit:
+     - **"Website Domain Cocok (100% Match)"** jika URL website memiliki root domain terdaftar.
+     - **"Nama Entitas Identik (100% Match)"** jika nama entitas hukum sama persis.
+   - **Smart Ranking**: Jika terdapat beberapa folder historis yang cocok di database, sistem otomatis memprioritaskan folder yang memiliki **jumlah deal aktif terbanyak (`opportunities_count DESC`)** sebagai rekomendasi utama.
+   - **Token AI Saving**: Menautkan opportunity ke folder perusahaan eksisting langsung me-reuse profil KYC statis (Module 1 & 2 di-bypass), menghemat **~50% kuota token LLM** dan mempercepat KYC hingga 2x lipat.
 
 ---
 
@@ -355,7 +361,7 @@ Memindahkan kepemilikan kontak ke level **Perusahaan (Folder Induk)** dengan rel
 | 2 | **Katalog Produk Terstruktur & Metadata Rules (Fase 1)** | Rendah - Menengah | `backend` (`data/products_catalog.json`, prompt Module 4) | **Tinggi (P1)** |
 | 3 | **Digitalisasi Playbook Internal ke Structured Knowledge** | Rendah (Data) | OCR scanning, `backend/app/data/playbook/`, prompt Module 5 | **Tinggi (P1)** |
 | 4 | **Restrukturisasi Hirarki: Company → Multi-Opportunity** | Menengah | Database Schema (`models/`), API endpoints, Frontend UI Navigation | **COMPLETED (Core)** |
-| 5 | **Folder UX Refinement & Interactive Deduplication** | Rendah - Menengah | `CompanyFolderView.tsx`, `create/page.tsx`, `companies.py` | **Tinggi (P1 - Immediate)** |
+| 5 | **Folder UX Refinement & Interactive Deduplication** | Rendah - Menengah | `CompanyFolderView.tsx`, `create/page.tsx`, `companies.py` | **COMPLETED** |
 | 6 | **Living Opportunity: Input MoM & Dynamic Re-KYC (v2+)** | Menengah | `models/`, `kyc_pipeline.py`, Frontend Document & MoM tab | **Menengah (P2)** |
 | 7 | **Direktori Stakeholder Perusahaan (People Directory)** | Menengah | `models/company_contact.py`, API endpoints, Subnav/Tab Stakeholders | **Menengah (P2)** |
 | 8 | **Penyempurnaan Target Personas (Others & Subtitle)** | Rendah | `frontend` (`TargetPersonaTab.tsx`), `backend` (`persona_service.py`) | **Menengah (P2)** |
