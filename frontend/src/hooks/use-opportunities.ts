@@ -79,6 +79,8 @@ export function useDeleteOpportunity() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["opportunities"] });
+            queryClient.invalidateQueries({ queryKey: ["companies"] });
+            queryClient.invalidateQueries({ queryKey: ["company"] });
         },
     });
 }

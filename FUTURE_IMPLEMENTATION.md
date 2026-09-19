@@ -14,7 +14,9 @@ Dokumen ini merangkum rencana arsitektur dan peningkatan strategis untuk platfor
 5. [Inisiatif 5: Living Opportunity Lifecycle & MoM-Driven Progressive Intelligence](#inisiatif-5-living-opportunity-lifecycle--mom-driven-progressive-intelligence)
 6. [Inisiatif 6: Digitalisasi Internal Sales Playbook & "How-to" Presales Framework](#inisiatif-6-digitalisasi-internal-sales-playbook--how-to-presales-framework)
 7. [Inisiatif 7: Katalog Produk Terstruktur & Analisis Pragmatis (RAG Vector vs. Metadata Filtering)](#inisiatif-7-katalog-produk-terstruktur--analisis-pragmatis-rag-vector-vs-metadata-filtering)
-8. [Rencana Fase Eksekusi & Prioritas](#rencana-fase-eksekusi--prioritas)
+8. [Inisiatif 8: Direktori Stakeholder & Multi-Contact Mapping (Company People Directory)](#inisiatif-8-direktori-stakeholder--multi-contact-mapping-company-people-directory)
+9. [Rencana Fase Eksekusi & Prioritas](#rencana-fase-eksekusi--prioritas)
+10. [Master Checklist Implementasi](#master-checklist-implementasi)
 
 ---
 
@@ -190,6 +192,33 @@ graph TD
 2. **Penghematan Token & Latensi**: Menghemat **~40% s/d 60% token konsumsi** per opportunity baru di bawah satu perusahaan yang sama, serta memangkas waktu generasi pipeline hingga separuhnya.
 3. **Data Integrity**: Profil perusahaan di-maintain sebagai *Single Source of Truth* yang bisa di-refresh secara berkala (misal: per semester/kuartal), terpisah dari status deal opportunity yang dinamis.
 
+### 4.4 Refinement UX & Operasional Tampilan Folder
+Berdasarkan evaluasi penggunaan nyata pada antarmuka Folder:
+1. **Tombol Delete Opportunity pada Folder View**:
+   - Di List View, aksi delete opportunity sudah terintegrasi dengan proteksi hak akses `canDelete` (`admin` atau role dengan kapabilitas `delete`).
+   - Pada Folder View (`CompanyFolderView.tsx`), tombol aksi pada tiap baris opportunity anak (`OpptyRow`) wajib dilengkapi tombol `Trash2` (Delete) yang memicu dialog konfirmasi dan mutasi `useDeleteOpportunity` yang sama demi konsistensi kontrol data.
+2. **Standardisasi Form & Eliminasi Field "Specific Products / Technologies"**:
+   - Pada modal quick-create opportunity di dalam folder (`CreateCompanyOpptyModal`), terdapat input opsional *"Specific Products / Technologies (Optional)"* yang tidak ada pada form standar utama `+ New Opportunity`.
+   - Field tersebut dieliminasi agar input produk target seragam 100% menggunakan MultiSelect preset domain (`DEFAULT_TARGET_SOLUTIONS`).
+3. **Active Creation UX & Seamless Transition ke KYC**:
+   - Pembuatan opportunity dari dalam modal folder sebelumnya bersifat pasif (modal langsung tertutup dan user ditinggal di halaman folder tanpa umpan balik visual).
+   - Alur ini diubah agar menampilkan modal status pembuatan interaktif (progres multi-tahap: Workspace $\rightarrow$ KYC Analysis $\rightarrow$ Preparation) dan secara otomatis mengarahkan user ke halaman `/opportunities/[id]` untuk langsung memantau proses KYC yang sedang berjalan.
+
+### 4.5 Interactive Company Deduplication & Fuzzy Resolution
+Mencegah duplikasi folder perusahaan dan pemborosan kuota AI akibat perbedaan penulisan nama entitas:
+1. **Identifikasi Akar Masalah**:
+   - Fungsi normalisasi eksisting (`compute_normalized_name`) hanya menghapus legal suffix satu kali di ujung string.
+   - Contoh kasus: Entitas terdaftar `"PT Telkom Indonesia (Persero) Tbk"` dinormalisasi menjadi `"telkom indonesia persero"` (karena suffix regex hanya memotong `" Tbk"` dan menyisakan `"persero"`).
+   - Ketika user lain membuat opportunity baru dengan nama `"Telkom Indonesia"`, string ternormalisasi menjadi `"telkom indonesia"`. Sistem menganggap keduanya sebagai perusahaan berbeda karena kegagalan *exact match*.
+   - **Dampak**: Terbentuk 2 folder terpisah untuk perusahaan yang sama, serta worker Celery memicu KYC pipeline v1 dari nol (pemborosan kuota API LLM dan scraping web).
+2. **Mekanisme Interaktif & Fuzzy Suggestion**:
+   - **Live Autocomplete / Search**: Pada form `New Opportunity`, field `Company Name` dilengkapi pencarian live (*debounced search*) ke direktori `companies` eksisting.
+   - **Interactive Confirmation Dialog**: Jika user menginput nama yang memiliki kemiripan tinggi (fuzzy score $\ge 70\%$ atau kesamaan kata kunci seperti "Telkom"), sebelum opportunity disimpan, sistem menampilkan modal konfirmasi:
+     > *"Kami mendeteksi perusahaan serupa di sistem: **PT Telkom Indonesia (Persero) Tbk**. Apakah opportunity ini ditujukan untuk perusahaan tersebut?"*
+     > - **[Ya, Masukkan ke Folder Ini]**: Menautkan opportunity ke `company_id` eksisting, mewarisi profil statis perusahaan, dan **menghemat token KYC hingga ~50%**.
+     > - **[Bukan, Buat Folder Baru]**: Melanjutkan pembuatan perusahaan baru jika entitas tersebut memang berbeda secara hukum/operasional.
+   - **Penyempurnaan Normalisasi Backend**: Sempurnakan regex stripping legalitas di backend agar membersihkan kombinasi prefix/suffix berlapis secara rekursif (misal: strip `Tbk`, strip `Persero`, strip singkatan `PT`/`CV`).
+
 ---
 
 ## Inisiatif 5: Living Opportunity Lifecycle & MoM-Driven Progressive Intelligence
@@ -276,6 +305,48 @@ Senior merekomendasikan pembuatan **RAG dengan Vector Embeddings**. Namun, berda
 
 ---
 
+## Inisiatif 8: Direktori Stakeholder & Multi-Contact Mapping (Company People Directory)
+
+### 8.1 Latar Belakang & Akar Masalah
+Saat ini data kontak pada MOIP masih bersifat primitif dan terisolasi:
+- Kolom kontak hanya melekat secara *flat* di tabel `opportunities` (`contact_name`, `email`, `phone`), sehingga hanya mampu menyimpan 1 orang per opportunity.
+- Pada kenyataannya, penjualan enterprise B2B (misal ke Bank, Telco, atau BUMN) melibatkan banyak pihak: PIC Cloud Modernization, VP IT Infrastructure, Head of Enterprise Data, Tim Legal/Procurement, hingga C-Level sponsor.
+- Saat ada kebutuhan menghubungi stakeholder di perusahaan terkait, tim sales/presales kesulitan melacak kontak historis dan harus membuka spreadsheet atau catatan pribadi masing-masing.
+
+### 8.2 Desain Arsitektur Data (`company_contacts`)
+Memindahkan kepemilikan kontak ke level **Perusahaan (Folder Induk)** dengan relasi one-to-many:
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│                      Company (Folder Induk)                   │
+└───────────────────────────────┬───────────────────────────────┘
+                                │ 1 to Many
+        ┌───────────────────────┴───────────────────────┐
+        ▼                                               ▼
+┌───────────────────────────────┐       ┌───────────────────────────────┐
+│       Opportunities           │       │       Company Contacts        │
+│   (Inisiatif Deal/Proyek)     │       │    (People / Stakeholders)    │
+├───────────────────────────────┤       ├───────────────────────────────┤
+│ - deal_title                  │       │ - name                        │
+│ - status                      │       │ - job_title / role            │
+│ - assigned_engineer           │       │ - department (IT, Data, dll)  │
+│ - kyc_reports                 │       │ - email                       │
+│ - meetings                    │       │ - phone / WhatsApp            │
+│                               │       │ - linkedin_url                │
+│                               │       │ - is_primary / decision_maker │
+│                               │       │ - communication_notes         │
+└───────────────────────────────┘       └───────────────────────────────┘
+```
+
+### 8.3 Integrasi Antarmuka & User Experience
+1. **Subnav / Tab Baru di Opportunity Workspace**:
+   - Menambahkan tab **"Stakeholders"** atau **"People"** di halaman detail Opportunity (`/opportunities/[id]`), bersanding dengan `Overview`, `KYC Report`, `Target Personas`, `Resources & Documents`, dan `Meetings`.
+   - Di tab ini, user dapat melihat seluruh daftar kontak di perusahaan tersebut, menambahkan kontak baru, menandai kontak utama (*primary PIC*), serta menambahkan catatan preferensi personal/teknis.
+2. **Pencarian Global Stakeholder (Cross-Company Search)**:
+   - Kontak orang-orang di MOIP dapat dicari langsung melalui fitur Global Search di Top Nav (`TopNav.tsx` / `/api/opportunities/search/global`), memudahkan tim presales menemukan kembali kontak seseorang meskipun hanya mengingat nama depan atau jabatannya.
+
+---
+
 ## Rencana Fase Eksekusi & Prioritas (Updated)
 
 | No | Inisiatif | Estimasi Kompleksitas | Komponen Terdampak | Prioritas |
@@ -283,10 +354,12 @@ Senior merekomendasikan pembuatan **RAG dengan Vector Embeddings**. Namun, berda
 | 1 | **Sectional KYC Generation & Structured Output** | Selesai | `backend` (`kyc_sectional_runner.py`, `kyc_invoker.py`, `schemas/kyc.py`) | **COMPLETED** |
 | 2 | **Katalog Produk Terstruktur & Metadata Rules (Fase 1)** | Rendah - Menengah | `backend` (`data/products_catalog.json`, prompt Module 4) | **Tinggi (P1)** |
 | 3 | **Digitalisasi Playbook Internal ke Structured Knowledge** | Rendah (Data) | OCR scanning, `backend/app/data/playbook/`, prompt Module 5 | **Tinggi (P1)** |
-| 4 | **Restrukturisasi Hirarki: Company → Multi-Opportunity** | Menengah | Database Schema (`models/`), API endpoints, Frontend UI Navigation | **Tinggi (P1)** |
-| 5 | **Living Opportunity: Input MoM & Dynamic Re-KYC (v2+)** | Menengah | `models/`, `kyc_pipeline.py`, Frontend Document & MoM tab | **Menengah (P2)** |
-| 6 | **Penyempurnaan Target Personas (Others & Subtitle)** | Rendah | `frontend` (`TargetPersonaTab.tsx`), `backend` (`persona_service.py`) | **Menengah (P2)** |
-| 7 | **Hybrid Vector RAG untuk Unstructured Historical Proposal** | Menengah - Tinggi | `pgvector` / in-memory embeddings, retrieval service | **Jangka Panjang (P3)** |
+| 4 | **Restrukturisasi Hirarki: Company → Multi-Opportunity** | Menengah | Database Schema (`models/`), API endpoints, Frontend UI Navigation | **COMPLETED (Core)** |
+| 5 | **Folder UX Refinement & Interactive Deduplication** | Rendah - Menengah | `CompanyFolderView.tsx`, `create/page.tsx`, `companies.py` | **Tinggi (P1 - Immediate)** |
+| 6 | **Living Opportunity: Input MoM & Dynamic Re-KYC (v2+)** | Menengah | `models/`, `kyc_pipeline.py`, Frontend Document & MoM tab | **Menengah (P2)** |
+| 7 | **Direktori Stakeholder Perusahaan (People Directory)** | Menengah | `models/company_contact.py`, API endpoints, Subnav/Tab Stakeholders | **Menengah (P2)** |
+| 8 | **Penyempurnaan Target Personas (Others & Subtitle)** | Rendah | `frontend` (`TargetPersonaTab.tsx`), `backend` (`persona_service.py`) | **Menengah (P2)** |
+| 9 | **Hybrid Vector RAG untuk Unstructured Historical Proposal** | Menengah - Tinggi | `pgvector` / in-memory embeddings, retrieval service | **Jangka Panjang (P3)** |
 
 ---
 
@@ -309,6 +382,25 @@ Senior merekomendasikan pembuatan **RAG dengan Vector Embeddings**. Namun, berda
   - [x] Eksekusi Un-flattening riil di container: Jalankan `./scripts/run_unflatten_docker.sh --dry-run` lalu `--commit` (termasuk konsolidasi cerdas Danone & Danone Indonesia).
   - [x] Modifikasi KYC sectional runner agar otomatis me-reuse profil perusahaan yang sudah ada (`CompanyProfile`), mem-bypass Module 1 & 2 jika data statis valid.
   - [x] Frontend UX: Tampilan daftar Folder Perusahaan (`CompanyFolderView.tsx`) dan inisiatif anak dengan toggle Folders/List/Kanban serta modal New Deal kontekstual.
+- [ ] **Refinement UX Folder & Interactive Deduplication (Inisiatif 4.4 & 4.5 - P1 Immediate)**:
+  - [x] Tambahkan tombol `Trash2` (Delete Opportunity) pada baris `OpptyRow` di `CompanyFolderView.tsx` lengkap dengan proteksi `canDelete` dan dialog konfirmasi.
+  - [x] Hapus field opsional *"Specific Products / Technologies (Optional)"* pada `CreateCompanyOpptyModal` di `CompanyFolderView.tsx` agar form seragam dengan standar utama.
+  - [x] Terapkan active creation UX: Tampilkan step progress animation saat submit deal dari modal folder dan auto-redirect ke detail opportunity (`/opportunities/[id]`) untuk memantau KYC.
+  - [ ] Implementasikan live search/autocomplete `Company Name` pada `frontend/src/app/(main)/opportunities/create/page.tsx`.
+  - [ ] Tambahkan dialog konfirmasi interaktif deteksi fuzzy similarity ("Apakah oppty ini untuk [Nama Perusahaan Eksisting]?") untuk mencegah duplikasi folder dan pemborosan token KYC.
+  - [ ] Sempurnakan regex `compute_normalized_name` di backend agar rekursif memotong kombinasi suffix hukum ganda (misal `(Persero) Tbk`).
+
+### Checklist Inisiatif 8: Direktori Stakeholder Perusahaan (Company People Directory)
+- [ ] **Data Model & Database Migration**:
+  - [ ] Buat model `CompanyContact` di `backend/app/models/company_contact.py` (`id`, `company_id`, `name`, `job_title`, `department`, `email`, `phone`, `linkedin_url`, `is_primary`, `notes`).
+  - [ ] Buat migration script Alembic untuk tabel `company_contacts`.
+- [ ] **Backend API & Endpoints**:
+  - [ ] Buat schemas di `backend/app/schemas/company_contact.py`.
+  - [ ] Buat CRUD endpoints di `backend/app/api/company_contacts.py` (`GET`, `POST`, `PATCH`, `DELETE` under `/api/v1/companies/{company_id}/contacts`).
+  - [ ] Integrasikan kontak orang ke endpoint pencarian global (`/api/opportunities/search/global`).
+- [ ] **Frontend Interface**:
+  - [ ] Buat tab / subnav baru **"Stakeholders" / "People"** di workspace detail opportunity (`/opportunities/[id]`).
+  - [ ] Sediakan modal penambahan/pengeditan stakeholder serta badge PIC utama (*Primary Contact*).
 
 ### Checklist Inisiatif 5: Living Opportunity & MoM-Driven Progressive Intelligence (PRIORITAS SETELAH PLAYBOOK)
 - [ ] **Data & Storage MoM**:

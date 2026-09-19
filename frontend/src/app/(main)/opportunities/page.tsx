@@ -254,6 +254,7 @@ export default function OpportunitiesPage() {
                             user?.role === "engineer" ||
                             user?.role === "viewer"
                         }
+                        canDelete={canDelete}
                     />
                 ) : viewMode === "kanban" ? (
                     <div className={`p-4 bg-zinc-100/40 dark:bg-zinc-900/30 rounded-b-xl min-h-[500px] transition-opacity duration-150 ${isPlaceholderData ? "opacity-70" : "opacity-100"}`}>

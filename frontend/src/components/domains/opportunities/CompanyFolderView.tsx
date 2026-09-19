@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
     Folder,
     FolderOpen,
@@ -19,16 +21,21 @@ import {
     X,
     CheckCircle2,
     Sparkles,
+    Trash2,
+    Zap,
+    CircleDashed,
 } from "lucide-react";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { MultiSelect } from "@/components/ui/Input";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
     useCompanies,
     useCompany,
     useCreateCompany,
     useCreateCompanyOpportunity,
 } from "@/hooks/use-companies";
+import { useDeleteOpportunity } from "@/hooks/use-opportunities";
 import { DEFAULT_TARGET_SOLUTIONS } from "@/lib/master-data";
 import { formatCurrency, timeAgo } from "@/lib/utils";
 import type { Company } from "@/types/company";
@@ -39,6 +46,7 @@ interface CompanyFolderViewProps {
     engineerFilter: string;
     presalesList: string[];
     hideFinancialNumbers: boolean;
+    canDelete?: boolean;
 }
 
 export function CompanyFolderView({
@@ -46,10 +54,42 @@ export function CompanyFolderView({
     engineerFilter,
     presalesList,
     hideFinancialNumbers,
+    canDelete,
 }: CompanyFolderViewProps) {
     const [expandedCompanyIds, setExpandedCompanyIds] = useState<Set<string>>(new Set());
     const [modalCompany, setModalCompany] = useState<Company | null>(null);
     const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+    const deleteMutation = useDeleteOpportunity();
+
+    const effectiveCanDelete =
+        canDelete ??
+        (typeof window !== "undefined"
+            ? Boolean(
+                  localStorage.getItem("moip_user") &&
+                      JSON.parse(localStorage.getItem("moip_user") || "{}")
+                          ?.capabilities?.split(",")
+                          .map((c: string) => c.trim())
+                          .includes("delete")
+              )
+            : false);
+
+    const handleDelete = (e: React.MouseEvent | null, id: string, name: string) => {
+        if (e) e.stopPropagation();
+        setDeleteTarget({ id, name });
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+        try {
+            await deleteMutation.mutateAsync(deleteTarget.id);
+            toast.success("Peluang berhasil dihapus");
+            setDeleteTarget(null);
+        } catch (err: any) {
+            toast.error(err?.response?.data?.detail || "Gagal menghapus peluang");
+            console.error("Gagal menghapus peluang", err);
+        }
+    };
 
     // Fetch companies list
     const { data: companiesData, isLoading } = useCompanies({
@@ -184,6 +224,8 @@ export function CompanyFolderView({
                             onAddOppty={() => setModalCompany(company)}
                             engineerFilter={engineerFilter}
                             hideFinancialNumbers={hideFinancialNumbers}
+                            canDelete={effectiveCanDelete}
+                            onDelete={handleDelete}
                         />
                     );
                 })}
@@ -202,6 +244,19 @@ export function CompanyFolderView({
             {isCreateCompanyOpen && (
                 <CreateCompanyModal onClose={() => setIsCreateCompanyOpen(false)} />
             )}
+
+            {/* Custom Confirm Dialog for Delete Opportunity */}
+            <ConfirmDialog
+                isOpen={!!deleteTarget}
+                title="Hapus Opportunity"
+                description={`Apakah Anda yakin ingin menghapus peluang untuk "${deleteTarget?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+                confirmText="Hapus"
+                cancelText="Batal"
+                variant="danger"
+                isLoading={deleteMutation.isPending}
+                onConfirm={confirmDelete}
+                onClose={() => setDeleteTarget(null)}
+            />
         </div>
     );
 }
@@ -213,6 +268,8 @@ function CompanyCard({
     onAddOppty,
     engineerFilter,
     hideFinancialNumbers,
+    canDelete,
+    onDelete,
 }: {
     company: Company;
     isExpanded: boolean;
@@ -220,6 +277,8 @@ function CompanyCard({
     onAddOppty: () => void;
     engineerFilter: string;
     hideFinancialNumbers: boolean;
+    canDelete?: boolean;
+    onDelete: (e: React.MouseEvent | null, id: string, name: string) => void;
 }) {
     const count = company.opportunities_count ?? 0;
     const hasActiveKyC = !!company.business_process || !!company.cached_kyc_data;
@@ -317,6 +376,8 @@ function CompanyCard({
                     companyName={company.name}
                     engineerFilter={engineerFilter}
                     hideFinancialNumbers={hideFinancialNumbers}
+                    canDelete={canDelete}
+                    onDelete={onDelete}
                     onAddOppty={onAddOppty}
                 />
             )}
@@ -329,12 +390,16 @@ function CompanyChildOpportunities({
     companyName,
     engineerFilter,
     hideFinancialNumbers,
+    canDelete,
+    onDelete,
     onAddOppty,
 }: {
     companyId: string;
     companyName: string;
     engineerFilter: string;
     hideFinancialNumbers: boolean;
+    canDelete?: boolean;
+    onDelete: (e: React.MouseEvent | null, id: string, name: string) => void;
     onAddOppty: () => void;
 }) {
     const { data: detail, isLoading } = useCompany(companyId);
@@ -379,6 +444,8 @@ function CompanyChildOpportunities({
                     key={opp.id}
                     opp={opp}
                     hideFinancialNumbers={hideFinancialNumbers}
+                    canDelete={canDelete}
+                    onDelete={onDelete}
                 />
             ))}
         </div>
@@ -388,9 +455,13 @@ function CompanyChildOpportunities({
 function OpptyRow({
     opp,
     hideFinancialNumbers,
+    canDelete,
+    onDelete,
 }: {
     opp: Opportunity;
     hideFinancialNumbers: boolean;
+    canDelete?: boolean;
+    onDelete: (e: React.MouseEvent | null, id: string, name: string) => void;
 }) {
     const opptyTitle = opp.deal_title || opp.product || "Opportunity";
 
@@ -440,15 +511,46 @@ function OpptyRow({
                     <span>{timeAgo(opp.created_at)}</span>
                 </div>
 
-                <Link href={`/opportunities/${opp.id}`}>
-                    <Button variant="ghost" size="sm" className="h-7 text-xs px-2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">
-                        View
-                    </Button>
-                </Link>
+                <div className="flex items-center gap-1">
+                    <Link href={`/opportunities/${opp.id}`}>
+                        <Button variant="ghost" size="sm" className="h-7 text-xs px-2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">
+                            View
+                        </Button>
+                    </Link>
+                    {canDelete && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => onDelete(e, opp.id, opptyTitle)}
+                            className="h-7 w-7 p-0 text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
+                            title="Delete opportunity"
+                        >
+                            <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                    )}
+                </div>
             </div>
         </div>
     );
 }
+
+const folderPipelineSteps = [
+    {
+        id: 1,
+        title: "Creating Opportunity Workspace",
+        desc: "Menyiapkan inisiatif deal dan menautkan ke folder perusahaan.",
+    },
+    {
+        id: 2,
+        title: "Linking Company Profile & AI KYC",
+        desc: "Mewarisi profil statis perusahaan dan meluncurkan background KYC worker.",
+    },
+    {
+        id: 3,
+        title: "Finalizing Workspace Intelligence",
+        desc: "Menyiapkan panduan persona dan direktori deal inisiatif.",
+    },
+];
 
 function CreateCompanyOpptyModal({
     company,
@@ -459,16 +561,18 @@ function CreateCompanyOpptyModal({
     presalesList: string[];
     onClose: () => void;
 }) {
+    const router = useRouter();
     const createMutation = useCreateCompanyOpportunity();
     const [dealTitle, setDealTitle] = useState("");
     const [selectedSolutions, setSelectedSolutions] = useState<string[]>([]);
-    const [specificProduct, setSpecificProduct] = useState("");
     const [customerNeeds, setCustomerNeeds] = useState("");
     const [assignedEngineer, setAssignedEngineer] = useState("");
     const [potentialRevenue, setPotentialRevenue] = useState("");
     const [estimatedAgendaDate, setEstimatedAgendaDate] = useState("");
     const [additionalNotes, setAdditionalNotes] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [pipelineState, setPipelineState] = useState(0);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -477,22 +581,17 @@ function CreateCompanyOpptyModal({
             return;
         }
 
-        // Combine solution domain with specific products
-        let combinedProduct = "";
-        if (selectedSolutions.length > 0 && specificProduct.trim()) {
-            combinedProduct = `${selectedSolutions.join(", ")} (${specificProduct.trim()})`;
-        } else if (selectedSolutions.length > 0) {
-            combinedProduct = selectedSolutions.join(", ");
-        } else if (specificProduct.trim()) {
-            combinedProduct = specificProduct.trim();
-        }
+        const selectedProduct = selectedSolutions.length > 0 ? selectedSolutions.join(", ") : undefined;
+
+        setIsSubmitting(true);
+        setPipelineState(1);
 
         try {
-            await createMutation.mutateAsync({
+            const newOppty = await createMutation.mutateAsync({
                 companyId: company.id,
                 input: {
                     deal_title: dealTitle.trim() || undefined,
-                    product: combinedProduct || undefined,
+                    product: selectedProduct,
                     customer_needs: customerNeeds.trim(),
                     assigned_engineer: assignedEngineer || undefined,
                     potential_revenue: potentialRevenue ? parseFloat(potentialRevenue) : undefined,
@@ -502,9 +601,21 @@ function CreateCompanyOpptyModal({
                     additional_notes: additionalNotes.trim() || undefined,
                 },
             });
-            onClose();
+
+            // Simulate multi-step pipeline progression
+            setTimeout(() => setPipelineState(2), 1200);
+            setTimeout(() => setPipelineState(3), 2500);
+            setTimeout(() => {
+                setPipelineState(4);
+                toast.success("Opportunity created successfully! Redirecting to workspace...");
+                setTimeout(() => {
+                    router.push(`/opportunities/${newOppty.id}`);
+                }, 800);
+            }, 3600);
         } catch (err: any) {
             setErrorMsg(err?.response?.data?.detail || "Failed to create opportunity.");
+            setIsSubmitting(false);
+            setPipelineState(0);
         }
     };
 
@@ -521,13 +632,15 @@ function CreateCompanyOpptyModal({
                             Inherits company profile (Module 1 & 2 cached for zero redundant KYC)
                         </p>
                     </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 rounded-md"
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
+                    {!isSubmitting && (
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 rounded-md"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    )}
                 </div>
 
                 {/* Company Context Banner */}
@@ -548,157 +661,206 @@ function CreateCompanyOpptyModal({
                     </span>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-4 space-y-3.5 text-sm max-h-[80vh] overflow-y-auto">
-                    {errorMsg && (
-                        <div className="p-2.5 rounded-md bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 text-xs text-red-600 dark:text-red-400">
-                            {errorMsg}
+                {/* Active Creation View / Form View */}
+                {isSubmitting ? (
+                    <div className="p-6 sm:p-8 space-y-6">
+                        <div className="text-center">
+                            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 mb-4">
+                                <Zap className="w-7 h-7" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                                Processing Opportunity Workspace
+                            </h3>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-sm mx-auto">
+                                Menyiapkan inisiatif deal untuk <span className="font-semibold text-zinc-700 dark:text-zinc-300">{company.name}</span> dan meluncurkan intelligence pipeline.
+                            </p>
                         </div>
-                    )}
 
-                    {/* Oppty Initiative Title */}
-                    <div>
-                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                            Oppty Initiative Title
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="e.g. Supply Chain Analytics / Cloud Migration"
-                            value={dealTitle}
-                            onChange={(e) => setDealTitle(e.target.value)}
-                            className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
-                        />
+                        <div className="space-y-3 max-w-md mx-auto">
+                            {folderPipelineSteps.map((step) => {
+                                const isActive = pipelineState === step.id;
+                                const isDone = pipelineState > step.id;
+
+                                return (
+                                    <div
+                                        key={step.id}
+                                        className={`p-3.5 rounded-xl border transition-all duration-300 ${
+                                            isActive
+                                                ? "border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/40 dark:bg-indigo-950/20 shadow-xs"
+                                                : isDone
+                                                ? "border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/60"
+                                                : "border-zinc-100 dark:border-zinc-800/60 opacity-40"
+                                        }`}
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <div className="mt-0.5">
+                                                {isDone ? (
+                                                    <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                                                ) : isActive ? (
+                                                    <CircleDashed className="w-5 h-5 text-indigo-600 dark:text-indigo-400 animate-spin" />
+                                                ) : (
+                                                    <CircleDashed className="w-5 h-5 text-zinc-300 dark:text-zinc-600" />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                                                    {step.title}
+                                                </h4>
+                                                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                                                    {step.desc}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div className="text-center pt-2">
+                            <span className="text-[11px] text-zinc-400 dark:text-zinc-500 animate-pulse">
+                                {pipelineState < 4 ? "Menyiapkan workspace dan routing..." : "Membuka halaman detail opportunity..."}
+                            </span>
+                        </div>
                     </div>
+                ) : (
+                    <form onSubmit={handleSubmit} className="p-4 space-y-3.5 text-sm max-h-[80vh] overflow-y-auto">
+                        {errorMsg && (
+                            <div className="p-2.5 rounded-md bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 text-xs text-red-600 dark:text-red-400">
+                                {errorMsg}
+                            </div>
+                        )}
 
-                    {/* Target Solution Domain */}
-                    <div>
-                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                            Product / Solution Domain
-                        </label>
-                        <MultiSelect
-                            options={DEFAULT_TARGET_SOLUTIONS}
-                            value={selectedSolutions}
-                            onChange={setSelectedSolutions}
-                            placeholder="Select target solution domain(s)..."
-                        />
-                    </div>
-
-                    {/* Specific Products / Technologies */}
-                    <div>
-                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                            Specific Products / Technologies (Optional)
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="e.g. BigQuery, Greenplum EDW, Nutanix, Palo Alto"
-                            value={specificProduct}
-                            onChange={(e) => setSpecificProduct(e.target.value)}
-                            className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
-                        />
-                    </div>
-
-                    {/* Customer Needs & Problem Statement */}
-                    <div>
-                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                            Customer Needs & Problem Statement <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                            rows={3}
-                            placeholder="Deskripsi kendala bisnis, target arsitektur, atau pain point klien..."
-                            value={customerNeeds}
-                            onChange={(e) => setCustomerNeeds(e.target.value)}
-                            className="w-full p-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
-                            required
-                        />
-                    </div>
-
-                    {/* Pre-sales & Potential Revenue */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Oppty Initiative Title */}
                         <div>
                             <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                                Assigned Pre-Sales
-                            </label>
-                            <select
-                                value={assignedEngineer}
-                                onChange={(e) => setAssignedEngineer(e.target.value)}
-                                className="w-full h-9 px-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
-                            >
-                                <option value="">Unassigned</option>
-                                {presalesList.map((p) => (
-                                    <option key={p} value={p}>
-                                        {p}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                                Potential Revenue (IDR)
+                                Oppty Initiative Title
                             </label>
                             <input
-                                type="number"
-                                placeholder="e.g. 500000000"
-                                value={potentialRevenue}
-                                onChange={(e) => setPotentialRevenue(e.target.value)}
+                                type="text"
+                                placeholder="e.g. Supply Chain Analytics / Cloud Migration"
+                                value={dealTitle}
+                                onChange={(e) => setDealTitle(e.target.value)}
                                 className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
                             />
                         </div>
-                    </div>
 
-                    {/* Agenda Meeting Date */}
-                    <div>
-                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                            Estimasi Tanggal Agenda / Initial Meeting (Opsional)
-                        </label>
-                        <input
-                            type="datetime-local"
-                            value={estimatedAgendaDate}
-                            onChange={(e) => setEstimatedAgendaDate(e.target.value)}
-                            className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
-                        />
-                    </div>
+                        {/* Target Solution Domain */}
+                        <div>
+                            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                                Product / Solution Domain
+                            </label>
+                            <MultiSelect
+                                options={DEFAULT_TARGET_SOLUTIONS}
+                                value={selectedSolutions}
+                                onChange={setSelectedSolutions}
+                                placeholder="Select target solution domain(s)..."
+                            />
+                        </div>
 
-                    {/* Additional Notes / AI Context */}
-                    <div>
-                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                            Additional Context for AI (Optional)
-                        </label>
-                        <textarea
-                            rows={2}
-                            placeholder="Catatan teknis tambahan atau instruksi spesifik untuk pipeline intelligence..."
-                            value={additionalNotes}
-                            onChange={(e) => setAdditionalNotes(e.target.value)}
-                            className="w-full p-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
-                        />
-                    </div>
+                        {/* Customer Needs & Problem Statement */}
+                        <div>
+                            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                                Customer Needs & Problem Statement <span className="text-red-500">*</span>
+                            </label>
+                            <textarea
+                                rows={3}
+                                placeholder="Deskripsi kendala bisnis, target arsitektur, atau pain point klien..."
+                                value={customerNeeds}
+                                onChange={(e) => setCustomerNeeds(e.target.value)}
+                                className="w-full p-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                required
+                            />
+                        </div>
 
-                    {/* Form Action Buttons */}
-                    <div className="pt-3 flex items-center justify-end gap-2 border-t border-zinc-200 dark:border-zinc-800">
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            onClick={onClose}
-                            className="text-xs"
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            size="sm"
-                            disabled={createMutation.isPending}
-                            className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
-                        >
-                            {createMutation.isPending ? (
-                                <>
-                                    <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
-                                    Creating Oppty...
-                                </>
-                            ) : (
-                                "Create Oppty"
-                            )}
-                        </Button>
-                    </div>
-                </form>
+                        {/* Pre-sales & Potential Revenue */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                                    Assigned Pre-Sales
+                                </label>
+                                <select
+                                    value={assignedEngineer}
+                                    onChange={(e) => setAssignedEngineer(e.target.value)}
+                                    className="w-full h-9 px-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                >
+                                    <option value="">Unassigned</option>
+                                    {presalesList.map((p) => (
+                                        <option key={p} value={p}>
+                                            {p}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                                    Potential Revenue (IDR)
+                                </label>
+                                <input
+                                    type="number"
+                                    placeholder="e.g. 500000000"
+                                    value={potentialRevenue}
+                                    onChange={(e) => setPotentialRevenue(e.target.value)}
+                                    className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Agenda Meeting Date */}
+                        <div>
+                            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                                Estimasi Tanggal Agenda / Initial Meeting (Opsional)
+                            </label>
+                            <input
+                                type="datetime-local"
+                                value={estimatedAgendaDate}
+                                onChange={(e) => setEstimatedAgendaDate(e.target.value)}
+                                className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                            />
+                        </div>
+
+                        {/* Additional Notes / AI Context */}
+                        <div>
+                            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                                Additional Context for AI (Optional)
+                            </label>
+                            <textarea
+                                rows={2}
+                                placeholder="Catatan teknis tambahan atau instruksi spesifik untuk pipeline intelligence..."
+                                value={additionalNotes}
+                                onChange={(e) => setAdditionalNotes(e.target.value)}
+                                className="w-full p-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                            />
+                        </div>
+
+                        {/* Form Action Buttons */}
+                        <div className="pt-3 flex items-center justify-end gap-2 border-t border-zinc-200 dark:border-zinc-800">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={onClose}
+                                className="text-xs"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="submit"
+                                size="sm"
+                                disabled={createMutation.isPending}
+                                className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
+                            >
+                                {createMutation.isPending ? (
+                                    <>
+                                        <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                                        Creating Oppty...
+                                    </>
+                                ) : (
+                                    "Create Oppty"
+                                )}
+                            </Button>
+                        </div>
+                    </form>
+                )}
             </div>
         </div>
     );
