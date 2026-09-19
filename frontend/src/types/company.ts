@@ -55,7 +55,7 @@ export interface CompanyOpportunityCreateInput {
 export interface CompanySimilarityMatch {
     company: Company;
     similarity_score: number;
-    match_type: "domain_match" | "exact_normalized" | "fuzzy" | "token_overlap";
+    match_type: "domain_match" | "exact_normalized";
 }
 
 export interface CompanySimilarityCheckResponse {

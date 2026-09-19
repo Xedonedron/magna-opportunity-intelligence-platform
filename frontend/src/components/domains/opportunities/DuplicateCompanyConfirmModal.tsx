@@ -28,7 +28,6 @@ export function DuplicateCompanyConfirmModal({
     if (!isOpen) return null;
 
     const isDomainMatch = matchType === "domain_match";
-    const matchPercent = Math.round(similarityScore * 100);
 
     return (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
@@ -41,12 +40,12 @@ export function DuplicateCompanyConfirmModal({
                         </div>
                         <div>
                             <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-base">
-                                {isDomainMatch ? "Website Domain Cocok (100% Match)" : "Perusahaan Serupa Terdeteksi"}
+                                {isDomainMatch ? "Website Domain Cocok (100% Match)" : "Nama Entitas Identik (100% Match)"}
                             </h3>
                             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                                 {isDomainMatch
                                     ? "Domain URL yang Anda masukkan terdaftar pada perusahaan ini."
-                                    : `Kemiripan nama entitas terdeteksi (${matchPercent}% match).`}
+                                    : "Entitas hukum perusahaan yang Anda masukkan sudah terdaftar di database."}
                             </p>
                         </div>
                     </div>
@@ -62,7 +61,7 @@ export function DuplicateCompanyConfirmModal({
                 {/* Content */}
                 <div className="p-5 space-y-4 text-sm">
                     <p className="text-zinc-600 dark:text-zinc-300 text-xs sm:text-sm">
-                        Anda menginput <span className="font-semibold text-zinc-900 dark:text-zinc-100">&quot;{queryName}&quot;</span>. Sistem mendeteksi folder perusahaan serupa yang sudah terdaftar di database:
+                        Anda menginput <span className="font-semibold text-zinc-900 dark:text-zinc-100">&quot;{queryName}&quot;</span>. Sistem mendeteksi folder perusahaan terdaftar dengan identitas yang cocok di database:
                     </p>
 
                     {/* Comparison Card */}

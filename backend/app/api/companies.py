@@ -13,7 +13,6 @@ from app.models.company import Company
 from app.models.opportunity import Opportunity, TimelineEvent
 from app.models.meeting import Meeting
 from urllib.parse import urlparse
-import difflib
 
 from app.schemas.company import (
     CompanyCreate,
@@ -103,10 +102,6 @@ STANDALONE_LEGAL_TOKENS = re.compile(
     re.IGNORECASE,
 )
 PUNCTUATION_RE = re.compile(r"[^\w\s]")
-COMMON_GENERIC_TOKENS = re.compile(
-    r"\b(indonesia|persero|tbk|group|nusantara|asia|global)\b",
-    re.IGNORECASE,
-)
 
 
 def compute_normalized_name(name: str) -> str:
@@ -132,43 +127,6 @@ def compute_normalized_name(name: str) -> str:
     key = PUNCTUATION_RE.sub(" ", key)
     key = re.sub(r"\s+", " ", key).strip()
     return key or name.strip().lower()
-
-
-def compute_similarity_score(q_norm: str, target_norm: str) -> float:
-    """Calculates a robust similarity score between two normalized company names.
-    Includes token overlap, sequence matching, and penalty for matching only generic words (e.g. 'Indonesia').
-    """
-    if not q_norm or not target_norm:
-        return 0.0
-    if q_norm == target_norm:
-        return 1.0
-
-    # Core distinctive terms without common generic words
-    core_q = COMMON_GENERIC_TOKENS.sub("", q_norm).strip()
-    core_target = COMMON_GENERIC_TOKENS.sub("", target_norm).strip()
-
-    if not core_q or not core_target:
-        return difflib.SequenceMatcher(None, q_norm, target_norm).ratio()
-
-    if core_q == core_target:
-        return 0.95
-
-    core_ratio = difflib.SequenceMatcher(None, core_q, core_target).ratio()
-    full_ratio = difflib.SequenceMatcher(None, q_norm, target_norm).ratio()
-
-    q_tokens = set(core_q.split())
-    t_tokens = set(core_target.split())
-    overlap = q_tokens & t_tokens
-
-    if overlap:
-        overlap_score = len(overlap) / max(len(q_tokens), len(t_tokens))
-        is_substring = core_q in core_target or core_target in core_q
-        base_score = max(core_ratio, overlap_score)
-        if is_substring:
-            base_score = max(base_score, 0.85)
-        return min(1.0, base_score)
-
-    return min(core_ratio, full_ratio * 0.5)
 
 
 @router.get("", response_model=CompanyListResponse)
@@ -236,8 +194,11 @@ async def check_company_similarity(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Check if a company name or website domain has exact or fuzzy duplicates in the database.
+    """Check if a company name or website domain has exact duplicates in the database.
     Used for live autocomplete deduplication guards before creating opportunities or folders.
+    Deterministic deduplication cascade:
+      1. Root domain matching (highest confidence)
+      2. Exact recursive normalized name matching
     """
     norm_query = compute_normalized_name(name)
     query_domain = extract_root_domain(website) if website else None
@@ -275,7 +236,7 @@ async def check_company_similarity(
             )
             continue
 
-        # 2. Exact normalized match
+        # 2. Exact normalized match (100% confidence)
         if c.normalized_name == norm_query:
             if not exact_match:
                 exact_match = resp
@@ -286,36 +247,13 @@ async def check_company_similarity(
                     match_type="exact_normalized",
                 )
             )
-            continue
-
-        # 2. Fuzzy similarity check
-        score = compute_similarity_score(norm_query, c.normalized_name)
-        if score >= threshold:
-            match_type = "fuzzy"
-            if norm_query in c.normalized_name or c.normalized_name in norm_query:
-                match_type = "token_overlap"
-            matches.append(
-                CompanySimilarityMatch(
-                    company=resp,
-                    similarity_score=round(score, 2),
-                    match_type=match_type,
-                )
-            )
-
-    # Sort matches by similarity descending, then by opportunities count
-    matches.sort(
-        key=lambda m: (m.similarity_score, m.company.opportunities_count),
-        reverse=True,
-    )
-
-    top_matches = matches[:5]
 
     return CompanySimilarityCheckResponse(
         query=name,
         normalized_query=norm_query,
         exact_match=exact_match,
-        has_similar=len(top_matches) > 0,
-        matches=top_matches,
+        has_similar=len(matches) > 0,
+        matches=matches,
     )
 
 

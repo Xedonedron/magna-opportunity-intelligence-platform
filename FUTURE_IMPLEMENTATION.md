@@ -389,7 +389,7 @@ Memindahkan kepemilikan kontak ke level **Perusahaan (Folder Induk)** dengan rel
   - [x] Tambahkan tombol Hapus Folder Perusahaan (`Trash2`) pada kartu folder: hanya aktif jika folder kosong (0 deal) dan role user memiliki capability `delete` (proteksi delete-orphan cascade).
   - [x] Implementasikan fitur Pindahkan Peluang (`FolderSymlink`) antar folder perusahaan dengan sinkronisasi metadata dan riwayat timeline deal otomatis.
   - [x] Implementasikan live search/autocomplete `Company Name` pada `frontend/src/app/(main)/opportunities/create/page.tsx`.
-  - [x] Tambahkan dialog konfirmasi interaktif deteksi fuzzy similarity ("Apakah oppty ini untuk [Nama Perusahaan Eksisting]?") untuk mencegah duplikasi folder dan pemborosan token KYC.
+  - [x] Sederhanakan deduplikasi menjadi 100% Deterministik (Hapus Fuzzy Heuristics): Dialog konfirmasi interaktif hanya aktif untuk 100% Domain Match atau 100% Exact Legal Name Match, mengeliminasi false positive sepenuhnya.
   - [x] Sempurnakan regex `compute_normalized_name` di backend agar rekursif memotong kombinasi suffix hukum ganda (misal `(Persero) Tbk`).
   - [x] Implementasikan Domain-Based Matching (`extract_root_domain`) dengan penanganan ccTLD ganda (`.co.id`, `.com.sg`), normalisasi subdomain (`enterprise.telkom.co.id` -> `telkom.co.id`), dan penyaringan shared public domains.
   - [x] Integrasikan verifikasi root domain pada endpoint `GET /api/v1/companies/check-similarity` dengan 100% confidence match type `domain_match`.

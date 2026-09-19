@@ -122,8 +122,8 @@ class CompanyOpportunityCreate(BaseModel):
 
 class CompanySimilarityMatch(BaseModel):
     company: CompanyResponse
-    similarity_score: float = Field(..., ge=0.0, le=1.0)
-    match_type: str = Field("fuzzy", description="domain_match | exact_normalized | fuzzy | token_overlap")
+    similarity_score: float = Field(1.0, ge=0.0, le=1.0)
+    match_type: str = Field("domain_match", description="domain_match | exact_normalized")
 
 
 class CompanySimilarityCheckResponse(BaseModel):

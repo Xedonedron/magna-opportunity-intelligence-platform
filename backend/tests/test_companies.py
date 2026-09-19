@@ -266,7 +266,7 @@ def test_recursive_normalization_compound_suffixes():
         assert compute_normalized_name(raw) == expected, f"Failed for {raw}"
 
 
-def test_check_company_similarity_exact_and_fuzzy(client: TestClient, auth_headers: dict[str, str], db: Session):
+def test_check_company_similarity_deterministic(client: TestClient, auth_headers: dict[str, str], db: Session):
     comp = Company(
         id=uuid.uuid4(),
         name="PT Telkom Indonesia (Persero) Tbk",
@@ -277,7 +277,7 @@ def test_check_company_similarity_exact_and_fuzzy(client: TestClient, auth_heade
     db.add(comp)
     db.commit()
 
-    # Exact match via alternate typing
+    # 1. Exact match via alternate typing of legal entity
     res_exact = client.get(
         "/api/v1/companies/check-similarity",
         params={"name": "Telkom Indonesia"},
@@ -288,19 +288,36 @@ def test_check_company_similarity_exact_and_fuzzy(client: TestClient, auth_heade
     assert data_exact["has_similar"] is True
     assert data_exact["exact_match"] is not None
     assert data_exact["exact_match"]["id"] == str(comp.id)
+    assert data_exact["matches"][0]["match_type"] == "exact_normalized"
+    assert data_exact["matches"][0]["similarity_score"] == 1.0
 
-    # Fuzzy match via partial brand name
-    res_fuzzy = client.get(
+    # 2. Distinct entity name without website should NOT falsely match (zero fuzzy false positives)
+    res_diff = client.get(
         "/api/v1/companies/check-similarity",
-        params={"name": "Telkom"},
+        params={"name": "Telkom Akses"},
         headers=auth_headers,
     )
-    assert res_fuzzy.status_code == 200
-    data_fuzzy = res_fuzzy.json()
-    assert data_fuzzy["has_similar"] is True
-    assert len(data_fuzzy["matches"]) >= 1
-    assert data_fuzzy["matches"][0]["company"]["id"] == str(comp.id)
-    assert data_fuzzy["matches"][0]["similarity_score"] >= 0.70
+    assert res_diff.status_code == 200
+    data_diff = res_diff.json()
+    assert data_diff["has_similar"] is False
+    assert len(data_diff["matches"]) == 0
+
+    # 3. Distinct entity name WITH matching domain URL matches via domain_match
+    res_domain = client.get(
+        "/api/v1/companies/check-similarity",
+        params={
+            "name": "Telkom Akses",
+            "website": "https://enterprise.telkom.co.id/portal",
+        },
+        headers=auth_headers,
+    )
+    assert res_domain.status_code == 200
+    data_domain = res_domain.json()
+    assert data_domain["has_similar"] is True
+    assert data_domain["exact_match"] is not None
+    assert data_domain["exact_match"]["id"] == str(comp.id)
+    assert data_domain["matches"][0]["match_type"] == "domain_match"
+    assert data_domain["matches"][0]["similarity_score"] == 1.0
 
 
 def test_check_company_similarity_prevents_false_positives_indonesia(
