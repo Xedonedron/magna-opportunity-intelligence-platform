@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, FolderOpen, Calendar, X, Menu } from "lucide-react";
+import { Search, FolderOpen, Calendar, X, Menu, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { NotificationDropdown } from "@/components/domains/notifications/NotificationDropdown";
 import { useNotificationToaster } from "@/hooks/use-notifications";
@@ -13,6 +13,16 @@ import { api } from "@/lib/api";
 interface SearchResult {
     opportunities: Array<{ id: string; company_name: string; product: string | null; status: string }>;
     meetings: Array<{ id: string; title: string; company_name: string; opportunity_id: string; date: string }>;
+    contacts?: Array<{
+        id: string;
+        name: string;
+        job_title: string | null;
+        department: string | null;
+        email: string | null;
+        company_id: string;
+        company_name: string | null;
+        opportunity_id: string | null;
+    }>;
 }
 
 export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) {
@@ -116,7 +126,7 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         onFocus={() => query.trim().length >= 2 && setIsOpen(true)}
-                        placeholder="Cari peluang atau rapat... (Ctrl+K)"
+                        placeholder="Cari peluang, kontak, atau rapat... (Ctrl+K)"
                         className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 pl-9 pr-8 text-xs outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100 focus:border-zinc-300 dark:focus:border-zinc-600 focus:bg-white dark:focus:bg-zinc-800 transition-colors"
                     />
                     {query && (
@@ -151,7 +161,7 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Cari peluang atau rapat..."
+                                placeholder="Cari peluang, kontak, atau rapat..."
                                 className="h-10 w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 pl-9 pr-10 text-base outline-none text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             />
                             <button
@@ -226,6 +236,39 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
                                 </div>
                             )}
                         </div>
+                        {/* Contacts / Stakeholders section */}
+                        {results.contacts && results.contacts.length > 0 && (
+                            <div className="border-t border-zinc-100 dark:border-zinc-800 pt-2">
+                                <h4 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider px-2 py-1 flex items-center gap-1">
+                                    <User className="w-3 h-3" /> Stakeholders
+                                </h4>
+                                <div className="space-y-0.5 mt-1">
+                                    {results.contacts.map((contact) => (
+                                        <button
+                                            key={contact.id}
+                                            onClick={() => {
+                                                if (contact.opportunity_id) {
+                                                    handleNavigate(
+                                                        `/opportunities/${contact.opportunity_id}?tab=stakeholders`
+                                                    );
+                                                } else {
+                                                    handleNavigate("/companies");
+                                                }
+                                            }}
+                                            className="w-full text-left px-2.5 py-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 rounded-md transition-colors block text-xs"
+                                        >
+                                            <p className="font-semibold text-zinc-900 dark:text-zinc-100">
+                                                {contact.name}
+                                            </p>
+                                            <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                                                {contact.job_title || "Stakeholder"}
+                                                {contact.company_name ? ` • ${contact.company_name}` : ""}
+                                            </p>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

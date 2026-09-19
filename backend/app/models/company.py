@@ -10,6 +10,7 @@ from app.core.database import Base
 
 if TYPE_CHECKING:
     from app.models.opportunity import Opportunity
+    from app.models.company_contact import CompanyContact
 
 
 class Company(Base):
@@ -35,6 +36,12 @@ class Company(Base):
     # Relationships
     opportunities: Mapped[list["Opportunity"]] = relationship(
         "Opportunity",
+        back_populates="company",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+    contacts: Mapped[list["CompanyContact"]] = relationship(
+        "CompanyContact",
         back_populates="company",
         cascade="all, delete-orphan",
         lazy="selectin",

@@ -1,5 +1,6 @@
 from app.models.user import User
 from app.models.company import Company
+from app.models.company_contact import CompanyContact
 from app.models.opportunity import Opportunity, TimelineEvent, OpportunityChatMessage
 from app.models.opportunity_persona import OpportunityPersona
 from app.models.meeting import Meeting
@@ -13,6 +14,7 @@ from app.models.master_solution import MasterSolution
 __all__ = [
     "User",
     "Company",
+    "CompanyContact",
     "Opportunity",
     "TimelineEvent",
     "OpportunityChatMessage",

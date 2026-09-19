@@ -137,6 +137,7 @@ export const en = {
             overview: "Overview",
             kyc: "KYC Intelligence",
             personas: "Target Personas",
+            stakeholders: "Stakeholders",
             meetings: "Meetings",
             documents: "Documents",
             timeline: "Activity Timeline",

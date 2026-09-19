@@ -363,7 +363,7 @@ Memindahkan kepemilikan kontak ke level **Perusahaan (Folder Induk)** dengan rel
 | 4 | **Restrukturisasi Hirarki: Company → Multi-Opportunity** | Menengah | Database Schema (`models/`), API endpoints, Frontend UI Navigation | **COMPLETED (Core)** |
 | 5 | **Folder UX Refinement & Interactive Deduplication** | Rendah - Menengah | `CompanyFolderView.tsx`, `create/page.tsx`, `companies.py` | **COMPLETED** |
 | 6 | **Living Opportunity: Input MoM & Dynamic Re-KYC (v2+)** | Menengah | `models/`, `kyc_pipeline.py`, Frontend Document & MoM tab | **Menengah (P2)** |
-| 7 | **Direktori Stakeholder Perusahaan (People Directory)** | Menengah | `models/company_contact.py`, API endpoints, Subnav/Tab Stakeholders | **Menengah (P2)** |
+| 7 | **Direktori Stakeholder Perusahaan (People Directory)** | Menengah | `models/company_contact.py`, API endpoints, Subnav/Tab Stakeholders | **COMPLETED** |
 | 8 | **Penyempurnaan Target Personas (Others & Subtitle)** | Rendah | `frontend` (`TargetPersonaTab.tsx`), `backend` (`persona_service.py`) | **Menengah (P2)** |
 | 9 | **Hybrid Vector RAG untuk Unstructured Historical Proposal** | Menengah - Tinggi | `pgvector` / in-memory embeddings, retrieval service | **Jangka Panjang (P3)** |
 
@@ -402,17 +402,24 @@ Memindahkan kepemilikan kontak ke level **Perusahaan (Folder Induk)** dengan rel
   - [x] Terapkan domain-first deduplication cascade pada pembuatan peluang (`create_opportunity`) dan task Celery KYC reuse.
   - [x] Buat Alembic migration untuk backfill `normalized_name` pada seluruh entitas perusahaan eksisting.
 
-### Checklist Inisiatif 8: Direktori Stakeholder Perusahaan (Company People Directory)
-- [ ] **Data Model & Database Migration**:
-  - [ ] Buat model `CompanyContact` di `backend/app/models/company_contact.py` (`id`, `company_id`, `name`, `job_title`, `department`, `email`, `phone`, `linkedin_url`, `is_primary`, `notes`).
-  - [ ] Buat migration script Alembic untuk tabel `company_contacts`.
-- [ ] **Backend API & Endpoints**:
-  - [ ] Buat schemas di `backend/app/schemas/company_contact.py`.
-  - [ ] Buat CRUD endpoints di `backend/app/api/company_contacts.py` (`GET`, `POST`, `PATCH`, `DELETE` under `/api/v1/companies/{company_id}/contacts`).
-  - [ ] Integrasikan kontak orang ke endpoint pencarian global (`/api/opportunities/search/global`).
-- [ ] **Frontend Interface**:
-  - [ ] Buat tab / subnav baru **"Stakeholders" / "People"** di workspace detail opportunity (`/opportunities/[id]`).
-  - [ ] Sediakan modal penambahan/pengeditan stakeholder serta badge PIC utama (*Primary Contact*).
+### Checklist Inisiatif 8: Direktori Stakeholder Perusahaan (Company People Directory) - COMPLETED
+- [x] **Data Model & Database Migration**:
+  - [x] Buat model `CompanyContact` di `backend/app/models/company_contact.py` (`id`, `company_id`, `name`, `job_title`, `department`, `email`, `phone`, `linkedin_url`, `is_primary`, `notes`).
+  - [x] Tambahkan relasi `contacts` pada model `Company` di `backend/app/models/company.py`.
+  - [x] Buat migration script Alembic `y5t6m7h8i9j0_create_company_contacts_table.py` dengan cascading delete.
+- [x] **Backend API & Endpoints**:
+  - [x] Buat schemas di `backend/app/schemas/company_contact.py`.
+  - [x] Buat CRUD endpoints di `backend/app/api/company_contacts.py` (`GET`, `POST`, `PATCH`, `DELETE` under `/api/v1/companies/{company_id}/contacts` dan `/api/companies/{company_id}/contacts`).
+  - [x] Logika otomatis: menandai kontak sebagai `is_primary = True` otomatis menurunkan status primary kontak sebelumnya di organisasi yang sama.
+  - [x] Integrasikan kontak stakeholder ke endpoint pencarian global (`/api/opportunities/search/global`) dengan filter otorisasi peran (LGO / Engineer).
+  - [x] Unit tests komprehensif: 7/7 passing di `backend/tests/test_company_contacts.py`.
+- [x] **Frontend Interface**:
+  - [x] Buat TypeScript interfaces di `frontend/src/types/company-contact.ts`.
+  - [x] Buat React Query hooks di `frontend/src/hooks/use-company-contacts.ts` dengan invalidasi cache otomatis.
+  - [x] Buat tab / subnav baru **"Stakeholders"** di workspace detail opportunity (`/opportunities/[id]`).
+  - [x] Sediakan modal penambahan/pengeditan stakeholder (`StakeholderFormDialog.tsx`) dan kartu interaktif (`StakeholderCard.tsx`, `StakeholdersTab.tsx`).
+  - [x] Sediakan badge PIC utama (*Primary Contact*), aksi cepat jadikan kontak utama, edit, dan hapus kontak.
+  - [x] Integrasikan hasil pencarian stakeholder langsung ke dropdown Global Search di `TopNav.tsx` (Ctrl+K).
 
 ### Checklist Inisiatif 5: Living Opportunity & MoM-Driven Progressive Intelligence (PRIORITAS SETELAH PLAYBOOK)
 - [ ] **Data & Storage MoM**:

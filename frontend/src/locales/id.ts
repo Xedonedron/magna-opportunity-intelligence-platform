@@ -137,6 +137,7 @@ export const id: Translations = {
             overview: "Ringkasan",
             kyc: "Intelijen KYC",
             personas: "Persona Target",
+            stakeholders: "Stakeholder",
             meetings: "Rapat",
             documents: "Dokumen",
             timeline: "Aktivitas",

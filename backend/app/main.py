@@ -15,6 +15,7 @@ from app.api.linkedin import router as linkedin_router
 from app.api.personas import router as personas_router
 from app.api.ai_validation import router as ai_validation_router
 from app.api.companies import router as companies_router
+from app.api.company_contacts import router as company_contacts_router
 
 settings = get_settings()
 
@@ -50,6 +51,8 @@ app.include_router(users_router)
 app.include_router(opportunities_router)
 app.include_router(companies_router, prefix="/api/companies")
 app.include_router(companies_router, prefix="/api/v1/companies")
+app.include_router(company_contacts_router, prefix="/api/companies")
+app.include_router(company_contacts_router, prefix="/api/v1/companies")
 app.include_router(meetings_router)
 app.include_router(notifications_router)
 app.include_router(kyc_router)

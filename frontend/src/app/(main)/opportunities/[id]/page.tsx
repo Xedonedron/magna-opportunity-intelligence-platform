@@ -27,6 +27,7 @@ import {
     CalendarClock,
     FolderKey,
     Users as UsersIcon,
+    Contact,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -41,6 +42,7 @@ import { EditOpportunityDialog } from "@/components/domains/opportunities/EditOp
 import { KYCReportTab } from "@/components/domains/kyc/KYCReportTab";
 import { ResourcesTab } from "@/components/domains/documents/ResourcesTab";
 import { TargetPersonaTab } from "@/components/domains/personas/TargetPersonaTab";
+import { StakeholdersTab } from "@/components/domains/stakeholders/StakeholdersTab";
 import { OpportunityChatSidebar } from "@/components/domains/opportunities/OpportunityChatSidebar";
 import { formatDateTime, timeAgo, formatCurrency } from "@/lib/utils";
 import { api } from "@/lib/api";
@@ -64,11 +66,12 @@ export default function OpportunityDetailPage() {
         { id: "overview", label: t.opportunityDetail.tabs.overview || "Overview", icon: LayoutDashboard },
         { id: "kyc", label: t.opportunityDetail.tabs.kyc || "KYC Report", icon: FileText },
         { id: "personas", label: t.opportunityDetail.tabs.personas || "Target Persona", icon: UsersIcon },
+        { id: "stakeholders", label: t.opportunityDetail.tabs.stakeholders || "Stakeholders", icon: Contact },
         { id: "meetings", label: t.opportunityDetail.tabs.meetings || "Meetings", icon: Calendar },
         { id: "resources", label: t.opportunityDetail.tabs.documents || "Resources", icon: FolderKey },
         { id: "timeline", label: t.opportunityDetail.tabs.timeline || "Timeline", icon: GitCommit },
     ];
-    const [activeTab, setActiveTab] = useState(() => (tabParam && ["overview", "kyc", "personas", "meetings", "resources", "timeline"].includes(tabParam) ? tabParam : "overview"));
+    const [activeTab, setActiveTab] = useState(() => (tabParam && ["overview", "kyc", "personas", "stakeholders", "meetings", "resources", "timeline"].includes(tabParam) ? tabParam : "overview"));
 
     useEffect(() => {
         if (tabParam && tabs.some((t) => t.id === tabParam)) {
@@ -470,6 +473,14 @@ export default function OpportunityDetailPage() {
                         {activeTab === "personas" && (
                             <TargetPersonaTab opportunityId={id} />
                         )}
+                        {activeTab === "stakeholders" && (
+                            <StakeholdersTab
+                                companyId={opp.company_id}
+                                companyName={opp.company_name}
+                                canEdit={canCreateEdit}
+                            />
+                        )}
+
 
                         {activeTab === "meetings" && (
                             <div className="space-y-4">

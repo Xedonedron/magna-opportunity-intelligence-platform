@@ -804,6 +804,32 @@ async def global_search(
             Meeting.notes.ilike(f"%{q}%"),
         )
     ).limit(5).all()
+
+    # 3. Search Company Contacts / Stakeholders
+    from app.models.company_contact import CompanyContact
+    from app.models.company import Company
+
+    contact_query = db.query(CompanyContact).join(CompanyContact.company)
+    if user_role == "lgo":
+        contact_query = contact_query.join(Company.opportunities).filter(
+            Opportunity.created_by == current_user.id
+        )
+    elif user_role == "engineer":
+        contact_query = contact_query.join(Company.opportunities).filter(
+            or_(
+                Opportunity.assigned_engineer.ilike(f"%{current_user.full_name}%"),
+                Opportunity.created_by == current_user.id,
+            )
+        )
+
+    contact_results = contact_query.filter(
+        or_(
+            CompanyContact.name.ilike(f"%{q}%"),
+            CompanyContact.job_title.ilike(f"%{q}%"),
+            CompanyContact.department.ilike(f"%{q}%"),
+            CompanyContact.email.ilike(f"%{q}%"),
+        )
+    ).distinct().limit(5).all()
     
     return {
         "opportunities": [
@@ -824,6 +850,19 @@ async def global_search(
                 "date": meet.date.isoformat() if meet.date else None,
             }
             for meet in meet_results
+        ],
+        "contacts": [
+            {
+                "id": str(contact.id),
+                "name": contact.name,
+                "job_title": contact.job_title,
+                "department": contact.department,
+                "email": contact.email,
+                "company_id": str(contact.company_id),
+                "company_name": contact.company.name if contact.company else None,
+                "opportunity_id": str(contact.company.opportunities[0].id) if (contact.company and contact.company.opportunities) else None,
+            }
+            for contact in contact_results
         ]
     }
 
