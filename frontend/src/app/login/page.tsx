@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 // Force dynamic rendering to access env vars at runtime
 export const dynamic = "force-dynamic";
 
 export default function LoginPage() {
+    usePageTitle("Login");
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);

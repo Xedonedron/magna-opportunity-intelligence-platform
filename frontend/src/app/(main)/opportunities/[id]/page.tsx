@@ -35,6 +35,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { useOpportunity, useUpdateOpportunity } from "@/hooks/use-opportunities";
 import { getMasterPresales, fetchMasterData } from "@/lib/master-data";
 import { useMeetings } from "@/hooks/use-meetings";
+import { usePageTitle } from "@/hooks/use-page-title";
 import { useLanguage } from "@/context/LanguageContext";
 import { MeetingAccordion } from "@/components/domains/meetings/MeetingAccordion";
 import { CreateMeetingDialog } from "@/components/domains/meetings/CreateMeetingDialog";
@@ -107,6 +108,8 @@ export default function OpportunityDetailPage() {
     const canCreateEdit = user ? user.capabilities?.split(",").map((c: string) => c.trim()).includes("create_edit") : false;
 
     const { data: opp, isLoading } = useOpportunity(id);
+    const oppTitle = opp ? (opp.deal_title || opp.company_name) : null;
+    usePageTitle(oppTitle ? `Oppty ${oppTitle}` : "Opportunity Details");
     const { data: meetingsData } = useMeetings(id);
     const updateOpportunity = useUpdateOpportunity();
 

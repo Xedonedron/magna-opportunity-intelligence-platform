@@ -18,9 +18,11 @@ import {
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { useImportOpportunities, ImportResult } from "@/hooks/use-opportunities";
+import { usePageTitle } from "@/hooks/use-page-title";
 import { toast } from "sonner";
 
 export default function ImportLeadsPage() {
+    usePageTitle("Import Opportunities");
     const router = RouterHook();
     const importOpportunities = useImportOpportunities();
 

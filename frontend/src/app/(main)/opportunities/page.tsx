@@ -16,8 +16,10 @@ import { api } from "@/lib/api";
 import { ALL_STATUSES } from "@/types/opportunity";
 import type { OpportunityStatus } from "@/types/opportunity";
 import { fetchMasterData, DEFAULT_PRESALES } from "@/lib/master-data";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 export default function OpportunitiesPage() {
+    usePageTitle("Opportunities");
     const router = useRouter();
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");

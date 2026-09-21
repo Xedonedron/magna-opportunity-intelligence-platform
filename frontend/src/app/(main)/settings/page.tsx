@@ -35,6 +35,7 @@ import { fetchMasterData, updateMasterData, getMasterIndustries, getMasterPresal
 import { UserActivityDrawer, formatRelativeTime } from "@/components/domains/admin/UserActivityDrawer";
 import { AITokenMonitoringTab } from "@/components/domains/admin/AITokenMonitoringTab";
 import { SolutionsCatalogTab } from "@/components/domains/admin/SolutionsCatalogTab";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 const tabs = [
     { id: "profile", label: "User Profile", icon: User },
@@ -43,6 +44,7 @@ const tabs = [
 ];
 
 export default function SettingsPage() {
+    usePageTitle("Settings");
     const [activeTab, setActiveTab] = useState("profile");
 
     // Profile State

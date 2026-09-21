@@ -4,12 +4,16 @@ import { Toaster } from "sonner";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { PageTitleProvider } from "@/context/PageTitleContext";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title: "MOIP - Magna Opportunity Intelligence Platform",
+    title: {
+        default: "MOIP - Magna Opportunity Intelligence Platform",
+        template: "MOIP - %s",
+    },
     description: "Internal platform for opportunity management and AI-powered KYC",
 };
 
@@ -29,8 +33,10 @@ export default function RootLayout({
                 >
                     <QueryProvider>
                         <LanguageProvider>
-                            {children}
-                            <Toaster position="bottom-right" richColors closeButton />
+                            <PageTitleProvider>
+                                {children}
+                                <Toaster position="bottom-right" richColors closeButton />
+                            </PageTitleProvider>
                         </LanguageProvider>
                     </QueryProvider>
                 </ThemeProvider>

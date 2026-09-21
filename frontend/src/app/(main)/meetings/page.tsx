@@ -21,10 +21,12 @@ import { Input } from "@/components/ui/Input";
 import { EditMeetingDialog } from "@/components/domains/meetings/EditMeetingDialog";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useOpportunities } from "@/hooks/use-opportunities";
+import { usePageTitle } from "@/hooks/use-page-title";
 import { formatDateTime } from "@/lib/utils";
 import type { Meeting } from "@/types/meeting";
 
 export default function MeetingsPage() {
+    usePageTitle("Meetings");
     const { data: meetingsData, isLoading: isLoadingMeetings } = useMeetings();
     const { data: opportunitiesData } = useOpportunities({ page_size: 100 });
     const [searchTerm, setSearchTerm] = useState("");

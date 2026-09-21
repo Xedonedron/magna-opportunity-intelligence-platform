@@ -17,6 +17,7 @@ import {
     useMarkNotificationRead,
     useMarkAllNotificationsRead,
 } from "@/hooks/use-notifications";
+import { usePageTitle } from "@/hooks/use-page-title";
 import { useRouter } from "next/navigation";
 import { Notification } from "@/types/notification";
 
@@ -56,6 +57,7 @@ function getNotificationVisuals(type: string) {
 }
 
 export default function NotificationsPage() {
+    usePageTitle("Notifications");
     const [page, setPage] = useState(1);
     const [filter, setFilter] = useState<"all" | "unread">("all");
     const router = useRouter();

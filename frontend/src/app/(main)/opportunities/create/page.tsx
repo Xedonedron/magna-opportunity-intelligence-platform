@@ -24,6 +24,7 @@ import { CompanyAutocompleteInput } from "@/components/domains/opportunities/Com
 import { DuplicateCompanyConfirmModal } from "@/components/domains/opportunities/DuplicateCompanyConfirmModal";
 
 import { getMasterIndustries, getMasterPresales, fetchMasterData, DEFAULT_TARGET_SOLUTIONS } from "@/lib/master-data";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 import { useEffect } from "react";
 
@@ -70,6 +71,7 @@ const pipelineSteps = [
 ];
 
 export default function CreateOpportunityPage() {
+    usePageTitle("New Opportunity");
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [pipelineState, setPipelineState] = useState(0);

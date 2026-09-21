@@ -13,6 +13,7 @@ import { SolutionDistributionChart } from "@/components/dashboard/SolutionDistri
 import { IndustryDistributionChart } from "@/components/dashboard/IndustryDistributionChart";
 import { getDashboardMetrics, type DashboardFilters as Filters } from "@/lib/api/dashboard";
 import type { DashboardMetrics as Metrics } from "@/types/dashboard";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 const statusStyles: Record<string, string> = {
     New: "bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 ring-blue-600/20 dark:ring-blue-500/30",
@@ -30,6 +31,7 @@ const statusStyles: Record<string, string> = {
 };
 
 export default function DashboardPage() {
+    usePageTitle("Dashboard");
     const [metrics, setMetrics] = useState<Metrics | null>(null);
     const [filters, setFilters] = useState<Filters>({});
     const [initialLoading, setInitialLoading] = useState(true);
