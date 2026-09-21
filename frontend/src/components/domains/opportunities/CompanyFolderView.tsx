@@ -25,11 +25,13 @@ import {
     Zap,
     CircleDashed,
     FolderSymlink,
+    AlertCircle,
 } from "lucide-react";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { MultiSelect } from "@/components/ui/Input";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { Tooltip } from "@/components/ui/Tooltip";
 import {
     useCompanies,
     useCompany,
@@ -455,24 +457,39 @@ function CompanyCard({
 
                         {canDelete && (
                             count > 0 ? (
-                                <button
-                                    type="button"
-                                    disabled
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="p-1.5 rounded-md text-zinc-300 dark:text-zinc-600 cursor-not-allowed transition-colors"
-                                    title="Folder hanya dapat dihapus jika kosong (0 deal). Pindahkan atau hapus semua deal terlebih dahulu."
+                                <Tooltip
+                                    position="left"
+                                    content={
+                                        <span className="flex items-center gap-1.5">
+                                            <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                                            <span>Hanya bisa dihapus ketika tidak ada oppty</span>
+                                        </span>
+                                    }
                                 >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
+                                    <button
+                                        type="button"
+                                        disabled
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="p-1.5 rounded-md text-zinc-300 dark:text-zinc-600 cursor-not-allowed transition-colors"
+                                        aria-label="Hanya bisa dihapus ketika tidak ada oppty"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </Tooltip>
                             ) : (
-                                <button
-                                    type="button"
-                                    onClick={onDeleteCompany}
-                                    className="p-1.5 rounded-md text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
-                                    title="Hapus folder perusahaan (kosong)"
+                                <Tooltip
+                                    position="left"
+                                    content="Hapus folder perusahaan (kosong)"
                                 >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
+                                    <button
+                                        type="button"
+                                        onClick={onDeleteCompany}
+                                        className="p-1.5 rounded-md text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
+                                        aria-label="Hapus folder perusahaan (kosong)"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </Tooltip>
                             )
                         )}
                     </div>
