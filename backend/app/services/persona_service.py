@@ -28,8 +28,14 @@ Focus on creating highly relevant, consultative questions and value positioning 
    - Operations: SLA consistency, supply chain / process bottlenecks, error reduction, operational resilience.
    - Custom / Other roles: Deeply analyze role context and business domain to deliver tailored consultative intelligence.
 
-Language Requirement:
-Provide questions, notes, and value propositions in professional Indonesian (Bahasa Indonesia) with natural English enterprise tech terminology where standard.
+Language & Completeness Requirements:
+- Language: Provide questions, notes, and value propositions in professional Indonesian (Bahasa Indonesia) with natural English enterprise tech terminology where standard.
+- Completeness: You MUST generate all 4 core sections thoroughly:
+  1. focus_areas: 3-4 key tactical focus areas with descriptive context.
+  2. questions: 5-7 targeted discovery questions, each categorized with presales strategic purpose.
+  3. value_props: 3-4 compelling value proposition points.
+  4. objection_handling: 2-3 common stakeholder objections paired with persuasive consultative responses.
+- NEVER omit any section or return empty lists under any circumstances.
 """
 
 
@@ -94,7 +100,7 @@ Target Stakeholder to Meet:
 - Seniority Level: {seniority}
 - Department: {department}
 
-Please generate the comprehensive meeting playbook. Provide 3-4 focus areas, 5-7 targeted discovery questions, 3-4 value proposition points, and 2-3 common objection handling strategies."""
+Please generate the comprehensive meeting playbook. Provide 3-4 focus areas, 5-7 targeted discovery questions, 3-4 value proposition points, and 2-3 common objection handling strategies. Ensure all sections are fully populated without any empty arrays."""
 
     messages = [
         SystemMessage(content=PERSONA_SYSTEM_PROMPT),
@@ -110,7 +116,14 @@ Please generate the comprehensive meeting playbook. Provide 3-4 focus areas, 5-7
             if attempt > 1 and last_error:
                 current_messages.append(
                     HumanMessage(
-                        content=f"Previous attempt encountered an issue: '{str(last_error)}'. Please provide all structured fields fully populated."
+                        content=(
+                            f"Retry attempt {attempt}/{max_retries}: Output sebelumnya belum lengkap atau gagal validasi ({str(last_error)}). "
+                            "WAJIB lengkapi seluruh 4 komponen tanpa ada array kosong: "
+                            "1. focus_areas (min 2 item) "
+                            "2. questions (min 3 item) "
+                            "3. value_props (min 2 item) "
+                            "4. objection_handling (min 2 item)."
+                        )
                     )
                 )
 
@@ -125,6 +138,27 @@ Please generate the comprehensive meeting playbook. Provide 3-4 focus areas, 5-7
                 parsed = result.dict()
             else:
                 parsed = {}
+
+            focus_areas = parsed.get("focus_areas", [])
+            questions = parsed.get("questions", [])
+            value_props = parsed.get("value_props", [])
+            objection_handling = parsed.get("objection_handling", [])
+
+            # Completeness Guard: Ensure all 4 sections are non-empty
+            missing_sections = []
+            if not focus_areas:
+                missing_sections.append("focus_areas")
+            if not questions:
+                missing_sections.append("questions")
+            if not value_props:
+                missing_sections.append("value_props")
+            if not objection_handling:
+                missing_sections.append("objection_handling")
+
+            if missing_sections:
+                raise ValueError(
+                    f"Incomplete persona playbook response: empty section(s): {', '.join(missing_sections)}"
+                )
 
             p_tokens = estimate_tokens(user_prompt)
             c_tokens = estimate_tokens(str(parsed))
@@ -146,10 +180,10 @@ Please generate the comprehensive meeting playbook. Provide 3-4 focus areas, 5-7
             )
 
             return {
-                "focus_areas": parsed.get("focus_areas", []),
-                "questions": parsed.get("questions", []),
-                "value_props": parsed.get("value_props", []),
-                "objection_handling": parsed.get("objection_handling", []),
+                "focus_areas": focus_areas,
+                "questions": questions,
+                "value_props": value_props,
+                "objection_handling": objection_handling,
             }
         except Exception as e:
             last_error = e

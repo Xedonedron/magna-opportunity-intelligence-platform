@@ -2,8 +2,9 @@
 Tests for Target Persona endpoints and generation logic.
 """
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 import uuid
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -207,3 +208,83 @@ class TestTargetPersona:
             headers=auth_headers,
         )
         assert res2.status_code == 422
+
+    def test_persona_playbook_output_schema_requires_non_empty_lists(self):
+        """Should require all 4 sections to have at least 1 item."""
+        from pydantic import ValidationError
+        from app.schemas.persona import PersonaPlaybookOutput
+
+        valid_data = {
+            "focus_areas": [{"title": "Infra", "description": "Modernize"}],
+            "questions": [{"category": "Arch", "question": "Cloud plan?", "purpose": "Gap"}],
+            "value_props": ["Save 40% opex"],
+            "objection_handling": [{"objection": "Expensive", "response": "Phased ROI"}],
+        }
+        # Valid should pass
+        output = PersonaPlaybookOutput(**valid_data)
+        assert len(output.focus_areas) == 1
+        assert len(output.questions) == 1
+        assert len(output.value_props) == 1
+        assert len(output.objection_handling) == 1
+
+        # Missing or empty value_props should fail
+        with pytest.raises(ValidationError):
+            PersonaPlaybookOutput(
+                focus_areas=[{"title": "Infra", "description": "Modernize"}],
+                questions=[{"category": "Arch", "question": "Cloud plan?", "purpose": "Gap"}],
+                value_props=[],  # empty
+                objection_handling=[{"objection": "Expensive", "response": "Phased ROI"}],
+            )
+
+        with pytest.raises(ValidationError):
+            PersonaPlaybookOutput(
+                focus_areas=[{"title": "Infra", "description": "Modernize"}],
+                questions=[],  # empty
+                value_props=["Save 40% opex"],
+                objection_handling=[{"objection": "Expensive", "response": "Phased ROI"}],
+            )
+
+    @pytest.mark.asyncio
+    @patch("app.services.persona_service.has_active_llm_key", return_value=True)
+    @patch("app.services.persona_service.get_chat_llm")
+    async def test_generate_persona_service_retries_on_empty_section(
+        self, mock_get_llm, mock_has_key
+    ):
+        """Service should retry if LLM output has missing or empty sections and succeed once complete."""
+        from app.services.persona_service import generate_persona_playbook
+
+        mock_llm = MagicMock()
+        mock_structured = AsyncMock()
+        mock_llm.with_structured_output.return_value = mock_structured
+        mock_get_llm.return_value = mock_llm
+
+        # Attempt 1: Incomplete (value_props and objection_handling empty)
+        incomplete_resp = {
+            "focus_areas": [{"title": "Cloud", "description": "Migrate"}],
+            "questions": [{"category": "Scale", "question": "How big?", "purpose": "Size"}],
+            "value_props": [],
+            "objection_handling": [],
+        }
+        # Attempt 2: Complete
+        complete_resp = {
+            "focus_areas": [{"title": "Cloud", "description": "Migrate"}],
+            "questions": [{"category": "Scale", "question": "How big?", "purpose": "Size"}],
+            "value_props": ["Lower TCO"],
+            "objection_handling": [{"objection": "Timing", "response": "Fast"}],
+        }
+        mock_structured.ainvoke.side_effect = [incomplete_resp, complete_resp]
+
+        result = await generate_persona_playbook(
+            company_name="TestCo",
+            industry="Tech",
+            product="Cloud Suite",
+            customer_needs="Cost reduction",
+            additional_notes=None,
+            seniority="CTO",
+            department="IT",
+        )
+
+        assert mock_structured.ainvoke.call_count == 2
+        assert len(result["value_props"]) == 1
+        assert result["value_props"][0] == "Lower TCO"
+

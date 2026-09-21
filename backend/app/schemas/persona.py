@@ -22,10 +22,26 @@ class ObjectionItem(BaseModel):
 
 class PersonaPlaybookOutput(BaseModel):
     """Pydantic schema for LLM structured output generation."""
-    focus_areas: List[FocusAreaItem] = Field(default_factory=list, description="Key priority focus areas")
-    questions: List[QuestionItem] = Field(default_factory=list, description="Targeted discovery questions")
-    value_props: List[str] = Field(default_factory=list, description="Tailored value propositions")
-    objection_handling: List[ObjectionItem] = Field(default_factory=list, description="Common objections and responses")
+    focus_areas: List[FocusAreaItem] = Field(
+        ...,
+        min_length=1,
+        description="Key priority focus areas (provide at least 2-4 tactical areas)",
+    )
+    questions: List[QuestionItem] = Field(
+        ...,
+        min_length=1,
+        description="Targeted discovery questions (provide at least 3-6 consultative questions)",
+    )
+    value_props: List[str] = Field(
+        ...,
+        min_length=1,
+        description="Tailored value propositions (provide at least 2-4 strong value points)",
+    )
+    objection_handling: List[ObjectionItem] = Field(
+        ...,
+        min_length=1,
+        description="Common objections and responses (provide at least 2-3 objection responses)",
+    )
 
 
 class PersonaGenerateRequest(BaseModel):

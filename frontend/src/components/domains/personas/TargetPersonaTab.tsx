@@ -432,6 +432,33 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                 </Card>
             ) : activePersona ? (
                 <div className="space-y-6">
+                    {/* Incomplete Playbook Banner Alert */}
+                    {(!activePersona.value_props ||
+                        activePersona.value_props.length === 0 ||
+                        !activePersona.questions ||
+                        activePersona.questions.length === 0 ||
+                        !activePersona.objection_handling ||
+                        activePersona.objection_handling.length === 0) && (
+                        <div className="p-3.5 rounded-xl border border-amber-200 dark:border-amber-800/60 bg-amber-50/90 dark:bg-amber-950/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                            <div className="flex items-center gap-2.5 text-amber-900 dark:text-amber-200">
+                                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                                <span>
+                                    Playbook ini memiliki bagian yang belum terisi lengkap. Silakan lakukan regenerasi agar seluruh rekomendasi pertemuan terisi penuh.
+                                </span>
+                            </div>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleGenerate(true)}
+                                disabled={isPending || !canGenerate}
+                                className="shrink-0 h-7 text-xs border-amber-300 dark:border-amber-700 bg-white/70 dark:bg-zinc-900/70 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-900 dark:text-amber-100 self-end sm:self-auto"
+                            >
+                                <RefreshCw className={`w-3 h-3 mr-1.5 ${isCurrentTargetGenerating ? "animate-spin" : ""}`} />
+                                Regenerate Sekarang
+                            </Button>
+                        </div>
+                    )}
+
                     {/* Key Strategic Focus & Value Props */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Focus Areas */}
@@ -443,16 +470,20 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                                 </h4>
                             </div>
                             <div className="space-y-3">
-                                {activePersona.focus_areas?.map((fa, i) => (
-                                    <div key={i} className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-100 dark:border-zinc-800">
-                                        <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 block mb-1">
-                                            {fa.title}
-                                        </span>
-                                        <p className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed">
-                                            {fa.description}
-                                        </p>
-                                    </div>
-                                ))}
+                                {activePersona.focus_areas && activePersona.focus_areas.length > 0 ? (
+                                    activePersona.focus_areas.map((fa, i) => (
+                                        <div key={i} className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-100 dark:border-zinc-800">
+                                            <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 block mb-1">
+                                                {fa.title}
+                                            </span>
+                                            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                                                {fa.description}
+                                            </p>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-xs text-zinc-400 italic">Belum ada fokus prioritas.</p>
+                                )}
                             </div>
                         </Card>
 
@@ -465,12 +496,16 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                                 </h4>
                             </div>
                             <div className="space-y-2.5">
-                                {activePersona.value_props?.map((vp, i) => (
-                                    <div key={i} className="flex items-start gap-2 text-xs text-zinc-700 dark:text-zinc-200 bg-amber-50/40 dark:bg-amber-950/20 p-2.5 rounded-lg border border-amber-100/60 dark:border-amber-900/40">
-                                        <CheckCircle2 className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                                        <span>{vp}</span>
-                                    </div>
-                                ))}
+                                {activePersona.value_props && activePersona.value_props.length > 0 ? (
+                                    activePersona.value_props.map((vp, i) => (
+                                        <div key={i} className="flex items-start gap-2 text-xs text-zinc-700 dark:text-zinc-200 bg-amber-50/40 dark:bg-amber-950/20 p-2.5 rounded-lg border border-amber-100/60 dark:border-amber-900/40">
+                                            <CheckCircle2 className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                                            <span>{vp}</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-xs text-zinc-400 italic">Belum ada value proposition yang ter-generate.</p>
+                                )}
                             </div>
                         </Card>
                     </div>
@@ -508,82 +543,87 @@ export function TargetPersonaTab({ opportunityId }: TargetPersonaTabProps) {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                            {activePersona.questions?.map((q, idx) => (
-                                <div
-                                    key={idx}
-                                    className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/30 dark:bg-zinc-800/40 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-white dark:hover:bg-zinc-800 transition-all space-y-2 relative group"
-                                >
-                                    <div className="flex items-center justify-between gap-2">
-                                        <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-900">
-                                            {q.category}
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                copyToClipboard(
-                                                    `[${q.category}] ${q.question}\nTujuan: ${q.purpose}`,
-                                                    `q-${idx}`
-                                                )
-                                            }
-                                            className="p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded transition-colors"
-                                            title="Copy Question"
-                                        >
-                                            {copiedIndex === `q-${idx}` ? (
-                                                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                                            ) : (
-                                                <Copy className="w-3.5 h-3.5" />
-                                            )}
-                                        </button>
-                                    </div>
+                            {activePersona.questions && activePersona.questions.length > 0 ? (
+                                activePersona.questions.map((q, idx) => (
+                                    <div
+                                        key={idx}
+                                        className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/30 dark:bg-zinc-800/40 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-white dark:hover:bg-zinc-800 transition-all space-y-2 relative group"
+                                    >
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-900">
+                                                {q.category}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    copyToClipboard(
+                                                        `[${q.category}] ${q.question}\nTujuan: ${q.purpose}`,
+                                                        `q-${idx}`
+                                                    )
+                                                }
+                                                className="p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded transition-colors"
+                                                title="Copy Question"
+                                            >
+                                                {copiedIndex === `q-${idx}` ? (
+                                                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                                ) : (
+                                                    <Copy className="w-3.5 h-3.5" />
+                                                )}
+                                            </button>
+                                        </div>
 
-                                    <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 leading-relaxed">
-                                        "{q.question}"
-                                    </p>
-
-                                    <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                                        <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium block">
-                                            Target Insight:
-                                        </span>
-                                        <p className="text-[11px] text-zinc-600 dark:text-zinc-300 leading-normal">
-                                            {q.purpose}
+                                        <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 leading-relaxed">
+                                            "{q.question}"
                                         </p>
+
+                                        <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                                            <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium block">
+                                                Target Insight:
+                                            </span>
+                                            <p className="text-[11px] text-zinc-600 dark:text-zinc-300 leading-normal">
+                                                {q.purpose}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            ) : (
+                                <p className="text-xs text-zinc-400 italic col-span-2">Belum ada pertanyaan discovery yang ter-generate.</p>
+                            )}
                         </div>
                     </Card>
 
                     {/* Objection Handling */}
-                    {activePersona.objection_handling &&
-                        activePersona.objection_handling.length > 0 && (
-                            <Card className="p-5 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
-                                    <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
-                                        {t.opportunityDetail.persona.objectionHandling}
-                                    </h4>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {activePersona.objection_handling.map((obj, i) => (
-                                        <div
-                                            key={i}
-                                            className="p-3.5 rounded-lg border border-rose-100 dark:border-rose-900/40 bg-rose-50/20 dark:bg-rose-950/20 space-y-2"
-                                        >
-                                            <div className="text-xs font-medium text-rose-900 dark:text-rose-200">
-                                                <span className="font-bold text-rose-700 dark:text-rose-400">{t.opportunityDetail.persona.potentialObjection}: </span>
-                                                "{obj.objection}"
-                                            </div>
-                                            <div className="text-xs text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 p-2.5 rounded border border-zinc-200/80 dark:border-zinc-700">
-                                                <span className="font-semibold text-emerald-700 dark:text-emerald-400 block mb-0.5">
-                                                    {t.opportunityDetail.persona.recommendedResponse}:
-                                                </span>
-                                                {obj.response}
-                                            </div>
+                    <Card className="p-5 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
+                        <div className="flex items-center gap-2 mb-4">
+                            <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                            <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
+                                {t.opportunityDetail.persona.objectionHandling}
+                            </h4>
+                        </div>
+                        {activePersona.objection_handling && activePersona.objection_handling.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {activePersona.objection_handling.map((obj, i) => (
+                                    <div
+                                        key={i}
+                                        className="p-3.5 rounded-lg border border-rose-100 dark:border-rose-900/40 bg-rose-50/20 dark:bg-rose-950/20 space-y-2"
+                                    >
+                                        <div className="text-xs font-medium text-rose-900 dark:text-rose-200">
+                                            <span className="font-bold text-rose-700 dark:text-rose-400">{t.opportunityDetail.persona.potentialObjection}: </span>
+                                            "{obj.objection}"
                                         </div>
-                                    ))}
-                                </div>
-                            </Card>
+                                        <div className="text-xs text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 p-2.5 rounded border border-zinc-200/80 dark:border-zinc-700">
+                                            <span className="font-semibold text-emerald-700 dark:text-emerald-400 block mb-0.5">
+                                                {t.opportunityDetail.persona.recommendedResponse}:
+                                            </span>
+                                            {obj.response}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-xs text-zinc-400 italic">Belum ada strategi penanganan keberatan (objection handling) yang ter-generate.</p>
                         )}
+                    </Card>
                 </div>
             ) : (
                 /* Empty State: Prompt to generate */
