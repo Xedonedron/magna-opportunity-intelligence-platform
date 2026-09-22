@@ -33,6 +33,13 @@ class MasterSolution(Base):
     summary_snippet = Column(Text, nullable=True)
     source_url = Column(String(500), nullable=True)
     
+    # Isti presales metadata & battlecard
+    solution_domain = Column(String(100), nullable=True, default="general_enterprise_it")
+    regulatory_compliance = Column(JSONB, nullable=True, default=lambda: ["none"])
+    target_environment = Column(String(50), nullable=True, default="unspecified")
+    probing_questions = Column(JSONB, nullable=True, default=list)
+    battlecard_ammo = Column(JSONB, nullable=True, default=dict)
+    
     is_active = Column(Boolean, default=True, nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
@@ -52,6 +59,11 @@ class MasterSolution(Base):
             "business_impact": self.business_impact or "",
             "summary_snippet": self.summary_snippet or "",
             "source_url": self.source_url or "",
+            "solution_domain": self.solution_domain or "general_enterprise_it",
+            "regulatory_compliance": self.regulatory_compliance or ["none"],
+            "target_environment": self.target_environment or "unspecified",
+            "probing_questions": self.probing_questions or [],
+            "battlecard_ammo": self.battlecard_ammo or {},
             "is_active": self.is_active,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

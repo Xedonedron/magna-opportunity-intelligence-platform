@@ -817,6 +817,11 @@ def create_master_solution(
         business_impact=payload.business_impact,
         summary_snippet=payload.summary_snippet,
         source_url=payload.source_url,
+        solution_domain=payload.solution_domain or "general_enterprise_it",
+        regulatory_compliance=payload.regulatory_compliance or ["none"],
+        target_environment=payload.target_environment or "unspecified",
+        probing_questions=payload.probing_questions or [],
+        battlecard_ammo=payload.battlecard_ammo or {},
         is_active=payload.is_active,
     )
     db.add(new_solution)
@@ -886,17 +891,23 @@ def sync_master_solutions_from_curated(
     _admin: User = Depends(require_superadmin),
 ):
     """
-    Synchronize PostgreSQL master_solutions table with the official curated_solutions.json.
+    Synchronize PostgreSQL master_solutions table with the official curated_solutions_isti.json.
     Purges dead/deprecated links and ensures naming matches enterprise standards.
     """
     import os
     import json
 
     curated_path = os.path.join(
-        os.path.dirname(__file__), "..", "data", "curated_solutions.json"
+        os.path.dirname(__file__), "..", "data", "curated_solutions_isti.json"
     )
     if not os.path.exists(curated_path):
-        raise HTTPException(status_code=404, detail="curated_solutions.json not found")
+        fallback_path = os.path.join(
+            os.path.dirname(__file__), "..", "data", "curated_solutions.json"
+        )
+        if os.path.exists(fallback_path):
+            curated_path = fallback_path
+        else:
+            raise HTTPException(status_code=404, detail="curated_solutions_isti.json not found")
 
     with open(curated_path, "r", encoding="utf-8") as f:
         official_solutions = json.load(f)
@@ -920,6 +931,12 @@ def sync_master_solutions_from_curated(
         if not existing and source_url:
             existing = db.query(MasterSolution).filter(MasterSolution.source_url == source_url).first()
 
+        solution_domain = item.get("solution_domain", "general_enterprise_it")
+        regulatory_compliance = item.get("regulatory_compliance", ["none"])
+        target_environment = item.get("target_environment", "unspecified")
+        probing_questions = item.get("probing_questions", [])
+        battlecard_ammo = item.get("battlecard_ammo", {})
+
         if existing:
             existing.title = item["title"].strip()
             existing.slug = slug
@@ -933,6 +950,11 @@ def sync_master_solutions_from_curated(
             existing.business_impact = item.get("business_impact", "")
             existing.summary_snippet = item.get("summary_snippet", "")
             existing.source_url = source_url
+            existing.solution_domain = solution_domain
+            existing.regulatory_compliance = regulatory_compliance
+            existing.target_environment = target_environment
+            existing.probing_questions = probing_questions
+            existing.battlecard_ammo = battlecard_ammo
             existing.is_active = True
         else:
             new_record = MasterSolution(
@@ -948,6 +970,11 @@ def sync_master_solutions_from_curated(
                 business_impact=item.get("business_impact", ""),
                 summary_snippet=item.get("summary_snippet", ""),
                 source_url=source_url,
+                solution_domain=solution_domain,
+                regulatory_compliance=regulatory_compliance,
+                target_environment=target_environment,
+                probing_questions=probing_questions,
+                battlecard_ammo=battlecard_ammo,
                 is_active=True,
             )
             db.add(new_record)

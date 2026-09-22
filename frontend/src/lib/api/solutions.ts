@@ -14,6 +14,12 @@ export interface MasterSolution {
     business_impact?: string;
     summary_snippet?: string;
     source_url?: string;
+    // Isti Presales Metadata
+    solution_domain?: string;
+    regulatory_compliance?: string[];
+    target_environment?: string;
+    probing_questions?: string[];
+    battlecard_ammo?: { key_differentiators?: string; objection_handling?: string; market_stats?: string };
     is_active: boolean;
     created_at?: string;
     updated_at?: string;
@@ -30,6 +36,11 @@ export interface MasterSolutionPayload {
     pain_points?: string[];
     key_subheadings?: string[];
     source_url?: string;
+    solution_domain?: string;
+    regulatory_compliance?: string[];
+    target_environment?: string;
+    probing_questions?: string[];
+    battlecard_ammo?: { key_differentiators?: string; objection_handling?: string; market_stats?: string };
     is_active?: boolean;
 }
 

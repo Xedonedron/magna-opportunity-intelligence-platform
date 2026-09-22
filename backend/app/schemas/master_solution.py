@@ -19,6 +19,12 @@ class MasterSolutionBase(BaseModel):
     business_impact: Optional[str] = None
     summary_snippet: Optional[str] = None
     source_url: Optional[str] = Field(None, max_length=500)
+    # Isti Presales Metadata
+    solution_domain: Optional[str] = "general_enterprise_it"
+    regulatory_compliance: Optional[List[str]] = Field(default_factory=lambda: ["none"])
+    target_environment: Optional[str] = "unspecified"
+    probing_questions: Optional[List[str]] = Field(default_factory=list)
+    battlecard_ammo: Optional[dict] = Field(default_factory=dict)
     is_active: bool = True
 
 
@@ -39,6 +45,11 @@ class MasterSolutionUpdate(BaseModel):
     business_impact: Optional[str] = None
     summary_snippet: Optional[str] = None
     source_url: Optional[str] = Field(None, max_length=500)
+    solution_domain: Optional[str] = None
+    regulatory_compliance: Optional[List[str]] = None
+    target_environment: Optional[str] = None
+    probing_questions: Optional[List[str]] = None
+    battlecard_ammo: Optional[dict] = None
     is_active: Optional[bool] = None
 
 

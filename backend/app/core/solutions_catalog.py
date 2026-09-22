@@ -355,7 +355,45 @@ class SolutionsCatalog:
         self._load_catalog()
 
     def _load_catalog(self):
-        # 1. Primary: curated_solutions_isti.json (26 presales-enriched cards)
+        # 1. Primary: Try loading from database master_solutions table
+        try:
+            from app.core.database import SessionLocal
+            from app.models.master_solution import MasterSolution
+
+            session = SessionLocal()
+            try:
+                db_solutions = session.query(MasterSolution).filter(MasterSolution.is_active == True).all()
+                if db_solutions and len(db_solutions) > 0:
+                    self._cards = [
+                        SolutionCard(
+                            id=str(s.slug or s.id),
+                            title=s.title,
+                            pillar=s.pillar,
+                            tier=s.tier,
+                            primary_products=s.primary_products or [],
+                            all_products=s.all_products or [],
+                            target_industries=s.target_industries or ["Enterprise General"],
+                            source_url=s.source_url or "",
+                            key_subheadings=s.key_subheadings or [],
+                            pain_points=s.pain_points or [],
+                            business_impact=s.business_impact or "",
+                            summary_snippet=s.summary_snippet or "",
+                            solution_domain=s.solution_domain or "general_enterprise_it",
+                            regulatory_compliance=s.regulatory_compliance or [],
+                            target_environment=s.target_environment or "unspecified",
+                            probing_questions=s.probing_questions or [],
+                            battlecard_ammo=s.battlecard_ammo or {},
+                        )
+                        for s in db_solutions
+                    ]
+                    logger.info(f"[SolutionsCatalog] Loaded {len(self._cards)} solutions from database master_solutions table.")
+                    return
+            finally:
+                session.close()
+        except Exception as db_err:
+            logger.debug(f"[SolutionsCatalog] Database query bypassed/table not ready: {db_err}")
+
+        # 2. Secondary fallback: curated_solutions_isti.json (26 presales-enriched cards)
         loaded_raw = []
         if os.path.exists(ISTI_DATA_FILE):
             try:
@@ -364,40 +402,6 @@ class SolutionsCatalog:
                 logger.info(f"[SolutionsCatalog] Loaded {len(loaded_raw)} solutions from {ISTI_DATA_FILE}")
             except Exception as e:
                 logger.warning(f"[SolutionsCatalog] Failed to load {ISTI_DATA_FILE}: {e}")
-
-        # 2. Secondary: Try loading from database master_solutions table
-        if not loaded_raw:
-            try:
-                from app.core.database import SessionLocal
-                from app.models.master_solution import MasterSolution
-
-                session = SessionLocal()
-                try:
-                    db_solutions = session.query(MasterSolution).filter(MasterSolution.is_active == True).all()
-                    if db_solutions and len(db_solutions) > 0:
-                        self._cards = [
-                            SolutionCard(
-                                id=str(s.id),
-                                title=s.title,
-                                pillar=s.pillar,
-                                tier=s.tier,
-                                primary_products=s.primary_products or [],
-                                all_products=s.all_products or [],
-                                target_industries=s.target_industries or ["Enterprise General"],
-                                source_url=s.source_url or "",
-                                key_subheadings=s.key_subheadings or [],
-                                pain_points=s.pain_points or [],
-                                business_impact=s.business_impact or "",
-                                summary_snippet=s.summary_snippet or "",
-                            )
-                            for s in db_solutions
-                        ]
-                        logger.info(f"[SolutionsCatalog] Loaded {len(self._cards)} solutions from database master_solutions table.")
-                        return
-                finally:
-                    session.close()
-            except Exception as db_err:
-                logger.debug(f"[SolutionsCatalog] Database query bypassed/table not ready: {db_err}")
 
         # 3. Tertiary: Fallback to curated_solutions.json
         if not loaded_raw and os.path.exists(DATA_FILE):
