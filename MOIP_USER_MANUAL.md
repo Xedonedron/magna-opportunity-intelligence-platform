@@ -98,6 +98,14 @@ Klik avatar / inisial profil Anda di pojok kanan atas navigasi, lalu pilih **Log
 4. Klik **Create Opportunity**.
 5. Sistem otomatis memproses peluang dan memicu pipeline **KYC AI** di background.
 
+### 3.1b Mode Tampilan: Company Folder vs Flat List
+
+Halaman **Opportunities** kini menyediakan **Company Folder View**:
+- **Folder Berdasarkan Akun Perusahaan**: Peluang dikelompokkan secara hierarkis per perusahaan klien, mencegah duplikasi akun dan memudahkan pemantauan portofolio deal untuk akun enterprise yang memiliki multi-proyek.
+- **Deteksi Otomatis Duplikasi**: Saat memasukkan nama perusahaan atau website, sistem memvalidasi root domain dan pola legalitas perusahaan (*PT/CV/Tbk*) secara real-time. Jika perusahaan sudah ada, pengguna diarahkan untuk membuat opportunity baru langsung di dalam folder perusahaan terkait.
+- **Drawer Profil & Kontak Stakeholder**: Membuka drawer folder perusahaan menampilkan data inteligensi perusahaan, ringkasan KYC gabungan lintas proyek, serta daftar stakeholder (Contact PIC) dengan penandaan *Primary Contact*.
+
+
 
 ### 3.2 Bulk Import Leads (CSV/Excel)
 

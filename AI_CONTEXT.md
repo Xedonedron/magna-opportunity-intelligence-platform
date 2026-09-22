@@ -55,6 +55,28 @@
 |--------|------|-------------|---------------|
 | GET | `/` | List active users (optional `role` query filter for assignment dropdowns) | Yes |
 
+### Companies (`/api/companies`)
+| Method | Path | Description | Auth Required |
+|--------|------|-------------|---------------|
+| GET | `/` | List companies paginated with filters and opportunity counts | Yes |
+| POST | `/` | Create company folder with deterministic deduplication guard | Yes (create_edit) |
+| GET | `/check-similarity` | Check company duplicates via root domain & recursive legal name stripping | Yes |
+| GET | `/{company_id}` | Get company detail with nested opportunities | Yes |
+| PATCH | `/{company_id}` | Update company folder metadata | Yes (create_edit) |
+| DELETE | `/{company_id}` | Delete company folder and child opportunities | Yes (delete) |
+| GET | `/{company_id}/kyc-summary` | Aggregated KYC insights from latest completed child opportunity | Yes |
+| POST | `/{company_id}/opportunities` | Create child opportunity inheriting company profile | Yes (create_edit) |
+
+### Company Contacts (`/api/companies/{company_id}/contacts`)
+| Method | Path | Description | Auth Required |
+|--------|------|-------------|---------------|
+| GET | `/` | List contact stakeholders under company folder (is_primary sorted first) | Yes |
+| POST | `/` | Create contact stakeholder under company | Yes (create_edit) |
+| GET | `/{contact_id}` | Get contact details | Yes |
+| PATCH | `/{contact_id}` | Update contact details | Yes (create_edit) |
+| DELETE | `/{contact_id}` | Delete contact stakeholder | Yes (create_edit) |
+
+
 ### Opportunities (`/api/opportunities`)
 | Method | Path | Description | Auth Required |
 |--------|------|-------------|---------------|
@@ -425,6 +447,15 @@
 - `research_node` — Web research phase: Tavily search + Google Grounding + website crawling via `WebCrawlerService`
 - `analysis_node` — LLM analysis phase: generates all KYC sections from research context + Smartnet Magna catalog (prompt-injected)
 - `generate_kyc_report(opportunity_id, source_type, db)` — Main entry point, invokes LangGraph pipeline
+### Decoupled KYC Sectional Runner (`backend/app/services/kyc_sectional_runner.py`)
+- **2-Layer Execution Model**:
+  - **Layer A (Company Foundation)**: Parallel execution of Module 1 (Company Profile) & Module 2 (Industry & Competitors). Zero-Redundant KYC Reuse allows reusing cached company foundation across multiple opportunities under the same company folder.
+  - **Layer B (Opportunity Deal Intelligence)**: Sequential + parallel execution of deal-specific sections:
+    - Step 1: Module 3 (Needs & Pain Points + Presales Intent Slots extraction).
+    - Stage 2: Two-Stage Semantic Router matching against 26 presales solution cards (`curated_solutions_isti.json`).
+    - Step 2: Parallel execution of Module 4 (Architectural Use Cases) & Module 5 (Engagement Strategy / Objections / Probing Questions).
+    - Step 3: Module 6 (Executive Summary & Synthesis).
+
 
 ### Web Crawler Service (`backend/app/services/web_crawler_service.py`)
 **Functions:**

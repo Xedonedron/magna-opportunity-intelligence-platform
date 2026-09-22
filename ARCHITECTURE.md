@@ -401,6 +401,9 @@ stateDiagram-v2
 
 ```mermaid
 erDiagram
+    companies ||--o{ opportunities : "company_id"
+    companies ||--o{ company_contacts : "company_id"
+
     users ||--o{ opportunities : "created_by"
     users ||--o{ notifications : "user_id"
     users ||--o{ audit_logs : "user_id"
@@ -415,6 +418,34 @@ erDiagram
     opportunities ||--o{ opportunity_chat_messages : "opportunity_id"
     opportunities ||--o{ notifications : "opportunity_id"
     opportunities ||--o{ ai_token_usages : "opportunity_id"
+
+    companies {
+        UUID id PK
+        String name
+        String normalized_name
+        String website
+        String industry
+        Text business_process
+        String employee_count
+        JSON tech_stack
+        DateTime created_at
+        DateTime updated_at
+    }
+
+    company_contacts {
+        UUID id PK
+        UUID company_id FK
+        String name
+        String job_title
+        String department
+        String email
+        String phone
+        String linkedin_url
+        Boolean is_primary
+        Text notes
+        DateTime created_at
+        DateTime updated_at
+    }
 
     users {
         UUID id PK
@@ -433,6 +464,7 @@ erDiagram
 
     opportunities {
         UUID id PK
+        UUID company_id FK
         String company_name
         String contact_name
         String website
@@ -712,6 +744,19 @@ Implementasi: `socket.gethostbyname()` → `ipaddress.ip_address()` → check `.
 
 ### 7.1 KYC Pipeline — LangGraph 2-Node StateGraph
 
+MOIP mengimplementasikan arsitektur **Decoupled 2-Layer Sectional KYC Pipeline** (`backend/app/services/kyc_sectional_runner.py`), memisahkan domain profil perusahaan dari domain opportunity penawaran spesifik.
+
+- **Layer A: Company Foundation (Parallel Modules 1 & 2)**:
+  - Module 1: Company Profile (Overview, Business Model, Location)
+  - Module 2: Industry & Competitors
+  - Bersifat company-level, independen terhadap customer needs, dan dapat di-reuse (Zero-Redundant KYC Reuse) saat opportunity baru dibuat di folder company yang sama.
+- **Layer B: Opportunity Deal Intelligence (Modules 3-6)**:
+  - Step 1: Module 3 (Customer Needs, Pain Points & Presales Intent Slots)
+  - Stage 2: Two-Stage Hybrid Semantic Router (Isolated Opportunity Scope) mencocokkan katalog presales `curated_solutions_isti.json` (26 kartu presales mendalam).
+  - Step 2: Parallel Modules 4 & 5 (Architectural Use Cases & Engagement Strategy)
+  - Step 3: Module 6 (Executive Summary & Strategic Synthesis)
+
+
 ```
 ┌────────────────────────────────────────────────────────────────┐
 │                   LangGraph StateGraph                         │
@@ -733,6 +778,9 @@ Implementasi: `socket.gethostbyname()` → `ipaddress.ip_address()` → check `.
 │  Input: company_name, website, industry, customer_needs, etc.  │
 │  Output: 13 KYC sections + references                          │
 └────────────────────────────────────────────────────────────────┘
+```
+
+
 ### 7.2 RAG Strategy & Grounding Engine: Dynamic Solutions Injection
 
 MOIP **tidak memerlukan vector database** di lingkungan produksi. Sebagai gantinya, MOIP mengadopsi pendekatan **Centralized In-Memory & Database-Backed Solutions Grounding Engine** dengan **Dynamic Relevance Scoring**:
@@ -927,6 +975,30 @@ docker compose exec -T backend alembic upgrade head
 | Method | Path | Auth | Deskripsi |
 |--------|------|------|-----------|
 | GET | `/` | Yes | List active users, optional role filter |
+
+### Companies — `/api/companies`
+
+| Method | Path | Auth | Deskripsi |
+|--------|------|------|-----------|
+| GET | `/` | Yes | List companies paginated with opportunity count and filters |
+| POST | `/` | create_edit | Create company folder (deterministic deduplication guard) |
+| GET | `/check-similarity` | Yes | Check company duplicate by root domain and normalized name |
+| GET | `/{company_id}` | Yes | Company detail with child opportunities |
+| PATCH | `/{company_id}` | create_edit | Update company metadata |
+| DELETE | `/{company_id}` | delete | Delete company folder and child opportunities |
+| GET | `/{company_id}/kyc-summary` | Yes | Aggregated KYC summary from child opportunities |
+| POST | `/{company_id}/opportunities` | create_edit | Create opportunity nested under company folder |
+
+### Company Contacts — `/api/companies/{company_id}/contacts`
+
+| Method | Path | Auth | Deskripsi |
+|--------|------|------|-----------|
+| GET | `/` | Yes | List contacts for company folder (sorted by is_primary desc) |
+| POST | `/` | create_edit | Create new contact stakeholder |
+| GET | `/{contact_id}` | Yes | Contact details |
+| PATCH | `/{contact_id}` | create_edit | Update contact details |
+| DELETE | `/{contact_id}` | create_edit | Delete contact stakeholder |
+
 
 ### Opportunities — `/api/opportunities`
 
