@@ -112,6 +112,28 @@ async def test_run_opportunity_intelligence_produces_mod3_to_6():
 
 
 @pytest.mark.asyncio
+async def test_run_opportunity_intelligence_writes_routed_cards_to_state():
+    """Bug #1 regression: routed_cards must be written to state['matched_smg_cards']."""
+    state = _mock_state(industry="Banking")
+    # Patch route_presales_solutions to return a known card list
+    fake_card = MagicMock()
+    fake_card.title = "PAM Solution"
+    fake_card.source_url = "https://example.com/pam"
+    fake_card.primary_products = ["BeyondTrust"]
+    fake_card.all_products = ["BeyondTrust"]
+    with patch("app.services.kyc_sectional_runner.invoke_section") as mock_invoke, \
+         patch("app.services.kyc_sectional_runner.solutions_catalog") as mock_catalog:
+        mock_invoke.side_effect = [_make_mod3(), _make_mod4(), _make_mod5(), _make_mod6()]
+        mock_catalog.route_presales_solutions.return_value = ("routed ctx", [fake_card], [])
+        await run_opportunity_intelligence(
+            state=state, mod1=_make_mod1(), mod2=_make_mod2(), llm=MagicMock(),
+            config=None, update_progress_fn=AsyncMock(), clean_json_fn=lambda x: x,
+            base_context="ctx", use_cases_context="", solutions_context="", matched_smg_cards=[],
+        )
+    assert state.get("matched_smg_cards") == [fake_card], "routed_cards must propagate to state"
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_reuses_cached_profile():
     cached = {
         "company_overview": {"name": "PT ABC Indonesia", "description": "Bank", "key_products": []},

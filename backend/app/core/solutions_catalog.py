@@ -20,6 +20,7 @@ from typing import Dict, List, Optional, Any, Tuple
 logger = logging.getLogger(__name__)
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), "..", "data", "curated_solutions.json")
+ISTI_DATA_FILE = os.path.join(os.path.dirname(__file__), "..", "data", "curated_solutions_isti.json")
 
 
 @dataclass
@@ -36,6 +37,12 @@ class SolutionCard:
     pain_points: List[str] = field(default_factory=list)
     business_impact: str = ""
     summary_snippet: str = ""
+    # Isti presales metadata
+    solution_domain: str = "general_enterprise_it"
+    regulatory_compliance: List[str] = field(default_factory=list)
+    target_environment: str = "unspecified"
+    probing_questions: List[str] = field(default_factory=list)
+    battlecard_ammo: Dict[str, Any] = field(default_factory=dict)
 
 
 
@@ -348,42 +355,52 @@ class SolutionsCatalog:
         self._load_catalog()
 
     def _load_catalog(self):
-        # 1. Primary: Try loading from database master_solutions table
-        try:
-            from app.core.database import SessionLocal
-            from app.models.master_solution import MasterSolution
-
-            session = SessionLocal()
-            try:
-                db_solutions = session.query(MasterSolution).filter(MasterSolution.is_active == True).all()
-                if db_solutions and len(db_solutions) > 0:
-                    self._cards = [
-                        SolutionCard(
-                            id=str(s.id),
-                            title=s.title,
-                            pillar=s.pillar,
-                            tier=s.tier,
-                            primary_products=s.primary_products or [],
-                            all_products=s.all_products or [],
-                            target_industries=s.target_industries or ["Enterprise General"],
-                            source_url=s.source_url or "",
-                            key_subheadings=s.key_subheadings or [],
-                            pain_points=s.pain_points or [],
-                            business_impact=s.business_impact or "",
-                            summary_snippet=s.summary_snippet or "",
-                        )
-                        for s in db_solutions
-                    ]
-                    logger.info(f"[SolutionsCatalog] Loaded {len(self._cards)} solutions from database master_solutions table.")
-                    return
-            finally:
-                session.close()
-        except Exception as db_err:
-            logger.debug(f"[SolutionsCatalog] Database query bypassed/table not ready: {db_err}")
-
-        # 2. Secondary: Fallback to curated_solutions.json
+        # 1. Primary: curated_solutions_isti.json (26 presales-enriched cards)
         loaded_raw = []
-        if os.path.exists(DATA_FILE):
+        if os.path.exists(ISTI_DATA_FILE):
+            try:
+                with open(ISTI_DATA_FILE, "r", encoding="utf-8") as f:
+                    loaded_raw = json.load(f)
+                logger.info(f"[SolutionsCatalog] Loaded {len(loaded_raw)} solutions from {ISTI_DATA_FILE}")
+            except Exception as e:
+                logger.warning(f"[SolutionsCatalog] Failed to load {ISTI_DATA_FILE}: {e}")
+
+        # 2. Secondary: Try loading from database master_solutions table
+        if not loaded_raw:
+            try:
+                from app.core.database import SessionLocal
+                from app.models.master_solution import MasterSolution
+
+                session = SessionLocal()
+                try:
+                    db_solutions = session.query(MasterSolution).filter(MasterSolution.is_active == True).all()
+                    if db_solutions and len(db_solutions) > 0:
+                        self._cards = [
+                            SolutionCard(
+                                id=str(s.id),
+                                title=s.title,
+                                pillar=s.pillar,
+                                tier=s.tier,
+                                primary_products=s.primary_products or [],
+                                all_products=s.all_products or [],
+                                target_industries=s.target_industries or ["Enterprise General"],
+                                source_url=s.source_url or "",
+                                key_subheadings=s.key_subheadings or [],
+                                pain_points=s.pain_points or [],
+                                business_impact=s.business_impact or "",
+                                summary_snippet=s.summary_snippet or "",
+                            )
+                            for s in db_solutions
+                        ]
+                        logger.info(f"[SolutionsCatalog] Loaded {len(self._cards)} solutions from database master_solutions table.")
+                        return
+                finally:
+                    session.close()
+            except Exception as db_err:
+                logger.debug(f"[SolutionsCatalog] Database query bypassed/table not ready: {db_err}")
+
+        # 3. Tertiary: Fallback to curated_solutions.json
+        if not loaded_raw and os.path.exists(DATA_FILE):
             try:
                 with open(DATA_FILE, "r", encoding="utf-8") as f:
                     loaded_raw = json.load(f)
@@ -391,6 +408,7 @@ class SolutionsCatalog:
             except Exception as e:
                 logger.warning(f"[SolutionsCatalog] Failed to load {DATA_FILE}: {e}")
 
+        # 4. Final fallback: builtin core solutions
         if not loaded_raw:
             loaded_raw = BUILTIN_CORE_SOLUTIONS
             logger.info(f"[SolutionsCatalog] Using {len(loaded_raw)} builtin core solutions.")
@@ -409,6 +427,11 @@ class SolutionsCatalog:
                 pain_points=item.get("pain_points", []),
                 business_impact=item.get("business_impact", ""),
                 summary_snippet=item.get("summary_snippet", ""),
+                solution_domain=item.get("solution_domain", "general_enterprise_it"),
+                regulatory_compliance=item.get("regulatory_compliance", []),
+                target_environment=item.get("target_environment", "unspecified"),
+                probing_questions=item.get("probing_questions", []),
+                battlecard_ammo=item.get("battlecard_ammo", {}),
             )
             for item in loaded_raw
         ]
@@ -488,6 +511,38 @@ class SolutionsCatalog:
 
         return score if has_match else 0
 
+    @staticmethod
+    def _format_card_for_prompt(card: SolutionCard, index: int) -> str:
+        """Format a single card into rich prompt grounding text with battlecard ammo."""
+        tech_str = ", ".join(card.primary_products) if card.primary_products else "Solusi Enterprise PT Smartnet Magna Global"
+        industries_str = ", ".join(card.target_industries)
+        lines = [
+            f"### {index}. {card.title} ({card.pillar})",
+            f"- **Teknologi Utama**: {tech_str}",
+            f"- **Target Industri / Skenario**: {industries_str}",
+        ]
+        if card.pain_points:
+            lines.append(f"- **Kendala Klien yang Diselesaikan**: {'; '.join(card.pain_points[:2])}")
+        if card.key_subheadings:
+            lines.append(f"- **Komponen Arsitektur**: {', '.join(card.key_subheadings[:4])}")
+        if card.business_impact:
+            lines.append(f"- **Dampak Bisnis**: {card.business_impact}")
+        if card.source_url:
+            lines.append(f"- **Referensi Resmi**: {card.source_url}")
+        # Battlecard ammo enrichment
+        ammo = card.battlecard_ammo
+        if ammo.get("key_differentiators"):
+            lines.append(f"- **Keunggulan Teknis**: {ammo['key_differentiators']}")
+        if ammo.get("objection_handling"):
+            lines.append(f"- **Penanganan Keraguan**: {ammo['objection_handling']}")
+        if ammo.get("market_stats"):
+            lines.append(f"- **Data Pasar**: {ammo['market_stats']}")
+        # Probing questions bank
+        if card.probing_questions:
+            lines.append(f"- **Bank Pertanyaan Presales**: {'; '.join(card.probing_questions[:3])}")
+        lines.append("")
+        return "\n".join(lines)
+
     def match_solutions_with_metadata(
         self,
         industry: Optional[str] = None,
@@ -527,20 +582,7 @@ class SolutionsCatalog:
             "Gunakan solusi nyata, arsitektur teknis, dan portofolio resmi PT Smartnet Magna Global (SMG) berikut saat merumuskan rekomendasi arsitektur teknis dan use cases:\n"
         ]
         for i, card in enumerate(selected, 1):
-            tech_str = ", ".join(card.primary_products) if card.primary_products else "Solusi Enterprise PT Smartnet Magna Global"
-            industries_str = ", ".join(card.target_industries)
-            lines.append(f"### {i}. {card.title} ({card.pillar})")
-            lines.append(f"- **Teknologi Utama**: {tech_str}")
-            lines.append(f"- **Target Industri / Skenario**: {industries_str}")
-            if card.pain_points:
-                lines.append(f"- **Kendala Klien yang Diselesaikan**: {'; '.join(card.pain_points[:2])}")
-            if card.key_subheadings:
-                lines.append(f"- **Komponen Arsitektur**: {', '.join(card.key_subheadings[:4])}")
-            if card.business_impact:
-                lines.append(f"- **Dampak Bisnis**: {card.business_impact}")
-            if card.source_url:
-                lines.append(f"- **Referensi Resmi**: {card.source_url}")
-            lines.append("")
+            lines.append(self._format_card_for_prompt(card, i))
 
         return "\n".join(lines), selected
 
@@ -557,6 +599,99 @@ class SolutionsCatalog:
         )
         return prompt_text
 
+
+    # ------------------------------------------------------------------
+    # Two-Stage Hybrid Semantic Router (Stage 2: Deterministic Scoring)
+    # ------------------------------------------------------------------
+    _FSI_INDUSTRIES = {"banking", "perbankan", "multifinance", "fsi", "bank", "asuransi", "sekuritas"}
+    _FSI_RESERVED_DOMAINS = {"privileged-access-management-pam", "next-gen-endpoint-security-edr"}
+
+    def route_presales_solutions(
+        self,
+        slots: Any,  # PresalesIntentSlots
+        raw_needs: str = "",
+        raw_product: Optional[str] = None,
+        industry: Optional[str] = None,
+        limit: int = 4,
+    ) -> Tuple[str, List[SolutionCard], bool]:
+        """Stage 2 presales router: score cards using LLM slots + brand keywords + FSI reservation."""
+        if not self._cards:
+            self._load_catalog()
+
+        search_text = " ".join(filter(None, [raw_needs, raw_product, industry])).lower()
+        slot_domains = set(getattr(slots, "solution_domains", []) or [])
+        slot_compliance = set(getattr(slots, "regulatory_compliance", []) or []) - {"none"}
+        slot_env = getattr(slots, "target_environment", "unspecified") or "unspecified"
+        is_vague = getattr(slots, "is_vague_input", False)
+
+        # Detect FSI context
+        industry_lower = (industry or "").lower()
+        fsi_detected = any(tok in industry_lower for tok in self._FSI_INDUSTRIES) or bool(slot_compliance & {"ojk", "bi"})
+
+        scored: List[Tuple[int, SolutionCard]] = []
+        for card in self._cards:
+            score = 0
+
+            # 1. Exact brand match (+15)
+            for prod in card.primary_products + card.all_products:
+                p_lower = prod.lower()
+                if len(p_lower) >= 3 and _word_boundary_match(p_lower, search_text):
+                    score += 15
+                    break  # one brand match is enough
+
+            # 2. Domain match (+10)
+            if card.solution_domain in slot_domains:
+                score += 10
+
+            # 3. Regulatory match (+8 per tag)
+            if slot_compliance and card.regulatory_compliance:
+                card_compliance = set(card.regulatory_compliance) - {"none"}
+                overlap = slot_compliance & card_compliance
+                score += 8 * len(overlap)
+
+            # 4. Target environment match (+5)
+            if slot_env != "unspecified" and card.target_environment == slot_env:
+                score += 5
+
+            # 5. Fallback keyword scoring from legacy _score_card
+            if score == 0 and search_text.strip():
+                primary_pillar, target_env = _classify_intent(search_text)
+                legacy = self._score_card(card, search_text, primary_pillar, target_env)
+                score += legacy
+
+            if score > 0:
+                scored.append((score, card))
+
+        if not scored:
+            return "", [], is_vague
+
+        scored.sort(key=lambda x: x[0], reverse=True)
+
+        # FSI Banking Reservation: ensure PAM/EDR get priority slots
+        if fsi_detected:
+            selected_ids = set()
+            reserved: List[SolutionCard] = []
+            others: List[SolutionCard] = []
+            for _, card in scored:
+                if card.id in self._FSI_RESERVED_DOMAINS and card.id not in selected_ids:
+                    reserved.append(card)
+                    selected_ids.add(card.id)
+                else:
+                    others.append(card)
+            # Reserved first, then fill remaining slots
+            selected = (reserved + [c for c in others if c.id not in selected_ids])[:limit]
+        else:
+            selected = [c for _, c in scored[:limit]]
+
+        # Format prompt grounding text
+        lines = [
+            "## Katalog Solusi Resmi & Studi Kasus PT Smartnet Magna Global (Grounding Rujukan):",
+            "Gunakan solusi nyata, arsitektur teknis, dan portofolio resmi PT Smartnet Magna Global (SMG) berikut saat merumuskan rekomendasi arsitektur teknis dan use cases:\n"
+        ]
+        for i, card in enumerate(selected, 1):
+            lines.append(self._format_card_for_prompt(card, i))
+
+        return "\n".join(lines), selected, is_vague
 
 
     def get_summary_overview(self) -> str:

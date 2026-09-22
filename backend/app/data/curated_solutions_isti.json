@@ -1,0 +1,1432 @@
+[
+  {
+    "id": "privileged-access-management-pam",
+    "title": "Privileged Access Management (PAM)",
+    "pillar": "Cybersecurity Suite",
+    "tier": 2,
+    "solution_domain": "privileged_access_management",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "uu_pdp",
+      "pci_dss",
+      "iso27001"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "BeyondTrust",
+      "CyberArk"
+    ],
+    "all_products": [
+      "BeyondTrust",
+      "CyberArk",
+      "Senhasegura",
+      "Delinea",
+      "One Identity"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance",
+      "Enterprise General",
+      "Public Sector & BUMN"
+    ],
+    "source_url": "https://magnaglobal.id/articles/privileged-access-management",
+    "pain_points": [
+      "Banyaknya perangkat server, endpoint, dan network membuat tim admin sering lupa atau saling berbagi password (shared password/credential pooling).",
+      "Aktivitas admin internal dan vendor pihak ketiga tidak terpantau secara detail sehingga menimbulkan celah fraud dan kegagalan audit regulasi.",
+      "Kredensial akun superuser/root dibiarkan statis tanpa kebijakan rotasi otomatis berkala."
+    ],
+    "key_subheadings": [
+      "Enterprise Credential Vaulting & Automatic Password Rotation",
+      "Real-Time Session Monitoring & Keystroke/Video Recording",
+      "Least Privilege Access & Ephemeral Just-in-Time Privileges",
+      "Secure Third-Party & Vendor Remote Access"
+    ],
+    "business_impact": "Menghilangkan risiko pencurian kredensial superuser, mencegah unauthorized changes pada server kritis, dan memastikan pemenuhan klausul audit regulasi Bank Indonesia serta OJK secara komprehensif.",
+    "summary_snippet": "Manajemen dan pengawasan hak akses istimewa terpusat dengan brankas sandi otomatis, pencatatan sesi end-to-end, dan pemantauan real-time untuk mencegah penyalahgunaan akun privileged.",
+    "probing_questions": [
+      "Bagaimana pembagian dan pengelolaan password akses admin server dan network saat ini, apakah masih menggunakan shared password atau dicatat manual?",
+      "Bagaimana cara memantau dan mengaudit aktivitas vendor pihak ketiga saat melakukan remote maintenance pada server core?",
+      "Berapa lama waktu yang dibutuhkan untuk merotasi password administrator di seluruh armada server saat ada admin yang resign?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "BeyondTrust & CyberArk menyediakan session recording lengkap (keystroke & video playback), otomatis inject password tanpa menampilkan teks sandi kepada user, dan rotasi otomatis pasca sesi.",
+      "objection_handling": "Jika klien menganggap PAM memperlambat kerja tim IT: PAM justru mengeliminasi proses mengingat sandi rumit; admin cukup checkout izin akses melalui satu pintu terintegrasi MFA.",
+      "market_stats": "80% pelanggaran keamanan data melibatkan penyalahgunaan kredensial berhak akses istimewa (privileged credentials)."
+    }
+  },
+  {
+    "id": "endpoint-privilege-management-epm",
+    "title": "Endpoint Privilege Management (EPM)",
+    "pillar": "Cybersecurity Suite",
+    "tier": 2,
+    "solution_domain": "privileged_access_management",
+    "regulatory_compliance": [
+      "ojk",
+      "uu_pdp",
+      "iso27001"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "BeyondTrust Endpoint Privilege Management",
+      "Delinea Privilege Manager"
+    ],
+    "all_products": [
+      "BeyondTrust Endpoint Privilege Management",
+      "Delinea Privilege Manager",
+      "CyberArk EPM"
+    ],
+    "target_industries": [
+      "Enterprise General",
+      "FSI / Banking & Multifinance",
+      "Manufacture Industry"
+    ],
+    "source_url": "https://magnaglobal.id/articles/endpoint-privilege-management",
+    "pain_points": [
+      "Laptop/workstation karyawan masih memegang hak akses administrator lokal, memicu instalasi software ilegal atau malware.",
+      "Ketiadaan kontrol terhadap penggunaan media eksternal (disable USB storage, printer) pada inventaris kantor.",
+      "Pengguna sembarangan mengubah konfigurasi OS dan mengabaikan compliance internal perusahaan."
+    ],
+    "key_subheadings": [
+      "Removal of Local Administrative Rights on Endpoints",
+      "Application Allowlisting & Privilege Elevation per Application",
+      "Peripheral & USB Storage Lockdown Control",
+      "Endpoint Policy Compliance & OS Hardening"
+    ],
+    "business_impact": "Meniadakan serangan berbasis eskalasi hak istimewa di endpoint, membatasi kebocoran data lewat USB, dan memastikan kepatuhan konfigurasi aset laptop.",
+    "summary_snippet": "Solusi kontrol hak istimewa endpoint untuk mencabut akses admin lokal, menerapkan prinsip least privilege berbasis aplikasi, dan mengunci peripheral fisik seperti USB dan printer.",
+    "probing_questions": [
+      "Apakah karyawan di laptop kantor saat ini masih memegang hak administrator lokal penuh?",
+      "Bagaimana perusahaan membatasi instalasi software tak berizin atau flashdisk pada laptop inventaris?",
+      "Bagaimana tim IT menangani permintaan instalasi software kerja tanpa memberikan credential administrator penuh?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "BeyondTrust EPM mengizinkan privilege elevation hanya untuk aplikasi spesifik yang disetujui, tanpa perlu memberikan akses admin penuh ke user.",
+      "objection_handling": "Jika user mengeluh tidak leluasa tanpa admin: EPM otomatis memberikan hak eksekusi aplikasi kerja yang legitimate secara seamless tanpa intervensi helpdesk manual.",
+      "market_stats": "Mencabut hak admin lokal mampu memitigasi hingga 85% kerentanan kritis OS Windows (Microsoft Vulnerability Research)."
+    }
+  },
+  {
+    "id": "next-gen-endpoint-security-edr",
+    "title": "Next-Generation Endpoint Protection Platform (EPP) & EDR",
+    "pillar": "Cybersecurity Suite",
+    "tier": 2,
+    "solution_domain": "endpoint_security",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "uu_pdp",
+      "iso27001",
+      "pci_dss"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "CrowdStrike Falcon",
+      "SentinelOne Singularity"
+    ],
+    "all_products": [
+      "CrowdStrike Falcon",
+      "SentinelOne Singularity",
+      "Trend Micro Apex One",
+      "Trellix",
+      "Sophos Intercept X"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance",
+      "Enterprise General",
+      "Healthcare & Hospitals",
+      "Manufacture Industry"
+    ],
+    "source_url": "https://magnaglobal.id/articles/endpoint-detection-and-response",
+    "pain_points": [
+      "Antivirus tradisional berbasis signature (IOC) lambat, boros RAM/CPU saat full-scan, dan gagal menahan serangan zero-day atau malware-free attacks.",
+      "Agen antivirus konvensional membutuhkan reboot server/laptop setiap pembaruan signature, mengganggu kontinuitas operasional.",
+      "Kurangnya kemampuan isolasi otomatis perangkat endpoint yang terinfeksi dan ketidakmampuan threat hunting proaktif."
+    ],
+    "key_subheadings": [
+      "Behavioral Indicator of Attack (IOA) Detection",
+      "Single Lightweight Agent (12MB RAM, Zero Reboot)",
+      "Autonomous Threat Remediation & Network Containment",
+      "Full SaaS Cloud-Native Telemetry Architecture",
+      "Cross-Platform Support (Windows, Linux, macOS)"
+    ],
+    "business_impact": "Mencegah ransomware dan serangan lateral movement, menghemat resource komputasi endpoint, serta memberikan visibilitas ancaman 24/7.",
+    "summary_snippet": "Perlindungan endpoint modern berbasis kecerdasan buatan dan Indicator of Attack (IOA) dengan satu agen ultra-ringan tanpa signature update berkala.",
+    "probing_questions": [
+      "Apakah antivirus yang digunakan saat ini sering membuat laptop atau server menjadi lambat karena proses scanning berkala?",
+      "Bagaimana pengalaman tim saat menghadapi serangan baru, apakah solusi existing masih bergantung pada signature update harian?",
+      "Berapa lama waktu yang dibutuhkan tim IT untuk mengisolasi workstation yang terindikasi terkena malware?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "CrowdStrike Falcon hanya menggunakan single lightweight agent (12 MB RAM, konsumsi memori ~1%), tanpa reboot instalasi selamanya, fully cloud-native, serta deteksi berbasis IOA bukan signature IOC lama. SentinelOne memiliki keunggulan autonomous rollback 1-klik.",
+      "objection_handling": "Jika perbankan/FSI menolak cloud: Cloud CrowdStrike HANYA menyimpan metadata telemetri aktivitas sistem (apakah proses dijalankan manusia atau skrip otomatis), TIDAK PERNAH menyimpan file atau data nasabah. Arsitektur cloud memberikan respons keamanan yang jauh lebih cepat dibanding solusi on-premise konvensional karena telemetri threat intelligence global dapat mendistribusikan proteksi serangan baru ke seluruh endpoint dalam hitungan detik tanpa perlu menunggu jadwal download signature harian.",
+      "market_stats": "75% serangan siber modern bersifat malware-free dan mengandalkan pencurian kredensial serta Living-off-the-Land (LotL) tactics yang tidak terdeteksi antivirus signature."
+    }
+  },
+  {
+    "id": "data-loss-prevention-dlp",
+    "title": "Enterprise Data Loss Prevention (DLP) & UU PDP Compliance",
+    "pillar": "Cybersecurity Suite",
+    "tier": 2,
+    "solution_domain": "compliance_governance",
+    "regulatory_compliance": [
+      "uu_pdp",
+      "ojk",
+      "bi",
+      "pci_dss",
+      "iso27001"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "Forcepoint",
+      "Symantec Broadcom"
+    ],
+    "all_products": [
+      "Forcepoint",
+      "Symantec Broadcom",
+      "Digital Guardian",
+      "Trellix",
+      "Microsoft Intune"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance",
+      "Healthcare & Hospitals",
+      "Telecommunications",
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/data-loss-prevention",
+    "pain_points": [
+      "Risiko kebocoran data sensitif nasabah/karyawan melalui media cetak (printer), unduhan USB drive, pesan instan (WhatsApp), atau upload ke personal cloud (Google Drive).",
+      "Ancaman sanksi hukum denda dan pidana akibat ketidakpatuhan terhadap UU Perlindungan Data Pribadi (UU PDP No. 27/2022).",
+      "Ketiadaan visibilitas dan kontrol otomatis terhadap 10 jenis data sensitif wajib (NIK, nomor telepon, alamat, tanggal lahir, nomor KK, nomor rekening, NPWP)."
+    ],
+    "key_subheadings": [
+      "Sensitive Data Discovery & Automatic Classification",
+      "Endpoint Channel Lockdown (USB, Print, Screenshot, Clipboard)",
+      "Network & Web/Cloud Exfiltration Prevention (WhatsApp, G-Drive, Personal Email)",
+      "UU PDP Compliance Template (NIK, No HP, NPWP, No Rekening, Kartu Keluarga)"
+    ],
+    "business_impact": "Mencegah denda hingga miliaran rupiah akibat pelanggaran UU PDP, melindungi reputasi institusi dari skandal kebocoran data, dan memblokir kebocoran data di titik keluar.",
+    "summary_snippet": "Sistem deteksi dan pencegahan kebocoran data sensitif di level endpoint, jaringan, dan cloud sesuai mandat UU PDP No. 27/2022 dan regulasi industri keuangan.",
+    "probing_questions": [
+      "Bagaimana kontrol perusahaan jika karyawan mencoba mengunggah dokumen nasabah ke Google Drive pribadi atau flashdisk?",
+      "Apakah sudah ada filter otomatis yang memblokir transfer file jika terdeteksi mengandung NIK, NPWP, atau nomor rekening bank?",
+      "Apakah perusahaan sudah siap diaudit terkait kepatuhan 10 data sensitif dalam UU Perlindungan Data Pribadi (UU PDP)?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Forcepoint dan Symantec Broadcom memiliki engine inspeksi konten mendalam (Deep Content Inspection), OCR untuk mengenali data sensitif di dalam gambar scan/KTP, serta akurasi tinggi mencegah false positive.",
+      "objection_handling": "Jika klien menganggap DLP mengganggu user: DLP dapat diatur dalam mode audit monitoring terlebih dahulu, kemudian popup edukatif saat pelanggaran ringan, dan memblokir hanya transfer berisiko tinggi.",
+      "market_stats": "Sanksi UU PDP No. 27/2022 menetapkan denda administratif hingga 2% dari total pendapatan tahunan korporasi bagi kebocoran data pribadi yang disebabkan kelalaian tata kelola."
+    }
+  },
+  {
+    "id": "next-generation-firewall-ngfw",
+    "title": "Next-Generation Firewall (NGFW) & Perimeter Security",
+    "pillar": "Cybersecurity Suite",
+    "tier": 1,
+    "solution_domain": "network_firewall_zero_trust",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "iso27001",
+      "pci_dss"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "Fortinet",
+      "Palo Alto Networks"
+    ],
+    "all_products": [
+      "Fortinet",
+      "Palo Alto Networks",
+      "Check Point",
+      "Sophos",
+      "Sangfor",
+      "Cisco",
+      "Hillstone",
+      "Huawei"
+    ],
+    "target_industries": [
+      "Enterprise General",
+      "FSI / Banking & Multifinance",
+      "Government & Public Sector",
+      "Education & Campus"
+    ],
+    "source_url": "",
+    "pain_points": [
+      "Firewall legacy hanya memeriksa port/IP layer 4 dan buta terhadap ancaman malware modern yang menyamar di layer 7 (aplikasi) dan lalu lintas HTTPS terenkripsi.",
+      "Perangkat perimeter terfragmentasi sehingga sulit mengelola policy keamanan secara terpusat di seluruh cabang.",
+      "Tingginya lalu lintas berbahaya yang membebani throughput internet kantor tanpa adanya inspeksi mendalam (deep packet inspection)."
+    ],
+    "key_subheadings": [
+      "Layer 7 Application Identification & Deep Packet Inspection (DPI)",
+      "Integrated Intrusion Prevention System (IPS) & Anti-Malware Sandboxing",
+      "SSL/TLS Decryption & Inspection",
+      "Unified Security Policy Across Perimeter & Multi-Branch"
+    ],
+    "business_impact": "Melindungi perimeter korporasi dari serangan siber eksternal, memblokir lalu lintas ilegal, dan memastikan inspeksi aplikasi aman tanpa menurunkan performa jaringan.",
+    "summary_snippet": "Firewall generasi mutakhir dengan inspeksi mendalam layer 7, pencegahan intrusi (IPS), dekripsi SSL/TLS, dan integrasi intelligence terpadu.",
+    "probing_questions": [
+      "Apa merk dan seri firewall perimeter yang digunakan saat ini, dan kapan terakhir kali dilakukan pembaruan lisensi/hardware?",
+      "Apakah firewall existing mampu melakukan inspeksi lalu lintas SSL/HTTPS tanpa mengalami degradasi performa/bottleneck?",
+      "Bagaimana topologi sambungan internet dan cabang kantor saat ini, apakah terintegrasi langsung dengan firewall utama?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Fortinet FortiGate unggul dalam rasio price-to-performance berkat prosesor ASIC khusus (NP/CP), sementara Palo Alto Networks memimpin dalam akurasi App-ID, User-ID, dan cloud sandboxing WildFire.",
+      "objection_handling": "Jika klien enggan mengganti firewall karena khawatir downtime migrasi: SMG menyediakan layanan assessment konfigurasi, konversi rule lama via migration tools, dan implementasi paralel tanpa memutus koneksi.",
+      "market_stats": "Lebih dari 85% lalu lintas web perusahaan kini terenkripsi (HTTPS), sehingga firewall lama tanpa kemampuan SSL inspection layer 7 menjadi buta terhadap 70% muatan serangan malware."
+    }
+  },
+  {
+    "id": "web-application-firewall-waf",
+    "title": "Web Application Firewall (WAF) & API Protection",
+    "pillar": "Cybersecurity Suite",
+    "tier": 2,
+    "solution_domain": "network_firewall_zero_trust",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "pci_dss",
+      "iso27001"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "Cloudflare",
+      "Imperva",
+      "FortiWeb"
+    ],
+    "all_products": [
+      "Cloudflare",
+      "Imperva",
+      "FortiWeb",
+      "F5",
+      "Akamai",
+      "Radware"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance",
+      "Retail & E-Commerce",
+      "Government & Public Sector",
+      "Telecommunications"
+    ],
+    "source_url": "",
+    "pain_points": [
+      "Aplikasi web publik dan API portal nasabah rentan terhadap serangan OWASP Top 10 (SQL Injection, Cross-Site Scripting / XSS, credential stuffing).",
+      "Serangan DDoS layer 7 yang melumpuhkan ketersediaan portal transaksi digital dan aplikasi mobile banking.",
+      "Kebutuhan memenuhi syarat wajib audit PCI DSS dan kepatuhan perbankan untuk proteksi transaksi kartu kredit/fintech."
+    ],
+    "key_subheadings": [
+      "OWASP Top 10 Threat Mitigation & Virtual Patching",
+      "Layer 7 Distributed Denial of Service (DDoS) Mitigation",
+      "API Discovery, Schema Validation, & Abuse Prevention",
+      "Bot Management & Credential Stuffing Defense"
+    ],
+    "business_impact": "Melindungi ketersediaan aplikasi web publik dari eksploitasi Layer 7 dan serangan DDoS terdistribusi, mengeliminasi risiko kebocoran data via SQL Injection, serta memenuhi mandat kepatuhan PCI DSS 6.6.",
+    "summary_snippet": "Proteksi komprehensif untuk aplikasi web dan API publik dari ancaman eksploitasi layer aplikasi (OWASP Top 10), bot jahat, dan serangan DDoS.",
+    "probing_questions": [
+      "Bagaimana perlindungan keamanan pada portal web publik dan API backend yang diakses oleh nasabah/konsumen saat ini?",
+      "Apakah portal web perusahaan sudah diproteksi dari serangan botnet otomatis dan serangan DDoS layer 7?",
+      "Apakah aplikasi e-commerce atau payment gateway perusahaan sudah mengantongi sertifikasi PCI DSS?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Cloudflare & Akamai menawarkan edge global network dengan mitigasi DDoS terdistribusi instan, sementara Imperva & FortiWeb menyediakan akurasi machine learning untuk profile traffic aplikasi on-prem maupun cloud.",
+      "objection_handling": "Jika developer merasa WAF sering menimbulkan false positive: Solusi modern WAF memanfaatkan AI/ML behavioral profiling yang otomatis mempelajari pola request legitimate sebelum mengaktifkan blocking mode.",
+      "market_stats": "Serangan terhadap API dan aplikasi web menyumbang lebih dari 60% total serangan siber yang menargetkan sektor finansial dan e-commerce global."
+    }
+  },
+  {
+    "id": "zero-trust-network-access-sase",
+    "title": "Zero Trust Network Access (ZTNA) & SASE Architecture",
+    "pillar": "Cybersecurity Suite",
+    "tier": 2,
+    "solution_domain": "network_firewall_zero_trust",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "iso27001"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "Zscaler",
+      "Palo Alto Networks",
+      "Fortinet"
+    ],
+    "all_products": [
+      "Zscaler",
+      "Palo Alto Networks",
+      "Fortinet",
+      "Cloudflare"
+    ],
+    "target_industries": [
+      "Enterprise General",
+      "FSI / Banking & Multifinance",
+      "Technology & Startup"
+    ],
+    "source_url": "https://magnaglobal.id/articles/zero-trust-network-access",
+    "pain_points": [
+      "VPN warisan memberikan akses jaringan penuh, sehingga saat laptop user diretas, penyerang leluasa bergerak lateral ke seluruh server lokal.",
+      "Kebutuhan IP publik dan bandwidth internet kantor pusat membengkak karena seluruh lalu lintas remote dialihkan ke firewall pusat (hairpinning).",
+      "Banyaknya aplikasi SaaS (Google Workspace, ERP) yang ingin dikontrol identitas dan aktivitasnya tanpa membuka akses VPN terbuka."
+    ],
+    "key_subheadings": [
+      "App-Centric Microsegmentation (Pengganti VPN Konvensional)",
+      "Context-Aware Verification (Identity, Device Posture, Geolocation, MFA)",
+      "Cloud Access Security Broker (CASB) & SaaS Activity Tracking",
+      "Secure Access Service Edge (SASE: ZTNA + CASB + FWaaS + SWG)"
+    ],
+    "business_impact": "Meniadakan risiko lateral movement hacker di jaringan lokal, memangkas latensi akses aplikasi remote, dan menyatukan kontrol keamanan cloud/on-prem.",
+    "summary_snippet": "Konsep keamanan modern pengganti VPN tradisional yang memberikan akses granular hanya ke aplikasi spesifik berbasis identitas, postur perangkat, dan lokasi pengguna.",
+    "probing_questions": [
+      "Apakah karyawan yang bekerja dari luar kantor (WFA) saat ini masih menggunakan VPN tradisional untuk mengakses server lokal?",
+      "Apakah ada batasan akses jika user remote login dari luar kota atau menggunakan perangkat pribadi (non-kantor)?",
+      "Bagaimana perusahaan memantau dan mengamankan akses karyawan ke berbagai aplikasi SaaS (public cloud) tanpa VPN?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Zscaler ZPA/ZIA murni 100% cloud-delivered SaaS tanpa perlu hardware VPN, sedangkan Fortinet & Palo Alto menyediakan fitur ZTNA bawaan di OS firewall mereka tanpa biaya lisensi tambahan untuk basic deployment.",
+      "objection_handling": "Jika user menganggap ZTNA rumit: Bagi pengguna akhir, ZTNA jauh lebih seamless dibanding VPN; tidak perlu connect/disconnect manual, akses otomatis terhubung ke aplikasi kerja yang diizinkan.",
+      "market_stats": "Eksploitasi celah keamanan pada konsentrator SSL-VPN warisan merupakan pintu masuk nomor satu bagi insiden ransomware enterprise di Asia Tenggara."
+    }
+  },
+  {
+    "id": "network-access-control-nac",
+    "title": "Network Access Control (NAC) & IoT Device Profiling",
+    "pillar": "Cybersecurity Suite",
+    "tier": 2,
+    "solution_domain": "campus_lan_wireless",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "iso27001"
+    ],
+    "target_environment": "on_premise",
+    "primary_products": [
+      "Cisco ISE",
+      "Aruba ClearPass"
+    ],
+    "all_products": [
+      "Cisco ISE",
+      "Aruba ClearPass",
+      "FortiNAC",
+      "Forescout",
+      "Ivanti NAC",
+      "Genians"
+    ],
+    "target_industries": [
+      "Enterprise General",
+      "Healthcare & Hospitals",
+      "Education & Campus",
+      "FSI / Banking & Multifinance"
+    ],
+    "source_url": "",
+    "pain_points": [
+      "Ketidakmampuan membedakan dan memisahkan hak akses antara laptop kantor, gadget pribadi karyawan (BYOD), dan tamu kantor (Guest).",
+      "Banyak perangkat non-komputer (printer, CCTV, Smart TV, mesin IoT rumah sakit) yang langsung dicolok ke port LAN kantor tanpa autentikasi.",
+      "Risiko penyusupan fisik di mana pihak luar mencolokkan kabel LAN di ruang meeting dan langsung memperoleh IP internal korporat."
+    ],
+    "key_subheadings": [
+      "Dynamic Device Profiling (Laptop, Mobile, Printer, CCTV, IoT)",
+      "Automated Network Segmentation (VLAN Steering & Security Groups)",
+      "Endpoint Posture Assessment & Compliance Check",
+      "Self-Service Guest Access Portal & Sponsor Approval"
+    ],
+    "business_impact": "Memberikan visibilitas komprehensif terhadap seluruh perangkat terhubung di jaringan (IoT, workstation, unmanaged devices), mencegah perangkat asing terhubung ke LAN, dan menjamin isolasi otomatis perangkat yang tidak patuh.",
+    "summary_snippet": "Sistem visibilitas dan kontrol akses jaringan terpusat yang memeriksa kepatuhan perangkat sebelum diizinkan terhubung ke jaringan kabel maupun nirkabel.",
+    "probing_questions": [
+      "Bagaimana cara tim IT mengontrol siapa saja dan perangkat apa saja yang dicolokkan ke port LAN kantor atau terhubung ke Wi-Fi?",
+      "Apakah ada pemisahan segmen jaringan otomatis antara perangkat karyawan kantor, tamu (guest), dan perangkat IoT seperti printer/CCTV?",
+      "Apa yang terjadi jika perangkat pribadi yang terkena virus mencoba terhubung ke jaringan internal kantor?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Cisco ISE dan Aruba ClearPass mampu mengintegrasikan standar 802.1X, profiling berbasis AI terhadap ribuan jenis perangkat IoT, dan otomatis memindahkan VLAN port switch secara dinamis.",
+      "objection_handling": "Jika dikhawatirkan NAC mengganggu tamu atau device non-802.1X: NAC mendukung MAB (MAC Authentication Bypass) dan portal captive web mandiri untuk kemudahan onboarding.",
+      "market_stats": "Lebih dari 50% perangkat yang terhubung ke jaringan kampus enterprise saat ini adalah perangkat IoT yang tidak memiliki agen antivirus lokal."
+    }
+  },
+  {
+    "id": "identity-access-management-governance",
+    "title": "Identity Governance and Administration (IGA) & IAM",
+    "pillar": "Cybersecurity Suite",
+    "tier": 2,
+    "solution_domain": "compliance_governance",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "iso27001",
+      "uu_pdp"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "SailPoint Identity Security",
+      "IBM Security Verify"
+    ],
+    "all_products": [
+      "SailPoint Identity Security",
+      "IBM Security Verify",
+      "Ping Identity",
+      "Okta Workforce"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance",
+      "Enterprise General",
+      "Telecommunications",
+      "Public Sector & BUMN"
+    ],
+    "source_url": "https://magnaglobal.id/articles/identity-access-management",
+    "pain_points": [
+      "Proses onboarding, mutasi divisi (move), dan resign karyawan (offboarding) dilakukan manual di puluhan aplikasi internal (SINTA, ERP, Email).",
+      "Akun karyawan yang telah resign (zombie accounts) masih aktif di beberapa sistem karena lupa dinonaktifkan oleh administrator IT.",
+      "Akumulasi hak akses berlebih (privilege creep) saat karyawan berpindah jabatan, melanggar prinsip segregation of duties (SoD)."
+    ],
+    "key_subheadings": [
+      "Automated Lifecycle Management (Joiner, Mover, Leaver / JML)",
+      "Role-Based Access Control (RBAC) & Entitlement Catalog",
+      "Segregation of Duties (SoD) Policy & Compliance Certification",
+      "Centralized Identity Governance Across On-Prem & Multi-Cloud"
+    ],
+    "business_impact": "Menghilangkan zombie accounts dalam hitungan detik setelah resign, memotong waktu penyediaan akun karyawan baru dari berhari-hari menjadi menit, dan lolos audit SoD perbankan.",
+    "summary_snippet": "Tata kelola siklus hidup identitas pengguna enterprise terpadu untuk mengotomatisasi provisi hak akses aplikasi dari fase bergabung, mutasi jabatan, hingga terminasi.",
+    "probing_questions": [
+      "Bagaimana proses penutupan akses aplikasi jika ada karyawan yang resign hari ini, apakah diputus serentak atau satu per satu manual?",
+      "Berapa lama waktu yang dibutuhkan tim IT untuk menyiapkan akun aplikasi (email, ERP, core system) bagi karyawan baru?",
+      "Apakah pernah dilakukan audit berkala terhadap hak akses pengguna yang sudah berpindah divisi untuk mencegah penumpukan hak akses berlebih?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "SailPoint memimpin pasar tata kelola identitas dengan konektor siap pakai ke ratusan sistem ERP/HR (SAP, Workday, AD, Google Workspace) dan AI-driven access recommendations.",
+      "objection_handling": "Jika klien menganggap IAM hanya untuk enterprise raksasa: Tanpa automasi IAM, kelalaian menutup 1 akun mantan karyawan berpotensi menjadi celah ransomware atau pencurian data nasabah fatal.",
+      "market_stats": "Audit kepatuhan menemukan bahwa rata-rata institusi keuangan memiliki 13% akun aktif yang pemilik aslinya sudah tidak bekerja di perusahaan tersebut."
+    }
+  },
+  {
+    "id": "siem-soar-cyber-defense",
+    "title": "Security Information and Event Management (SIEM) & SOAR",
+    "pillar": "Cybersecurity Suite",
+    "tier": 2,
+    "solution_domain": "compliance_governance",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "iso27001",
+      "pci_dss"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "Google SecOps (Chronicle)",
+      "Splunk Enterprise Security",
+      "Micro Focus ArcSight"
+    ],
+    "all_products": [
+      "Google SecOps (Chronicle)",
+      "Splunk Enterprise Security",
+      "Micro Focus ArcSight",
+      "LogRhythm SIEM"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance",
+      "Enterprise General",
+      "Government & Public Sector",
+      "Telecommunications"
+    ],
+    "source_url": "https://magnaglobal.id/articles/siem-soar-security-operations",
+    "pain_points": [
+      "Log keamanan tersebar terpisah di ribuan perangkat (server, firewall, switch, workstation) sehingga tim IT buta terhadap ancaman korelasi.",
+      "Ledakan peringatan keamanan (alert fatigue) yang membuat analis SOC kewalahan menyaring insiden riil versus false positive.",
+      "Respons insiden keamanan berjalan lambat karena dilakukan secara manual tanpa panduan otomatisasi terstandarisasi."
+    ],
+    "key_subheadings": [
+      "Centralized Log Aggregation & Long-Term Retention (Audit Trail)",
+      "Real-Time Event Correlation & Threat Detection Engine",
+      "SOAR Security Playbooks & Automated Incident Response",
+      "Compliance Reporting for OJK, BI, and PCI DSS Mandates"
+    ],
+    "business_impact": "Mempersingkat Mean Time to Detect (MTTD) dan Mean Time to Respond (MTTR) secara terukur melalui korelasi insiden terpusat dan otomatisasi playbook keamanan, serta memenuhi kewajiban retensi log audit OJK/BI.",
+    "summary_snippet": "Platform sentralisasi pengumpulan log keamanan, korelasi insiden real-time, dan orkestrasi respons otomatis melalui playbook keamanan terstandarisasi.",
+    "probing_questions": [
+      "Bagaimana tim mengumpulkan dan menyimpan log dari firewall, server, dan database saat ini, apakah sudah terpusat di satu sistem?",
+      "Berapa lama waktu retensi log yang disimpan untuk memenuhi kebutuhan audit regulasi perbankan OJK/BI?",
+      "Apakah proses penanganan insiden ketika server terdeteksi anomali sudah berjalan otomatis via playbook atau masih manual dikontak lewat chat/email?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Splunk dan ArcSight menyediakan analitik korelasi log berkapasitas petabyte dengan compliance pack lengkap untuk PCI DSS dan ISO 27001, terintegrasi ke engine otomatisasi SOAR.",
+      "objection_handling": "Jika klien keberatan biaya lisensi berbasis volume log harian (GB/day): Solusi modern seperti Google SecOps (Chronicle) atau Splunk workload pricing menawarkan model penetapan harga berbasis aset/pengguna.",
+      "market_stats": "Rata-rata waktu tinggal penyerang (dwell time) sebelum terdeteksi tanpa sistem SIEM terpusat mencapai lebih dari 200 hari."
+    }
+  },
+  {
+    "id": "managed-detection-response-mdr-xdr",
+    "title": "Managed Detection and Response (MDR) & Extended Detection (XDR)",
+    "pillar": "Cybersecurity Suite",
+    "tier": 2,
+    "solution_domain": "endpoint_security",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "iso27001"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "CrowdStrike Falcon Complete",
+      "Palo Alto Cortex XDR"
+    ],
+    "all_products": [
+      "CrowdStrike Falcon Complete",
+      "Palo Alto Cortex XDR",
+      "SentinelOne Complete",
+      "Trend Micro Vision One",
+      "Sophos MDR",
+      "Trellix XDR"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance",
+      "Enterprise General",
+      "Healthcare & Hospitals",
+      "Manufacture Industry"
+    ],
+    "source_url": "https://magnaglobal.id/articles/managed-detection-response-xdr",
+    "pain_points": [
+      "Keterbatasan anggaran dan kelangkaan talenta cybersecurity untuk membangun tim Security Operations Center (SOC) internal 24x7x365.",
+      "Serangan siber sering diluncurkan pada malam hari, akhir pekan, atau hari libur nasional saat tim IT internal sedang tidak bertugas.",
+      "Telemetri keamanan dari endpoint, jaringan, dan cloud terfragmentasi tanpa adanya analisis korelasi silang (cross-layer detection)."
+    ],
+    "key_subheadings": [
+      "24/7/365 Continuous Threat Hunting & Monitoring",
+      "Cross-Telemetry Correlation (Endpoint, Network, Identity, Cloud)",
+      "Hands-on Surgical Remediation & Breach Prevention Warranty",
+      "Root-Cause Analysis & Threat Intelligence Ingestion"
+    ],
+    "business_impact": "Memperoleh kapabilitas SOC kelas dunia seketika tanpa beban rekrutmen analis 24/7, serta garansi remediasi insiden siber dalam hitungan menit.",
+    "summary_snippet": "Layanan pemantauan, perburuan ancaman (threat hunting), dan remediasi insiden keamanan 24x7 yang dikelola langsung oleh pakar elit siber secara proaktif.",
+    "probing_questions": [
+      "Apakah perusahaan memiliki tim SOC sendiri yang memantau anomali server dan laptop selama 24 jam sehari, 7 hari seminggu termasuk hari libur?",
+      "Bagaimana rencana respons jika terjadi insiden ransomware yang menyerang pada dini hari di akhir pekan?",
+      "Apakah ada kendala dalam merekrut atau mempertahankan analis keamanan siber bersertifikasi di internal tim IT?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "CrowdStrike Falcon Complete menyertakan jaminan garansi keamanan (Breach Prevention Warranty) hingga $1 juta USD dan tim elit analis yang langsung mengisolasi serta membersihkan ancaman di endpoint klien.",
+      "objection_handling": "Jika klien merasa membangun SOC sendiri lebih murah: Membangun SOC internal butuh minimal 8-12 personil bersertifikasi 3 shift, software SIEM, dan infrastruktur bernilai miliaran rupiah; MDR memberikan kapabilitas itu dengan fraksi biaya operasional OPEX.",
+      "market_stats": "Waktu rata-rata penyerang untuk mulai bergerak lateral (breakout time) telah menyusut menjadi hanya 62 menit; mustahil ditangani tanpa monitoring 24/7."
+    }
+  },
+  {
+    "id": "network-detection-response-ndr",
+    "title": "Network Detection and Response (NDR) & Network Telemetry",
+    "pillar": "Cybersecurity Suite",
+    "tier": 2,
+    "solution_domain": "network_firewall_zero_trust",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "iso27001"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "ExtraHop Reveal(x)",
+      "Darktrace"
+    ],
+    "all_products": [
+      "ExtraHop",
+      "Darktrace",
+      "Vectra AI",
+      "Trend Micro Network Defense"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance",
+      "Enterprise General",
+      "Government & Public Sector",
+      "Telecommunications"
+    ],
+    "source_url": "https://magnaglobal.id/articles/network-detection-and-response",
+    "pain_points": [
+      "Banyak perangkat dalam jaringan korporasi (IoT, smart camera, server unmanaged, legacy OS) yang tidak dapat dipasangi agen EDR.",
+      "Penyerang berhasil menembus perimeter dan bergerak lateral antar-server di dalam data center (east-west traffic) tanpa terdeteksi firewall perimeter.",
+      "Lalu lintas jaringan terenkripsi menyembunyikan aktivitas serangan Command-and-Control (C2) dan eksfiltrasi data rahasia."
+    ],
+    "key_subheadings": [
+      "East-West Traffic Inspection (Decoupled from Agents)",
+      "AI/ML Behavioral Baselines for Network Anomalies",
+      "Line-Rate TLS 1.3 Decryption & Deep Wire-Data Inspection",
+      "Automated Threat Containment via Firewall & EDR Integration"
+    ],
+    "business_impact": "Menutup blind spot jaringan untuk perangkat unmanaged/IoT, mendeteksi pergerakan hacker di dalam data center, dan mengungkap malware dalam traffic terenkripsi.",
+    "summary_snippet": "Visibilitas penuh dan deteksi ancaman jaringan berbasis wire data dan AI tanpa agen, memantau lalu lintas lateral (east-west) dan komunikasi terenkripsi secara pasif.",
+    "probing_questions": [
+      "Bagaimana tim mendeteksi pergerakan mencurigakan antar server di dalam data center lokal (lalu lintas east-west)?",
+      "Apakah ada perangkat di jaringan seperti mesin ATM, CCTV, atau server lama yang tidak bisa dipasangi agen antivirus/EDR?",
+      "Bagaimana cara memantau jika ada workstation yang melakukan pemindaian port (reconnaissance/port scanning) ke subnet server lain?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "ExtraHop Reveal(x) memproses wire-data secara pasif hingga 100 Gbps dengan kemampuan dekripsi TLS 1.3 real-time tanpa membebani performa jaringan dan tanpa memasang software agent di server.",
+      "objection_handling": "Jika klien menganggap firewall perimeter internal sudah cukup: Pendekatan defense-in-depth memerlukan pengawasan menyeluruh; firewall perimeter bertugas mengamankan lalu lintas masuk-keluar (north-south), sedangkan NDR melengkapi pertahanan dengan memantau lalu lintas lateral (east-west) antar-server data center melalui cermin port (TAP/SPAN) secara pasif tanpa membebani throughput.",
+      "market_stats": "Hampir 80% lalu lintas jaringan di dalam modern data center adalah traffic internal east-west yang tidak pernah melewati firewall perimeter."
+    }
+  },
+  {
+    "id": "secure-email-gateway-seg",
+    "title": "Secure Email Gateway (SEG) & Advanced Phishing Defense",
+    "pillar": "Cybersecurity Suite",
+    "tier": 2,
+    "solution_domain": "endpoint_security",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "iso27001",
+      "uu_pdp"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "Proofpoint",
+      "Mimecast"
+    ],
+    "all_products": [
+      "Proofpoint",
+      "Mimecast",
+      "FortiMail",
+      "Trend Micro Email Security",
+      "Cisco Secure Email",
+      "Barracuda"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance",
+      "Enterprise General",
+      "Healthcare & Hospitals",
+      "Education & Campus"
+    ],
+    "source_url": "",
+    "pain_points": [
+      "Email merupakan vektor utama masuknya malware dan ransomware melalui lampiran terinfeksi dan tautan phishing canggih.",
+      "Maraknya serangan Business Email Compromise (BEC) dan email spoofing pimpinan perusahaan yang mengelabui tim keuangan untuk transfer dana ilegal.",
+      "Filter bawaan penyedia email cloud (seperti Microsoft 365 atau Google Workspace standar) sering kebobolan serangan spear-phishing berorientasi target."
+    ],
+    "key_subheadings": [
+      "Advanced Threat Protection & Dynamic Sandbox Attachment Analysis",
+      "URL Click-Time Protection & Phishing Link Neutralization",
+      "Business Email Compromise (BEC) & Impersonation Defense",
+      "Automated Email Encryption & Outbound Data Loss Prevention"
+    ],
+    "business_impact": "Memitigasi ancaman phishing tingkat lanjut dan malware berisiko tinggi via email, mencegah kerugian finansial akibat penipuan transfer BEC, serta mengamankan komunikasi surat elektronik korporasi.",
+    "summary_snippet": "Pertahanan email lapis terdepan untuk memblokir phishing, ransomware attachment, spam, dan serangan pemalsuan identitas eksekutif (BEC).",
+    "probing_questions": [
+      "Apakah saat ini karyawan masih sering menerima email spam mencurigakan atau email phishing yang menyerupai pimpinan perusahaan?",
+      "Bagaimana sistem existing memeriksa keamanan tautan (link) di dalam email ketika user mengkliknya di kemudian hari (click-time analysis)?",
+      "Platform email apa yang digunakan kantor saat ini (M365, Google Workspace, atau Exchange on-premise) dan bagaimana proteksi filtering tambahannya?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Proofpoint dan Mimecast memiliki engine analisis threat intelligence email dengan cakupan telemetri global masif, mampu mendeteksi impersonasi nama pimpinan tanpa malware (BEC), serta inspeksi URL dinamis saat tautan diklik.",
+      "objection_handling": "Jika klien menganggap filter standar Microsoft/Google sudah cukup: Serangan BEC modern dibuat tanpa payload executable dan tidak terdeteksi filter bawaan standar; SEG menambahkan lapisan AI khusus behavioral fraud detection.",
+      "market_stats": "Lebih dari 90% insiden breach korporat berawal dari email phishing yang berhasil mengelabui karyawan."
+    }
+  },
+  {
+    "id": "vulnerability-management-vm",
+    "title": "Continuous Vulnerability Management & Attack Surface Management",
+    "pillar": "Cybersecurity Suite",
+    "tier": 2,
+    "solution_domain": "compliance_governance",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "pci_dss",
+      "iso27001"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "Tenable",
+      "Qualys",
+      "Rapid7"
+    ],
+    "all_products": [
+      "Tenable",
+      "Qualys",
+      "Rapid7 InsightVM",
+      "Tripwire"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance",
+      "Enterprise General",
+      "Government & Public Sector",
+      "Telecommunications"
+    ],
+    "source_url": "",
+    "pain_points": [
+      "Tim IT tidak memiliki visibilitas lengkap terhadap ratusan kerentanan (CVE) pada server, database, dan router jaringan korporasi.",
+      "Proses vulnerability assessment (VA) hanya dilakukan 6 bulan atau setahun sekali menjelang audit kepatuhan, menyisakan rentang waktu bahaya.",
+      "Kewalahan memprioritaskan ribuan laporan temuan CVE tanpa mengetahui kerentanan mana yang benar-benar aktif dieksploitasi hacker di dunia nyata."
+    ],
+    "key_subheadings": [
+      "Continuous Asset Discovery & Automated Vulnerability Scanning",
+      "Risk-Based Vulnerability Prioritization (VPR / Exploitability Index)",
+      "External Attack Surface Management (EASM) & Shadow IT Exposure",
+      "Regulatory Compliance & Audit Reporting (OJK, BI, PCI DSS, ISO 27001)"
+    ],
+    "business_impact": "Menemukan dan memitigasi celah keamanan sebelum dieksploitasi penyerang, mengarahkan tim patching ke prioritas kerentanan paling berisiko, serta mempercepat pemenuhan standar audit kepatuhan regulasi.",
+    "summary_snippet": "Platform pemindaian kerentanan sistem dan manajemen permukaan serangan berbasis risiko untuk mendeteksi kelemahan konfigurasi dan celah keamanan secara proaktif.",
+    "probing_questions": [
+      "Berapa frekuensi pemindaian celah keamanan (vulnerability assessment) dilakukan pada infrastruktur IT saat ini?",
+      "Bagaimana tim memprioritaskan server mana yang harus di-patch duluan ketika muncul puluhan CVE baru dalam sebulan?",
+      "Apakah ada tools otomatis untuk mendeteksi aset IT yang tersambung ke publik tanpa sepengetahuan tim keamanan (shadow IT)?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Tenable (Nessus/Tenable.io) dan Qualys menyediakan basis data CVE yang sangat luas di industri dengan metrik Vulnerability Priority Rating (VPR) yang membedakan kerentanan berisiko nyata versus teoritis.",
+      "objection_handling": "Jika klien menganggap VA manual oleh konsultan eksternal sudah cukup: Konsultan eksternal hanya memotret kondisi saat itu (point-in-time), sementara ribuan celah zero-day baru muncul setiap hari dan memerlukan continuous monitoring.",
+      "market_stats": "Kurang dari 3% dari total kerentanan CVE yang diterbitkan pernah dieksploitasi secara aktif di alam liar; pendekatan risk-based menghemat 90% waktu tim patching."
+    }
+  },
+  {
+    "id": "multi-factor-authentication-mfa",
+    "title": "Enterprise Multi-Factor Authentication (MFA) & Adaptive Access",
+    "pillar": "Cybersecurity Suite",
+    "tier": 2,
+    "solution_domain": "compliance_governance",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "pci_dss",
+      "iso27001",
+      "uu_pdp"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "Cisco Duo",
+      "Entrust"
+    ],
+    "all_products": [
+      "Cisco Duo",
+      "Entrust",
+      "Yubico",
+      "RSA SecurID",
+      "Ping Identity",
+      "Okta"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance",
+      "Enterprise General",
+      "Government & Public Sector",
+      "Healthcare & Hospitals"
+    ],
+    "source_url": "",
+    "pain_points": [
+      "Penggunaan password tunggal yang mudah ditebak, dicuri via phishing, atau bocor akibat database credential dump eksternal.",
+      "Metode MFA berbasis SMS OTP rentan terhadap pembajakan nomor SIM (SIM swap) dan biaya tagihan pulsa SMS yang mahal.",
+      "Serangan MFA fatigue / prompt bombing di mana pengguna dibombardir notifikasi pop-up hingga terpaksa menekan tombol approve."
+    ],
+    "key_subheadings": [
+      "FIDO2 Hardware Token & Phishing-Resistant Push Authentication",
+      "Contextual & Adaptive Risk-Based Authentication (Geo-Velocity, Device Health)",
+      "MFA Integration for Windows/Linux Server Logins & VPN",
+      "Self-Service User Enrollment & Hardware Security Token Management"
+    ],
+    "business_impact": "Memitigasi risiko peretasan akun akibat pencurian kredensial dan credential stuffing, memenuhi mandat regulasi BI/OJK/PCI DSS, serta menghemat biaya SMS OTP melalui mobile authenticator push.",
+    "summary_snippet": "Autentikasi multi-faktor adaptif enterprise tahan phishing untuk melindungi akses server, aplikasi cloud, workstation, dan portal VPN dari peretasan kredensial.",
+    "probing_questions": [
+      "Metode autentikasi apa yang digunakan saat login ke VPN, server kritis, atau email korporat saat ini?",
+      "Apakah perusahaan masih mengandalkan OTP SMS yang rentan pembajakan dan membebani biaya pulsa operasional?",
+      "Bagaimana kebijakan autentikasi ganda untuk login administrator langsung di konsol laptop atau server lokal?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Cisco Duo dan Entrust mendukung autentikasi push notification aman dengan number matching (anti-fatigue), integrasi FIDO2 hardware token, serta verifikasi postur kesehatan perangkat sebelum login diizinkan.",
+      "objection_handling": "Jika user merasa kerepotan: MFA modern memiliki fitur adaptive / risk-based trust; jika login dari laptop kantor di jaringan tepercaya, verifikasi tambahan tidak akan muncul terus-menerus.",
+      "market_stats": "Mengaktifkan MFA berbasis push / hardware key mampu mencegah hingga 99.9% serangan peretasan akun otomatis (studi internal Microsoft Security)."
+    }
+  },
+  {
+    "id": "enterprise-campus-lan-wifi",
+    "title": "Enterprise Campus LAN, Core Switching, & Wi-Fi 6/6E",
+    "pillar": "Network & Enterprise Workplace",
+    "tier": 1,
+    "solution_domain": "campus_lan_wireless",
+    "regulatory_compliance": [
+      "none"
+    ],
+    "target_environment": "on_premise",
+    "primary_products": [
+      "Cisco Catalyst",
+      "Aruba Networks"
+    ],
+    "all_products": [
+      "Cisco Catalyst",
+      "Aruba",
+      "Ruijie Reyee",
+      "Ruckus CommScope",
+      "Huawei",
+      "Allied Telesis"
+    ],
+    "target_industries": [
+      "Education & Campus",
+      "Healthcare & Hospitals",
+      "Enterprise General",
+      "Hospitality & Retail"
+    ],
+    "source_url": "",
+    "pain_points": [
+      "Koneksi Wi-Fi sering terputus, lambat di area padat (high density), dan jangkauan sinyal buruk saat banyak pengguna berkumpul.",
+      "Infrastruktur switch jaringan lawas (1G bottleneck, PoE terbatas) tidak mampu mendukung kebutuhan kamera IP resolusi tinggi dan Access Point Wi-Fi 6 mutakhir.",
+      "Pengelolaan switch dan access point terdistribusi di gedung bertingkat dilakukan secara manual per-perangkat tanpa manajemen cloud terpusat."
+    ],
+    "key_subheadings": [
+      "High-Density Wi-Fi 6/6E Multi-Gigabit Access Points",
+      "Campus Core & Distribution Switching with Multi-Chassis Stacking",
+      "Power over Ethernet (PoE+ / UPOE) for IoT & Surveillance",
+      "Centralized Cloud/On-Prem Network Management & AI RF Optimization"
+    ],
+    "business_impact": "Menjamin konektivitas tanpa jeda untuk ribuan pengguna simultan, mendukung kebutuhan digital workplace modern, dan memotong waktu troubleshooting jaringan hingga 80%.",
+    "summary_snippet": "Infrastruktur jaringan kabel (LAN) dan nirkabel (Wi-Fi 6) kelas enterprise berkinerja tinggi, berkecepatan multi-gigabit dengan manajemen dan optimasi otomatis terpadu.",
+    "probing_questions": [
+      "Berapa rata-rata jumlah perangkat nirkabel yang tersambung secara bersamaan saat jam sibuk di area kantor atau kampus?",
+      "Apakah switch yang terpasang saat ini sudah mendukung port Multi-Gigabit dan kapasitas PoE cukup untuk Access Point generasi baru?",
+      "Bagaimana tim IT memantau interferensi sinyal Wi-Fi dan kesehatan koneksi di seluruh lantai gedung saat ini?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Cisco Catalyst & Aruba menawarkan arsitektur enterprise teruji dengan switching backbone non-blocking, dynamic segmentation, serta optimasi channel radio otomatis berbasis AI (AI-powered RF management).",
+      "objection_handling": "Jika anggaran terbatas: Ruijie Reyee dan Aruba Instant On menyediakan alternatif berkinerja tinggi dengan cloud controller gratis tanpa lisensi tahunan berulang.",
+      "market_stats": "Wi-Fi 6 (802.11ax) memberikan peningkatan throughput hingga 4x lipat di lingkungan padat perangkat dan latensi 75% lebih rendah dibandingkan Wi-Fi 5 generasi sebelumnya."
+    }
+  },
+  {
+    "id": "enterprise-compute-virtualization",
+    "title": "Enterprise Server Virtualization & Cloud-Native Compute",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "tier": 1,
+    "solution_domain": "cloud_infrastructure",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "iso27001"
+    ],
+    "target_environment": "on_premise",
+    "primary_products": [
+      "VMware vSphere",
+      "Red Hat Enterprise Linux / OpenShift"
+    ],
+    "all_products": [
+      "VMware vSphere",
+      "Red Hat",
+      "Microsoft Hyper-V",
+      "Sangfor HCI Compute",
+      "Proxmox VE"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance",
+      "Enterprise General",
+      "Government & Public Sector",
+      "Telecommunications"
+    ],
+    "source_url": "https://magnaglobal.id/articles/enterprise-virtualization",
+    "pain_points": [
+      "Lonjakan biaya lisensi pasca akuisisi Broadcom atas VMware yang memaksa migrasi ke model core-based subscription tahunan yang sangat mahal.",
+      "Utilisasi server fisik (bare metal) yang rendah dan memakan ruang rak data center serta daya listrik pendingin (cooling) yang besar.",
+      "Kebutuhan modernisasi dari mesin virtual konvensional menuju containerization (Kubernetes) untuk mendukung aplikasi cloud-native microservices."
+    ],
+    "key_subheadings": [
+      "VMware Alternative Assessment & Subscription Optimization",
+      "High-Density Compute Workload Consolidation & vMotion",
+      "Enterprise Linux Infrastructure & Bare-Metal OS Hardening",
+      "Hybrid Cloud Bridge & Container Readiness Architecture"
+    ],
+    "business_impact": "Mengoptimalkan pengeluaran lisensi komputasi hingga 40-60%, mengkonsolidasikan puluhan server fisik menjadi beberapa unit rak hemat daya, dan menyiapkan fondasi aplikasi modern.",
+    "summary_snippet": "Infrastruktur komputasi tervirtualisasi berkinerja tinggi untuk konsolidasi beban kerja enterprise, efisiensi resource data center, dan opsi transisi lisensi pasca-akuisisi VMware.",
+    "probing_questions": [
+      "Kapan kontrak lisensi VMware vSphere perusahaan akan jatuh tempo, dan bagaimana dampak skema penetapan harga per-core subscription Broadcom saat ini?",
+      "Berapa rasio utilisasi CPU dan RAM rata-rata server fisik di ruang data center Anda?",
+      "Apakah ada rencana modernisasi beban kerja VM lama ke platform microservices berbasis container seperti Red Hat OpenShift?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "SMG menyediakan evaluasi komprehensif penghitungan core VMware untuk mengoptimalkan biaya renewal, sekaligus menawarkan jalur alternatif transisi yang mulus ke Red Hat KVM/OpenShift atau Sangfor HCI.",
+      "objection_handling": "Jika tim ragu beralih dari VMware: Red Hat OpenShift Virtualization memungkinkan manajemen VM dan container dalam satu konsol kontrol tunggal tanpa beban re-arsitektur.",
+      "market_stats": "Perubahan model lisensi VMware Broadcom mengakibatkan kenaikan biaya renewal tahunan rata-rata 2x hingga 5x lipat bagi institusi enterprise dengan infrastruktur berskala besar."
+    }
+  },
+  {
+    "id": "hyperconverged-infrastructure-hci",
+    "title": "Hyperconverged Infrastructure (HCI) Data Center Modernization",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "tier": 1,
+    "solution_domain": "cloud_infrastructure",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "iso27001"
+    ],
+    "target_environment": "on_premise",
+    "primary_products": [
+      "Nutanix Cloud Infrastructure",
+      "Dell VxRail"
+    ],
+    "all_products": [
+      "Nutanix",
+      "Dell VxRail",
+      "Sangfor HCI",
+      "Cisco HyperFlex",
+      "HPE SimpliVity"
+    ],
+    "target_industries": [
+      "Enterprise General",
+      "FSI / Banking & Multifinance",
+      "Government & Public Sector",
+      "Healthcare & Hospitals"
+    ],
+    "source_url": "https://magnaglobal.id/articles/hyperconverged-infrastructure",
+    "pain_points": [
+      "Arsitektur data center 3-tier konvensional (server compute, SAN switch, storage box) sangat rumit dikelola, lambat di-provision, dan rawan single point of failure.",
+      "Ketergantungan pada vendor storage proprietary dan tim spesialis SAN storage terpisah yang memperlambat ekspansi kapasitas penyimpanan data.",
+      "Kesulitan melakukan upgrade skala kecil (linear scaling); harus membeli storage controller baru yang mahal saat kapasitas disk habis."
+    ],
+    "key_subheadings": [
+      "Software-Defined Storage & Compute Convergence (Single Appliance)",
+      "Web-Scale Architecture & Non-Disruptive 1-Node Linear Expansion",
+      "Built-in Enterprise Hypervisor (Nutanix AHV / Sangfor aSV)",
+      "Automated 1-Click Firmware & Hypervisor Upgrades"
+    ],
+    "business_impact": "Memangkas footprint rak data center hingga 80%, menghilangkan biaya SAN storage terpisah, dan memungkinkan penambahan kapasitas komputasi secara modular tanpa downtime.",
+    "summary_snippet": "Modernisasi infrastruktur data center terkonvergensi yang menggabungkan compute, software-defined storage, dan jaringan dalam appliance tunggal yang mudah diperluas secara modular.",
+    "probing_questions": [
+      "Apakah arsitektur data center saat ini masih menggunakan model 3-tier konvensional dengan SAN switch dan storage terpisah?",
+      "Berapa lama waktu yang dibutuhkan tim storage untuk mengalokasikan LUN storage baru saat departemen bisnis meminta server tambahan?",
+      "Bagaimana rencana ekspansi data center dalam 3 tahun ke depan, apakah ingin menghindari pembelian storage controller besar (forklift upgrade)?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Nutanix menyediakan hypervisor AHV gratis bawaan tanpa lisensi VMware tambahan, arsitektur data locality untuk IOPS super tinggi, dan konsol Prism 1-klik untuk seluruh operasi data center.",
+      "objection_handling": "Jika klien menganggap HCI mahal di awal: TCO 3-5 tahun HCI justru 30-50% lebih hemat karena mengeliminasi SAN switches, kabel optik FC mahal, kontrak support multi-vendor, dan lisensi hypervisor terpisah.",
+      "market_stats": "Implementasi arsitektur HCI mampu memangkas waktu manajemen infrastruktur rutin harian tim IT hingga 60% dibandingkan mengelola storage SAN tradisional."
+    }
+  },
+  {
+    "id": "enterprise-storage-disk-array",
+    "title": "All-Flash & Hybrid Enterprise Storage Array",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "tier": 1,
+    "solution_domain": "cloud_infrastructure",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "iso27001"
+    ],
+    "target_environment": "on_premise",
+    "primary_products": [
+      "Dell PowerStore",
+      "NetApp AFF / FAS"
+    ],
+    "all_products": [
+      "Dell PowerStore",
+      "Dell PowerMax",
+      "NetApp",
+      "HPE Alletra",
+      "Pure Storage FlashArray",
+      "Inspur"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance",
+      "Government & Public Sector",
+      "Telecommunications",
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/enterprise-storage-solutions",
+    "pain_points": [
+      "Performa I/O database transaksi perbankan dan ERP mengalami latensi tinggi (bottleneck) pada storage mekanik/hybrid lama.",
+      "Pertumbuhan data transaksi tidak terstruktur (file share, image arsip) melesat drastis dan menghabiskan kapasitas disk tanpa kompresi efektif.",
+      "Risiko downtime bisnis jika salah satu controller storage mengalami kegagalan hardware tanpa kemampuan active-active failover."
+    ],
+    "key_subheadings": [
+      "End-to-End NVMe All-Flash Architecture with Sub-Millisecond Latency",
+      "Hardware-Assisted Inline Data Deduplication & Compression (4:1 Guarantee)",
+      "Active-Active Controller High Availability & Non-Disruptive Migration",
+      "Multi-Protocol Support (FC SAN, iSCSI, NFS, SMB/CIFS File Sharing)"
+    ],
+    "business_impact": "Mendongkrak performa query database hingga 10x lebih cepat, menghemat biaya rak penyimpanan data melalui garansi rasio reduksi data 4:1, dan menjamin 99.9999% data availability.",
+    "summary_snippet": "Sistem penyimpanan data SAN/NAS All-Flash enterprise berlatensi sub-milidetik dengan teknologi deduplikasi cerdas untuk beban kerja basis data dan virtualisasi misi kritis.",
+    "probing_questions": [
+      "Berapa kapasitas terpakai dan usia perangkat storage SAN/NAS yang menopang database utama saat ini?",
+      "Apakah aplikasi core sering mengalami keluhan performa lambat saat proses closing akhir bulan (EOM batch processing)?",
+      "Apakah storage existing sudah menggunakan media penyimpanan NVMe All-Flash atau masih mengandalkan piringan disk konvensional (SAS/SATA)?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Dell PowerStore dan NetApp AFF menghadirkan arsitektur active-active NVMe sejati, jaminan deduplikasi data 4:1 tanpa penalti performa CPU, dan kemampuan integrasi snapshot langsung ke software backup enterprise.",
+      "objection_handling": "Jika klien ragu mengganti storage karena takut proses migrasi data rumit: SMG menyediakan layanan migrasi data online menggunakan tools built-in storage tanpa menghentikan layanan aplikasi yang sedang berjalan.",
+      "market_stats": "Migrasi dari array hybrid tradisional ke All-Flash NVMe array terbukti memangkas waktu proses batch transaksi perbankan dan query laporan analitik hingga 70%."
+    }
+  },
+  {
+    "id": "business-continuity-disaster-recovery",
+    "title": "Business Continuity, Disaster Recovery (DR), & Enterprise Backup",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "tier": 1,
+    "solution_domain": "backup_disaster_recovery",
+    "regulatory_compliance": [
+      "ojk",
+      "bi",
+      "iso27001"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "Veeam Backup & Replication",
+      "Dell PowerProtect Data Domain"
+    ],
+    "all_products": [
+      "Veeam",
+      "Dell PowerProtect",
+      "Commvault",
+      "Veritas NetBackup",
+      "Rubrik",
+      "Cohesity"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance",
+      "Enterprise General",
+      "Government & Public Sector",
+      "Healthcare & Hospitals"
+    ],
+    "source_url": "https://magnaglobal.id/articles/disaster-recovery-business-continuity",
+    "pain_points": [
+      "Serangan ransomware modern secara sengaja mencari, mengenkripsi, dan menghapus file backup lokal sebelum mengunci server produksi utama.",
+      "Waktu pemulihan data (RTO) memakan waktu berhari-hari karena proses restore manual dari tape library lama yang lambat dan rawan error.",
+      "Ketidakpatuhan terhadap regulasi Bank Indonesia/OJK mengenai kewajiban memiliki Data Recovery Center (DRC) dengan target RPO/RTO terukur."
+    ],
+    "key_subheadings": [
+      "Immutable Backup Storage (WORM / Object Lock) Anti-Ransomware",
+      "Continuous Data Protection (CDP) for Near-Zero RPO & RTO",
+      "Automated Disaster Recovery Orchestration & Non-Disruptive DR Drill",
+      "3-2-1-1-0 Enterprise Backup Rule Compliance"
+    ],
+    "business_impact": "Menjamin integritas pemulihan data dari ancaman ransomware melalui repository immutable backup, memangkas RTO dari hari menjadi menit, dan memastikan pemenuhan regulasi audit DRC OJK.",
+    "summary_snippet": "Solusi perlindungan data, backup terisolasi anti-ransomware, dan orkestrasi pemulihan bencana otomatis untuk menjamin kelangsungan operasional bisnis saat terjadi insiden fatal.",
+    "probing_questions": [
+      "Berapa target Recovery Point Objective (RPO) dan Recovery Time Objective (RTO) yang ditetapkan institusi jika server data center utama lumpuh?",
+      "Bagaimana perlindungan file backup saat ini, apakah sudah memiliki proteksi immutable backup (tidak bisa dihapus/diedit bahkan oleh akun admin)?",
+      "Berapa frekuensi uji coba pemulihan bencana (DR drill) dilakukan dalam setahun, dan apakah proses failover ke DRC masih manual?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Veeam dan Dell Data Domain menyediakan deduplikasi data ekstrem hingga 65x, instant VM recovery dalam hitungan detik, serta immutable repository berbasis Linux/Cloud yang kebal serangan malware enkripsi.",
+      "objection_handling": "Jika klien merasa backup tape sudah cukup: Tape backup memiliki rasio kegagalan restore hingga 30% dan membutuhkan waktu pengangkutan fisik berjam-jam, sangat tidak realistis menghadapi insiden ransomware modern.",
+      "market_stats": "Regulasi OJK mewajibkan lembaga jasa keuangan memiliki RTO maksimal 4 jam dan RPO maksimal 15 menit untuk sistem perbankan berklasifikasi kritis."
+    }
+  },
+  {
+    "id": "software-defined-wide-area-network-sdwan",
+    "title": "Software-Defined Wide Area Network (SD-WAN) & Secure Branch",
+    "pillar": "Network & Enterprise Workplace",
+    "tier": 1,
+    "solution_domain": "network_firewall_zero_trust",
+    "regulatory_compliance": [
+      "none"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "Fortinet Secure SD-WAN",
+      "Cisco Catalyst SD-WAN"
+    ],
+    "all_products": [
+      "Fortinet",
+      "Cisco",
+      "Aruba EdgeConnect",
+      "Sangfor SD-WAN"
+    ],
+    "target_industries": [
+      "Retail & Multi-Branch Enterprise",
+      "FSI / Banking & Multifinance",
+      "Manufacture Industry",
+      "Logistics & Supply Chain"
+    ],
+    "source_url": "",
+    "pain_points": [
+      "Tingginya biaya langganan sewa sirkuit leased-line / MPLS privat untuk menghubungkan puluhan atau ratusan kantor cabang ke data center.",
+      "Koneksi aplikasi cloud (Microsoft 365, ERP Cloud) di cabang lambat karena lalu lintas harus di-backhaul ke data center pusat sebelum keluar ke internet.",
+      "Proses aktivasi dan provisioning koneksi kantor cabang baru (branch onboarding) memakan waktu lama berminggu-minggu dengan konfigurasi manual di lokasi."
+    ],
+    "key_subheadings": [
+      "Application-Aware Dynamic Path Steering & SLA Monitoring",
+      "Multi-Link Aggregation (MPLS + Broadband Internet + 4G/5G Backup)",
+      "Zero-Touch Provisioning (ZTP) for Instant Branch Rollout",
+      "Integrated Next-Gen Firewall Security at the Branch Edge"
+    ],
+    "business_impact": "Memangkas biaya sirkuit telekomunikasi WAN hingga 50%, meningkatkan performa aplikasi cloud cabang, dan memangkas waktu aktivasi cabang baru menjadi hitungan menit.",
+    "summary_snippet": "Arsitektur jaringan area luas berbasis software cerdas yang menggabungkan berbagai jalur internet/MPLS dengan perutean aplikasi dinamis dan keamanan terintegrasi.",
+    "probing_questions": [
+      "Berapa total kantor cabang yang terhubung saat ini, dan media koneksi apa yang digunakan (apakah masih mengandalkan MPLS mahal atau internet reguler)?",
+      "Bagaimana dampak operasional cabang jika sirkuit koneksi data utama putus, apakah failover ke link cadangan berjalan otomatis tanpa putus sesi transaksi?",
+      "Berapa lama waktu yang dibutuhkan tim jaringan untuk menyiapkan konfigurasi router dan firewall ketika membuka kantor cabang baru?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Fortinet menggabungkan Secure SD-WAN langsung di dalam OS firewall FortiGate tanpa biaya lisensi terpisah, sementara Cisco SD-WAN memimpin untuk arsitektur routing skala raksasa ribuan cabang.",
+      "objection_handling": "Jika klien ragu mengganti MPLS karena alasan reliabilitas: SD-WAN memungkinkan penggunaan 2 koneksi broadband internet murah secara active-active dengan failover sub-detik yang menyamai atau melampaui SLA MPLS.",
+      "market_stats": "Organisasi enterprise yang beralih dari MPLS murni ke arsitektur Hybrid SD-WAN melaporkan penghematan biaya OPEX telekomunikasi rata-rata sebesar 45% dalam tempo 3 tahun."
+    }
+  },
+  {
+    "id": "modern-data-warehouse-lakehouse",
+    "title": "Modern Data Warehouse, Data Lakehouse, & Business Intelligence",
+    "pillar": "Data Analytics & AI",
+    "tier": 2,
+    "solution_domain": "data_analytics_ai",
+    "regulatory_compliance": [
+      "ojk",
+      "uu_pdp",
+      "iso27001"
+    ],
+    "target_environment": "cloud",
+    "primary_products": [
+      "Google BigQuery",
+      "Databricks"
+    ],
+    "all_products": [
+      "Google BigQuery",
+      "Databricks",
+      "Snowflake",
+      "Cloudera",
+      "Microsoft Fabric"
+    ],
+    "target_industries": [
+      "FSI / Banking & Multifinance",
+      "Retail & E-Commerce",
+      "Telecommunications",
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/modern-data-warehouse-bigquery",
+    "pain_points": [
+      "Data transaksi tersebar di berbagai database silo (CRM, ERP, Core Banking, web logs) sehingga pimpinan kesulitan mendapatkan gambaran bisnis yang utuh (single source of truth).",
+      "Kueri laporan analitik memakan waktu berjam-jam bahkan mengganggu kinerja server database transaksi produksi jika dijalankan secara bersamaan.",
+      "Infrastruktur data warehouse on-premise lama sulit diskalakan untuk menampung ledakan volume data semi-terstruktur (JSON, streaming events, clickstream)."
+    ],
+    "key_subheadings": [
+      "Serverless Elastic Data Warehouse & Lakehouse Architecture",
+      "Automated ELT/ETL Data Pipeline & Ingestion Framework",
+      "Real-Time Analytics & Cross-Source Data Unification",
+      "Enterprise Data Governance, Lineage, & Masking for UU PDP"
+    ],
+    "business_impact": "Menghasilkan laporan analitik eksekutif dalam hitungan detik dari miliaran baris data, mengeliminasi beban database operasional, dan mewujudkan keputusan berbasis data.",
+    "summary_snippet": "Platform analitik data terpadu generasi modern berskala serverless petabyte untuk mengkonsolidasikan data multi-sumber, menjalankan BI instan, dan melatih model kecerdasan buatan.",
+    "probing_questions": [
+      "Berapa lama waktu yang dibutuhkan saat ini untuk menarik data laporan penjualan atau transaksi bulanan dari berbagai departemen berbeda?",
+      "Apakah proses kueri reporting analitik yang intensif pernah membebani performa database aplikasi utama di jam kerja?",
+      "Bagaimana kesiapan arsitektur data perusahaan saat ini dalam mendukung proyek analitik prediktif dan machine learning (AI readiness)?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Google BigQuery menyediakan arsitektur murni serverless tanpa perlu provisioning mesin atau kapasitas storage; bayar hanya saat kueri berjalan, dan memproses petabyte data dalam detik.",
+      "objection_handling": "Jika klien khawatir biaya cloud bengkak: BigQuery menyediakan fitur slot reservation fixed-cost dan partition/clustering yang menjamin pengeluaran bulanan analitik tetap terprediksi.",
+      "market_stats": "Perusahaan data-driven yang memanfaatkan modern cloud lakehouse mencatat peningkatan efisiensi operasional dan retensi pelanggan hingga 23x lebih tinggi."
+    }
+  },
+  {
+    "id": "google-cloud-platform-modernization",
+    "title": "Google Cloud Platform (GCP) Modernization & Kubernetes (GKE)",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "tier": 2,
+    "solution_domain": "kubernetes_modernization",
+    "regulatory_compliance": [
+      "ojk",
+      "iso27001",
+      "uu_pdp"
+    ],
+    "target_environment": "cloud",
+    "primary_products": [
+      "Google Kubernetes Engine (GKE)",
+      "Google Cloud Platform (GCP)"
+    ],
+    "all_products": [
+      "Google Cloud Platform",
+      "AWS",
+      "Microsoft Azure",
+      "Alibaba Cloud"
+    ],
+    "target_industries": [
+      "Digital Native & Startups",
+      "FSI / Fintech & Multifinance",
+      "Retail & E-Commerce",
+      "Enterprise General"
+    ],
+    "source_url": "https://magnaglobal.id/articles/google-kubernetes-engine",
+    "pain_points": [
+      "Aplikasi monolitik warisan sulit diperbarui secara cepat dan sering mengalami downtime total saat salah satu modul sistem error.",
+      "Tingginya biaya investasi CAPEX hardware server baru on-premise saat aplikasi membutuhkan lonjakan kapasitas mendadak.",
+      "Kurangnya keahlian internal dalam mengelola cluster Kubernetes manual yang kompleks, rentan celah keamanan, dan sulit di-patch."
+    ],
+    "key_subheadings": [
+      "Fully Managed Kubernetes with Google Kubernetes Engine (GKE Autopilot)",
+      "Microservices Architecture Transition & Container Security",
+      "Hybrid Cloud Connectivity & Multi-Region High Availability",
+      "Cloud Financial Management (FinOps) & Cost Optimization"
+    ],
+    "business_impact": "Mempercepat siklus rilis fitur aplikasi baru dari bulanan menjadi harian, auto-scaling otomatis menghadapi jutaan user, dan menurunkan biaya operasional infrastruktur.",
+    "summary_snippet": "Layanan modernisasi aplikasi dan migrasi cloud enterprise memanfaatkan ekosistem Google Cloud Platform dan Google Kubernetes Engine (GKE) kelas dunia.",
+    "probing_questions": [
+      "Bagaimana rencana modernisasi arsitektur aplikasi backend Anda, apakah sudah mulai mengadopsi container microservices atau masih monolitik?",
+      "Berapa lama waktu yang dibutuhkan tim developer untuk merilis fitur atau pembaruan kode baru ke lingkungan produksi?",
+      "Bagaimana cara sistem menangani lonjakan lalu lintas pengguna mendadak (misalnya saat promo gajian atau kampanye nasional)?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Google adalah pencipta asli Kubernetes; GKE Autopilot menawarkan pengalaman orkestrasi container enterprise yang matang dengan auto-provisioning node, automated health-checks & repair, serta SLA uptime ketersediaan tinggi hingga 99.95%.",
+      "objection_handling": "Jika klien khawatir vendor lock-in ke cloud: Kubernetes adalah standar open-source global; aplikasi yang dikemas dalam container GKE dapat dipindahkan ke penyedia cloud lain atau on-premise kapan saja tanpa re-coding.",
+      "market_stats": "Organisasi yang memigrasikan aplikasi ke GKE melaporkan peningkatan kecepatan rilis software hingga 300% dan pengurangan downtime aplikasi hingga 85%."
+    }
+  },
+  {
+    "id": "google-maps-platform-geospatial",
+    "title": "Google Maps Platform & Location-Based Intelligence",
+    "pillar": "Cloud Infrastructure & Modernization",
+    "tier": 1,
+    "solution_domain": "location_geospatial",
+    "regulatory_compliance": [
+      "uu_pdp"
+    ],
+    "target_environment": "cloud",
+    "primary_products": [
+      "Google Maps Platform",
+      "Routes API",
+      "Places API",
+      "Geocoding API"
+    ],
+    "all_products": [
+      "Google Maps Platform",
+      "Routes API",
+      "Places API",
+      "Geocoding API",
+      "Distance Matrix API",
+      "Maps JavaScript API",
+      "Fleet Engine",
+      "Google Cloud"
+    ],
+    "target_industries": [
+      "Logistics & Supply Chain",
+      "Ride-Hailing & On-Demand Delivery",
+      "Retail & E-Commerce",
+      "FSI / Banking & Multifinance"
+    ],
+    "source_url": "",
+    "pain_points": [
+      "Tingginya tingkat kegagalan pengiriman barang akibat alamat nasabah yang tidak valid, typo, atau nomor rumah tidak terdata di peta.",
+      "Rute armada logistik yang tidak efisien sehingga menghabiskan bahan bakar berlebih dan memperlambat estimasi waktu tiba (ETA).",
+      "Tampilan peta di aplikasi mobile pelanggan terasa kaku, tidak akurat, dan sering mengalami error saat mencari tempat (POI)."
+    ],
+    "key_subheadings": [
+      "Places API & Address Validation (Autocomplete & Verification)",
+      "Routes API & Real-Time Traffic Fleet Route Optimization",
+      "Interactive Dynamic Maps & Custom Data Layer Overlay",
+      "Enterprise Volume Discounting & Magna Local Billing Support"
+    ],
+    "business_impact": "Mengurangi kegagalan pengiriman hingga 40%, memangkas biaya bahan bakar armada logistik dengan rute optimal real-time, dan meningkatkan kepuasan konsumen aplikasi.",
+    "summary_snippet": "Integrasi antarmuka pemetaan dan data geospasial enterprise untuk validasi alamat instan, pelacakan rute armada logistik, dan visualisasi lokasi interaktif.",
+    "probing_questions": [
+      "Berapa persentase pengiriman atau kurir yang mengalami kendala alamat tidak ditemukan saat mengantarkan pesanan ke konsumen?",
+      "Bagaimana aplikasi Anda saat ini membantu pengguna memilih alamat tujuan secara cepat tanpa perlu mengetik panjang?",
+      "Bagaimana skema pembayaran tagihan Google Maps API saat ini, apakah masih menggunakan kartu kredit korporat tanpa faktur pajak lokal?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Google Maps memiliki basis data tempat (POI) dan navigasi jalan terlengkap di Indonesia, didukung miliaran perangkat Android real-time. Melalui PT Smartnet Magna Global (SMG), klien memperoleh penagihan lokal rupiah resmi dan enterprise volume support.",
+      "objection_handling": "Jika peta open-source gratis dipertimbangkan: Data gratis tidak memiliki informasi kemacetan lalu lintas real-time dan kelengkapan nomor rumah mikro, yang menyebabkan kerugian operasional kurir jauh lebih mahal dibanding biaya API.",
+      "market_stats": "Implementasi Google Places Autocomplete terbukti meningkatkan conversion rate checkout aplikasi e-commerce hingga 20% dengan mengeliminasi kesalahan input form alamat."
+    }
+  },
+  {
+    "id": "network-performance-monitoring-npmd",
+    "title": "Network Performance Monitoring and Diagnostics (NPMD)",
+    "pillar": "Network & Enterprise Workplace",
+    "tier": 2,
+    "solution_domain": "general_enterprise_it",
+    "regulatory_compliance": [
+      "iso27001"
+    ],
+    "target_environment": "hybrid",
+    "primary_products": [
+      "SolarWinds Network Performance Monitor",
+      "Riverbed NPM"
+    ],
+    "all_products": [
+      "SolarWinds",
+      "Riverbed",
+      "Dynatrace",
+      "ManageEngine",
+      "PRTG Paessler"
+    ],
+    "target_industries": [
+      "Enterprise General",
+      "FSI / Banking & Multifinance",
+      "Telecommunications",
+      "Public Sector & BUMN"
+    ],
+    "source_url": "",
+    "pain_points": [
+      "Tim jaringan sering disalahkan ketika ada keluhan aplikasi lambat tanpa bukti telemetri apakah masalah pada bandwidth, latency, server, atau database.",
+      "Sering terjadi downtime jaringan tak terduga akibat lonjakan pemakaian bandwidth mendadak oleh aktivitas user non-kerja.",
+      "Ketiadaan peta topologi visual real-time dan laporan pemanfaatan kapasitas antarmuka untuk perencanaan upgrade kapasitas."
+    ],
+    "key_subheadings": [
+      "Comprehensive Multi-Vendor SNMP & Flow Monitoring (NetFlow, sFlow, IPFIX)",
+      "Hop-by-Hop Network Path Latency Analysis (NetPath)",
+      "Bandwidth Consumption & Top-Talker Application Tracking",
+      "Automated Alerting, Threshold Baselines, & SLA Availability Reports"
+    ],
+    "business_impact": "Mengeliminasi saling tuding antar tim IT saat terjadi degradasi performa, mengidentifikasi akar masalah latency jaringan dalam hitungan detik, dan mengoptimalkan belanja bandwidth.",
+    "summary_snippet": "Platform pemantauan kinerja dan diagnostik kesehatan jaringan multi-vendor secara menyeluruh berbasis protokol SNMP, flow telemetri, dan analisis jalur paket data.",
+    "probing_questions": [
+      "Bagaimana tim IT membuktikan bahwa keluhan aplikasi lambat disebabkan oleh jaringan atau oleh server/aplikasi itu sendiri?",
+      "Apakah tim memiliki visibilitas terhadap siapa pengguna (top talker) atau aplikasi apa yang sedang menyedot bandwidth saat koneksi lemot?",
+      "Bagaimana proses notifikasi jika salah satu link antar gedung atau switch distribusi mengalami utilisasi CPU tinggi atau packet loss?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "SolarWinds NetPath mampu memetakan seluruh jalur koneksi hop-by-hop dari komputer user hingga server cloud (termasuk jaringan ISP perantara) untuk mengisolasi titik lambat secara presisi visual.",
+      "objection_handling": "Jika tim merasa monitoring bawaan switch sudah cukup: Solusi bawaan bersifat terkotak-kotak (siloed) dan tidak dapat mengkorelasikan lalu lintas antar vendor switch, router, firewall, dan server yang berbeda.",
+      "market_stats": "Lebih dari 65% waktu henti operasional IT (downtime) dihabiskan hanya untuk mencari tahu komponen mana yang rusak sebelum perbaikan fisik dimulai."
+    }
+  },
+  {
+    "id": "google-workspace-enterprise-productivity",
+    "title": "Google Workspace Enterprise Productivity & Collaboration",
+    "pillar": "Network & Enterprise Workplace",
+    "tier": 1,
+    "solution_domain": "enterprise_workplace",
+    "regulatory_compliance": [
+      "uu_pdp",
+      "iso27001",
+      "ojk"
+    ],
+    "target_environment": "cloud",
+    "primary_products": [
+      "Google Workspace",
+      "Gmail Enterprise",
+      "Google Drive",
+      "Gemini for Google Workspace"
+    ],
+    "all_products": [
+      "Google Workspace",
+      "Gmail Enterprise",
+      "Google Drive",
+      "Google Meet",
+      "Google Chat",
+      "Google Vault",
+      "Google Drive DLP",
+      "Gemini for Google Workspace",
+      "Google Admin Console",
+      "Cloud Identity"
+    ],
+    "target_industries": [
+      "Enterprise General",
+      "FSI / Banking & Multifinance",
+      "Education & Public Sector",
+      "Retail & Modern Trade",
+      "Logistics & Supply Chain"
+    ],
+    "source_url": "https://magnaglobal.id/articles/google-workspace-enterprise",
+    "pain_points": [
+      "Sistem email on-premise legacy (Zimbra, Microsoft Exchange on-prem, cPanel) sering mengalami downtime, mail bounce, spam berlebih, dan biaya maintenance server yang mahal.",
+      "Ketiadaan kontrol DLP terpusat atas attachment email dan dokumen sensitif perusahaan di cloud drive sehingga rawan kebocoran data dan sanksi UU PDP.",
+      "Karyawan dan cabang bekerja terfragmentasi dengan aplikasi berbeda tanpa koordinasi real-time untuk meeting online, chat, dan kolaborasi co-editing dokumen.",
+      "Kekhawatiran proses migrasi ribuan mailbox enterprise ke cloud akan menimbulkan downtime operasional dan risiko kehilangan arsip email penting."
+    ],
+    "key_subheadings": [
+      "Enterprise Email Migration (Zimbra / Microsoft Exchange ke Google Workspace) Zero Downtime",
+      "Data Governance, DLP & Google Vault: eDiscovery, Audit Trail, & Kepatuhan Regulasi",
+      "Unified Collaboration: Gmail Enterprise, Google Meet, Google Chat, & Cloud Storage",
+      "Gemini for Google Workspace: AI Generatif untuk Draft Dokumen, Analisa Spreadsheet, & Notulensi Meeting",
+      "Enterprise Security & Cloud Identity Access Management"
+    ],
+    "business_impact": "Menjamin 99.9% uptime availability email bisnis, eliminasi biaya operasional server email on-premise, kepatuhan proteksi data privasi dengan Google Vault & DLP, serta peningkatan produktivitas kolaborasi hingga 25% dengan Gemini AI.",
+    "summary_snippet": "Platform produktivitas dan kolaborasi cloud enterprise terintegrasi (Gmail, Drive, Meet, Docs) dilengkapi tata kelola keamanan Google Vault, DLP, dan asistensi AI generatif Gemini.",
+    "probing_questions": [
+      "Platform email dan kolaborasi apa yang digunakan perusahaan saat ini, apakah masih menggunakan server on-premise seperti Zimbra atau Microsoft Exchange?",
+      "Bagaimana kontrol perusahaan saat ini untuk mencegah kebocoran data sensitif (seperti NIK, data keuangan, nomor rekening) yang dikirim karyawan melalui email atau cloud storage?",
+      "Berapa lama waktu retensi arsip email yang diwajibkan oleh regulator audit, dan apakah perusahaan memiliki fitur eDiscovery instan saat ada investigasi hukum/audit?",
+      "Apakah ada inisiatif untuk memanfaatkan AI generatif (Gemini) guna membantu tim mempercepat pembuatan dokumen, analisa spreadsheet, dan ringkasan meeting kerja harian?"
+    ],
+    "battlecard_ammo": {
+      "key_differentiators": "Google Workspace menawarkan 99.9% guaranteed uptime SLA tanpa maintenance window offline terencana, kemampuan pencarian secepat Google Search, integrasi native Gemini AI di seluruh suite aplikasi tanpa add-on rumit, serta jaminan kepemilikan data dan privasi sepenuhnya berada di bawah kendali pelanggan (data tidak digunakan untuk pelatihan model AI publik).",
+      "objection_handling": "Jika klien ragu migrasi dari Zimbra/Exchange karena takut operasional terhenti: Tim tersertifikasi SMG menjamin proses migrasi zero-downtime dengan metode dual-delivery; email masuk tetap diterima normal di sistem lama sementara data historis ditransfer bertahap di background.",
+      "market_stats": "Studi Forrester menunjukkan implementasi Google Workspace menghasilkan ROI 331% dalam 3 tahun, menghemat 171 jam kerja per karyawan per tahun, dan menurunkan risiko kebocoran data hingga 95% dengan Google Drive DLP & Vault."
+    }
+  }
+]

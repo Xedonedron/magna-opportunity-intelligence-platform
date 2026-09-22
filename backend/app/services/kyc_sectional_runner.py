@@ -15,6 +15,7 @@ from app.schemas.kyc import (
     IndustryCompetitorsOutput,
     CompetitorItem,
     PainPointsNeedsOutput,
+    PresalesIntentSlots,
     UseCasesOutput,
     EngagementStrategyOutput,
     ExecutiveSummaryOutput,
@@ -99,6 +100,19 @@ _STRICT_JSON_DIRECTIVE = (
 )
 
 
+def _build_probing_hints(cards: list) -> str:
+    """Extract probing questions from matched Isti cards for Module 5 prompt enrichment."""
+    questions = []
+    for card in cards:
+        for q in getattr(card, "probing_questions", None) or []:
+            if q and q not in questions:
+                questions.append(q)
+    if not questions:
+        return ""
+    hints = "\n".join(f"- {q}" for q in questions[:8])
+    return f"\nINSPIRASI PERTANYAAN LAPANGAN (dari katalog presales SMG - gunakan sebagai referensi):\n{hints}\n"
+
+
 # ---------------------------------------------------------------------------
 # Layer A: Company Intelligence Pipeline (Module 1 & 2)
 # ---------------------------------------------------------------------------
@@ -169,10 +183,44 @@ async def run_opportunity_intelligence(
 Struktur output JSON yang WAJIB:
 - customer_need_summary: teks narasi ringkas kebutuhan bisnis dan teknis klien.
 - potential_pain_points: array string kendala teknis / operasional ["kendala 1", "kendala 2"].
+- presales_slots: objek JSON berisi:
+  - solution_domains: array domain solusi yang relevan. Pilih dari: "privileged_access_management", "endpoint_security", "cloud_infrastructure", "kubernetes_modernization", "data_analytics_ai", "network_firewall_zero_trust", "campus_lan_wireless", "backup_disaster_recovery", "compliance_governance", "general_enterprise_it", "enterprise_workplace", "location_geospatial".
+  - regulatory_compliance: array tag regulasi wajib ["ojk", "bi", "uu_pdp", "pci_dss", "iso27001", "none"]. Default ["none"] jika tidak terindikasi.
+  - target_environment: salah satu dari "on_premise", "cloud", "hybrid", "campus_lan", "unspecified".
+  - is_vague_input: true jika input sales terlalu minim konteks/hanya sapaan umum.
+
+PANDUAN PEMETAAN DOMAIN:
+- Keluhan admin/password sharing/privilege → "privileged_access_management" + regulasi "ojk"/"bi" jika FSI.
+- Keluhan malware/antivirus lemot/ransomware → "endpoint_security".
+- Kebocoran data NIK/KTP/PII → "compliance_governance" + regulasi "uu_pdp".
+- Kebutuhan rute armada kurir/fleet/logistik/geospatial → "location_geospatial".
+- Migrasi email Zimbra/Exchange/modern workplace → "enterprise_workplace".
+- Firewall/NGFW/WAF/zero trust network → "network_firewall_zero_trust".
+- Server fisik/HCI/storage/virtualisasi → "cloud_infrastructure".
+- BigQuery/data warehouse/ETL/AI/ML → "data_analytics_ai".
+- Kubernetes/GKE/container/cloud native → "kubernetes_modernization".
+- WiFi/LAN/campus network/access point → "campus_lan_wireless".
+- Backup/disaster recovery/BCP → "backup_disaster_recovery".
 {_STRICT_JSON_DIRECTIVE}"""
 
     mod3 = await invoke_section(llm, PainPointsNeedsOutput, prompt_mod3, "Module 3", max_retries=3, state=state, clean_json_fn=clean_json_fn)
     await update_progress_fn(config, "analyzing", 60)
+
+    # --- Stage 2: Two-Stage Hybrid Semantic Router (post-Module 3) ---
+    logger.info("[KYC Pipeline] Stage 2: Presales Semantic Router (post-Module 3)...")
+    presales_slots = getattr(mod3, "presales_slots", None) or PresalesIntentSlots()
+    routed_context, routed_cards, _ = solutions_catalog.route_presales_solutions(
+        slots=presales_slots,
+        raw_needs=state.get("customer_needs", ""),
+        raw_product=state.get("product"),
+        industry=state.get("industry") or (mod2.industry_analysis[:100] if mod2 else None),
+        limit=4,
+    )
+    # Use routed results if available, otherwise fall back to initial matching
+    if routed_cards:
+        solutions_context = routed_context
+        matched_smg_cards = routed_cards
+        state["matched_smg_cards"] = routed_cards
 
     # --- Step 2: Deal Solutions & Strategy (Parallel Modules 4, 5) ---
     logger.info("[KYC Pipeline] Layer B Step 2: Presales Solutions & Engagement Strategy (Modules 4, 5)...")
@@ -209,6 +257,7 @@ Struktur output JSON yang WAJIB (use_cases adalah array):
 """
     prompt_mod5 = f"""Susun strategi engagement dan discovery questions presales (Module 5):
 {base_context}
+{solutions_context}
 Needs: {mod3.customer_need_summary}
 Pain points: {', '.join(mod3.potential_pain_points)}
 
@@ -217,6 +266,7 @@ Bagi discovery questions menjadi dua kategori:
 - "business": Pertanyaan untuk C-Level / Business Owner / VP — fokus pada business driver, ROI, cost of inaction, timeline regulasi, target revenue/efisiensi, pain point operasional bisnis.
 - "technical": Pertanyaan untuk CTO / IT Manager / DevOps / SecOps / Architect — fokus pada arsitektur eksisting, volume data/throughput, integrasi API/IAM, kendala migrasi teknis, stack teknologi, security posture.
 Masing-masing kategori minimal 3-5 pertanyaan.
+{_build_probing_hints(matched_smg_cards)}
 
 Struktur output JSON yang WAJIB:
 {{
@@ -332,7 +382,8 @@ async def run_sectional_kyc_pipeline(
         if item.get("url"):
             raw_refs.append({"title": item.get("title") or "Industry News Reference", "url": item["url"], "category": "Industry News"})
 
-    for card in matched_smg_cards:
+    final_smg_cards = state.get("matched_smg_cards") or matched_smg_cards
+    for card in final_smg_cards:
         if card.source_url:
             raw_refs.append({
                 "title": card.title,
@@ -349,7 +400,7 @@ async def run_sectional_kyc_pipeline(
         uc_products = set(p.lower() for p in (uc_dict.get("google_products") or []))
         best_card = None
         best_overlap = 0
-        for card in matched_smg_cards:
+        for card in final_smg_cards:
             if card.source_url not in verified_smg_urls:
                 continue
             card_products = set(p.lower() for p in card.primary_products + card.all_products)

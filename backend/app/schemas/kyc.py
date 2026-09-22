@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, field_validator, model_validator
 from datetime import datetime
 from uuid import UUID
-from typing import Optional, Any, Union
+from typing import Literal, Optional, Any, Union, List
 
 
 def _coerce_to_clean_string(v: Any) -> str:
@@ -108,10 +108,37 @@ class IndustryCompetitorsOutput(BaseModel):
         return _coerce_to_clean_string(v)
 
 
+SolutionDomainType = Literal[
+    "privileged_access_management",
+    "endpoint_security",
+    "cloud_infrastructure",
+    "kubernetes_modernization",
+    "data_analytics_ai",
+    "network_firewall_zero_trust",
+    "campus_lan_wireless",
+    "backup_disaster_recovery",
+    "compliance_governance",
+    "general_enterprise_it",
+    "enterprise_workplace",
+    "location_geospatial",
+]
+ComplianceTag = Literal["ojk", "bi", "uu_pdp", "pci_dss", "iso27001", "none"]
+EnvironmentType = Literal["on_premise", "cloud", "hybrid", "campus_lan", "unspecified"]
+
+
+class PresalesIntentSlots(BaseModel):
+    """Structured presales intent slots extracted by LLM in Module 3."""
+    solution_domains: List[SolutionDomainType] = Field(default_factory=list, description="Kategori domain solusi yang relevan")
+    regulatory_compliance: List[ComplianceTag] = Field(default_factory=lambda: ["none"], description="Regulasi wajib yang terindikasi (ojk, bi, uu_pdp, pci_dss, iso27001)")
+    target_environment: EnvironmentType = Field(default="unspecified", description="Lingkungan deploy (on_premise, cloud, hybrid, campus_lan)")
+    is_vague_input: bool = Field(default=False, description="True jika input sales terlalu minim konteks/hanya sapaan")
+
+
 class PainPointsNeedsOutput(BaseModel):
     """Module 3: Customer Pain Points & Latent Needs"""
     customer_need_summary: Union[str, dict[str, Any], list[Any]] = Field(description="Rangkuman latar belakang kebutuhan bisnis & teknis")
     potential_pain_points: list[str] = Field(default_factory=list, description="Daftar pain points teknis / operasional")
+    presales_slots: PresalesIntentSlots = Field(default_factory=PresalesIntentSlots, description="Structured presales intent slots for Two-Stage Hybrid Semantic Router")
 
     @field_validator("customer_need_summary", mode="after")
     @classmethod
