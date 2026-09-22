@@ -5,7 +5,7 @@ from functools import lru_cache
 class Settings(BaseSettings):
     # Application
     APP_NAME: str = "MOIP - Magna Opportunity Intelligence Platform"
-    APP_VERSION: str = "0.1.0"
+    APP_VERSION: str = "1.6.0"
     DEBUG: bool = True
 
     # Database

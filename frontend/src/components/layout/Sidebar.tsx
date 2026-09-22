@@ -76,7 +76,10 @@ export function Sidebar() {
                     <div className="w-6 h-6 rounded bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center text-xs font-bold">
                         M
                     </div>
-                    MOIP
+                    <span>MOIP</span>
+                    <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-200/80 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
+                        v1.6.0
+                    </span>
                 </Link>
             </div>
             <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
@@ -191,7 +194,10 @@ export function MobileSidebarDrawer({
                         <div className="w-6 h-6 rounded bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center text-xs font-bold">
                             M
                         </div>
-                        MOIP
+                        <span>MOIP</span>
+                        <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-200/80 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
+                            v1.6.0
+                        </span>
                     </Link>
                     <button
                         onClick={onClose}
