@@ -80,6 +80,7 @@ export interface KYCRegenerateRequest {
     source_type?: string;
     title?: string;
     focus_notes?: string;
+    regenerate_scope?: 'deal_only' | 'full';
 }
 
 /**

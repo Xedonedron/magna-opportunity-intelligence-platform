@@ -190,6 +190,7 @@ def run_kyc_pipeline_task(
     source_type: str = "automatic",
     focus_notes: str | None = None,
     model_name: str | None = None,
+    regenerate_scope: str = "deal_only",
 ) -> dict:
     """Run the AI KYC pipeline for an opportunity.
 
@@ -318,31 +319,41 @@ def run_kyc_pipeline_task(
                 db.commit()
 
         if effective_company_id:
-            prior_kyc = (
-                db.query(KYCReport)
-                .join(Opportunity, Opportunity.id == KYCReport.opportunity_id)
-                .filter(
-                    Opportunity.company_id == effective_company_id,
-                    KYCReport.status == "completed",
-                    KYCReport.company_overview.isnot(None),
-                )
-                .order_by(KYCReport.completed_at.desc(), KYCReport.created_at.desc())
-                .first()
-            )
-            if prior_kyc and prior_kyc.company_overview:
-                existing_company_profile = {
-                    "company_overview": prior_kyc.company_overview,
-                    "industry_analysis": prior_kyc.industry_analysis,
-                    "competitor_analysis": prior_kyc.competitor_analysis or [],
-                    "business_model": prior_kyc.business_model or "",
-                    "company_location": prior_kyc.company_location or "",
-                    "source_opportunity_id": str(prior_kyc.opportunity_id),
-                    "source_kyc_version": prior_kyc.version,
-                }
+            # regenerate_scope="full" forces fresh Module 1 & 2 generation (bypass cache)
+            if regenerate_scope == "full":
+                existing_company_profile = None
                 logger.info(
-                    f"[KYC Task] Found existing completed KYC profile for Company {effective_company_id} "
-                    f"from Opportunity {prior_kyc.opportunity_id} (v{prior_kyc.version}). Reusing Module 1 & 2."
+                    "[KYC Task] regenerate_scope='full' — bypassing cached Company Profile for Company %s. Full Modules 1-6 will be generated.",
+                    effective_company_id,
                 )
+            else:
+                prior_kyc = (
+                    db.query(KYCReport)
+                    .join(Opportunity, Opportunity.id == KYCReport.opportunity_id)
+                    .filter(
+                        Opportunity.company_id == effective_company_id,
+                        KYCReport.status == "completed",
+                        KYCReport.company_overview.isnot(None),
+                    )
+                    .order_by(KYCReport.completed_at.desc(), KYCReport.created_at.desc())
+                    .first()
+                )
+                if prior_kyc and prior_kyc.company_overview:
+                    existing_company_profile = {
+                        "company_overview": prior_kyc.company_overview,
+                        "industry_analysis": prior_kyc.industry_analysis,
+                        "competitor_analysis": prior_kyc.competitor_analysis or [],
+                        "business_model": prior_kyc.business_model or "",
+                        "company_location": prior_kyc.company_location or "",
+                        "source_opportunity_id": str(prior_kyc.opportunity_id),
+                        "source_kyc_version": prior_kyc.version,
+                    }
+                    logger.info(
+                        "[KYC Task] Reusing verified Company Profile for Company ID %s (from Opportunity %s v%s). Executing Opportunity Deal Pipeline (Modules 3-6) only.",
+                        effective_company_id,
+                        prior_kyc.opportunity_id,
+                        prior_kyc.version,
+                    )
 
         # Run the async pipeline with in-place retry for transient errors
         effective_focus = focus_notes or (kyc_report.focus_notes if kyc_report else None)

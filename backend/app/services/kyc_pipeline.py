@@ -17,7 +17,7 @@ from app.services.web_search_service import web_search_service
 from app.services.web_crawler_service import web_crawler_service
 from app.services.link_verifier import link_verifier_service
 from app.core.solutions_catalog import solutions_catalog
-from app.services.kyc_sectional_runner import run_sectional_kyc_pipeline
+from app.services.kyc_sectional_runner import run_sectional_kyc_pipeline, run_company_foundation, run_opportunity_intelligence
 from app.schemas.kyc import (
     CompanyOverviewModel,
     CompetitorItem,
@@ -209,7 +209,7 @@ async def _update_progress(config: Optional[RunnableConfig], step: str, percent:
 async def research_node(state: KYCState, config: Optional[RunnableConfig] = None) -> dict:
     """Node 1: Gather research data from web search and crawling."""
     logger.info(f"[KYC Pipeline] Research node: {state['company_name']}")
-    await _update_progress(config, "fetching_web", 40)
+    await _update_progress(config, "fetching_web", 20)
 
     # Web search & crawling
     existing_profile = state.get("existing_company_profile")
@@ -240,7 +240,7 @@ async def research_node(state: KYCState, config: Optional[RunnableConfig] = None
         if state.get("website"):
             website_content = await web_crawler_service.crawl_website(state["website"])
 
-    await _update_progress(config, "fetching_industry", 65)
+    await _update_progress(config, "fetching_industry", 35)
 
     # Industry use cases search
     industry_use_cases = []
@@ -264,7 +264,7 @@ async def research_node(state: KYCState, config: Optional[RunnableConfig] = None
 async def analysis_node(state: KYCState, config: Optional[RunnableConfig] = None) -> dict:
     """Node 2: Sectional KYC Generation Pipeline with Native Structured Output."""
     logger.info(f"[KYC Pipeline] Sectional analysis node: {state['company_name']}")
-    await _update_progress(config, "analyzing", 75)
+    await _update_progress(config, "analyzing", 40)
 
     model_override = state.get("model_name")
     llm = get_llm(model_name=model_override, json_mode=True, timeout=240.0)

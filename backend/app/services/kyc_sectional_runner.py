@@ -1,4 +1,8 @@
-"""Sectional KYC runner for modular 3-phase execution."""
+"""Sectional KYC runner for decoupled 2-layer execution.
+
+Layer A: Company Intelligence (Module 1 & 2) — company-level, cacheable.
+Layer B: Opportunity Deal Intelligence (Module 3-6) — deal-specific, per opportunity.
+"""
 
 import asyncio
 import logging
@@ -87,101 +91,91 @@ def _build_base_context(state: Any) -> tuple:
     return base, use_cases_context, solutions_context, matched_smg_cards
 
 
-async def run_sectional_kyc_pipeline(
+_STRICT_JSON_DIRECTIVE = (
+    "\n\nATURAN FORMAT OUTPUT (SANGAT KETAT - WAJIB DIPATUHI):\n"
+    "1. Kembalikan HANYA teks JSON valid yang sesuai dengan skema yang diminta.\n"
+    "2. JANGAN sertakan kalimat pengantar, basa-basi pembuka, atau penutup (misalnya: 'Berikut adalah...', 'Tentu, ini rancangan...', dll).\n"
+    "3. JANGAN membungkus output dengan markdown code fence (```json ... ```). Mulai langsung dari '{' dan akhiri dengan '}'."
+)
+
+
+# ---------------------------------------------------------------------------
+# Layer A: Company Intelligence Pipeline (Module 1 & 2)
+# ---------------------------------------------------------------------------
+async def run_company_foundation(
     state: Any,
     llm: Any,
-    config: Optional[RunnableConfig],
-    update_progress_fn: Any,
+    base_context: str,
     clean_json_fn: Any,
-) -> dict:
-    base_context, use_cases_context, solutions_context, matched_smg_cards = _build_base_context(state)
+) -> tuple[CompanyProfileOutput, IndustryCompetitorsOutput]:
+    """Execute Module 1 (Company Profile) & Module 2 (Industry & Competitors) in parallel.
 
-    strict_json_directive = (
-        "\n\nATURAN FORMAT OUTPUT (SANGAT KETAT - WAJIB DIPATUHI):\n"
-        "1. Kembalikan HANYA teks JSON valid yang sesuai dengan skema yang diminta.\n"
-        "2. JANGAN sertakan kalimat pengantar, basa-basi pembuka, atau penutup (misalnya: 'Berikut adalah...', 'Tentu, ini rancangan...', dll).\n"
-        "3. JANGAN membungkus output dengan markdown code fence (```json ... ```). Mulai langsung dari '{' dan akhiri dengan '}'."
-    )
+    Pure company-level data — no dependency on customer_needs or deal context.
+    """
+    logger.info("[KYC Pipeline] Layer A: Company Foundation (Parallel Modules 1, 2) for '%s'...", state.get("company_name", "Unknown"))
 
-    # --- Phase 1: Foundation Analysis (Check for Static Profile Reuse) ---
-    existing_profile = state.get("existing_company_profile")
-    reused_company_profile = False
-    mod1: Optional[CompanyProfileOutput] = None
-    mod2: Optional[IndustryCompetitorsOutput] = None
-
-    if existing_profile and isinstance(existing_profile, dict):
-        has_overview = bool(existing_profile.get("company_overview"))
-        has_industry = bool(existing_profile.get("industry_analysis"))
-        if has_overview and has_industry:
-            try:
-                mod1 = CompanyProfileOutput(
-                    company_overview=existing_profile["company_overview"],
-                    business_model=existing_profile.get("business_model") or "N/A",
-                    company_location=existing_profile.get("company_location") or "N/A",
-                )
-                mod2 = IndustryCompetitorsOutput(
-                    industry_analysis=existing_profile["industry_analysis"],
-                    competitor_analysis=existing_profile.get("competitor_analysis") or [],
-                )
-                reused_company_profile = True
-                logger.info(
-                    "[KYC Pipeline] Phase 1: Reusing verified Company Profile & Industry Analysis for '%s'. Bypassing Module 1 & 2 LLM calls.",
-                    state.get("company_name", "Unknown"),
-                )
-            except Exception as e:
-                logger.warning(
-                    "[KYC Pipeline] Failed to instantiate cached company profile, falling back to LLM generation: %s",
-                    e,
-                )
-                reused_company_profile = False
-
-    prompt_mod3 = f"""Analisis kebutuhan dan kendala operasional klien untuk Module 3: Customer Needs & Pain Points:
-{base_context}
-
-Struktur output JSON yang WAJIB:
-- customer_need_summary: teks narasi ringkas kebutuhan bisnis dan teknis klien.
-- potential_pain_points: array string kendala teknis / operasional ["kendala 1", "kendala 2"].
-{strict_json_directive}"""
-
-    if reused_company_profile and mod1 is not None and mod2 is not None:
-        logger.info("[KYC Pipeline] Phase 1: Executing only Module 3 (Needs & Pain Points)...")
-        mod3 = await invoke_section(
-            llm,
-            PainPointsNeedsOutput,
-            prompt_mod3,
-            "Module 3",
-            max_retries=3,
-            state=state,
-            clean_json_fn=clean_json_fn,
-        )
-    else:
-        logger.info("[KYC Pipeline] Phase 1: Foundation Analysis (Parallel Modules 1, 2, 3)...")
-        prompt_mod1 = f"""Analisis data profil klien berikut dan hasilkan Module 1: Company Profile (company_overview, business_model, company_location).
+    prompt_mod1 = f"""Analisis data profil klien berikut dan hasilkan Module 1: Company Profile (company_overview, business_model, company_location).
 Struktur output:
 - company_overview: objek JSON berisi nama resmi (name), deskripsi bisnis (description), tahun berdiri (founded), ukuran perusahaan (size), kantor pusat (headquarters), dan daftar produk utama (key_products).
 - business_model: teks narasi ringkas model bisnis dan revenue stream.
 - company_location: teks narasi lokasi kantor pusat dan fasilitas operasional.
 
 Data Profil:
-{base_context}{strict_json_directive}"""
-        prompt_mod2 = f"""Analisis industri dan kompetitor klien berikut untuk Module 2: Industry & Competitors:
+{base_context}{_STRICT_JSON_DIRECTIVE}"""
+
+    prompt_mod2 = f"""Analisis industri dan kompetitor klien berikut untuk Module 2: Industry & Competitors:
 {base_context}
 
 Struktur output JSON yang WAJIB:
 - industry_analysis: teks narasi ringkas lanskap dan tren industri klien.
 - competitor_analysis: array objek [{{"name": "...", "market_position": "...", "strengths": [...], "weaknesses": [...], "differentiators": "..."}}].
-{strict_json_directive}"""
+{_STRICT_JSON_DIRECTIVE}"""
 
-        mod1, mod2, mod3 = await asyncio.gather(
-            invoke_section(llm, CompanyProfileOutput, prompt_mod1, "Module 1", max_retries=3, state=state, clean_json_fn=clean_json_fn),
-            invoke_section(llm, IndustryCompetitorsOutput, prompt_mod2, "Module 2", max_retries=3, state=state, clean_json_fn=clean_json_fn),
-            invoke_section(llm, PainPointsNeedsOutput, prompt_mod3, "Module 3", max_retries=3, state=state, clean_json_fn=clean_json_fn),
-        )
+    mod1, mod2 = await asyncio.gather(
+        invoke_section(llm, CompanyProfileOutput, prompt_mod1, "Module 1", max_retries=3, state=state, clean_json_fn=clean_json_fn),
+        invoke_section(llm, IndustryCompetitorsOutput, prompt_mod2, "Module 2", max_retries=3, state=state, clean_json_fn=clean_json_fn),
+    )
+    return mod1, mod2
 
-    await update_progress_fn(config, "analyzing", 85)
 
-    # --- Phase 2: Solutions & Engagement (Parallel Modules 4-5) ---
-    logger.info("[KYC Pipeline] Phase 2: Presales Solutions & Engagement Strategy (Modules 4, 5)...")
+# ---------------------------------------------------------------------------
+# Layer B: Opportunity Deal Intelligence Pipeline (Module 3 → 4,5 → 6)
+# ---------------------------------------------------------------------------
+async def run_opportunity_intelligence(
+    state: Any,
+    mod1: CompanyProfileOutput,
+    mod2: IndustryCompetitorsOutput,
+    llm: Any,
+    config: Optional[RunnableConfig],
+    update_progress_fn: Any,
+    clean_json_fn: Any,
+    base_context: str,
+    use_cases_context: str,
+    solutions_context: str,
+    matched_smg_cards: list,
+) -> tuple:
+    """Execute Modules 3-6 (deal-specific intelligence).
+
+    Step 1: Module 3 — Needs & Pain Points
+    Step 2: Module 4 & 5 — Use Cases + Engagement Strategy (parallel)
+    Step 3: Module 6 — Executive Summary synthesis
+    Returns: (mod3, mod4, mod5, mod6)
+    """
+    # --- Step 1: Deal Needs (Module 3) ---
+    logger.info("[KYC Pipeline] Layer B Step 1: Deal Needs & Pain Points (Module 3)...")
+    prompt_mod3 = f"""Analisis kebutuhan dan kendala operasional klien untuk Module 3: Customer Needs & Pain Points:
+{base_context}
+
+Struktur output JSON yang WAJIB:
+- customer_need_summary: teks narasi ringkas kebutuhan bisnis dan teknis klien.
+- potential_pain_points: array string kendala teknis / operasional ["kendala 1", "kendala 2"].
+{_STRICT_JSON_DIRECTIVE}"""
+
+    mod3 = await invoke_section(llm, PainPointsNeedsOutput, prompt_mod3, "Module 3", max_retries=3, state=state, clean_json_fn=clean_json_fn)
+    await update_progress_fn(config, "analyzing", 60)
+
+    # --- Step 2: Deal Solutions & Strategy (Parallel Modules 4, 5) ---
+    logger.info("[KYC Pipeline] Layer B Step 2: Presales Solutions & Engagement Strategy (Modules 4, 5)...")
     prompt_mod4 = f"""Susun 2-3 use cases presales arsitektural (Module 4) untuk Smartnet Magna Global:
 {base_context}
 {use_cases_context}
@@ -211,7 +205,7 @@ Struktur output JSON yang WAJIB (use_cases adalah array):
     }}
   ]
 }}
-{strict_json_directive}
+{_STRICT_JSON_DIRECTIVE}
 """
     prompt_mod5 = f"""Susun strategi engagement dan discovery questions presales (Module 5):
 {base_context}
@@ -233,16 +227,16 @@ Struktur output JSON yang WAJIB:
   }},
   "preparation_checklist": ["Checklist persiapan 1", "Checklist persiapan 2"]
 }}
-{strict_json_directive}
+{_STRICT_JSON_DIRECTIVE}
 """
     mod4, mod5 = await asyncio.gather(
         invoke_section(llm, UseCasesOutput, prompt_mod4, "Module 4", max_retries=3, state=state, clean_json_fn=clean_json_fn),
         invoke_section(llm, EngagementStrategyOutput, prompt_mod5, "Module 5", max_retries=3, state=state, clean_json_fn=clean_json_fn),
     )
-    await update_progress_fn(config, "analyzing", 93)
+    await update_progress_fn(config, "analyzing", 85)
 
-    # --- Phase 3: Ultimate Executive Summary (Module 6) ---
-    logger.info("[KYC Pipeline] Phase 3: Executive Synthesis (Module 6)...")
+    # --- Step 3: Deal Executive Summary (Module 6) ---
+    logger.info("[KYC Pipeline] Layer B Step 3: Executive Synthesis (Module 6)...")
     prompt_mod6 = f"""Tulis Executive Summary komprehensif 2-3 paragraf standar C-Level untuk klien ini:
 Profil: {mod1.company_overview.name} - {mod1.company_overview.description}
 Model Bisnis: {mod1.business_model}
@@ -256,11 +250,79 @@ Struktur output JSON yang WAJIB:
 {{
   "executive_summary": "Teks narasi Executive Summary 2-3 paragraf komprehensif..."
 }}
-{strict_json_directive}
+{_STRICT_JSON_DIRECTIVE}
 """
     mod6 = await invoke_section(llm, ExecutiveSummaryOutput, prompt_mod6, "Module 6", max_retries=3, state=state, clean_json_fn=clean_json_fn)
+    await update_progress_fn(config, "analyzing", 93)
 
-    # --- Phase 4: References Live Verification & Final Packaging ---
+    return mod3, mod4, mod5, mod6
+
+
+# ---------------------------------------------------------------------------
+# Main Orchestrator
+# ---------------------------------------------------------------------------
+async def run_sectional_kyc_pipeline(
+    state: Any,
+    llm: Any,
+    config: Optional[RunnableConfig],
+    update_progress_fn: Any,
+    clean_json_fn: Any,
+) -> dict:
+    base_context, use_cases_context, solutions_context, matched_smg_cards = _build_base_context(state)
+
+    # --- Resolve Company Foundation (Layer A) ---
+    existing_profile = state.get("existing_company_profile")
+    reused_company_profile = False
+    mod1: Optional[CompanyProfileOutput] = None
+    mod2: Optional[IndustryCompetitorsOutput] = None
+
+    if existing_profile and isinstance(existing_profile, dict):
+        has_overview = bool(existing_profile.get("company_overview"))
+        has_industry = bool(existing_profile.get("industry_analysis"))
+        if has_overview and has_industry:
+            try:
+                mod1 = CompanyProfileOutput(
+                    company_overview=existing_profile["company_overview"],
+                    business_model=existing_profile.get("business_model") or "N/A",
+                    company_location=existing_profile.get("company_location") or "N/A",
+                )
+                mod2 = IndustryCompetitorsOutput(
+                    industry_analysis=existing_profile["industry_analysis"],
+                    competitor_analysis=existing_profile.get("competitor_analysis") or [],
+                )
+                reused_company_profile = True
+                logger.info(
+                    "[KYC Pipeline] Layer A: Reusing verified Company Profile & Industry Analysis for '%s'. Bypassing Module 1 & 2 LLM calls.",
+                    state.get("company_name", "Unknown"),
+                )
+            except Exception as e:
+                logger.warning(
+                    "[KYC Pipeline] Failed to instantiate cached company profile, falling back to LLM generation: %s",
+                    e,
+                )
+                reused_company_profile = False
+
+    if not reused_company_profile or mod1 is None or mod2 is None:
+        mod1, mod2 = await run_company_foundation(state, llm, base_context, clean_json_fn)
+
+    await update_progress_fn(config, "analyzing", 40)
+
+    # --- Execute Opportunity Intelligence (Layer B: Modules 3-6) ---
+    mod3, mod4, mod5, mod6 = await run_opportunity_intelligence(
+        state=state,
+        mod1=mod1,
+        mod2=mod2,
+        llm=llm,
+        config=config,
+        update_progress_fn=update_progress_fn,
+        clean_json_fn=clean_json_fn,
+        base_context=base_context,
+        use_cases_context=use_cases_context,
+        solutions_context=solutions_context,
+        matched_smg_cards=matched_smg_cards,
+    )
+
+    # --- References Live Verification & Final Packaging ---
     search = state.get("search_results", {})
     raw_refs = []
     for item in search.get("company_info", []):
@@ -270,7 +332,6 @@ Struktur output JSON yang WAJIB:
         if item.get("url"):
             raw_refs.append({"title": item.get("title") or "Industry News Reference", "url": item["url"], "category": "Industry News"})
 
-    # Inject matched SMG solution cards as official case study references
     for card in matched_smg_cards:
         if card.source_url:
             raw_refs.append({
@@ -280,15 +341,11 @@ Struktur output JSON yang WAJIB:
             })
 
     verified_refs = await link_verifier_service.sanitize_references_and_sources(raw_refs, search_results=search, timeout=3.0)
-
-    # Build lookup of verified SMG URLs for case_study attachment
     verified_smg_urls = {r["url"] for r in verified_refs if r.get("category") == "Solusi Resmi & Case Study SMG"}
 
-    # Post-process use cases: attach case_study_url from matched SMG cards
     use_case_dicts = []
     for uc in mod4.use_cases:
         uc_dict = uc.model_dump()
-        # Match by product overlap between use case and SMG cards
         uc_products = set(p.lower() for p in (uc_dict.get("google_products") or []))
         best_card = None
         best_overlap = 0
@@ -303,7 +360,6 @@ Struktur output JSON yang WAJIB:
         if best_card:
             uc_dict["case_study_url"] = best_card.source_url
             uc_dict["case_study_title"] = best_card.title
-
         use_case_dicts.append(uc_dict)
 
     impact_order = {"High": 0, "Medium": 1, "Low": 2}

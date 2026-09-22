@@ -117,6 +117,7 @@ async def regenerate_kyc_report(
     next_version = (max_version[0] + 1) if max_version else 1
 
     source_type = data.source_type if data else "manual_regenerate"
+    regenerate_scope = (data.regenerate_scope or "deal_only") if data else "deal_only"
     raw_title = (data.title.strip() if data.title else None) if data else None
     title = re.sub(r"^v\d+\s*[-–—:]\s*", "", raw_title, flags=re.IGNORECASE).strip() if raw_title else None
     if not title:
@@ -170,6 +171,7 @@ async def regenerate_kyc_report(
             str(opportunity.id),
             source_type=source_type,
             focus_notes=focus_notes,
+            regenerate_scope=regenerate_scope,
         )
     except Exception:
         pass  # Don't fail the request if trigger fails

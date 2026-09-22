@@ -255,6 +255,7 @@ class KYCRegenerateRequest(BaseModel):
     source_type: str = "manual_regenerate"
     title: Optional[str] = None
     focus_notes: Optional[str] = None
+    regenerate_scope: Optional[str] = "deal_only"  # "deal_only" (Mod 3-6) or "full" (Mod 1-6)
     # source_type: manual_regenerate, engineer_edited
 
 
