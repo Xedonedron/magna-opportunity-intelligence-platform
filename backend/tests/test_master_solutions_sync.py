@@ -78,13 +78,13 @@ def test_pydantic_schema_presales_metadata():
     assert "solution_domain" not in update_dict
 
 
-def test_sync_master_solutions_from_isti(client: TestClient, admin_auth_headers: dict, db: Session):
-    """Test POST /api/admin/solutions/sync populates all 26 Isti solutions with presales metadata."""
+def test_sync_master_solutions_catalog(client: TestClient, admin_auth_headers: dict, db: Session):
+    """Test POST /api/admin/solutions/sync populates master solutions catalog with presales metadata."""
     res = client.post("/api/admin/solutions/sync", headers=admin_auth_headers)
     assert res.status_code == 200
     data = res.json()
     assert data["status"] == "success"
-    assert data["total_active"] == 26
+    assert data["total_active"] >= 26
 
     # Verify that PAM solution was seeded with presales metadata
     pam = db.query(MasterSolution).filter(MasterSolution.slug == "privileged-access-management-pam").first()

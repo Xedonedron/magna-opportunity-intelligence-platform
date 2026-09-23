@@ -891,40 +891,71 @@ def sync_master_solutions_from_curated(
     _admin: User = Depends(require_superadmin),
 ):
     """
-    Synchronize PostgreSQL master_solutions table with the official curated_solutions_isti.json.
-    Purges dead/deprecated links and ensures naming matches enterprise standards.
+    Synchronize PostgreSQL master_solutions table by merging:
+    1. curated_solutions.json — marketing solutions with public reference URLs
+    2. curated_solutions_isti.json — presales solution playbooks (internal knowledge, source_url stripped)
+
+    Presales metadata (solution_domain, regulatory_compliance, probing_questions,
+    battlecard_ammo) enriches records into a unified knowledge framework. No destructive orphan deletion.
     """
     import os
     import json
 
-    curated_path = os.path.join(
-        os.path.dirname(__file__), "..", "data", "curated_solutions_isti.json"
-    )
-    if not os.path.exists(curated_path):
-        fallback_path = os.path.join(
-            os.path.dirname(__file__), "..", "data", "curated_solutions.json"
-        )
-        if os.path.exists(fallback_path):
-            curated_path = fallback_path
-        else:
-            raise HTTPException(status_code=404, detail="curated_solutions_isti.json not found")
+    data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
+    marketing_path = os.path.join(data_dir, "curated_solutions.json")
+    presales_path = os.path.join(data_dir, "curated_solutions_isti.json")
 
-    with open(curated_path, "r", encoding="utf-8") as f:
-        official_solutions = json.load(f)
+    if not os.path.exists(marketing_path) and not os.path.exists(presales_path):
+        raise HTTPException(status_code=404, detail="No curated solution catalog files found.")
 
-    # 1. Purge legacy broken /solutions/ URLs or records with NULL slug
+    # --- Step 1: Build merged catalog (marketing = source of truth for URLs) ---
+    merged: dict = {}
+
+    # 1a. Load marketing articles (valid source_url)
+    if os.path.exists(marketing_path):
+        with open(marketing_path, "r", encoding="utf-8") as f:
+            for item in json.load(f):
+                slug = item.get("slug") or item.get("id")
+                if slug:
+                    merged[slug] = item
+
+    # 1b. Load presales playbooks — STRIP source_url (internal knowledge, not public articles)
+    if os.path.exists(presales_path):
+        with open(presales_path, "r", encoding="utf-8") as f:
+            for item in json.load(f):
+                slug = item.get("slug") or item.get("id")
+                if not slug:
+                    continue
+
+                presales_fields = {
+                    "solution_domain": item.get("solution_domain", "general_enterprise_it"),
+                    "regulatory_compliance": item.get("regulatory_compliance", ["none"]),
+                    "target_environment": item.get("target_environment", "unspecified"),
+                    "probing_questions": item.get("probing_questions", []),
+                    "battlecard_ammo": item.get("battlecard_ammo", {}),
+                }
+
+                if slug in merged:
+                    # Enrich existing marketing record with presales metadata
+                    merged[slug].update(presales_fields)
+                    # Also enrich base fields if marketing record lacks them
+                    for key in ("primary_products", "all_products", "pain_points",
+                                "target_industries", "key_subheadings", "business_impact"):
+                        if not merged[slug].get(key) and item.get(key):
+                            merged[slug][key] = item[key]
+                else:
+                    # Presales-only entry: strip source_url (internal knowledge framework, not public blog articles)
+                    item["source_url"] = ""
+                    merged[slug] = item
+
+    # --- Step 2: Purge legacy broken /solutions/ URLs or records with NULL slug ---
     db.query(MasterSolution).filter(
         (MasterSolution.source_url.ilike("%/solutions/%")) | (MasterSolution.slug == None)
     ).delete(synchronize_session=False)
 
-    official_slugs = set()
+    # --- Step 3: Upsert all merged solutions ---
     upserted_count = 0
-
-    for item in official_solutions:
-        slug = item.get("slug") or item.get("id")
-        if not slug:
-            continue
-        official_slugs.add(slug)
+    for slug, item in merged.items():
         source_url = item.get("source_url") or ""
 
         existing = db.query(MasterSolution).filter(MasterSolution.slug == slug).first()
@@ -979,12 +1010,6 @@ def sync_master_solutions_from_curated(
             )
             db.add(new_record)
         upserted_count += 1
-
-    # 2. Remove any orphaned entries not in official list
-    if official_slugs:
-        db.query(MasterSolution).filter(
-            ~MasterSolution.slug.in_(list(official_slugs))
-        ).delete(synchronize_session=False)
 
     db.commit()
 

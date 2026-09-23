@@ -215,13 +215,13 @@ export function SolutionsCatalogTab() {
     const [syncing, setSyncing] = useState<boolean>(false);
 
     const handleSyncMaster = async () => {
-        if (!confirm("Sinkronkan seluruh katalog solusi dengan 26 Playbook Presales resmi Isti? Data akan diperbarui dengan metadata kepatuhan, domain solusi, bank pertanyaan, dan battlecard.")) {
+        if (!confirm("Sinkronkan seluruh katalog solusi dengan data Solusi & Playbook Presales resmi? Data akan diperbarui dengan metadata kepatuhan, domain solusi, bank pertanyaan, dan battlecard.")) {
             return;
         }
         setSyncing(true);
         try {
             const res = await solutionsApi.syncMasterCatalog();
-            toast.success(res.message || "Katalog solusi berhasil disinkronkan dengan Playbook Presales Isti!");
+            toast.success(res.message || "Katalog solusi berhasil disinkronkan!");
             await fetchSolutions();
         } catch (err: any) {
             console.error("Failed to sync solutions:", err);
@@ -422,14 +422,14 @@ export function SolutionsCatalogTab() {
                     <div className="flex items-center gap-2">
                         <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-base">
-                            Katalog Playbook Solusi & Grounding Presales (Isti)
+                            Katalog Solusi & Playbook Presales Resmi
                         </h3>
                         <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100/70 text-blue-800 border border-blue-300 dark:bg-blue-900/40 dark:text-blue-200">
-                            {solutions.length} Playbook Aktif
+                            {solutions.length} Solusi Aktif
                         </span>
                     </div>
                     <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
-                        Katalog resmi ini adalah <strong>Single Source of Truth</strong> yang memuat 26 Playbook Presales kaya metadata Isti (Domain Solusi, Kepatuhan Regulasi, Bank Pertanyaan Presales, dan Battlecard Ammo) untuk AI KYC Grounding dan Presales Chat.
+                        Katalog resmi ini adalah <strong>Single Source of Truth</strong> yang memuat seluruh Solusi & Playbook Presales (Domain Solusi, Kepatuhan Regulasi, Bank Pertanyaan Presales, dan Battlecard Presales) untuk AI KYC Grounding dan Presales Chat.
                     </p>
                 </div>
 
@@ -440,10 +440,10 @@ export function SolutionsCatalogTab() {
                             disabled={syncing}
                             variant="outline"
                             className="text-xs h-9 gap-1.5 border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/50"
-                            title="Sinkronkan database dengan 26 Playbook Presales terkurasi Isti"
+                            title="Sinkronkan database dengan Katalog & Playbook Presales resmi"
                         >
                             <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} />
-                            {syncing ? "Menyinkronkan..." : "Sinkronkan Playbook Isti"}
+                            {syncing ? "Menyinkronkan..." : "Sinkronkan Katalog Solusi"}
                         </Button>
                         <Button onClick={openCreateDialog} className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-9 gap-1.5 shadow-xs">
                             <Plus className="w-4 h-4" /> Tambah Solusi Baru
@@ -765,9 +765,9 @@ export function SolutionsCatalogTab() {
                         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
                             <div>
                                 <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                                    {editingSolution ? "Edit Playbook Solusi Pre-Sales" : "Tambah Playbook Solusi Pre-Sales Baru"}
+                                    {editingSolution ? "Edit Solusi & Playbook Pre-Sales" : "Tambah Solusi & Playbook Pre-Sales Baru"}
                                 </h2>
-                                <p className="text-xs text-zinc-500">Konfigurasi metadata teknis, regulasi, dan materi presales Isti.</p>
+                                <p className="text-xs text-zinc-500">Konfigurasi metadata teknis, domain solusi, regulasi, dan materi presales.</p>
                             </div>
                             <button
                                 type="button"
@@ -954,7 +954,7 @@ export function SolutionsCatalogTab() {
                                 />
                             </div>
 
-                            {/* Accordion: Playbook Presales Isti (Probing Questions & Battlecard) */}
+                            {/* Accordion: Playbook Presales (Probing Questions & Battlecard) */}
                             <div className="border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden space-y-0">
                                 <div className="bg-zinc-50 dark:bg-zinc-800/60 px-4 py-2.5 border-b border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
                                     <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">

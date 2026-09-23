@@ -10,10 +10,10 @@ from app.core.solutions_catalog import solutions_catalog
 from app.schemas.kyc import PresalesIntentSlots, PainPointsNeedsOutput
 
 
-class TestIstiCatalogLoading:
-    def test_load_isti_catalog_26_cards(self):
+class TestPresalesCatalogLoading:
+    def test_load_presales_catalog_cards(self):
         cards = solutions_catalog.get_all_cards()
-        assert len(cards) == 26, f"Expected 26, got {len(cards)}"
+        assert len(cards) >= 26, f"Expected at least 26, got {len(cards)}"
         pam = [c for c in cards if c.id == "privileged-access-management-pam"]
         assert len(pam) == 1
         assert pam[0].solution_domain == "privileged_access_management"
