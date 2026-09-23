@@ -531,23 +531,29 @@ Tab **AI Token Monitoring** menampilkan:
 - Breakdown penggunaan per opportunity dan per user (untuk deteksi penyalahgunaan).
 - Audit log transparan: query prompt pengguna dan respons AI.
 
-### 12.4 Magna Solutions Catalog
+### 12.4 Katalog Solusi & Playbook Presales Resmi
 
-Tab **Magna Solutions Catalog** memungkinkan seluruh tim meninjau dan Administrator mengelola referensi solusi pre-sales resmi PT Smartnet Magna Global:
-- **Filter Berdasarkan Pilar**: Cloud & Infra, Data & AI, Cybersecurity, Network & Workplace.
+Tab **Katalog Solusi** di menu Settings memungkinkan seluruh tim meninjau dan Administrator mengelola referensi solusi serta playbook pre-sales resmi PT Smartnet Magna Global (total 72 solusi aktif):
+- **Filter Berdasarkan Pilar**: Cloud Infrastructure & Modernization, Data Analytics & AI, Cybersecurity Suite, Network & Enterprise Workplace.
 - **Filter Tingkat (Tier)**:
-  - **Tier 1 (Core Products & Case Studies)**: Solusi konkret dengan bukti implementasi dan produk nyata (contoh: *Fraud Detection BigQuery ML*, *Modernland Realty NGAV Case Study*, *VMware Exit Strategy ke GKE*, *Serverless Cloud Run*).
-  - **Tier 2 (Niche Concepts & Architectures)**: Kerangka kerja strategis dan arsitektur spesifik industri (contoh: *Zero Trust BeyondCorp*, *All-Flash Storage Rekam Medis RS*, *NDR untuk BFSI*, *Cloud Backup Pasca Insiden PDN*).
-- **Pencarian Cepat**: Temukan solusi secara instan berdasarkan nama produk (e.g. *BigQuery*, *GKE*, *Palo Alto*), pain points klien, atau industri target.
-- **Tautan Langsung ke Artikel**: Klik ikon tautan eksternal pada kartu solusi untuk membuka artikel referensi teknis asli di situs `magnaglobal.id`.
+  - **Tier 1 (Core Products & Case Studies)**: Solusi konkret dengan bukti implementasi dan produk nyata (contoh: *Privileged Access Management (BeyondTrust)*, *Next-Gen EDR (CrowdStrike)*, *Fraud Detection BigQuery ML*, *Serverless Cloud Run*).
+  - **Tier 2 (Niche Concepts & Architectures)**: Kerangka kerja strategis dan arsitektur spesifik industri (contoh: *Zero Trust Network Access (SASE)*, *All-Flash Storage RS*, *NDR untuk BFSI*).
+- **Metadata Presales Lanjutan**:
+  - **Badge Domain Solusi**: Mengkategorikan solusi berdasarkan kapabilitas presales teknis (misal: *Privileged Access Management*, *Endpoint Security*, *Location & Geospatial*, *Enterprise Workplace*).
+  - **Tag Kepatuhan Regulasi**: Menandai kepatuhan wajib klien seperti **OJK**, **Bank Indonesia (BI)**, **UU PDP**, **PCI-DSS**, dan **ISO 27001**.
+  - **Badge Target Arsitektur**: Indikator apakah solusi diperuntukkan bagi lingkungan *On-Premise*, *Cloud*, atau *Hybrid*.
+  - **Accordion Playbook Presales**:
+    - **Bank Pertanyaan Probing**: Daftar pertanyaan penemuan teknis (*discovery questions*) yang siap diajukan ke klien pada saat meeting.
+    - **Amunisi Battlecard**: Berisi *Key Differentiators* (keunggulan kompetitif Magna), *Objection Handling* (penanganan sanggahan klien), dan *Market Stats* (data & statistik pasar untuk memperkuat urgensi penawaran).
+- **Tautan Langsung ke Artikel Resmi**: Kartu solusi marketing yang memiliki artikel publik akan menampilkan tombol **Baca Artikel Resmi** menuju portal `magnaglobal.id`. Untuk materi playbook presales internal, tombol tautan disembunyikan secara bersih agar tidak ada tautan rusak.
 - **Manajemen Mandiri (CRUD untuk Admin)**:
-  - **Tambah Solusi**: Klik tombol **+ Tambah Solusi** untuk mendaftarkan use case atau arsitektur produk baru.
-  - **Edit & Nonaktifkan**: Admin dapat memperbarui produk terkait, target vertikal industri, kendala yang diselesaikan, dampak bisnis, atau menonaktifkan solusi sementara waktu tanpa menghapusnya.
-  - **Hapus**: Menghapus kartu solusi yang sudah tidak relevan.
-  - **Sinkronisasi Otomatis**: Setiap perubahan (tambah/edit/hapus) langsung memicu pembaruan memori di backend (*real-time cache reload*). AI KYC Pipeline dan AI Pre-Sales Chat detik itu juga langsung mengenali data terbaru tanpa perlu deploy ulang sistem.
+  - **Tambah Solusi Baru**: Mendaftarkan solusi atau playbook baru lengkap dengan metadata teknis, regulasi, dan materi presales.
+  - **Edit & Nonaktifkan**: Admin dapat memperbarui spesifikasi teknis, pertanyaan probing, atau amunisi battlecard secara langsung dari modal editor.
+  - **Hapus Solusi**: Menghapus kartu solusi yang sudah usang.
+  - **Sinkronkan Katalog Solusi**: Tombol sinkronisasi yang secara non-destruktif memperbarui seluruh database PostgreSQL `master_solutions` dengan data kurasi resmi terbaru dan memicu pembaruan memori AI (*real-time cache reload*) tanpa perlu restart container backend.
 
 > [!TIP]
-> **Tips bagi Pre-Sales & Admin**: Saat menambahkan solusi baru, pastikan mencantumkan **Produk Utama** yang spesifik (misal: *BigQuery, Vertex AI, Dataflow*) dan **Kendala Klien** secara gamblang. Algoritma pencocokan AI MOIP akan menggunakan kata kunci tersebut untuk menyelaraskan rekomendasi solusi secara otomatis saat opportunity baru dibuat!
+> **Tips bagi Pre-Sales & Admin**: Saat menambahkan atau mengedit solusi baru, pastikan melengkapi **Domain Solusi**, **Kepatuhan Regulasi**, dan **Amunisi Battlecard**. Mesin *Two-Stage Hybrid Semantic Router* MOIP akan otomatis memanfaatkan metadata ini untuk memberikan rekomendasi arsitektur presales yang presisi bagi sektor industri teregulasi (seperti FSI / Perbankan).
 
 
 

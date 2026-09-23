@@ -48,17 +48,18 @@ Berdasarkan masukan strategis dari senior konsultan dan evaluasi tim, arsitektur
 
 ---
 
-### Sesi B: Digitalisasi & Integrasi Internal Sales Playbook (P1) - NEXT UP (PRIORITAS SESI BERIKUTNYA)
-**Tujuan:** Mengintegrasikan framework "how-to" presales internal ke dalam rekomendasi strategi meeting.
+### Sesi B: Digitalisasi & Integrasi Internal Sales Playbook (P1) - STATUS: SELESAI (100% - v1.7.0)
+**Tujuan:** Mengintegrasikan framework "how-to" presales internal ke dalam rekomendasi strategi meeting dan katalog solusi resmi.
 
-**Tasks:**
-1. Siapkan struktur repositori knowledge di `backend/app/data/playbook/`:
-   - `winning_questions.md`: Daftar pertanyaan pembuka teruji per sektor industri.
-   - `bridging_tactics.md`: Panduan transisi dari keluhan klien ke penawaran solusi Magna.
-   - `pitching_personas.md`: Sudut pandang dialog untuk CIO, CFO, dan Head of Infrastructure.
-2. Buat service loader `backend/app/services/playbook_service.py`.
-3. Injeksi aturan playbook ke prompt Module 5 (*Presales Engagement Strategy*) di `kyc_sectional_runner.py`.
-4. Uji generasi output untuk memastikan nada rekomendasi berubah menjadi konsultatif taktis.
+#### Status Implementasi Sesi B:
+- [x] **Model & Database Migration**: Menambahkan 5 kolom presales (`solution_domain`, `regulatory_compliance`, `target_environment`, `probing_questions`, `battlecard_ammo`) pada tabel `master_solutions` via Alembic migration `z6u7n8i9j0k1`.
+- [x] **Katalog Terpadu**: 72 solusi resmi aktif (46 artikel marketing + 26 playbook presales dengan amunisi battlecard terstruktur).
+- [x] **Two-Stage Hybrid Semantic Router**:
+  - Stage 1 (LLM Slot Extraction): Module 3 mengekstrak `presales_slots` (`solution_domains`, `regulatory_compliance`, `target_environment`).
+  - Stage 2 (Deterministic Scoring Engine): `route_presales_solutions` mencocokkan brand (+15), domain (+10), regulasi (+8), dan environment (+5), dengan FSI reservation wajib untuk PAM + EDR pada sektor finansial.
+- [x] **Prompt Injection**: Bank pertanyaan probing dan amunisi battlecard diinjeksikan langsung ke prompt Module 4 (Use Cases) dan Module 5 (Engagement Strategy).
+- [x] **Frontend UI Settings**: `SolutionsCatalogTab.tsx` dilengkapi visualisasi domain, tag regulasi, target environment, bank pertanyaan, accordion battlecard, dan sinkronisasi non-destruktif.
+- [x] **Automated Testing**: 53/53 test lulus di seluruh test suite (`test_master_solutions_sync.py`, `test_presales_semantic_router.py`, `test_sectional_runner_decoupled.py`, dll.).
 
 ---
 

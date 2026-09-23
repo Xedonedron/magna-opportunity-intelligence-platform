@@ -78,7 +78,7 @@ export function Sidebar() {
                     </div>
                     <span>MOIP</span>
                     <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-200/80 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
-                        v1.6.0
+                        v1.7.0
                     </span>
                 </Link>
             </div>
@@ -196,7 +196,7 @@ export function MobileSidebarDrawer({
                         </div>
                         <span>MOIP</span>
                         <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-200/80 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
-                            v1.6.0
+                            v1.7.0
                         </span>
                     </Link>
                     <button

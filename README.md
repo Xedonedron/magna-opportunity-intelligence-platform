@@ -25,7 +25,7 @@ An enterprise presales intelligence and opportunity management platform built fo
 
 * 📁 **Company Folders & Deterministic Deduplication:** Enterprise-grade account clustering grouping opportunities hierarchically under client companies, equipped with real-time root domain and legal entity normalization checks (`/api/companies`).
 * 👥 **Company Contact Stakeholders:** Dedicated stakeholder management (`/api/companies/{id}/contacts`) with primary contact designation and rich profile notes.
-* 🤖 **Decoupled 2-Layer AI KYC Research Engine:** High-performance KYC analysis decoupled into Layer A (Company Foundation) and Layer B (Deal Intelligence) with zero-redundant caching, grounded by a curated catalog of 26 presales solution cards (`curated_solutions_isti.json`).
+* 🤖 **Decoupled 2-Layer AI KYC Research Engine:** High-performance KYC analysis decoupled into Layer A (Company Foundation) and Layer B (Deal Intelligence) with zero-redundant caching, grounded by a unified knowledge framework of 72 curated solutions and presales capability playbooks via a Two-Stage Hybrid Semantic Router with FSI banking reservation.
 * 🎯 **Target Persona Intelligence Playbook:** Generates custom discovery questioning strategies, strategic concerns, value propositions, and objection handling tailored by target seniority (C-Level, Director, Manager, Staff) and department (IT, Data & AI, Security, Finance, Operations, Business).
 * 📁 **Opportunity Resources & Document Hub:** Centralized document repository supporting Google Drive integration, labels/tagging (MoM, Solution Brief, Proposal), and fast asset preview.
 * 🌐 **Bilingual Interface (ID/EN):** Instant one-click locale toggle between Indonesian and English without page reload.

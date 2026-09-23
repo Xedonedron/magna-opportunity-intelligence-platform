@@ -6,6 +6,49 @@ Format berkas ini mengacu pada [Keep a Changelog](https://keepachangelog.com/id/
 
 ---
 
+## [1.7.0] - 2026-09-23
+
+### Summary
+Rilis fitur mayor untuk penyatuan **Framework Knowledge Solusi & Playbook Presales Resmi** ke dalam *Single Source of Truth* database PostgreSQL `master_solutions` (total 72 solusi aktif), modernisasi skema database dengan 5 kolom metadata presales kaya, implementasi *Two-Stage Hybrid Semantic Router* (Stage 1 Presales Intent Slots + Stage 2 Deterministic Scorer & FSI Reservation), serta perombakan antarmuka visual UI Settings Katalog Solusi.
+
+### Added
+- **Unified Master Solutions Database Model (`master_solutions`)**:
+  - Menambahkan 5 kolom metadata presales baru pada model `MasterSolution`:
+    - `solution_domain` (VARCHAR(100)): Kategori kapabilitas solusi teknis (contoh: `privileged_access_management`, `endpoint_security`, `location_geospatial`, `enterprise_workplace`).
+    - `regulatory_compliance` (JSONB): Tagging kepatuhan regulasi wajib (`ojk`, `bi`, `uu_pdp`, `pci_dss`, `iso27001`).
+    - `target_environment` (VARCHAR(50)): Lingkungan arsitektur sasaran (`on_premise`, `cloud`, `hybrid`).
+    - `probing_questions` (JSONB): Bank pertanyaan discovery teknis yang siap diajukan engineer ke klien.
+    - `battlecard_ammo` (JSONB): Amunisi presales terstruktur (`key_differentiators`, `objection_handling`, `market_stats`).
+- **Alembic Migration `z6u7n8i9j0k1`**:
+  - Migrasi skema database `z6u7n8i9j0k1_add_presales_metadata_to_master_solutions.py` yang terhubung secara resmi ke `down_revision = 'y5t6m7h8i9j0'`.
+- **Two-Stage Hybrid Semantic Router Engine**:
+  - **Stage 1 (LLM Slot Extraction)**: Module 3 KYC mengekstrak `presales_slots` terstruktur (`solution_domains`, `regulatory_compliance`, `target_environment`).
+  - **Stage 2 (Deterministic Scoring Engine)**: `route_presales_solutions` di `solutions_catalog.py` menghitung skor relevansi deterministik:
+    - Exact Brand Match: +15 poin
+    - Domain Match: +10 poin
+    - Regulatory Compliance Match: +8 poin / tag
+    - Environment Match: +5 poin
+    - Legacy Keyword/Industry Fallback: +2-6 poin
+    - **FSI Banking Reservation Rule**: Khusus sektor perbankan/regulasi OJK & BI, otomatis mengalokasikan slot prioritas untuk solusi *Privileged Access Management (PAM)* dan *Endpoint Detection & Response (EDR)*.
+  - **Battlecard Context Injection**: Hasil pencocokan menyuntikkan bank pertanyaan probing dan amunisi battlecard ke prompt Module 4 (Use Cases) dan Module 5 (Engagement Strategy).
+- **Interactive UI Settings Overhaul (`SolutionsCatalogTab.tsx`)**:
+  - Visualisasi badge domain solusi dengan styling modern.
+  - Tag kepatuhan regulasi berkode warna khusus (OJK, BI, UU PDP, PCI-DSS, ISO27001).
+  - Badge target arsitektur (`on_premise`, `cloud`, `hybrid`).
+  - Accordion interaktif untuk *Bank Pertanyaan Presales* dan *Amunisi Battlecard*.
+  - Modal Create/Edit penuh untuk mengelola 5 metadata presales secara mandiri oleh Administrator.
+- **Non-Destructive Catalog Synchronization (`POST /api/admin/solutions/sync`)**:
+  - Menggabungkan 46 solusi marketing (lengkap dengan tautan web resmi `magnaglobal.id`) dan 26 playbook presales internal (tanpa tautan publik mati) menjadi 72 solusi aktif tanpa menghapus data secara destruktif (*zero orphan deletion*).
+- **Automated Test Suites**:
+  - `backend/tests/test_master_solutions_sync.py`: Pengujian model DB, schema Pydantic, dan endpoint sinkronisasi.
+  - `backend/tests/test_presales_semantic_router.py`: Pengujian router semantik presales (11 skenario pengujian).
+
+### Changed
+- **Pembersihan & Unifikasi Konteks Penamaan**:
+  - Mengganti seluruh terminologi catatan terpisah/personal di frontend dan backend menjadi satu standar enterprise resmi: **"Katalog Solusi & Playbook Presales Resmi"**.
+
+---
+
 ## [1.6.0] - 2026-09-22
 
 ### Summary

@@ -394,7 +394,7 @@
 | Field | Type | Description |
 |-------|------|-------------|
 | id | UUID | Primary key |
-| slug | String(150) | Unique slug identifier |
+| slug | String(255) | Unique slug identifier |
 | title | String(255) | Title / solution name |
 | pillar | String(100) | Solution pillar category |
 | tier | Integer | Tier (1 = Core Product/Case Study, 2 = Niche Concept/Framework) |
@@ -405,7 +405,12 @@
 | pain_points | JSONB / ARRAY | Client challenges resolved |
 | business_impact | Text | Quantifiable business impact or case study outcome |
 | summary_snippet | Text | Brief technical summary |
-| source_url | String(500) | URL reference to original article / whitepaper |
+| source_url | String(500) | URL reference to original article / whitepaper (or empty for internal playbooks) |
+| solution_domain | String(100) | Technical presales domain (e.g. `privileged_access_management`, `endpoint_security`, `location_geospatial`) |
+| regulatory_compliance | JSONB | Mandatory regulatory tags (`ojk`, `bi`, `uu_pdp`, `pci_dss`, `iso27001`) |
+| target_environment | String(50) | Target architecture environment (`on_premise`, `cloud`, `hybrid`) |
+| probing_questions | JSONB | Technical discovery questions for presales engineers |
+| battlecard_ammo | JSONB | Presales battlecard (`key_differentiators`, `objection_handling`, `market_stats`) |
 | is_active | Boolean | Active status for AI prompt grounding & UI |
 | created_at | DateTime | Creation timestamp |
 | updated_at | DateTime | Last update timestamp |
@@ -415,7 +420,7 @@
 ## Backend Services
 
 ### Solutions Catalog Engine (`backend/app/core/solutions_catalog.py`)
-- **Centralized Grounding Provider**: Single Source of Truth for PT Smartnet Magna Global official product offerings, architectures, and case studies grounded directly in SMG Company Profile (Compro).
+- **Centralized Grounding Provider**: Single Source of Truth for PT Smartnet Magna Global official product offerings, architectures, and case studies grounded directly in SMG Company Profile (Compro) and official presales playbooks (total 72 unified solutions: 46 marketing solutions + 26 presales capability playbooks).
 - **Core Corporate Identity**: PT Smartnet Magna Global is a member of **CTI Group**. While SMG holds **Google Cloud Premier Partner** status, SMG operates as a full-spectrum Enterprise Systems Integrator spanning **4 Key Solution Pillars**:
   1. **Cloud Solution**: Infrastructure Modernization, Application Modernization, Data Analytics & Databases, AI, Security & Identity, Productivity & Collaboration (Google Cloud Premier Partner, AWS, Google Workspace, Google Maps Platform).
   2. **Data Analytics & AI Solution**: Data Ingestion, Storage & Processing, BI & Visualization, AI & ML, Governance, Data Warehouse (Google BigQuery, Vertex AI, Looker Studio, Greenplum Database, Snowflake, Confluent, 24/7 Managed ETL Services).
@@ -430,16 +435,18 @@
     * NGFW & Perimeter $\rightarrow$ Fortinet FortiGate, Palo Alto Networks.
     * EDR / NGAV $\rightarrow$ CrowdStrike, Trend Micro, Symantec, Sophos.
     * SIEM / SOAR / Cloud Security $\rightarrow$ Google SecOps / Chronicle, Mandiant, Security Command Center.
-- **Database & Memory Caching**: Dynamically loads active solutions from PostgreSQL `master_solutions` table via `SessionLocal` with fallback to `backend/app/data/curated_solutions.json` and in-memory presets. Auto-reloads in memory on admin mutations (`POST /api/admin/solutions`, `PUT`, `DELETE`).
-- **Dynamic Relevance Matching Algorithm (`get_solutions_for_prompt`)**:
-  - Scores solution cards dynamically against the target Opportunity context without context dilution or token bloating:
-    * **Industry Match (+5 points)**: Matches client industry against `target_industries`.
-    * **Product Match (+6 points)**: Matches presales product against `primary_products` / `all_products` across all partner vendors.
-    * **Needs Keyword Match (+4 points)**: Matches terms in `customer_needs` (e.g., "server", "wifi", "switch", "firewall", "pam", "fraud", "ransomware", "migration") against titles and `pain_points`.
-    * **Tier 1 Priority Boost (+2 points)**: Prioritizes concrete product/case study solutions over conceptual frameworks.
-  - Returns top `limit` cards (default 3–4, ~800–1,200 tokens) with structured subheadings, products, pain points, quantifiable business impact, and reference URLs.
+- **Database & Memory Caching**: Dynamically loads active solutions from PostgreSQL `master_solutions` table via `SessionLocal` with fallback to `backend/app/data/curated_solutions_isti.json`, `curated_solutions.json`, and in-memory presets. Auto-reloads in memory on admin mutations (`POST /api/admin/solutions`, `PUT`, `DELETE`).
+- **Two-Stage Hybrid Semantic Router (`route_presales_solutions`)**:
+  - **Stage 1 (LLM Slot Extraction)**: In Module 3 KYC, LLM extracts `presales_slots` (`solution_domains`, `regulatory_compliance`, `target_environment`).
+  - **Stage 2 (Deterministic Scoring Engine)**:
+    * **Exact Brand Match (+15 points)**: Matches vendor/brand names.
+    * **Domain Match (+10 points)**: Matches extracted presales solution domain.
+    * **Regulatory Tag Match (+8 points/tag)**: Matches compliance needs (OJK, BI, UU PDP, PCI-DSS, ISO27001).
+    * **Environment Match (+5 points)**: Matches on-premise, cloud, or hybrid architecture.
+    * **FSI Banking Reservation**: Automatically reserves slots for PAM + EDR on banking/financial institution deals.
+  - Returns top `limit` cards with structured battlecard ammo, probing questions, pain points, and quantifiable business impact.
 - **Dual Pipeline Integration**:
-  1. **KYC Pipeline** (`analysis_node` in `kyc_pipeline.py`): Injects contextualized solution cards so recommended use cases cite actual SMG architectures and relevant vendor stacks (both on-premise and cloud).
+  1. **KYC Pipeline** (`analysis_node` in `kyc_pipeline.py` & decoupled runner): Injects contextualized solution cards so recommended use cases cite actual SMG architectures and relevant vendor stacks (both on-premise and cloud).
   2. **Opportunity AI Chat** (`opportunities.py`): Injects official 4-pillar summary overview + top matching solution cards directly into the Pre-Sales Assistant system prompt.
 
 ### KYC Pipeline Service (`backend/app/services/kyc_pipeline.py`)
@@ -452,7 +459,7 @@
   - **Layer A (Company Foundation)**: Parallel execution of Module 1 (Company Profile) & Module 2 (Industry & Competitors). Zero-Redundant KYC Reuse allows reusing cached company foundation across multiple opportunities under the same company folder.
   - **Layer B (Opportunity Deal Intelligence)**: Sequential + parallel execution of deal-specific sections:
     - Step 1: Module 3 (Needs & Pain Points + Presales Intent Slots extraction).
-    - Stage 2: Two-Stage Semantic Router matching against 26 presales solution cards (`curated_solutions_isti.json`).
+    - Stage 2: Two-Stage Semantic Router matching against unified catalog with presales capability playbooks and FSI reservation.
     - Step 2: Parallel execution of Module 4 (Architectural Use Cases) & Module 5 (Engagement Strategy / Objections / Probing Questions).
     - Step 3: Module 6 (Executive Summary & Synthesis).
 

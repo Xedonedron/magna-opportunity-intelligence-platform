@@ -1,6 +1,6 @@
 [project]
 name = "moip-backend"
-version = "1.6.0"
+version = "1.7.0"
 description = "Magna Opportunity Intelligence Platform - Backend Service"
 readme = "README.md"
 requires-python = ">=3.11"

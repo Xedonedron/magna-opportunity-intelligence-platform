@@ -646,7 +646,7 @@ erDiagram
 | 10 | `ai_token_usages` | `AITokenUsage` | `metadata_json` |
 | 11 | `audit_logs` | `AuditLog` | `old_value`, `new_value`, `extra_data` |
 | 12 | `system_settings` | `SystemSetting` | — |
-| 13 | `master_solutions` | `MasterSolution` | `primary_products`, `all_products`, `target_industries`, `key_subheadings`, `pain_points` |
+| 13 | `master_solutions` | `MasterSolution` | `primary_products`, `all_products`, `target_industries`, `key_subheadings`, `pain_points`, `regulatory_compliance`, `probing_questions`, `battlecard_ammo` |
 
 ### 5.3 Unique Constraints & Indexes
 
@@ -813,22 +813,24 @@ graph TD
 ```
 
 #### Alur & Mekanisme Kerja:
-1. **Single Source of Truth (`master_solutions`)**:
-   - 40 solusi resmi SMG dikurasi dari artikel teknis dan studi kasus nyata, terbagi atas Tier 1 (Solusi Konkret & Produk Inti GCP/Security) dan Tier 2 (Framework & Niche Architecture).
+1. **Single Source of Truth Terpadu (`master_solutions`)**:
+   - 72 solusi resmi SMG terstruktur (46 artikel marketing web dengan tautan resmi + 26 playbook presales dengan amunisi battlecard & pertanyaan probing), terbagi atas Tier 1 (Solusi Konkret & Produk Inti) dan Tier 2 (Framework & Niche Architecture).
    - Seluruh solusi dikelola langsung oleh Admin via UI Settings. Setiap perubahan memicu `solutions_catalog.reload()` untuk memperbarui cache memori tanpa restart container.
-2. **Algoritma Dynamic Relevance Matching**:
-   - Menghindari pemborosan token (tidak menjejalkan 40 solusi sekaligus ke prompt yang bisa menghabiskan >10.000 token).
-   - Menghitung skor relevansi per kartu terhadap parameter opportunity:
-     * **Industry Match (+5 poin)**: Kecocokan industri klien (e.g. *FSI / Banking*, *Property*, *Healthcare*, *Retail*).
-     * **Product Match (+6 poin)**: Kecocokan stack produk yang dipilih (e.g. *BigQuery*, *GKE*, *NGAV*, *Cloud Run*).
-     * **Customer Needs Match (+4 poin)**: Deteksi kata kunci pada deskripsi kebutuhan klien (e.g. *fraud*, *ransomware*, *database migration*).
-     * **Tier 1 Boost (+2 poin)**: Prioritaskan solusi dengan studi kasus nyata & implementasi terbukti.
-3. **Prompt Injection Terstruktur**:
+2. **Two-Stage Hybrid Semantic Router**:
+   - **Stage 1 (LLM Slot Extraction)**: Module 3 KYC mengekstrak parameter `presales_slots` (`solution_domains`, `regulatory_compliance`, `target_environment`).
+   - **Stage 2 (Deterministic Scoring Engine)**: Menghitung skor relevansi deterministik:
+     * **Exact Brand Match (+15 poin)**: Kecocokan brand/vendor (BeyondTrust, CrowdStrike, Google Cloud, Cisco, Fortinet, dll.).
+     * **Domain Match (+10 poin)**: Kecocokan domain solusi presales (`privileged_access_management`, `endpoint_security`, dll.).
+     * **Regulatory Match (+8 poin/tag)**: Kecocokan regulasi wajib (OJK, BI, UU PDP, PCI-DSS, ISO27001).
+     * **Environment Match (+5 poin)**: Kecocokan arsitektur (`on_premise`, `cloud`, `hybrid`).
+     * **FSI Banking Reservation**: Slot prioritas terjamin untuk PAM dan EDR khusus sektor perbankan dan finansial.
+3. **Prompt Injection Terstruktur & Battlecard Context**:
    - Menyuntikkan Top 3–4 kartu solusi paling relevan (~800–1.200 token) langsung ke instruksi sistem LLM:
-     * **Pilar & Tingkat**: Kategori resmi SMG & status tier.
-     * **Produk & Arsitektur**: Komponen teknis (e.g. Pub/Sub, Dataflow, BigQuery ML, Looker).
-     * **Kendala & Solusi**: Pain points yang diselesaikan dan dampak bisnis terukur.
-     * **Referensi URL**: Tautan resmi ke artikel/studi kasus di `magnaglobal.id` untuk sitasi otomatis.
+     * **Pilar & Domain**: Kategori resmi SMG, status tier, dan domain solusi presales.
+     * **Produk & Arsitektur**: Komponen teknis (e.g. BeyondTrust Password Safe, BigQuery ML, FortiGate, GKE).
+     * **Amunisi Battlecard**: Key differentiators, objection handling, dan market statistics untuk Module 4 & 5.
+     * **Bank Pertanyaan Probing**: Pertanyaan penemuan teknis discovery untuk panduan rapat presales.
+     * **Referensi URL**: Tautan resmi ke artikel/studi kasus di `magnaglobal.id` untuk sitasi otomatis (bila ada).
 4. **Live Research & Opportunity Context**:
    - **Tavily / Google Search Grounding**: Menginjeksikan snippets live web research dan kutipan eksternal.
    - **Website Crawling**: Ekstraksi teks halaman utama klien via `httpx` + `BeautifulSoup4` dengan proteksi SSRF.
@@ -836,12 +838,14 @@ graph TD
 
 #### Perbandingan Efisiensi & Kualitas:
 
-| Parameter | Arsitektur Lama (Before) | Arsitektur Baru (After) |
+| Parameter | Arsitektur Lama (Before) | Arsitektur Baru (v1.7.0) |
 |---|---|---|
-| **Konteks Solusi** | Hardcoded 5 baris kategori umum di file `.py` | 40 solusi terstruktur di database PostgreSQL (`master_solutions`) |
-| **Spesifikasi Teknis** | Tidak ada detail arsitektur atau studi kasus nyata | Arsitektur GCP lengkap (Dataflow, BigQuery ML, GKE, EPM, dsb.) |
+| **Konteks Solusi** | Hardcoded 5 baris kategori umum di file `.py` | 72 solusi terpadu di database PostgreSQL (`master_solutions`) |
+| **Spesifikasi Teknis** | Tidak ada detail arsitektur atau studi kasus nyata | Arsitektur GCP & Multi-Vendor lengkap (BeyondTrust PAM, CrowdStrike EDR, BigQuery ML, GKE, dll.) |
+| **Presales Battlecard** | Tidak ada panduan amunisi sales | Amunisi terstruktur: Key Differentiators, Objection Handling, Market Stats, Probing Questions |
+| **Kepatuhan Regulasi** | Tidak ada pemetaan regulasi | Auto-tagging OJK, BI, UU PDP, PCI-DSS, ISO27001 dengan FSI reservation |
 | **Token Usage** | ~50 token (minim info, memicu halusinasi) | ~800–1.200 token (terarah, relevan, optimal untuk output tajam) |
-| **Pemeliharaan** | Kaku (harus ubah kode & deploy ulang VPS) | Dinamis (Admin dapat menambah/mengubah langsung di UI Settings) |
+| **Pemeliharaan** | Kaku (harus ubah kode & deploy ulang VPS) | Dinamis (Admin dapat mengedit, menambah, dan menyinkronkan langsung di UI Settings) |
 
 ### 7.3 KYC Output Sections — 13 bagian
 
