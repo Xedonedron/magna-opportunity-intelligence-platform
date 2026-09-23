@@ -6,6 +6,25 @@ Format berkas ini mengacu pada [Keep a Changelog](https://keepachangelog.com/id/
 
 ---
 
+## [1.7.1] - 2026-09-23
+
+### Summary
+Peningkatan isolasi konteks intelijen korporat (Layer A) agar 100% bebas dari kontaminasi kebutuhan deal/use cases/pain points, serta penyempurnaan production-grade batch CLI script regenerasi KYC untuk eksekusi server VPS.
+
+### Added
+- **Batch KYC CLI Script Overhaul (`scripts/regenerate_all_oppty_kyc.py`)**:
+  - Menambahkan argumen `--scope` (`full` / `deal_only`, default: `full`) untuk memaksa pembuatan ulang Company Foundation (Module 1-2) yang bersih.
+  - Menambahkan filter perusahaan spesifik via `--company-id <UUID>`.
+  - Menambahkan mode eksekusi langsung sekuensial via `--sync` untuk pemantauan terminal live di VPS.
+  - Menambahkan kalkulasi statistik entitas unik (total company vs total deal) dan jeda dispatch terukur (`--delay`).
+
+### Fixed
+- **Layer A Context Isolation Leak**:
+  - Memisahkan fungsi pembentukan konteks `_build_company_foundation_context` dari `_build_base_context` di `kyc_sectional_runner.py`.
+  - Memastikan prompt Module 1 (Company Profile) dan Module 2 (Industry & Competitors) secara ketat hanya menerima fakta perusahaan dan riset eksternal, tanpa ada kebocoran `customer_needs`, target produk deal, maupun catatan presales internal.
+
+---
+
 ## [1.7.0] - 2026-09-23
 
 ### Summary

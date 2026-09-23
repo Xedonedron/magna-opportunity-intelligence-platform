@@ -17,6 +17,7 @@ from app.schemas.kyc import (
     CategorizedQuestions,
 )
 from app.services.kyc_sectional_runner import (
+    _build_company_foundation_context,
     run_company_foundation,
     run_opportunity_intelligence,
     run_sectional_kyc_pipeline,
@@ -93,6 +94,53 @@ async def test_run_company_foundation_produces_mod1_mod2():
     assert mod1.company_overview.name == "PT ABC Indonesia"
     assert mod2.industry_analysis == "Banking sector growing steadily"
     assert mock_invoke.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_company_foundation_strictly_isolates_deal_context():
+    """Verify Layer A (Module 1 & 2) never receives deal-specific needs, product, or focus notes."""
+    secret_need = "CONFIDENTIAL_PAM_REQUIREMENT_12345"
+    secret_product = "SECRET_DEAL_PRODUCT_XYZ"
+    secret_focus = "TOP_PRIORITY_DEAL_NOTE_999"
+
+    state = _mock_state(
+        customer_needs=secret_need,
+        product=secret_product,
+        focus_notes=secret_focus,
+        additional_notes="Deal additional notes",
+    )
+
+    # 1. Test helper isolation directly
+    ctx = _build_company_foundation_context(state)
+    assert secret_need not in ctx, "Deal customer_needs leaked into company foundation context!"
+    assert secret_product not in ctx, "Deal product leaked into company foundation context!"
+    assert secret_focus not in ctx, "Deal focus leaked into company foundation context!"
+    assert "Deal additional notes" not in ctx, "Deal additional notes leaked into company foundation context!"
+    assert "PT ABC Indonesia" in ctx
+    assert "https://abc.co.id" in ctx
+    assert "Banking" in ctx
+
+    # 2. Test invoke_section prompts for M1 and M2
+    captured_prompts = []
+
+    async def mock_invoke(llm, schema_cls, prompt, section_name, **kwargs):
+        captured_prompts.append((section_name, prompt))
+        if schema_cls == CompanyProfileOutput:
+            return _make_mod1()
+        elif schema_cls == IndustryCompetitorsOutput:
+            return _make_mod2()
+        raise ValueError("Unexpected schema")
+
+    with patch("app.services.kyc_sectional_runner.invoke_section", side_effect=mock_invoke):
+        await run_company_foundation(state, MagicMock(), "base context with deal leakage", lambda x: x)
+
+    assert len(captured_prompts) == 2
+    for section_name, prompt in captured_prompts:
+        assert secret_need not in prompt, f"{section_name} prompt leaked customer_needs!"
+        assert secret_product not in prompt, f"{section_name} prompt leaked product!"
+        assert secret_focus not in prompt, f"{section_name} prompt leaked focus_notes!"
+        assert "base context with deal leakage" not in prompt, f"{section_name} used unisolated base_context!"
+
 
 
 @pytest.mark.asyncio

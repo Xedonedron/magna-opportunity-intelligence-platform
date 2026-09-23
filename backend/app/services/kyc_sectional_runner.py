@@ -27,7 +27,8 @@ from app.core.solutions_catalog import solutions_catalog
 logger = logging.getLogger(__name__)
 
 
-def _build_base_context(state: Any) -> tuple:
+def _extract_external_research_context(state: Any) -> str:
+    """Extract and format external web search and crawled website content."""
     context_parts = []
     search = state.get("search_results", {})
     if search.get("company_answer"):
@@ -46,7 +47,29 @@ def _build_base_context(state: Any) -> tuple:
         content_preview = website.get("text_content", "")[:2000]
         context_parts.append(f"Website Content: {content_preview}")
 
-    context = "\n".join(context_parts) if context_parts else "No external data found."
+    return "\n".join(context_parts) if context_parts else "No external data found."
+
+
+def _build_company_foundation_context(state: Any) -> str:
+    """Build pure company-level foundation context for Layer A (Module 1 & 2).
+
+    Contains strictly objective corporate profile & industry intelligence.
+    STRICTLY EXCLUDES deal-specific customer needs, target solutions/products,
+    opportunity notes, and presales focus notes to prevent context contamination.
+    """
+    external_research = _extract_external_research_context(state)
+    return f"""## Informasi Perusahaan Klien (Profil Korporat Murni)
+- Nama Perusahaan: {state.get('company_name', 'Unknown')}
+- Website: {state.get('website') or 'N/A'}
+- Industri: {state.get('industry') or 'N/A'}
+
+## Data Riset & Intelijen Eksternal
+{external_research}
+"""
+
+
+def _build_base_context(state: Any) -> tuple:
+    external_research = _extract_external_research_context(state)
 
     industry_use_cases = state.get("industry_use_cases", [])
     use_cases_context = ""
@@ -75,19 +98,19 @@ def _build_base_context(state: Any) -> tuple:
     focus = f"\n## PANDUAN FOKUS KHUSUS (PRIORITAS TERTINGGI):\n{state['focus_notes']}\n" if state.get("focus_notes") else ""
 
     base = f"""## Informasi Perusahaan Klien
-- Nama Perusahaan: {state['company_name']}
-- Website: {state.get('website', 'N/A')}
-- Industri: {state.get('industry', 'N/A')}
-- Target Solusi / Produk: {state.get('product', 'N/A')}
+- Nama Perusahaan: {state.get('company_name', 'Unknown')}
+- Website: {state.get('website') or 'N/A'}
+- Industri: {state.get('industry') or 'N/A'}
+- Target Solusi / Produk: {state.get('product') or 'N/A'}
 
 ## Kebutuhan Klien
-{state['customer_needs']}
+{state.get('customer_needs') or 'N/A'}
 
 ## Catatan Tambahan
-{state.get('additional_notes', 'None')}
+{state.get('additional_notes') or 'None'}
 {focus}
 ## Data Riset & Intelijen Eksternal
-{context}
+{external_research}
 """
     return base, use_cases_context, solutions_context, matched_smg_cards
 
@@ -128,6 +151,9 @@ async def run_company_foundation(
     """
     logger.info("[KYC Pipeline] Layer A: Company Foundation (Parallel Modules 1, 2) for '%s'...", state.get("company_name", "Unknown"))
 
+    # Strictly use clean company foundation context to guarantee zero leakage of deal needs/pain points
+    clean_context = _build_company_foundation_context(state) if state else base_context
+
     prompt_mod1 = f"""Analisis data profil klien berikut dan hasilkan Module 1: Company Profile (company_overview, business_model, company_location).
 Struktur output:
 - company_overview: objek JSON berisi nama resmi (name), deskripsi bisnis (description), tahun berdiri (founded), ukuran perusahaan (size), kantor pusat (headquarters), dan daftar produk utama (key_products).
@@ -135,10 +161,10 @@ Struktur output:
 - company_location: teks narasi lokasi kantor pusat dan fasilitas operasional.
 
 Data Profil:
-{base_context}{_STRICT_JSON_DIRECTIVE}"""
+{clean_context}{_STRICT_JSON_DIRECTIVE}"""
 
     prompt_mod2 = f"""Analisis industri dan kompetitor klien berikut untuk Module 2: Industry & Competitors:
-{base_context}
+{clean_context}
 
 Struktur output JSON yang WAJIB:
 - industry_analysis: teks narasi ringkas lanskap dan tren industri klien.
@@ -319,6 +345,7 @@ async def run_sectional_kyc_pipeline(
     clean_json_fn: Any,
 ) -> dict:
     base_context, use_cases_context, solutions_context, matched_smg_cards = _build_base_context(state)
+    company_foundation_context = _build_company_foundation_context(state)
 
     # --- Resolve Company Foundation (Layer A) ---
     existing_profile = state.get("existing_company_profile")
@@ -353,7 +380,7 @@ async def run_sectional_kyc_pipeline(
                 reused_company_profile = False
 
     if not reused_company_profile or mod1 is None or mod2 is None:
-        mod1, mod2 = await run_company_foundation(state, llm, base_context, clean_json_fn)
+        mod1, mod2 = await run_company_foundation(state, llm, company_foundation_context, clean_json_fn)
 
     await update_progress_fn(config, "analyzing", 40)
 
