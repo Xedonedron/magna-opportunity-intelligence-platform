@@ -71,6 +71,7 @@ def test_get_company_detail_with_opportunities(
         name="PT Bank Mandiri (Persero) Tbk",
         normalized_name="bank mandiri",
         website="https://bankmandiri.co.id",
+        root_domain="bankmandiri.co.id",
         industry="Banking",
     )
     db.add(comp)
@@ -114,6 +115,7 @@ def test_update_company(client: TestClient, auth_headers: dict[str, str], db: Se
         name="Startup Media Group",
         normalized_name="startup media group",
         website="https://startupmedia.id",
+        root_domain="startupmedia.id",
         industry="Media",
     )
     db.add(comp)
@@ -155,6 +157,7 @@ def test_create_nested_opportunity_inherits_metadata(
         name="PT SMBC Indonesia",
         normalized_name="smbc indonesia",
         website="https://smbc.co.id",
+        root_domain="smbc.co.id",
         industry="Banking & Financial Services",
     )
     db.add(comp)
@@ -203,6 +206,7 @@ def test_move_opportunity_between_companies(
         name="Company Alpha",
         normalized_name="company alpha",
         website="https://alpha.com",
+        root_domain="alpha.com",
         industry="Technology",
     )
     comp_b = Company(
@@ -210,6 +214,7 @@ def test_move_opportunity_between_companies(
         name="Company Beta",
         normalized_name="company beta",
         website="https://beta.com",
+        root_domain="beta.com",
         industry="Logistics",
     )
     db.add_all([comp_a, comp_b])
@@ -272,6 +277,7 @@ def test_check_company_similarity_deterministic(client: TestClient, auth_headers
         name="PT Telkom Indonesia (Persero) Tbk",
         normalized_name="telkom indonesia",
         website="https://telkom.co.id",
+        root_domain="telkom.co.id",
         industry="Telecommunications",
     )
     db.add(comp)
@@ -328,6 +334,7 @@ def test_check_company_similarity_prevents_false_positives_indonesia(
         name="Danone Indonesia",
         normalized_name="danone indonesia",
         website="https://danone.co.id",
+        root_domain="danone.co.id",
         industry="FMCG",
     )
     db.add(comp)
@@ -370,6 +377,7 @@ def test_check_company_similarity_with_domain_match(client: TestClient, auth_hea
         name="PT Cardig Aero Services Tbk",
         normalized_name="cardig aero services",
         website="https://cas.co.id",
+        root_domain="cas.co.id",
         industry="Aviation & Logistics",
     )
     db.add(comp)
@@ -400,6 +408,7 @@ def test_create_company_domain_conflict(client: TestClient, auth_headers: dict[s
         name="PT Telkom Indonesia",
         normalized_name="telkom indonesia",
         website="https://telkom.co.id",
+        root_domain="telkom.co.id",
         industry="Telecommunications",
     )
     db.add(comp)
@@ -422,6 +431,7 @@ def test_create_opportunity_domain_autolink(client: TestClient, auth_headers: di
         name="PT Prodia Widyahusada Tbk",
         normalized_name="prodia widyahusada",
         website="https://prodia.co.id",
+        root_domain="prodia.co.id",
         industry="Healthcare",
     )
     db.add(comp)

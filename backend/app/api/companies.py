@@ -141,7 +141,20 @@ async def list_companies(
     current_user: User = Depends(get_current_user),
 ):
     """List companies with pagination, search, and opportunity counts."""
-    query = db.query(Company)
+    # Subquery for opportunity counts — eliminates N+1
+    opp_count_sq = (
+        db.query(
+            Opportunity.company_id,
+            sa_func.count(Opportunity.id).label("cnt"),
+        )
+        .group_by(Opportunity.company_id)
+        .subquery()
+    )
+
+    query = (
+        db.query(Company, sa_func.coalesce(opp_count_sq.c.cnt, 0).label("opp_cnt"))
+        .outerjoin(opp_count_sq, Company.id == opp_count_sq.c.company_id)
+    )
 
     if search:
         search_clean = f"%{search.strip().lower()}%"
@@ -156,7 +169,7 @@ async def list_companies(
 
     total = query.count()
 
-    companies = (
+    rows = (
         query.order_by(desc(Company.created_at))
         .offset((page - 1) * page_size)
         .limit(page_size)
@@ -164,7 +177,7 @@ async def list_companies(
     )
 
     items = []
-    for c in companies:
+    for c, opp_cnt in rows:
         resp = CompanyResponse(
             id=c.id,
             name=c.name,
@@ -174,7 +187,7 @@ async def list_companies(
             business_process=c.business_process,
             employee_count=c.employee_count,
             tech_stack=c.tech_stack,
-            opportunities_count=len(c.opportunities),
+            opportunities_count=opp_cnt,
             created_at=c.created_at,
             updated_at=c.updated_at,
         )
@@ -204,13 +217,19 @@ async def check_company_similarity(
     """
     norm_query = compute_normalized_name(name)
     query_domain = extract_root_domain(website) if website else None
-    all_companies = db.query(Company).all()
 
-    exact_match: Optional[CompanyResponse] = None
     matches: list[CompanySimilarityMatch] = []
+    seen_ids: set[uuid.UUID] = set()
 
-    for c in all_companies:
-        resp = CompanyResponse(
+    # Subquery for opportunity counts to avoid N+1
+    opp_count_sq = (
+        db.query(Opportunity.company_id, sa_func.count(Opportunity.id).label("cnt"))
+        .group_by(Opportunity.company_id)
+        .subquery()
+    )
+
+    def _to_resp(c: Company, opp_cnt: int = 0) -> CompanyResponse:
+        return CompanyResponse(
             id=c.id,
             name=c.name,
             normalized_name=c.normalized_name,
@@ -219,30 +238,41 @@ async def check_company_similarity(
             business_process=c.business_process,
             employee_count=c.employee_count,
             tech_stack=c.tech_stack,
-            opportunities_count=len(c.opportunities),
+            opportunities_count=opp_cnt,
             created_at=c.created_at,
             updated_at=c.updated_at,
         )
 
-        # 1. Root Domain Match (Highest priority & 100% confidence)
-        c_domain = extract_root_domain(c.website) if c.website else None
-        if query_domain and c_domain and query_domain == c_domain:
-            if not exact_match:
-                exact_match = resp
+    # 1. Root Domain Match (Highest priority & 100% confidence) — indexed query
+    if query_domain:
+        domain_rows = (
+            db.query(Company, sa_func.coalesce(opp_count_sq.c.cnt, 0))
+            .outerjoin(opp_count_sq, Company.id == opp_count_sq.c.company_id)
+            .filter(Company.root_domain == query_domain)
+            .all()
+        )
+        for c, cnt in domain_rows:
+            seen_ids.add(c.id)
             matches.append(
                 CompanySimilarityMatch(
-                    company=resp,
+                    company=_to_resp(c, cnt),
                     similarity_score=1.0,
                     match_type="domain_match",
                 )
             )
-            continue
 
-        # 2. Exact normalized match (100% confidence)
-        if c.normalized_name == norm_query:
+    # 2. Exact normalized match (100% confidence) — indexed query
+    norm_rows = (
+        db.query(Company, sa_func.coalesce(opp_count_sq.c.cnt, 0))
+        .outerjoin(opp_count_sq, Company.id == opp_count_sq.c.company_id)
+        .filter(Company.normalized_name == norm_query)
+        .all()
+    )
+    for c, cnt in norm_rows:
+        if c.id not in seen_ids:
             matches.append(
                 CompanySimilarityMatch(
-                    company=resp,
+                    company=_to_resp(c, cnt),
                     similarity_score=1.0,
                     match_type="exact_normalized",
                 )
@@ -278,15 +308,14 @@ async def create_company(
     norm_name = compute_normalized_name(data.name)
     input_domain = extract_root_domain(data.website) if data.website else None
 
-    # Check 1: Duplicate root domain check (hard constraint)
+    # Check 1: Duplicate root domain check (hard constraint) — indexed query
     if input_domain:
-        comps_with_web = db.query(Company).filter(Company.website.isnot(None)).all()
-        for comp in comps_with_web:
-            if extract_root_domain(comp.website) == input_domain:
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail=f"Company with website domain '{input_domain}' already exists: '{comp.name}' (id: {comp.id})",
-                )
+        dup_domain = db.query(Company).filter(Company.root_domain == input_domain).first()
+        if dup_domain:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Company with website domain '{input_domain}' already exists: '{dup_domain.name}' (id: {dup_domain.id})",
+            )
 
     # Check 2: Duplicate normalized name check
     existing = db.query(Company).filter(Company.normalized_name == norm_name).first()
@@ -300,6 +329,7 @@ async def create_company(
         name=data.name.strip(),
         normalized_name=norm_name,
         website=data.website,
+        root_domain=input_domain,
         industry=data.industry,
         business_process=data.business_process,
         employee_count=data.employee_count,
@@ -425,6 +455,9 @@ async def update_company(
     if "name" in update_dict and update_dict["name"]:
         update_dict["name"] = update_dict["name"].strip()
         update_dict["normalized_name"] = compute_normalized_name(update_dict["name"])
+
+    if "website" in update_dict:
+        update_dict["root_domain"] = extract_root_domain(update_dict["website"])
 
     for k, v in update_dict.items():
         setattr(company, k, v)

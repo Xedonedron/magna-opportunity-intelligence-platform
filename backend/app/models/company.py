@@ -22,6 +22,7 @@ class Company(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     normalized_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     website: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    root_domain: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     industry: Mapped[str | None] = mapped_column(String(255), nullable=True)
     business_process: Mapped[str | None] = mapped_column(Text, nullable=True)
     employee_count: Mapped[str | None] = mapped_column(String(100), nullable=True)

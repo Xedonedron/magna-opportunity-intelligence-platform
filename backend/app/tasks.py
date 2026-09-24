@@ -295,14 +295,10 @@ def run_kyc_pipeline_task(
             from app.api.companies import compute_normalized_name, extract_root_domain
             matched_company = None
 
-            # 1. Match by root domain if website exists
+            # 1. Match by root domain if website exists — indexed query
             opp_domain = extract_root_domain(opportunity.website) if opportunity.website else None
             if opp_domain:
-                comps = db.query(Company).filter(Company.website.isnot(None)).all()
-                for c in comps:
-                    if extract_root_domain(c.website) == opp_domain:
-                        matched_company = c
-                        break
+                matched_company = db.query(Company).filter(Company.root_domain == opp_domain).first()
 
             # 2. Fallback to normalized company name
             if not matched_company and opportunity.company_name:

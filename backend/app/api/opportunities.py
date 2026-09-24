@@ -160,11 +160,7 @@ async def create_opportunity(
         req_domain = extract_root_domain(data.website) if data.website else None
         matched_by_domain = None
         if req_domain:
-            comps_with_web = db.query(Company).filter(Company.website.isnot(None)).all()
-            for comp in comps_with_web:
-                if extract_root_domain(comp.website) == req_domain:
-                    matched_by_domain = comp
-                    break
+            matched_by_domain = db.query(Company).filter(Company.root_domain == req_domain).first()
 
         if matched_by_domain:
             target_company_id = matched_by_domain.id
@@ -178,6 +174,7 @@ async def create_opportunity(
                 target_company_id = comp.id
                 if not comp.website and data.website:
                     comp.website = data.website
+                    comp.root_domain = req_domain
                 if not comp.industry and data.industry:
                     comp.industry = data.industry
             else:
@@ -185,6 +182,7 @@ async def create_opportunity(
                     name=data.company_name.strip(),
                     normalized_name=norm_name,
                     website=data.website,
+                    root_domain=req_domain,
                     industry=data.industry,
                 )
                 db.add(new_comp)
