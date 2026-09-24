@@ -60,7 +60,7 @@ Dokumen implementasi perbaikan teknis arsitektur backend MOIP meliputi optimasi 
 
 ---
 
-## 3. Concurrency & Failure Resilience di KYC Pipeline
+## 3. Concurrency & Failure Resilience di KYC Pipeline ✅ DONE
 
 ### Masalah
 * Pada `opportunities.py:254`, `opportunity.status` langsung diset `"KYC Running"` dan dicommit sebelum Celery dispatch dipastikan sukses. Jika Redis gagal, status stuck.

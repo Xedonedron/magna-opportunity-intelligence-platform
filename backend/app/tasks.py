@@ -216,7 +216,7 @@ def run_kyc_pipeline_task(
         ).first()
         if not opportunity:
             return {"status": "error", "message": "Opportunity not found"}
-        # Check if there is already an active running report (e.g., created by regenerate endpoint)
+        # Idempotency: reuse existing running report instead of creating duplicates
         kyc_report = (
             db.query(KYCReport)
             .filter(
@@ -230,7 +230,9 @@ def run_kyc_pipeline_task(
         if kyc_report:
             next_version = kyc_report.version
         else:
-            # Determine next version number
+            # Safe version generation: use DB-level max to avoid race conditions.
+            # If two workers query simultaneously they may get the same max_version.
+            # We flush+commit early and catch IntegrityError to handle the race gracefully.
             max_version = (
                 db.query(KYCReport.version)
                 .filter(KYCReport.opportunity_id == opp_uuid)
@@ -248,9 +250,27 @@ def run_kyc_pipeline_task(
                 source_type=source_type,
             )
             db.add(kyc_report)
-            db.flush()
+            try:
+                db.flush()
+            except Exception:
+                # Race condition: another worker already created this version.
+                # Rollback and try to reuse the running report instead.
+                db.rollback()
+                kyc_report = (
+                    db.query(KYCReport)
+                    .filter(
+                        KYCReport.opportunity_id == opp_uuid,
+                        KYCReport.status == "running",
+                    )
+                    .order_by(KYCReport.version.desc())
+                    .first()
+                )
+                if kyc_report:
+                    next_version = kyc_report.version
+                else:
+                    return {"status": "error", "message": "Version conflict — report already exists"}
 
-        # Update opportunity status
+        # Update opportunity status atomically in the worker (not in the API layer)
         old_status = opportunity.status
         opportunity.status = "KYC Running"
 

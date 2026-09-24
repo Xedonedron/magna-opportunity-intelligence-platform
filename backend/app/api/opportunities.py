@@ -236,21 +236,6 @@ async def create_opportunity(
         event_type="create",
     )
 
-    # Create initial placeholder KYC report (v1) with running status so UI tracks progress immediately
-    initial_kyc_report = KYCReport(
-        id=uuid.uuid4(),
-        opportunity_id=opportunity.id,
-        version=1,
-        status="running",
-        source_type="automatic",
-        progress_step="received",
-        progress_percent=15,
-        created_by=current_user.id,
-    )
-    db.add(initial_kyc_report)
-    if not data.meeting_schedule:
-        opportunity.status = "KYC Running"
-
     # In-app notifications for superadmins & stakeholders (excluding creator)
     NotificationService.notify_opportunity_created(
         db, opportunity, actor_id=current_user.id
@@ -265,10 +250,13 @@ async def create_opportunity(
         logger.error(f"Failed to dispatch opportunity created notification: {exc}")
 
     # Trigger AI KYC pipeline automatically
-    try:
-        run_kyc_pipeline_task.delay(str(opportunity.id), source_type="automatic")
-    except Exception as exc:
-        logger.error(f"Failed to dispatch automatic KYC task: {exc}")
+    # Status stays "New" until the Celery worker actually starts execution.
+    # If dispatch fails, opportunity remains "New" — no stuck "KYC Running".
+    if not data.meeting_schedule:
+        try:
+            run_kyc_pipeline_task.delay(str(opportunity.id), source_type="automatic")
+        except Exception as exc:
+            logger.error(f"Failed to dispatch automatic KYC task: {exc}")
 
     return opportunity
 
