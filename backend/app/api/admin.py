@@ -584,6 +584,11 @@ def update_system_settings_api(
         pass
 
     db.commit()
+
+    # Invalidate LLM settings cache so new values take effect immediately
+    from app.core.llm import invalidate_settings_cache
+    invalidate_settings_cache()
+
     return {"status": "success", "message": "System AI settings updated successfully."}
 
 

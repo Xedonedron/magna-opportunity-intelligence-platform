@@ -1,4 +1,6 @@
 import logging
+import time
+import threading
 from typing import Optional, Any
 from sqlalchemy.orm import Session
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -9,8 +11,43 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+# --- In-memory TTL cache for SystemSettings ---
+_CACHE_TTL = 60  # seconds
+_cache: dict[str, tuple[Optional[str], float]] = {}  # key -> (value, monotonic_ts)
+_cache_lock = threading.Lock()
+
+
+def invalidate_settings_cache() -> None:
+    """Clear the in-memory SystemSettings cache. Call after admin updates settings."""
+    with _cache_lock:
+        _cache.clear()
+
+
+def _bulk_load_settings(db: Session) -> None:
+    """Fetch all SystemSetting rows and populate cache in one query."""
+    try:
+        from app.models.system_setting import SystemSetting
+        rows = db.query(SystemSetting).all()
+        now = time.monotonic()
+        with _cache_lock:
+            for row in rows:
+                val = row.value.strip() if row.value and row.value.strip() else None
+                _cache[row.key] = (val, now)
+    except Exception as e:
+        logger.warning(f"[LLM Factory] Bulk load settings failed: {e}")
+
 
 def get_db_setting(db: Optional[Session], key: str, default: Optional[str] = None) -> Optional[str]:
+    # Check cache first
+    now = time.monotonic()
+    with _cache_lock:
+        cached = _cache.get(key)
+    if cached is not None:
+        value, ts = cached
+        if (now - ts) < _CACHE_TTL:
+            return value if value is not None else default
+
+    # Cache miss or stale — query DB
     close_db = False
     if db is None:
         try:
@@ -20,10 +57,26 @@ def get_db_setting(db: Optional[Session], key: str, default: Optional[str] = Non
         except Exception:
             return default
     try:
-        from app.models.system_setting import SystemSetting
-        row = db.query(SystemSetting).filter(SystemSetting.key == key).first()
-        if row and row.value is not None and row.value.strip():
-            return row.value.strip()
+        if close_db:
+            # Self-managed session: batch-fetch all settings (1 query instead of N)
+            _bulk_load_settings(db)
+            with _cache_lock:
+                cached = _cache.get(key)
+            if cached is not None:
+                return cached[0] if cached[0] is not None else default
+            return default
+        else:
+            # Caller-provided session: single key lookup
+            from app.models.system_setting import SystemSetting
+            row = db.query(SystemSetting).filter(SystemSetting.key == key).first()
+            if row and row.value is not None and row.value.strip():
+                val = row.value.strip()
+                with _cache_lock:
+                    _cache[key] = (val, time.monotonic())
+                return val
+            else:
+                with _cache_lock:
+                    _cache[key] = (None, time.monotonic())
     except Exception as e:
         logger.warning(f"[LLM Factory] Failed to read '{key}' from system_settings DB table: {e}")
     finally:

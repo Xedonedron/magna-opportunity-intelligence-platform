@@ -10,6 +10,9 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: str = "postgresql://moip:moip_secret@localhost:5432/moip_db"
+    DB_POOL_SIZE: int = 20
+    DB_MAX_OVERFLOW: int = 30
+    DB_POOL_RECYCLE: int = 1800
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"

@@ -43,7 +43,7 @@ Dokumen implementasi perbaikan teknis arsitektur backend MOIP meliputi optimasi 
 
 ---
 
-## 2. LLM Factory DB Settings Caching & Connection Pool Configuration
+## 2. LLM Factory DB Settings Caching & Connection Pool Configuration ✅ DONE
 
 ### Masalah
 * `get_db_setting()` di `backend/app/core/llm.py` membuka `SessionLocal()` baru setiap kali dipanggil tanpa session aktif. Boros koneksi DB.
