@@ -80,7 +80,7 @@ Dokumen implementasi perbaikan teknis arsitektur backend MOIP meliputi optimasi 
 
 ---
 
-## 4. Keamanan Autentikasi (Production Hardening untuk Static Dev Users)
+## 4. Keamanan Autentikasi (Production Hardening untuk Static Dev Users) ✅ DONE
 
 ### Masalah
 * `STATIC_USERS` pada `auth.py:32` menyediakan login statis tanpa proteksi flag `DEBUG`.

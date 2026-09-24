@@ -142,6 +142,13 @@ async def google_login(request: GoogleLoginRequest, req: Request, db: Session = 
 @router.post("/login", response_model=TokenResponse)
 async def username_login(request: UsernameLoginRequest, req: Request, db: Session = Depends(get_db)):
     """Login with username and password (dummy auth for development)."""
+    # Block static credential login in production
+    if not settings.DEBUG:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Development credential login is disabled in production.",
+        )
+
     # Check if username exists in static users
     if request.username not in STATIC_USERS:
         raise HTTPException(

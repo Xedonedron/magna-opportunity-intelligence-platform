@@ -90,6 +90,17 @@ class TestUsernameLogin:
         response = client.post("/api/auth/login", json={})
         assert response.status_code == 422
 
+    def test_login_disabled_in_production(self, client: TestClient, monkeypatch):
+        """Should return 403 when DEBUG is False (production mode)."""
+        from app.core.config import get_settings
+        monkeypatch.setattr(get_settings(), "DEBUG", False)
+        response = client.post(
+            "/api/auth/login",
+            json={"username": "admin", "password": "P@ssw0rd"},
+        )
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Development credential login is disabled in production."
+
 
 class TestGoogleLogin:
     """Tests for /api/auth/google endpoint."""
