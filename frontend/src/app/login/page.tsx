@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
+import { MoipLogo } from "@/components/ui/MoipLogo";
 import { usePageTitle } from "@/hooks/use-page-title";
 
 // Force dynamic rendering to access env vars at runtime
@@ -129,18 +131,14 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-900 to-zinc-800 p-4 relative">
-            <div className="absolute top-4 right-4 z-10">
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-zinc-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(37,99,235,0.12),rgba(255,255,255,0))] dark:bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(37,99,235,0.2),rgba(0,0,0,0))] p-4 relative transition-colors">
+            <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+                <LanguageToggle />
                 <ThemeToggle />
             </div>
-            <div className="w-full max-w-md p-8 bg-white dark:bg-zinc-900 border border-zinc-200/20 dark:border-zinc-800 rounded-2xl shadow-xl transition-colors">
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-2">
-                        MOIP
-                    </h1>
-                    <p className="text-zinc-600 dark:text-zinc-400">
-                        Magna Opportunity Intelligence Platform
-                    </p>
+            <div className="w-full max-w-md p-8 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none transition-colors">
+                <div className="flex flex-col items-center justify-center mb-8">
+                    <MoipLogo variant="full" layout="vertical" size="lg" showTagline={true} />
                 </div>
 
                 {error && (

@@ -15,6 +15,11 @@ export const metadata: Metadata = {
         template: "MOIP - %s",
     },
     description: "Internal platform for opportunity management and AI-powered KYC",
+    icons: {
+        icon: "/moip-icon.svg",
+        shortcut: "/moip-icon.svg",
+        apple: "/moip-icon.svg",
+    },
 };
 
 export default function RootLayout({

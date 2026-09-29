@@ -12,6 +12,7 @@ import {
     LogOut,
     X,
 } from "lucide-react";
+import { MoipLogo } from "@/components/ui/MoipLogo";
 import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
@@ -72,14 +73,8 @@ export function Sidebar() {
     return (
         <div className="hidden md:flex w-64 border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 flex-col h-screen shrink-0 sticky top-0 transition-colors">
             <div className="h-14 flex items-center px-6 border-b border-zinc-200 dark:border-zinc-800">
-                <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-zinc-900 dark:text-white">
-                    <div className="w-6 h-6 rounded bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center text-xs font-bold">
-                        M
-                    </div>
-                    <span>MOIP</span>
-                    <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-200/80 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
-                        v1.7.0
-                    </span>
+                <Link href="/dashboard" className="flex items-center">
+                    <MoipLogo variant="full" size="sm" showTagline={false} />
                 </Link>
             </div>
             <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
@@ -189,15 +184,9 @@ export function MobileSidebarDrawer({
                     <Link
                         href="/dashboard"
                         onClick={onClose}
-                        className="flex items-center gap-2 font-semibold text-zinc-900 dark:text-white"
+                        className="flex items-center"
                     >
-                        <div className="w-6 h-6 rounded bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center text-xs font-bold">
-                            M
-                        </div>
-                        <span>MOIP</span>
-                        <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-200/80 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
-                            v1.7.0
-                        </span>
+                        <MoipLogo variant="full" size="sm" showTagline={false} />
                     </Link>
                     <button
                         onClick={onClose}

@@ -1,0 +1,54 @@
+<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Left Pillar Gradient (Cobalt) -->
+    <linearGradient id="m2-grad-left" x1="45" y1="50" x2="105" y2="150" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1D4ED8" />
+      <stop offset="100%" stop-color="#2563EB" />
+    </linearGradient>
+
+    <!-- Right Pillar Gradient (Cyan Flow) -->
+    <linearGradient id="m2-grad-right" x1="95" y1="50" x2="155" y2="150" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+
+    <!-- Warm Coral / Magenta Core -->
+    <linearGradient id="m2-grad-dot" x1="90" y1="85" x2="110" y2="105" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FB7185" />
+      <stop offset="60%" stop-color="#F43F5E" />
+      <stop offset="100%" stop-color="#E11D48" />
+    </linearGradient>
+
+    <filter id="m2-glow" x="78" y="76" width="44" height="44" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#F43F5E" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="200" height="200" rx="36" fill="#FFFFFF" />
+
+  <!-- Continuous Rounded Letter M -->
+  <!-- Left Half of M -->
+  <path
+    d="M 50 148 V 72 C 50 56 64 48 78 58 L 100 86"
+    stroke="url(#m2-grad-left)"
+    stroke-width="16"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Right Half of M -->
+  <path
+    d="M 100 86 L 122 58 C 136 48 150 56 150 72 V 148"
+    stroke="url(#m2-grad-right)"
+    stroke-width="16"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Opportunity Discovery Core: Warm Magenta Aperture Ring & Dot -->
+  <g transform="translate(100, 114)">
+    <circle cx="0" cy="0" r="14" stroke="url(#m2-grad-dot)" stroke-width="4.5" fill="#FFFFFF" />
+    <circle cx="0" cy="0" r="6" fill="url(#m2-grad-dot)" filter="url(#m2-glow)" />
+  </g>
+</svg>

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { Search, FolderOpen, Calendar, X, Menu, User } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { MoipLogo } from "@/components/ui/MoipLogo";
 import { NotificationDropdown } from "@/components/domains/notifications/NotificationDropdown";
 import { useNotificationToaster } from "@/hooks/use-notifications";
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
@@ -108,12 +110,9 @@ export function TopNav({ onOpenMobileMenu }: { onOpenMobileMenu?: () => void }) 
                 >
                     <Menu className="w-5 h-5" />
                 </button>
-                <div className="flex items-center gap-1.5 font-bold text-sm text-zinc-900 dark:text-white">
-                    <div className="w-6 h-6 rounded bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center text-xs font-bold shrink-0">
-                        M
-                    </div>
-                    <span>MOIP</span>
-                </div>
+                <Link href="/dashboard" className="flex items-center">
+                    <MoipLogo variant="full" size="xs" showTagline={false} />
+                </Link>
             </div>
 
             <div className="flex items-center flex-1 relative md:ml-0 ml-1" ref={containerRef}>
