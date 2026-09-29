@@ -1,66 +1,42 @@
-# Galeri Konsep Desain Logo MOIP
+# MOIP Brand Identity & Logo Guidelines
 
-Semua file gambar logo tersimpan di folder ini (`docs/branding/`) dengan gaya **terang, bersih, ramah (human-centric), dan bernuansa modern B2B SaaS**.
-
----
-
-## 🎯 1. Eksplorasi Huruf "M" Saja (Pure Monogram M)
-
-Jika Anda ingin fokus hanya pada inisial utama **M** sebagai simbol identitas tunggal yang ikonik:
-
-### A. Pure "M" App Icon / Standalone Monogram (Referensi Utama)
-*Monogram M minimalis dengan garis kurva membulat biru cobalt & cyan, dipercantik aksen titik cerah coral-pink di kaki kanannya.*
-
-![Pure M Icon](./moip-logo-pure-m-icon.jpg)
-
-### B. Pure "M" Corporate Lockup
-*Simbol M geometris murni di sebelah kiri dengan susunan tipografi modern "MOIP Magna Opportunity Intelligence Platform" di sebelah kanan.*
-
-![Pure M Lockup](./moip-logo-pure-m-lockup.jpg)
-
-### C. Variasi Vektor Pure "M" (Format SVG Resolusi Tinggi)
-
-| Variasi | Pratinjau | Karakter Visual |
-| :--- | :---: | :--- |
-| **M-1: Smooth Tubular Flow** | <img src="./moip-pure-m-v1.svg" width="90" height="90" /> | Rekonstruksi presisi vektor dari referensi: kurva membulat biru-cyan dengan titik beacon magenta (*i-dot*). |
-| **M-2: Symmetrical Core** | <img src="./moip-pure-m-v2.svg" width="90" height="90" /> | Dua lengkungan simetris biru dan cyan dengan inti lensa aperture magenta terlindungi di lembah tengah M. |
-| **M-3: Dynamic Ribbon Fold** | <img src="./moip-pure-m-v3.svg" width="90" height="90" /> | Garis pita kontinu dari cobalt blue mengalir ke magenta hangat di sayap kanan. |
-| **M-4: Precision Rounded M** | <img src="./moip-pure-m-v4.svg" width="90" height="90" /> | Pilar monolitik kiri dipadu busur lengkung cyan dan titik radar aperture magenta yang melayang harmonis. |
-
-> 🌐 **Showcase Interaktif:** Buka [`pure-m-showcase.html`](./pure-m-showcase.html) di browser Anda untuk melihat uji ukuran (favicon 24px, app icon 40px, header 64px) dan toggle dark/light mode.
+**Platform**: Magna Opportunity Intelligence Platform  
+**Entitas**: PT Smartnet Magna Global (CTI Group)  
+**Arah Visual**: Clean Light Mode, Modern B2B SaaS, Human-Centric, Precise & Authoritative.
 
 ---
 
-## 🚀 2. Eksplorasi Sekalian "MOIP" Lengkap (Full 4-Letter Custom Wordmark)
+## 🏛️ Logo Resmi: M-2 Symmetrical Core
 
-Jika Anda ingin langsung menampilkan akronim **MOIP** secara utuh di mana setiap huruf mewakili 4 pilar fitur platform:
+Logo resmi platform mengadopsi konsep **M-2 (Symmetrical Core)** yang menggabungkan kekuatan pilar korporat dengan titik fokus kecerdasan presales.
 
-### Full "MOIP" Bespoke Wordmark
-* **M** (Cobalt Blue): *Magna Foundation* (Stabilitas & Trust)
-* **O** (Glowing Coral Aperture): *Opportunity Discovery* (Lensa radar presales)
-* **i** (Cyan Column): *Intelligence* (Data & AI engine)
-* **P** (Indigo Loop): *Platform* (Central hub ekosistem)
+<p align="center">
+  <img src="./moip-logo.svg" alt="MOIP Official Logo" width="180" height="180" />
+</p>
 
-![Full MOIP Wordmark](./moip-logo-full-moip-wordmark.jpg)
+### 📐 Dekonstruksi 4 Pilar Akronim (M - O - I - P)
+
+* **M — MAGNA (Foundation)**: Lengkungan kubah kiri berwarna **Cobalt Blue** (`#1D4ED8` → `#2563EB`) melambangkan stabilitas korporat, fondasi IT enterprise, dan nilai kepercayaan CTI Group.
+* **O — OPPORTUNITY (Core Discovery)**: Lensa aperture lingkaran di pusat lembah M berwarna **Warm Coral-Magenta** (`#FB7185` → `#E11D48`) dengan efek *glow*, melambangkan radar penemuan tender dan prospek presales bernilai tinggi.
+* **I — INTELLIGENCE (AI & Analytics)**: Lengkungan kubah kanan berwarna **Sky Cyan Flow** (`#0284C7` → `#38BDF8`) melambangkan kecepatan mesin analitik data, automated KYC scraping, dan integrasi Google Cloud Vertex AI/Gemini.
+* **P — PLATFORM (Ecosystem Hub)**: Kesatuan siluet simetris yang harmonis menghubungkan tim Sales, Presales, hingga Board of Directors (BOD) dalam satu alur pipeline tertutup.
 
 ---
 
-## 💡 3. Eksplorasi Gabungan Sebelumnya (Konsep A s/d F)
+## 🎨 Palet Warna Resmi
 
-### Konsep A: Clean Horizontal Lockup
-![Konsep A](./moip-logo-concept-a-horizontal.jpg)
+| Peran | Token / Nilai HEX | Deskripsi |
+| :--- | :--- | :--- |
+| **Magna Foundation** | `#1D4ED8` → `#2563EB` | Cobalt Blue (Stabilitas & Trust) |
+| **Intelligence Flow** | `#0284C7` → `#38BDF8` | Sky Cyan (AI & Data Clarity) |
+| **Opportunity Core** | `#FB7185` → `#E11D48` | Warm Coral-Magenta (Focal Discovery) |
+| **Canvas Light** | `#FFFFFF` / `#F8FAFC` | Bright, Clean, Modern SaaS |
+| **Canvas Dark** | `#090D16` / `#111827` | Deep Graphite & Navy Surface |
 
-### Konsep B: Fluid Dynamic Monogram
-![Konsep B](./moip-logo-concept-b-monogram.jpg)
+---
 
-### Konsep C: Continuous Intelligence Infinity Loop
-![Konsep C](./moip-logo-concept-c-infinity.jpg)
+## 📂 Lokasi Aset Sistem
 
-### Konsep D: Overlapping Translucent Lens & Pillars
-![Konsep D](./moip-logo-concept-d-overlap.jpg)
-
-### Konsep E: Dynamic Soft-Flow Ribbon Monogram
-![Konsep E](./moip-logo-concept-e-ribbon.jpg)
-
-### Konsep F: Geometric Apex Beacon Mark
-![Konsep F](./moip-logo-concept-f-apex.jpg)
+* **Dokumentasi Vektor Resmi**: [`docs/branding/moip-logo.svg`](./moip-logo.svg)
+* **Favicon & Web App Icon**: [`frontend/public/moip-icon.svg`](../../frontend/public/moip-icon.svg)
+* **Komponen React Reusable**: [`frontend/src/components/ui/MoipLogo.tsx`](../../frontend/src/components/ui/MoipLogo.tsx)
