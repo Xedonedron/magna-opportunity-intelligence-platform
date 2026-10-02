@@ -354,26 +354,44 @@ export default function OpportunityDetailPage() {
                                                 label={t.common.company}
                                                 value={opp.company_name}
                                             />
-                                            <InfoRow
-                                                icon={<User className="w-4 h-4" />}
-                                                label={t.opportunityDetail.overview.contactPic}
-                                                value={opp.contact_name}
-                                            />
+                                            {opp.primary_contact?.name || opp.contact_name ? (
+                                                <>
+                                                    <InfoRow
+                                                        icon={<User className="w-4 h-4" />}
+                                                        label={t.opportunityDetail.overview.contactPic}
+                                                        value={opp.primary_contact?.name || opp.contact_name}
+                                                    />
+                                                    <InfoRow
+                                                        icon={<Mail className="w-4 h-4" />}
+                                                        label={t.opportunityDetail.overview.email}
+                                                        value={opp.primary_contact?.email || opp.email}
+                                                    />
+                                                    <InfoRow
+                                                        icon={<Phone className="w-4 h-4" />}
+                                                        label={t.opportunityDetail.overview.phone}
+                                                        value={opp.primary_contact?.phone || opp.phone}
+                                                    />
+                                                </>
+                                            ) : (
+                                                <div className="flex items-center justify-between p-2.5 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-700 text-xs">
+                                                    <div className="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
+                                                        <User className="w-3.5 h-3.5" />
+                                                        <span>PIC Belum Ditentukan</span>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setActiveTab("stakeholders")}
+                                                        className="text-blue-600 dark:text-blue-400 hover:underline font-medium text-xs flex items-center gap-1"
+                                                    >
+                                                        + Atur di Stakeholders
+                                                    </button>
+                                                </div>
+                                            )}
                                             <InfoRow
                                                 icon={<Globe className="w-4 h-4" />}
                                                 label={t.opportunityDetail.overview.website}
                                                 value={opp.website}
                                                 isLink
-                                            />
-                                            <InfoRow
-                                                icon={<Mail className="w-4 h-4" />}
-                                                label={t.opportunityDetail.overview.email}
-                                                value={opp.email}
-                                            />
-                                            <InfoRow
-                                                icon={<Phone className="w-4 h-4" />}
-                                                label={t.opportunityDetail.overview.phone}
-                                                value={opp.phone}
                                             />
                                             <InfoRow
                                                 icon={<Package className="w-4 h-4" />}

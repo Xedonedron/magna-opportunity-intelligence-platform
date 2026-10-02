@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.models.company import Company
+    from app.models.company_contact import CompanyContact
 
 
 class Opportunity(Base):
@@ -21,6 +22,9 @@ class Opportunity(Base):
     )
     company_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("companies.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    primary_contact_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("company_contacts.id", ondelete="SET NULL"), nullable=True, index=True
     )
     company_name: Mapped[str] = mapped_column(String(255), nullable=False)
     contact_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -58,6 +62,9 @@ class Opportunity(Base):
     # Relationships
     company: Mapped["Company | None"] = relationship(
         "Company", back_populates="opportunities", lazy="joined"
+    )
+    primary_contact: Mapped["CompanyContact | None"] = relationship(
+        "CompanyContact", foreign_keys=[primary_contact_id], lazy="joined"
     )
     creator: Mapped["User"] = relationship(
         "User", foreign_keys=[created_by], lazy="joined"

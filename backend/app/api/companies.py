@@ -10,6 +10,7 @@ from sqlalchemy import func as sa_func, desc
 from app.core.database import get_db
 from app.models.user import User
 from app.models.company import Company
+from app.models.company_contact import CompanyContact
 from app.models.opportunity import Opportunity, TimelineEvent
 from app.models.meeting import Meeting
 from app.models.kyc_report import KYCReport
@@ -336,6 +337,19 @@ async def create_company(
         tech_stack=data.tech_stack or [],
     )
     db.add(company)
+    db.flush()
+
+    # Automatically create primary stakeholder if contact_name was supplied
+    if data.contact_name and data.contact_name.strip():
+        contact = CompanyContact(
+            company_id=company.id,
+            name=data.contact_name.strip(),
+            email=str(data.contact_email).strip() if data.contact_email else None,
+            phone=data.contact_phone.strip() if data.contact_phone else None,
+            is_primary=True,
+        )
+        db.add(contact)
+
     db.commit()
     db.refresh(company)
 
@@ -517,13 +531,63 @@ async def create_company_opportunity(
     # Store clean company name, or with deal title suffix for backward compat
     eff_company_name = company.name
 
+    # Stakeholder linking / creation logic
+    primary_contact_id = None
+    contact_name = data.contact_name
+    email = data.email
+    phone = data.phone
+
+    if data.primary_contact_id:
+        contact = db.query(CompanyContact).filter(
+            CompanyContact.id == data.primary_contact_id,
+            CompanyContact.company_id == company.id,
+        ).first()
+        if contact:
+            primary_contact_id = contact.id
+            contact_name = contact.name
+            email = contact.email or email
+            phone = contact.phone or phone
+    elif data.contact_name and data.contact_name.strip():
+        # Check existing contact by name (case-insensitive) or email
+        existing_contact = db.query(CompanyContact).filter(
+            CompanyContact.company_id == company.id,
+            sa_func.lower(CompanyContact.name) == data.contact_name.strip().lower(),
+        ).first()
+        if not existing_contact and data.email:
+            existing_contact = db.query(CompanyContact).filter(
+                CompanyContact.company_id == company.id,
+                sa_func.lower(CompanyContact.email) == str(data.email).strip().lower(),
+            ).first()
+
+        if existing_contact:
+            primary_contact_id = existing_contact.id
+            contact_name = existing_contact.name
+            email = existing_contact.email or email
+            phone = existing_contact.phone or phone
+        else:
+            has_contacts = db.query(CompanyContact).filter(CompanyContact.company_id == company.id).first() is not None
+            new_contact = CompanyContact(
+                company_id=company.id,
+                name=data.contact_name.strip(),
+                email=str(data.email).strip() if data.email else None,
+                phone=data.phone.strip() if data.phone else None,
+                is_primary=not has_contacts,
+            )
+            db.add(new_contact)
+            db.flush()
+            primary_contact_id = new_contact.id
+            contact_name = new_contact.name
+            email = new_contact.email
+            phone = new_contact.phone
+
     opportunity = Opportunity(
         company_id=company.id,
+        primary_contact_id=primary_contact_id,
         company_name=eff_company_name,
-        contact_name=data.contact_name,
+        contact_name=contact_name,
         website=company.website,
-        email=data.email,
-        phone=data.phone,
+        email=email,
+        phone=phone,
         industry=company.industry,
         product=product,
         customer_needs=data.customer_needs,

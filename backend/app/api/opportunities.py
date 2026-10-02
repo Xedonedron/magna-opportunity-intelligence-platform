@@ -10,6 +10,7 @@ from app.core.database import get_db
 from app.models.user import User
 from app.models.opportunity import Opportunity, TimelineEvent, OpportunityDocument
 from app.models.company import Company
+from app.models.company_contact import CompanyContact
 from app.models.meeting import Meeting
 from app.models.kyc_report import KYCReport
 from app.schemas.opportunity import (
@@ -189,13 +190,79 @@ async def create_opportunity(
                 db.flush()
                 target_company_id = new_comp.id
 
+    # Stakeholder linking / creation logic
+    primary_contact_id = None
+    contact_name = data.contact_name
+    email = data.email
+    phone = data.phone
+
+    if target_company_id:
+        if data.primary_contact_id:
+            contact = db.query(CompanyContact).filter(
+                CompanyContact.id == data.primary_contact_id,
+                CompanyContact.company_id == target_company_id,
+            ).first()
+            if contact:
+                primary_contact_id = contact.id
+                contact_name = contact.name
+                email = contact.email or email
+                phone = contact.phone or phone
+        elif data.contact_name and data.contact_name.strip():
+            # Check existing contact by name (case-insensitive) or email
+            existing_contact = db.query(CompanyContact).filter(
+                CompanyContact.company_id == target_company_id,
+                sa_func.lower(CompanyContact.name) == data.contact_name.strip().lower(),
+            ).first()
+            if not existing_contact and data.email:
+                existing_contact = db.query(CompanyContact).filter(
+                    CompanyContact.company_id == target_company_id,
+                    sa_func.lower(CompanyContact.email) == str(data.email).strip().lower(),
+                ).first()
+
+            if existing_contact:
+                primary_contact_id = existing_contact.id
+                contact_name = existing_contact.name
+                email = existing_contact.email or email
+                phone = existing_contact.phone or phone
+            else:
+                has_contacts = db.query(CompanyContact).filter(CompanyContact.company_id == target_company_id).first() is not None
+                new_contact = CompanyContact(
+                    company_id=target_company_id,
+                    name=data.contact_name.strip(),
+                    email=str(data.email).strip() if data.email else None,
+                    phone=data.phone.strip() if data.phone else None,
+                    is_primary=not has_contacts,
+                )
+                db.add(new_contact)
+                db.flush()
+                primary_contact_id = new_contact.id
+                contact_name = new_contact.name
+                email = new_contact.email
+                phone = new_contact.phone
+        else:
+            # If no contact is provided, auto-link to company's primary contact if exists
+            company_primary = db.query(CompanyContact).filter(
+                CompanyContact.company_id == target_company_id,
+                CompanyContact.is_primary == True,
+            ).first()
+            if not company_primary:
+                company_primary = db.query(CompanyContact).filter(
+                    CompanyContact.company_id == target_company_id,
+                ).first()
+            if company_primary:
+                primary_contact_id = company_primary.id
+                contact_name = company_primary.name
+                email = company_primary.email
+                phone = company_primary.phone
+
     opportunity = Opportunity(
         company_id=target_company_id,
+        primary_contact_id=primary_contact_id,
         company_name=data.company_name,
-        contact_name=data.contact_name,
+        contact_name=contact_name,
         website=data.website,
-        email=data.email,
-        phone=data.phone,
+        email=email,
+        phone=phone,
         industry=data.industry,
         product=data.product,
         customer_needs=data.customer_needs,
@@ -271,6 +338,26 @@ async def get_opportunity(
     opportunity = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
     if opportunity is None:
         raise HTTPException(status_code=404, detail="Opportunity not found")
+
+    # If no primary contact explicitly linked on opportunity, fall back to company primary contact
+    if not opportunity.primary_contact and opportunity.company_id:
+        comp_primary = (
+            db.query(CompanyContact)
+            .filter(CompanyContact.company_id == opportunity.company_id, CompanyContact.is_primary == True)
+            .first()
+            or db.query(CompanyContact)
+            .filter(CompanyContact.company_id == opportunity.company_id)
+            .first()
+        )
+        if comp_primary:
+            opportunity.primary_contact = comp_primary
+            if not opportunity.contact_name:
+                opportunity.contact_name = comp_primary.name
+            if not opportunity.email:
+                opportunity.email = comp_primary.email
+            if not opportunity.phone:
+                opportunity.phone = comp_primary.phone
+
     return opportunity
 
 
@@ -325,8 +412,42 @@ async def update_opportunity(
             else:
                 opportunity.company_id = None
 
+    # Handle primary_contact_id or contact_name changes
+    if "primary_contact_id" in update_data:
+        cid = update_data["primary_contact_id"]
+        if cid is not None:
+            contact = db.query(CompanyContact).filter(CompanyContact.id == cid).first()
+            if contact:
+                opportunity.primary_contact_id = contact.id
+                opportunity.contact_name = contact.name
+                opportunity.email = contact.email
+                opportunity.phone = contact.phone
+        else:
+            opportunity.primary_contact_id = None
+    elif "contact_name" in update_data and update_data["contact_name"]:
+        c_name = update_data["contact_name"].strip()
+        comp_id = opportunity.company_id
+        if comp_id and c_name:
+            contact = db.query(CompanyContact).filter(
+                CompanyContact.company_id == comp_id,
+                sa_func.lower(CompanyContact.name) == c_name.lower(),
+            ).first()
+            if not contact:
+                c_email = update_data.get("email") or opportunity.email
+                c_phone = update_data.get("phone") or opportunity.phone
+                contact = CompanyContact(
+                    company_id=comp_id,
+                    name=c_name,
+                    email=str(c_email).strip() if c_email else None,
+                    phone=str(c_phone).strip() if c_phone else None,
+                    is_primary=False,
+                )
+                db.add(contact)
+                db.flush()
+            opportunity.primary_contact_id = contact.id
+
     for field, value in update_data.items():
-        if field == "company_id":
+        if field in ("company_id", "primary_contact_id"):
             continue
         setattr(opportunity, field, value)
 

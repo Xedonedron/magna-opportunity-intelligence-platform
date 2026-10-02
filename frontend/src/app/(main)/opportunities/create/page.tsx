@@ -12,6 +12,7 @@ import {
     CheckCircle2,
     CircleDashed,
     Activity,
+    Users,
 } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
@@ -38,8 +39,6 @@ const formSchema = z.object({
             (val) => /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/.*)?$/i.test(val.trim()),
             { message: "Please enter a valid website URL (e.g. https://example.com or example.com)" }
         ),
-    email: z.string().email("Invalid email").optional().or(z.literal("")),
-    phone: z.string().optional(),
     industry: z.string().trim().min(1, "Industry is required"),
     product: z.string().min(1, "Target Solution is required"),
     assigned_engineer: z.string().optional(),
@@ -78,6 +77,7 @@ export default function CreateOpportunityPage() {
     const [createdId, setCreatedId] = useState<string | null>(null);
 
     const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+
     const [isCheckingSimilarity, setIsCheckingSimilarity] = useState(false);
     const [duplicateCheckModal, setDuplicateCheckModal] = useState<{
         isOpen: boolean;
@@ -109,8 +109,6 @@ export default function CreateOpportunityPage() {
         defaultValues: {
             company_name: "",
             website: "",
-            email: "",
-            phone: "",
             industry: "",
             product: "",
             assigned_engineer: "",
@@ -149,8 +147,10 @@ export default function CreateOpportunityPage() {
                 company_id: targetCompanyId !== undefined ? targetCompanyId : (selectedCompany?.id || null),
                 company_name: data.company_name.trim(),
                 website: formattedWebsite,
-                email: data.email || null,
-                phone: data.phone || null,
+                primary_contact_id: null,
+                contact_name: null,
+                email: null,
+                phone: null,
                 industry: data.industry.trim(),
                 product: data.product || null,
                 assigned_engineer: data.assigned_engineer || null,
@@ -374,22 +374,13 @@ export default function CreateOpportunityPage() {
                                     </p>
                                 )}
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <Input
-                                    label="Contact Email"
-                                    placeholder="john@acme.com"
-                                    type="email"
-                                    {...register("email")}
-                                />
-                                <Input
-                                    label="Phone"
-                                    placeholder="+62 812 3456 7890"
-                                    {...register("phone")}
-                                />
+                            {/* Stakeholder Directory Note */}
+                            <div className="flex items-start gap-2.5 p-3 bg-zinc-50 dark:bg-zinc-800/40 rounded-lg border border-zinc-200/80 dark:border-zinc-800 text-xs text-zinc-600 dark:text-zinc-400">
+                                <Users className="w-4 h-4 text-zinc-400 dark:text-zinc-500 mt-0.5 shrink-0" />
+                                <span>
+                                    <strong>Kontak & Stakeholder PIC:</strong> Tidak perlu diisi saat pembuatan deal awal. Kontak PIC dapat ditambahkan atau dikelola langsung melalui tab <strong>Stakeholders</strong> setelah opportunity dibuat.
+                                </span>
                             </div>
-                            {errors.email && (
-                                <p className="text-xs text-red-500">{errors.email.message}</p>
-                            )}
                             <div>
                                 <SuggestedInput
                                     label="Industry"

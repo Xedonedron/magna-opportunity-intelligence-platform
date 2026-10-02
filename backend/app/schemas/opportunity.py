@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from pydantic import BaseModel, Field, EmailStr, field_validator
+from app.schemas.company_contact import CompanyContactResponse
 
 
 # --- Timeline ---
@@ -22,6 +23,7 @@ class TimelineEventResponse(BaseModel):
 # --- Opportunity ---
 class OpportunityCreate(BaseModel):
     company_id: uuid.UUID | None = None
+    primary_contact_id: uuid.UUID | None = None
     company_name: str = Field(..., min_length=1, max_length=255)
     contact_name: str | None = Field(None, max_length=255)
     website: str = Field(..., min_length=1, max_length=500)
@@ -57,6 +59,7 @@ class OpportunityCreate(BaseModel):
 
 class OpportunityUpdate(BaseModel):
     company_id: uuid.UUID | None = None
+    primary_contact_id: uuid.UUID | None = None
     company_name: str | None = Field(None, min_length=1, max_length=255)
     contact_name: str | None = Field(None, max_length=255)
     website: str | None = Field(None, max_length=500)
@@ -85,6 +88,7 @@ class UserBrief(BaseModel):
 class OpportunityResponse(BaseModel):
     id: uuid.UUID
     company_id: uuid.UUID | None = None
+    primary_contact_id: uuid.UUID | None = None
     company_name: str
     contact_name: str | None = None
     website: str | None
@@ -109,6 +113,7 @@ class OpportunityResponse(BaseModel):
 
 class OpportunityDetailResponse(OpportunityResponse):
     timeline_events: list[TimelineEventResponse] = []
+    primary_contact: CompanyContactResponse | None = None
 
 
 # --- Opportunity Document ---

@@ -42,6 +42,7 @@ export interface CompanyOpportunityCreateInput {
     deal_title?: string;
     product?: string;
     customer_needs: string;
+    primary_contact_id?: string | null;
     contact_name?: string;
     email?: string;
     phone?: string;

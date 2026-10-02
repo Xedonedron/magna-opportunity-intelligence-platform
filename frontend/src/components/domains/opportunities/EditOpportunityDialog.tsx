@@ -151,24 +151,8 @@ export function EditOpportunityDialog({
                             }
                             required
                         />
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <Input
-                                label="Contact Email"
-                                type="email"
-                                placeholder="john@acme.com"
-                                value={email}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                    setEmail(e.target.value)
-                                }
-                            />
-                            <Input
-                                label="Phone"
-                                placeholder="+62 812 3456 7890"
-                                value={phone}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                    setPhone(e.target.value)
-                                }
-                            />
+                        <div className="p-3 bg-zinc-50 dark:bg-zinc-800/40 rounded-lg border border-zinc-200/80 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400">
+                            💡 Kontak PIC dan stakeholder perusahaan dikelola langsung melalui tab <strong>Stakeholders</strong>.
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <SuggestedInput

@@ -1,3 +1,5 @@
+import type { CompanyContact } from "./company-contact";
+
 export type OpportunityStatus =
     | "New"
     | "KYC Running"
@@ -33,6 +35,7 @@ export interface TimelineEvent {
 export interface Opportunity {
     id: string;
     company_id?: string | null;
+    primary_contact_id?: string | null;
     company_name: string;
     deal_title?: string | null;
     contact_name: string | null;
@@ -56,6 +59,7 @@ export interface Opportunity {
 
 export interface OpportunityDetail extends Opportunity {
     timeline_events: TimelineEvent[];
+    primary_contact?: CompanyContact | null;
 }
 
 
@@ -100,6 +104,8 @@ export interface OpportunityListResponse {
 }
 
 export interface OpportunityCreateInput {
+    company_id?: string | null;
+    primary_contact_id?: string | null;
     company_name: string;
     contact_name?: string | null;
     website: string;
@@ -117,6 +123,7 @@ export interface OpportunityCreateInput {
 
 export interface OpportunityUpdateInput {
     company_id?: string | null;
+    primary_contact_id?: string | null;
     company_name?: string;
     website?: string | null;
     email?: string | null;

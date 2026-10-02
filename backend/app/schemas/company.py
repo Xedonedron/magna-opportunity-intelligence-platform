@@ -107,6 +107,7 @@ class CompanyOpportunityCreate(BaseModel):
     automatically inherited from the parent Company.
     """
     deal_title: Optional[str] = Field(None, max_length=255, description="Specific initiative or deal title (e.g. 'Backup' or 'Data Warehouse')")
+    primary_contact_id: Optional[uuid.UUID] = None
     product: Optional[str] = Field(None, max_length=255)
     customer_needs: str = Field(..., min_length=1)
     contact_name: Optional[str] = Field(None, max_length=255)
