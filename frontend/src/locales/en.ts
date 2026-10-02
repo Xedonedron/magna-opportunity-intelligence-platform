@@ -52,6 +52,7 @@ export const en = {
     },
     nav: {
         dashboard: "Dashboard",
+        prospecting: "Prospecting",
         opportunities: "Opportunities",
         meetings: "Meetings",
         settings: "Settings",

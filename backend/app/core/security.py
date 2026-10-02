@@ -106,3 +106,17 @@ def require_superadmin(current_user: User = Depends(get_current_user)):
             detail="Hanya administrator yang memiliki akses ke halaman operasional ini.",
         )
     return current_user
+
+
+def require_prospecting_access(current_user: User = Depends(get_current_user)):
+    """Dependency helper to require prospecting capability or allowed roles (LGO, Manager, Superadmin)."""
+    allowed_roles = {"lgo", "manager", "superadmin", "admin", "lead_gen", "managerial"}
+    caps = [c.strip() for c in (current_user.capabilities or "").split(",")]
+    user_role = (current_user.role or "").lower()
+
+    if user_role not in allowed_roles and "prospecting" not in caps:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Akses fitur Lusha Prospecting terbatas untuk role LGO, Manager, dan Superadmin.",
+        )
+    return current_user

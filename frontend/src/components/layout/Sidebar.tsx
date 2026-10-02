@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
     LayoutDashboard,
+    Target,
     FolderOpen,
     Calendar,
     Settings,
@@ -17,25 +18,58 @@ import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 
+interface UserProfile {
+    full_name?: string;
+    email?: string;
+    role?: string;
+    capabilities?: string;
+}
+
 interface NavItemDef {
-    key: "dashboard" | "opportunities" | "meetings" | "settings";
+    key: "dashboard" | "prospecting" | "opportunities" | "meetings" | "settings";
     href: string;
     icon: React.ComponentType<{ className?: string }>;
     badge?: number;
+    allowedRoles?: string[];
+    requiredCapability?: string;
 }
 
 const navItemDefs: NavItemDef[] = [
     { key: "dashboard", href: "/dashboard", icon: LayoutDashboard },
+    {
+        key: "prospecting",
+        href: "/prospecting",
+        icon: Target,
+        allowedRoles: ["lgo", "manager", "superadmin", "admin", "lead_gen", "managerial"],
+        requiredCapability: "prospecting",
+    },
     { key: "opportunities", href: "/opportunities", icon: FolderOpen },
     { key: "meetings", href: "/meetings", icon: Calendar },
     { key: "settings", href: "/settings", icon: Settings },
 ];
 
+function canAccessNavItem(item: NavItemDef, user: UserProfile | null): boolean {
+    if (!item.allowedRoles && !item.requiredCapability) return true;
+    if (!user) return false;
+
+    const userRole = (user.role || "").toLowerCase();
+    if (userRole === "superadmin" || userRole === "admin") return true;
+
+    if (item.allowedRoles && item.allowedRoles.includes(userRole)) return true;
+
+    if (item.requiredCapability && user.capabilities) {
+        const caps = user.capabilities.split(",").map((c) => c.trim());
+        if (caps.includes(item.requiredCapability)) return true;
+    }
+
+    return false;
+}
+
 export function Sidebar() {
     const pathname = usePathname();
     const router = useRouter();
     const { t } = useLanguage();
-    const [user, setUser] = useState<{ full_name: string; email: string } | null>(null);
+    const [user, setUser] = useState<UserProfile | null>(null);
 
     const handleLogout = () => {
         localStorage.removeItem("moip_token");
@@ -78,7 +112,7 @@ export function Sidebar() {
                 </Link>
             </div>
             <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-                {navItemDefs.map((item) => {
+                {navItemDefs.filter((item) => canAccessNavItem(item, user)).map((item) => {
                     const label = t.nav[item.key];
                     const isActive =
                         pathname === item.href ||
@@ -148,7 +182,7 @@ export function MobileSidebarDrawer({
     const pathname = usePathname();
     const router = useRouter();
     const { t } = useLanguage();
-    const [user, setUser] = useState<{ full_name: string; email: string } | null>(null);
+    const [user, setUser] = useState<UserProfile | null>(null);
 
     useEffect(() => {
         const storedUser = localStorage.getItem("moip_user");
@@ -197,7 +231,7 @@ export function MobileSidebarDrawer({
                 </div>
 
                 <div className="flex-1 py-4 px-3 space-y-1.5 overflow-y-auto">
-                    {navItemDefs.map((item) => {
+                    {navItemDefs.filter((item) => canAccessNavItem(item, user)).map((item) => {
                         const label = t.nav[item.key];
                         const isActive =
                             pathname === item.href ||

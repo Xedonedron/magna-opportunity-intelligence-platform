@@ -65,7 +65,7 @@ def get_or_create_user(db: Session, google_info: dict) -> User:
         # Auto-promote superadmin if they exist but role/capabilities are not set
         if is_super and user.role != "superadmin":
             user.role = "superadmin"
-            user.capabilities = "view,create_edit,delete,generate_kyc,user_management"
+            user.capabilities = "view,create_edit,delete,generate_kyc,user_management,prospecting"
         db.commit()
         db.refresh(user)
         return user
@@ -73,7 +73,7 @@ def get_or_create_user(db: Session, google_info: dict) -> User:
     # Create new user
     role = "superadmin" if is_super else "viewer"
     capabilities = (
-        "view,create_edit,delete,generate_kyc,user_management"
+        "view,create_edit,delete,generate_kyc,user_management,prospecting"
         if is_super
         else "view"
     )

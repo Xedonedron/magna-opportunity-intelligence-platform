@@ -58,6 +58,9 @@ class Settings(BaseSettings):
     # Tavily (Web Search for KYC)
     TAVILY_API_KEY: str = ""
 
+    # Lusha API Integration
+    LUSHA_API_KEY: str = ""
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

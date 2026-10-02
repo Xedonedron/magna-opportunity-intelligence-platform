@@ -122,7 +122,7 @@ def admin_user(db: Session) -> User:
         email="admin@smartnet.co.id",
         full_name="Admin User",
         role="admin",
-        capabilities="view,create_edit,delete,generate_kyc,user_management",
+        capabilities="view,create_edit,delete,generate_kyc,user_management,prospecting",
         is_active=True,
         google_id="admin_google_id_123",
     )
@@ -140,7 +140,7 @@ def lgo_user(db: Session) -> User:
         email="lgo@smartnet.co.id",
         full_name="LGO User",
         role="lgo",
-        capabilities="view,create_edit,delete,generate_kyc",
+        capabilities="view,create_edit,delete,generate_kyc,prospecting",
         is_active=True,
         google_id="lgo_google_id_123",
     )
@@ -148,6 +148,13 @@ def lgo_user(db: Session) -> User:
     db.commit()
     db.refresh(user)
     return user
+
+
+@pytest.fixture
+def lgo_auth_headers(lgo_user: User) -> dict[str, str]:
+    """Create authorization headers for the LGO user."""
+    token = create_access_token(data={"sub": str(lgo_user.id), "email": lgo_user.email})
+    return {"Authorization": f"Bearer {token}"}
 
 
 @pytest.fixture

@@ -16,6 +16,7 @@ from app.api.personas import router as personas_router
 from app.api.ai_validation import router as ai_validation_router
 from app.api.companies import router as companies_router
 from app.api.company_contacts import router as company_contacts_router
+from app.api.prospecting import router as prospecting_router
 
 settings = get_settings()
 
@@ -61,6 +62,7 @@ app.include_router(admin_router)
 app.include_router(linkedin_router)
 app.include_router(personas_router)
 app.include_router(ai_validation_router)
+app.include_router(prospecting_router)
 
 
 @app.get("/api/health")

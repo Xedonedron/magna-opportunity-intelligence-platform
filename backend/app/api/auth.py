@@ -173,8 +173,10 @@ async def username_login(request: UsernameLoginRequest, req: Request, db: Sessio
         # Determine capabilities based on role
         role_name = static_user["role"]
         if role_name in ("admin", "superadmin"):
-            caps = "view,create_edit,delete,generate_kyc,user_management"
-        elif role_name in ("manager", "lgo", "sales", "presales", "lead_gen", "managerial"):
+            caps = "view,create_edit,delete,generate_kyc,user_management,prospecting"
+        elif role_name in ("manager", "lgo", "lead_gen", "managerial"):
+            caps = "view,create_edit,delete,generate_kyc,prospecting"
+        elif role_name in ("sales", "presales"):
             caps = "view,create_edit,delete,generate_kyc"
         elif role_name == "engineer":
             caps = "view,generate_kyc"

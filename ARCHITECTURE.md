@@ -706,6 +706,7 @@ MOIP menggunakan **role** (label identitas) + **capabilities** (izin aksi) sebag
 | `delete` | Hapus opportunity, meeting |
 | `generate_kyc` | Trigger/regenerate KYC AI + persona |
 | `user_management` | Kelola user di panel Settings |
+| `prospecting` | Akses Lusha Outbound Opportunity Generator & enrichment |
 
 **Enforcement di Backend:**
 

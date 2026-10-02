@@ -52,6 +52,7 @@ export const id: Translations = {
     },
     nav: {
         dashboard: "Dasbor",
+        prospecting: "Prospecting",
         opportunities: "Peluang",
         meetings: "Rapat",
         settings: "Pengaturan",
