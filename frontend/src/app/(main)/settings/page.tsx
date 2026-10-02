@@ -524,18 +524,27 @@ export default function SettingsPage() {
         engineer: "view,generate_kyc",
         sales: "view,create_edit,delete,generate_kyc",
         presales: "view,create_edit,delete,generate_kyc",
-        lgo: "view,create_edit,delete,generate_kyc",
-        manager: "view,create_edit,delete,generate_kyc",
-        superadmin: "view,create_edit,delete,generate_kyc,user_management",
+        lgo: "view,create_edit,delete,generate_kyc,prospecting",
+        manager: "view,create_edit,delete,generate_kyc,prospecting",
+        superadmin: "view,create_edit,delete,generate_kyc,user_management,prospecting",
     };
 
-    const ALL_CAPS = ["view", "create_edit", "delete", "generate_kyc", "user_management"];
+    const isProspectingEnabled = process.env.NEXT_PUBLIC_ENABLE_PROSPECTING === "true";
+    const ALL_CAPS = [
+        "view",
+        "create_edit",
+        "delete",
+        "generate_kyc",
+        "user_management",
+        ...(isProspectingEnabled ? ["prospecting"] : []),
+    ];
     const CAP_LABELS: Record<string, string> = {
         view: "View",
         create_edit: "Create & Edit",
         delete: "Delete",
         generate_kyc: "Generate KYC",
         user_management: "User Management",
+        prospecting: "Prospecting (Lusha)",
     };
 
     const startEditing = (u: any) => {

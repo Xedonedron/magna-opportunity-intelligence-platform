@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
     LayoutDashboard,
+    Target,
     FolderOpen,
     Calendar,
     Settings,
@@ -25,22 +26,32 @@ interface UserProfile {
 }
 
 interface NavItemDef {
-    key: "dashboard" | "opportunities" | "meetings" | "settings";
+    key: "dashboard" | "prospecting" | "opportunities" | "meetings" | "settings";
     href: string;
     icon: React.ComponentType<{ className?: string }>;
     badge?: number;
     allowedRoles?: string[];
     requiredCapability?: string;
+    enabled?: boolean;
 }
 
 const navItemDefs: NavItemDef[] = [
     { key: "dashboard", href: "/dashboard", icon: LayoutDashboard },
+    {
+        key: "prospecting",
+        href: "/prospecting",
+        icon: Target,
+        allowedRoles: ["lgo", "manager", "superadmin", "admin", "lead_gen", "managerial"],
+        requiredCapability: "prospecting",
+        enabled: process.env.NEXT_PUBLIC_ENABLE_PROSPECTING === "true",
+    },
     { key: "opportunities", href: "/opportunities", icon: FolderOpen },
     { key: "meetings", href: "/meetings", icon: Calendar },
     { key: "settings", href: "/settings", icon: Settings },
 ];
 
 function canAccessNavItem(item: NavItemDef, user: UserProfile | null): boolean {
+    if (item.enabled === false) return false;
     if (!item.allowedRoles && !item.requiredCapability) return true;
     if (!user) return false;
 
