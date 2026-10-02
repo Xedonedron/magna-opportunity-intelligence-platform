@@ -12,7 +12,7 @@ import uuid
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -215,12 +215,14 @@ async def search_prospecting_companies(
         success=True,
         query=cleaned_query,
         results=results,
+        companies=results,
     )
 
 
 @router.post("/lusha/search", response_model=LushaSearchResponse)
 async def search_lusha_contacts(
     request: LushaSearchRequest,
+    db: Session = Depends(get_db),
     user: User = Depends(require_prospecting_user),
 ):
     """
@@ -255,6 +257,25 @@ async def search_lusha_contacts(
             page=request.page,
             contacts=[],
         )
+
+    # Cross-reference existing contacts in internal directory
+    if res.get("contacts"):
+        try:
+            contact_names = [c["full_name"].strip() for c in res["contacts"] if c.get("full_name")]
+            if contact_names:
+                db_contacts = (
+                    db.query(CompanyContact)
+                    .filter(func.lower(CompanyContact.name).in_([n.lower() for n in contact_names]))
+                    .all()
+                )
+                saved_map = {c.name.lower(): str(c.id) for c in db_contacts if c.name}
+                for c in res["contacts"]:
+                    fn = c.get("full_name", "").strip().lower()
+                    if fn in saved_map:
+                        c["is_saved_in_directory"] = True
+                        c["local_contact_id"] = saved_map[fn]
+        except Exception as e:
+            logger.warning(f"[Lusha Search] Failed checking local contacts: {e}")
 
     return res
 

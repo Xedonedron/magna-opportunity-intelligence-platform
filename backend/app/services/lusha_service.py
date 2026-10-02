@@ -148,28 +148,71 @@ class LushaService:
 
         filters: Dict[str, Any] = {
             "companies": {"include": companies_include},
-            "contacts": {"include": contacts_include},
         }
+        if contacts_include:
+            filters["contacts"] = {"include": contacts_include}
 
         payload = {
             "pagination": {"page": page, "size": actual_size},
             "filters": filters,
         }
 
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=20.0) as client:
             resp = await client.post(
                 f"{LUSHA_BASE_URL}/contacts/prospecting",
                 headers=self.headers,
                 json=payload,
             )
-            if resp.status_code != 200:
-                logger.error(f"[LushaService] Prospecting search failed: {resp.status_code} - {resp.text}")
-                resp.raise_for_status()
-
-            raw_data = resp.json()
+            raw_data = resp.json() if resp.status_code == 200 else {}
             results = raw_data.get("results", [])
             pagination = raw_data.get("pagination", {})
             total = pagination.get("total", len(results))
+
+            # If 0 results and country filter was applied, retry without strict company location
+            # (Allows finding employees of MNCs, branches, or companies registered with foreign HQ e.g. OCBC, Ganesha)
+            if resp.status_code == 200 and total == 0 and country:
+                companies_include_fb = dict(companies_include)
+                companies_include_fb.pop("locations", None)
+                payload_fb = {
+                    "pagination": {"page": page, "size": actual_size},
+                    "filters": {
+                        "companies": {"include": companies_include_fb},
+                    },
+                }
+                if contacts_include:
+                    payload_fb["filters"]["contacts"] = {"include": contacts_include}
+
+                resp_fb = await client.post(
+                    f"{LUSHA_BASE_URL}/contacts/prospecting",
+                    headers=self.headers,
+                    json=payload_fb,
+                )
+                if resp_fb.status_code == 200:
+                    raw_data = resp_fb.json()
+                    results = raw_data.get("results", [])
+                    pagination = raw_data.get("pagination", {})
+                    total = pagination.get("total", len(results))
+                    resp = resp_fb
+
+            if resp.status_code != 200:
+                logger.error(f"[LushaService] Prospecting search failed: {resp.status_code} - {resp.text}")
+                err_msg = "Gagal melakukan pencarian kontak di Lusha."
+                try:
+                    err_json = resp.json()
+                    if "message" in err_json:
+                        err_msg = f"{err_json['message']}"
+                except Exception:
+                    pass
+                return {
+                    "success": False,
+                    "total": 0,
+                    "contacts": [],
+                    "available_job_titles": [],
+                    "available_departments": [],
+                    "page": page,
+                    "size": actual_size,
+                    "message": err_msg,
+                }
 
             contacts_list = []
             for item in results:
@@ -191,11 +234,13 @@ class LushaService:
                     department_str = None
                     seniority_val = None
 
+                full_name_calc = item.get("fullName") or f"{item.get('firstName', '')} {item.get('lastName', '')}".strip() or "Unnamed"
                 contacts_list.append({
                     "id": str(item.get("id")),
+                    "name": full_name_calc,
                     "first_name": item.get("firstName", ""),
                     "last_name": item.get("lastName", ""),
-                    "full_name": item.get("fullName") or f"{item.get('firstName', '')} {item.get('lastName', '')}".strip(),
+                    "full_name": full_name_calc,
                     "job_title": job_title_str,
                     "department": department_str,
                     "seniority": seniority_val,
@@ -206,12 +251,18 @@ class LushaService:
                     "linkedin_url": item.get("linkedinUrl") or item.get("socialUrl", ""),
                     "has_email": bool(item.get("hasEmail", False)),
                     "has_phone": bool(item.get("hasPhone", False)),
+                    "is_unlocked": False,
+                    "unlocked_email": None,
+                    "unlocked_phone": None,
+                    "is_saved_in_directory": False,
+                    "local_contact_id": None,
                 })
 
             available_job_titles = sorted(list(set(c["job_title"] for c in contacts_list if c.get("job_title"))))
             available_departments = sorted(list(set(c["department"] for c in contacts_list if c.get("department"))))
 
             return {
+                "success": True,
                 "total": total,
                 "contacts": contacts_list,
                 "available_job_titles": available_job_titles,
@@ -339,6 +390,27 @@ class LushaService:
 
                 raw = resp.json()
                 results = raw.get("results", [])
+
+                # Fallback: if 0 companies found in country (e.g. OCBC, Ganesha), search globally
+                if not results and country:
+                    payload_fb = {
+                        "filters": {
+                            "companies": {
+                                "include": {
+                                    "names": [company_query]
+                                }
+                            }
+                        },
+                        "pagination": {"page": 0, "size": 10},
+                    }
+                    resp_fb = await client.post(
+                        f"{LUSHA_BASE_URL}/companies/prospecting",
+                        headers=self.headers,
+                        json=payload_fb,
+                    )
+                    if resp_fb.status_code == 200:
+                        raw_fb = resp_fb.json()
+                        results = raw_fb.get("results", [])
                 companies_list = []
                 for item in results:
                     loc = item.get("location", {}) or {}

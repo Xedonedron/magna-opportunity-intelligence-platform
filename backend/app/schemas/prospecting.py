@@ -39,6 +39,7 @@ class LushaSearchRequest(BaseModel):
 
 class LushaCandidateContact(BaseModel):
     id: str
+    name: Optional[str] = None
     first_name: str
     last_name: str
     full_name: str
@@ -55,6 +56,8 @@ class LushaCandidateContact(BaseModel):
     is_unlocked: bool = False
     unlocked_email: Optional[str] = None
     unlocked_phone: Optional[str] = None
+    is_saved_in_directory: bool = False
+    local_contact_id: Optional[str] = None
 
 
 class LushaSearchResponse(BaseModel):
@@ -85,6 +88,7 @@ class CompanySearchResponse(BaseModel):
     success: bool = True
     query: str
     results: List[CompanyCandidate] = []
+    companies: Optional[List[CompanyCandidate]] = None
     message: Optional[str] = None
 
 

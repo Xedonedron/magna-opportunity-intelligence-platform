@@ -23,6 +23,8 @@ import {
     CheckSquare,
     Square,
     Save,
+    Globe,
+    HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -32,19 +34,25 @@ import { CreditRevealModal } from "@/components/domains/prospecting/CreditReveal
 
 interface CompanyCandidate {
     id?: string | null;
+    company_id?: string | null;
     name: string;
     domain?: string | null;
     industry?: string | null;
-    employee_count?: number | null;
+    country?: string | null;
+    city?: string | null;
+    employee_count?: any;
     logo_url?: string | null;
     is_saved_in_directory?: boolean;
+    in_database?: boolean;
     contacts_count?: number;
-    source: "moip_database" | "lusha_database";
+    stakeholder_count?: number;
+    source?: "moip_database" | "lusha_database" | string;
 }
 
 interface ProspectCandidate {
     id: string;
-    name: string;
+    name?: string;
+    full_name?: string;
     first_name?: string;
     last_name?: string;
     job_title: string;
@@ -52,11 +60,16 @@ interface ProspectCandidate {
     seniority?: string | null;
     email: string | null;
     phone: string | null;
-    linkedin_url: string | null;
+    linkedin_url?: string | null;
     has_email: boolean;
     has_phone: boolean;
-    is_saved_in_directory: boolean;
+    company_name?: string | null;
+    company_domain?: string | null;
+    is_saved_in_directory?: boolean;
     local_contact_id?: string | null;
+    is_unlocked?: boolean;
+    unlocked_email?: string | null;
+    unlocked_phone?: string | null;
     reveal_status?: {
         email: boolean;
         phone: boolean;
@@ -79,6 +92,8 @@ export default function ProspectingPage() {
     const [companyCandidates, setCompanyCandidates] = useState<CompanyCandidate[]>([]);
     const [isSearchingCompany, setIsSearchingCompany] = useState(false);
     const [selectedCompany, setSelectedCompany] = useState<CompanyCandidate | null>(null);
+    const [isEditingDomain, setIsEditingDomain] = useState(false);
+    const [domainInputValue, setDomainInputValue] = useState("");
 
     // 3. Employee Discovery State
     const [employees, setEmployees] = useState<ProspectCandidate[]>([]);
@@ -98,15 +113,21 @@ export default function ProspectingPage() {
     const [isSavingToDirectory, setIsSavingToDirectory] = useState(false);
     const [feedbackMessage, setFeedbackMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-    // Fetch initial quota
+    // Fetch live quota from Lusha
     const fetchQuota = useCallback(async () => {
         setIsLoadingQuota(true);
         try {
-            const res = await api.get<any>("/prospecting/lusha/quota");
-            if (res.data) {
+            const res = await api.get<{
+                success: boolean;
+                quota: number;
+                used: number;
+                limit: number;
+            }>("/prospecting/lusha/usage");
+
+            if (res.data && res.data.quota !== undefined) {
                 setQuota({
                     used: res.data.used ?? 0,
-                    remaining: res.data.remaining ?? 74,
+                    remaining: res.data.quota,
                     total: res.data.limit ?? 100,
                 });
             }
@@ -121,7 +142,7 @@ export default function ProspectingPage() {
         fetchQuota();
     }, [fetchQuota]);
 
-    // Debounced Company Search
+    // Debounced Company Autocomplete Search
     useEffect(() => {
         if (!companyQuery.trim() || companyQuery.trim().length < 2) {
             setCompanyCandidates([]);
@@ -131,10 +152,11 @@ export default function ProspectingPage() {
         const timer = setTimeout(async () => {
             setIsSearchingCompany(true);
             try {
-                const res = await api.get<{ companies: CompanyCandidate[] }>(
+                const res = await api.get<{ results?: CompanyCandidate[]; companies?: CompanyCandidate[] }>(
                     `/prospecting/companies/search?q=${encodeURIComponent(companyQuery.trim())}`
                 );
-                setCompanyCandidates(res.data?.companies || []);
+                const list = res.data?.results || res.data?.companies || [];
+                setCompanyCandidates(list);
             } catch {
                 setCompanyCandidates([]);
             } finally {
@@ -145,11 +167,19 @@ export default function ProspectingPage() {
         return () => clearTimeout(timer);
     }, [companyQuery]);
 
-    // Fetch Employees when Company is selected
-    const handleSelectCompany = async (company: CompanyCandidate) => {
-        setSelectedCompany(company);
+    // Fetch Employees when Company is selected or re-searched with domain
+    const handleSelectCompany = async (company: CompanyCandidate, domainOverride?: string) => {
+        const resolvedDomain = domainOverride !== undefined ? domainOverride : (company.domain || "");
+        const activeCompany: CompanyCandidate = {
+            ...company,
+            domain: resolvedDomain || undefined,
+        };
+
+        setSelectedCompany(activeCompany);
+        setDomainInputValue(resolvedDomain);
+        setIsEditingDomain(false);
         setCompanyCandidates([]);
-        setCompanyQuery(company.name);
+        setCompanyQuery(activeCompany.name);
         setSelectedIds(new Set());
         setSelectedJobTitle("all");
         setJobTitleSearchQuery("");
@@ -157,25 +187,51 @@ export default function ProspectingPage() {
         setIsLoadingEmployees(true);
 
         try {
-            const res = await api.post<{ success: boolean; contacts: ProspectCandidate[]; total: number }>(
-                "/prospecting/lusha/search",
-                {
-                    company_name: company.name,
-                    company_domain: company.domain || undefined,
-                    limit: 50,
-                }
-            );
+            const res = await api.post<{
+                success: boolean;
+                contacts: ProspectCandidate[];
+                total: number;
+                message?: string;
+            }>("/prospecting/lusha/search", {
+                company_name: activeCompany.name,
+                company_domain: resolvedDomain.trim() || undefined,
+                limit: 50,
+            });
 
-            if (res.data && res.data.contacts) {
+            if (res.data?.success && res.data?.contacts) {
                 setEmployees(res.data.contacts);
             } else {
                 setEmployees([]);
+                if (res.data?.message) {
+                    setSearchError(res.data.message);
+                }
             }
         } catch (err: any) {
             setSearchError(err?.response?.data?.detail || "Gagal menarik data karyawan dari Lusha.");
             setEmployees([]);
         } finally {
             setIsLoadingEmployees(false);
+        }
+    };
+
+    // Direct Search when user presses Enter or clicks 'Cari Karyawan'
+    const handleDirectSearch = (overrideQuery?: string) => {
+        const q = (overrideQuery || companyQuery).trim();
+        if (!q) return;
+
+        // Pick exact match or first candidate if available, else search directly
+        const exactMatch = companyCandidates.find(
+            (c) => c.name.toLowerCase() === q.toLowerCase()
+        );
+        const candidateToUse = exactMatch || (companyCandidates.length === 1 ? companyCandidates[0] : null);
+
+        if (candidateToUse) {
+            handleSelectCompany(candidateToUse);
+        } else {
+            handleSelectCompany({
+                name: q,
+                country: "Indonesia",
+            });
         }
     };
 
@@ -187,6 +243,9 @@ export default function ProspectingPage() {
         setSelectedJobTitle("all");
         setJobTitleSearchQuery("");
         setCompanyQuery("");
+        setDomainInputValue("");
+        setIsEditingDomain(false);
+        setSearchError(null);
     };
 
     // Dynamic Job Titles extraction from actual Lusha response
@@ -214,10 +273,10 @@ export default function ProspectingPage() {
             // Match text search (Title or Name)
             if (jobTitleSearchQuery.trim()) {
                 const query = jobTitleSearchQuery.toLowerCase();
-                const matchesTitle = emp.job_title.toLowerCase().includes(query);
-                const matchesName = emp.name.toLowerCase().includes(query);
-                const matchesDept = (emp.department || "").toLowerCase().includes(query);
-                if (!matchesTitle && !matchesName && !matchesDept) {
+                const titleStr = (emp.job_title || "").toLowerCase();
+                const nameStr = (emp.full_name || emp.name || "").toLowerCase();
+                const deptStr = (emp.department || "").toLowerCase();
+                if (!titleStr.includes(query) && !nameStr.includes(query) && !deptStr.includes(query)) {
                     return false;
                 }
             }
@@ -244,17 +303,17 @@ export default function ProspectingPage() {
         setSelectedIds(next);
     };
 
-    // Open Single Reveal Modal
-    const handleOpenSingleReveal = (emp: ProspectCandidate) => {
-        setCandidatesToReveal([emp]);
+    // Trigger Reveal Modal for Selected Candidates
+    const handleOpenBulkReveal = () => {
+        const toReveal = employees.filter((e) => selectedIds.has(e.id));
+        if (toReveal.length === 0) return;
+        setCandidatesToReveal(toReveal);
         setIsRevealModalOpen(true);
     };
 
-    // Open Bulk Reveal Modal
-    const handleOpenBulkReveal = () => {
-        const selected = employees.filter((e) => selectedIds.has(e.id));
-        if (selected.length === 0) return;
-        setCandidatesToReveal(selected);
+    // Trigger Reveal Modal for Single Candidate
+    const handleOpenSingleReveal = (candidate: ProspectCandidate) => {
+        setCandidatesToReveal([candidate]);
         setIsRevealModalOpen(true);
     };
 
@@ -267,10 +326,15 @@ export default function ProspectingPage() {
             const updatedEmployees = [...employees];
 
             for (const cand of candidatesToReveal) {
+                const fullName = cand.full_name || cand.name || "Stakeholder";
+                const parts = fullName.trim().split(/\s+/);
+                const firstName = cand.first_name || parts[0] || "Stakeholder";
+                const lastName = cand.last_name || (parts.length > 1 ? parts.slice(1).join(" ") : "Contact");
+
                 const res = await api.post<any>("/prospecting/lusha/enrich", {
                     contact_id: cand.id,
-                    first_name: cand.first_name || cand.name.split(" ")[0],
-                    last_name: cand.last_name || cand.name.split(" ").slice(1).join(" ") || "Stakeholder",
+                    first_name: firstName,
+                    last_name: lastName,
                     company_name: selectedCompany.name,
                     company_domain: selectedCompany.domain || undefined,
                     reveal: options,
@@ -317,41 +381,53 @@ export default function ProspectingPage() {
         }
     };
 
-    // Save Selected to Stakeholder Directory
+    // Save Selected to Stakeholders Directory
     const handleSaveToDirectory = async () => {
-        const toSave = employees.filter((e) => selectedIds.has(e.id));
-        if (toSave.length === 0 || !selectedCompany) return;
-
+        if (selectedIds.size === 0 || !selectedCompany) return;
         setIsSavingToDirectory(true);
+
         try {
-            await api.post("/prospecting/save-to-stakeholders", {
+            const selectedCandidates = employees.filter((e) => selectedIds.has(e.id));
+            const payload = {
                 company_name: selectedCompany.name,
                 company_domain: selectedCompany.domain || undefined,
-                industry: selectedCompany.industry || undefined,
-                contacts: toSave.map((c) => ({
-                    full_name: c.name,
+                company_industry: selectedCompany.industry || undefined,
+                contacts: selectedCandidates.map((c) => ({
+                    full_name: c.full_name || c.name || "Stakeholder",
                     job_title: c.job_title,
                     department: c.department || undefined,
                     email: c.email || undefined,
                     phone: c.phone || undefined,
                     linkedin_url: c.linkedin_url || undefined,
                 })),
-            });
+            };
 
-            // Mark saved in local state
-            setEmployees((prev) =>
-                prev.map((e) => (selectedIds.has(e.id) ? { ...e, is_saved_in_directory: true } : e))
-            );
+            const res = await api.post<{
+                success: boolean;
+                company_id: string;
+                contacts_saved: number;
+            }>("/prospecting/save-to-stakeholders", payload);
 
-            setFeedbackMessage({
-                type: "success",
-                text: `${toSave.length} stakeholder berhasil disinkronkan ke Stakeholder Directory MOIP.`,
-            });
-            setTimeout(() => setFeedbackMessage(null), 5000);
+            if (res.data?.success) {
+                // Update local status
+                setEmployees((prev) =>
+                    prev.map((e) =>
+                        selectedIds.has(e.id) ? { ...e, is_saved_in_directory: true } : e
+                    )
+                );
+                setSelectedCompany((prev) =>
+                    prev ? { ...prev, id: res.data.company_id, is_saved_in_directory: true } : null
+                );
+                setFeedbackMessage({
+                    type: "success",
+                    text: `Berhasil menyimpan ${res.data.contacts_saved} kontak ke Stakeholder Directory!`,
+                });
+                setTimeout(() => setFeedbackMessage(null), 5000);
+            }
         } catch (err: any) {
             setFeedbackMessage({
                 type: "error",
-                text: err?.response?.data?.detail || "Gagal menyimpan kontak ke direktori.",
+                text: err?.response?.data?.detail || "Gagal menyimpan kontak ke Stakeholder Directory.",
             });
             setTimeout(() => setFeedbackMessage(null), 5000);
         } finally {
@@ -359,62 +435,54 @@ export default function ProspectingPage() {
         }
     };
 
-    // Export to Excel (4 Mandatory Columns)
+    // Export to Excel 4 Columns
     const handleExportExcel = async () => {
         if (!selectedCompany) return;
-
-        // If items are selected, export selected; else export all currently filtered
-        const exportTargets = selectedIds.size > 0
-            ? employees.filter((e) => selectedIds.has(e.id))
-            : filteredEmployees;
-
-        if (exportTargets.length === 0) {
-            setFeedbackMessage({
-                type: "error",
-                text: "Tidak ada data kontak untuk diekspor ke Excel.",
-            });
-            setTimeout(() => setFeedbackMessage(null), 4000);
-            return;
-        }
-
         setIsExportingExcel(true);
+
         try {
-            const payload = {
-                company_name: selectedCompany.name,
-                contacts: exportTargets.map((c) => ({
-                    full_name: c.name,
-                    job_title: c.job_title,
-                    email: c.email || null,
-                    phone: c.phone || null,
-                })),
-            };
+            // Priority: selected candidates, or currently filtered employees
+            const targetContacts = selectedIds.size > 0
+                ? employees.filter((e) => selectedIds.has(e.id))
+                : filteredEmployees;
 
-            const response = await api.post("/prospecting/export-excel", payload, {
-                responseType: "blob",
-            });
+            const res = await api.post(
+                "/prospecting/lusha/export-excel",
+                {
+                    company_name: selectedCompany.name,
+                    contacts: targetContacts.map((c) => ({
+                        full_name: c.full_name || c.name || "Stakeholder",
+                        job_title: c.job_title,
+                        email: c.email || "",
+                        phone: c.phone || "",
+                    })),
+                },
+                { responseType: "blob" }
+            );
 
-            const blob = new Blob([response.data], {
+            // Trigger file download
+            const blob = new Blob([res.data], {
                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            const safeComp = selectedCompany.name.replace(/[^a-zA-Z0-9_-]/g, "_");
-            a.download = `Kontak_Lusha_${safeComp}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            const safeCompanyName = selectedCompany.name.replace(/[^a-zA-Z0-9]/g, "_");
+            a.download = `Kontak_${safeCompanyName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
             document.body.appendChild(a);
             a.click();
-            a.remove();
             window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
 
             setFeedbackMessage({
                 type: "success",
-                text: `File Excel 4 kolom (${exportTargets.length} kontak) berhasil diunduh.`,
+                text: `File Excel berhasil diunduh (${targetContacts.length} kontak).`,
             });
             setTimeout(() => setFeedbackMessage(null), 4000);
         } catch (err: any) {
             setFeedbackMessage({
                 type: "error",
-                text: err?.response?.data?.detail || "Gagal mengekspor file Excel.",
+                text: "Gagal mengunduh file spreadsheet Excel.",
             });
             setTimeout(() => setFeedbackMessage(null), 4000);
         } finally {
@@ -423,47 +491,47 @@ export default function ProspectingPage() {
     };
 
     return (
-        <div className="space-y-6 pb-16">
-            {/* Header & Quota Bar */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
+        <div className="space-y-6 max-w-7xl mx-auto pb-12">
+            {/* Header with Title & Live Quota Card */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
                 <div>
-                    <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
-                            <Users className="w-5 h-5" />
-                        </div>
-                        <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
-                            Lusha Prospecting Hub
-                        </h1>
-                    </div>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                    <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center gap-2.5">
+                        <Users className="w-6 h-6 text-indigo-600" />
+                        <span>Lusha Prospecting Hub</span>
+                    </h1>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                         Cari target perusahaan, filter karyawan berdasarkan Job Title riil, buka data kontak selektif, dan sinkronisasi ke Stakeholder Directory.
                     </p>
                 </div>
 
-                {/* Quota Indicator */}
-                <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2.5 shadow-xs">
-                    <div className="flex flex-col">
-                        <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                {/* Quota Widget */}
+                <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-800/80 px-4 py-2.5 rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 shadow-2xs">
+                    <div className="text-right">
+                        <div className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
                             Sisa Kuota Lusha
-                        </span>
-                        <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                                {quota.remaining}
-                            </span>
-                            <span className="text-xs text-zinc-400">
-                                / {quota.total} kredit
-                            </span>
+                        </div>
+                        <div className="text-sm font-extrabold text-zinc-900 dark:text-zinc-100">
+                            {isLoadingQuota ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin inline mr-1 text-indigo-600" />
+                            ) : (
+                                <>
+                                    <span className="text-indigo-600 dark:text-indigo-400">
+                                        {quota.remaining}
+                                    </span>
+                                    <span className="text-zinc-400 font-normal">/ {quota.total} kredit</span>
+                                </>
+                            )}
                         </div>
                     </div>
                     <Button
-                        variant="secondary"
-                        size="sm"
+                        variant="ghost"
+                        size="icon"
                         onClick={fetchQuota}
                         disabled={isLoadingQuota}
-                        className="h-8 w-8 p-0 ml-2"
-                        title="Segarkan Sisa Kuota"
+                        title="Segarkan kuota Lusha"
+                        className="h-8 w-8 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
                     >
-                        <RefreshCw className={`w-3.5 h-3.5 ${isLoadingQuota ? "animate-spin text-indigo-600" : ""}`} />
+                        <RefreshCw className={`w-3.5 h-3.5 ${isLoadingQuota ? "animate-spin" : ""}`} />
                     </Button>
                 </div>
             </div>
@@ -471,19 +539,19 @@ export default function ProspectingPage() {
             {/* Notification / Feedback Banner */}
             {feedbackMessage && (
                 <div
-                    className={`p-3.5 rounded-lg flex items-center justify-between text-xs font-medium ${
+                    className={`p-3.5 rounded-xl text-xs flex items-center justify-between transition-all ${
                         feedbackMessage.type === "success"
-                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
-                            : "bg-rose-50 text-rose-800 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800"
+                            ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+                            : "bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800"
                     }`}
                 >
                     <div className="flex items-center gap-2">
                         {feedbackMessage.type === "success" ? (
                             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                         ) : (
-                            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
                         )}
-                        <span>{feedbackMessage.text}</span>
+                        <span className="font-medium">{feedbackMessage.text}</span>
                     </div>
                     <button
                         onClick={() => setFeedbackMessage(null)}
@@ -494,9 +562,9 @@ export default function ProspectingPage() {
                 </div>
             )}
 
-            {/* Step 1: Target Perusahaan (Search & Auto-Disambiguate) */}
-            <Card className="p-5 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
-                <div className="flex items-center justify-between mb-3">
+            {/* Target Company Search Section */}
+            <Card className="p-5 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Building2 className="w-4 h-4 text-zinc-500" />
                         <span className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
@@ -515,23 +583,59 @@ export default function ProspectingPage() {
 
                 {!selectedCompany ? (
                     <div className="relative">
-                        <div className="relative">
-                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-                            <Input
-                                value={companyQuery}
-                                onChange={(e) => setCompanyQuery(e.target.value)}
-                                placeholder="Ketik nama perusahaan (contoh: Bank Mega, OCBC, Indosat, Telkomsel)..."
-                                className="pl-9 pr-9 h-11 text-sm bg-zinc-50 dark:bg-zinc-800/50"
-                                autoFocus
-                            />
-                            {isSearchingCompany && (
-                                <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-indigo-600 animate-spin" />
-                            )}
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+                                <Input
+                                    value={companyQuery}
+                                    onChange={(e) => setCompanyQuery(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            e.preventDefault();
+                                            handleDirectSearch();
+                                        }
+                                    }}
+                                    placeholder="Ketik nama perusahaan (contoh: Bank Mega, OCBC, Ganesha, Telkomsel)..."
+                                    className="pl-9 pr-9 h-11 text-sm bg-zinc-50 dark:bg-zinc-800/50"
+                                    autoFocus
+                                />
+                                {isSearchingCompany && (
+                                    <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-indigo-600 animate-spin" />
+                                )}
+                            </div>
+                            <Button
+                                onClick={() => handleDirectSearch()}
+                                disabled={!companyQuery.trim() || isLoadingEmployees}
+                                className="h-11 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm flex items-center gap-2 shrink-0 shadow-xs"
+                            >
+                                {isLoadingEmployees ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Search className="w-4 h-4" />
+                                )}
+                                <span>Cari Karyawan</span>
+                            </Button>
                         </div>
 
                         {/* Dropdown Suggestions */}
-                        {companyCandidates.length > 0 && (
+                        {companyQuery.trim().length >= 2 && (companyCandidates.length > 0 || !isSearchingCompany) && (
                             <div className="absolute z-20 left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg max-h-72 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800">
+                                {/* Direct Search Top Action */}
+                                <button
+                                    onClick={() => handleDirectSearch()}
+                                    className="w-full text-left p-3 bg-indigo-50/70 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition flex items-center justify-between gap-3 text-indigo-700 dark:text-indigo-300 font-semibold text-xs"
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <Search className="w-3.5 h-3.5 shrink-0" />
+                                        <span>
+                                            Cari langsung karyawan untuk <strong>"{companyQuery}"</strong> di database Lusha
+                                        </span>
+                                    </span>
+                                    <span className="text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded font-bold shrink-0">
+                                        Enter ↵
+                                    </span>
+                                </button>
+
                                 {companyCandidates.map((cand, idx) => (
                                     <button
                                         key={idx}
@@ -548,9 +652,15 @@ export default function ProspectingPage() {
                                                 </div>
                                                 <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate flex items-center gap-2 mt-0.5">
                                                     {cand.domain && (
-                                                        <span className="font-mono text-[11px] text-zinc-400">
+                                                        <span className="font-mono text-[11px] text-zinc-500">
                                                             {cand.domain}
                                                         </span>
+                                                    )}
+                                                    {(cand.city || cand.country) && (
+                                                        <>
+                                                            <span>•</span>
+                                                            <span>{[cand.city, cand.country].filter(Boolean).join(", ")}</span>
+                                                        </>
                                                     )}
                                                     {cand.industry && (
                                                         <>
@@ -563,10 +673,10 @@ export default function ProspectingPage() {
                                         </div>
 
                                         <div className="shrink-0">
-                                            {cand.is_saved_in_directory ? (
+                                            {cand.is_saved_in_directory || cand.in_database ? (
                                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
                                                     <CheckCircle2 className="w-3 h-3" />
-                                                    Tersimpan di MOIP ({cand.contacts_count || 0})
+                                                    Tersimpan di MOIP ({cand.contacts_count ?? cand.stakeholder_count ?? 0})
                                                 </span>
                                             ) : (
                                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
@@ -581,59 +691,124 @@ export default function ProspectingPage() {
                     </div>
                 ) : (
                     /* Active Selected Company Card */
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-700/80">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
-                                {selectedCompany.name.charAt(0).toUpperCase()}
+                    <div className="space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-700/80">
+                            <div className="flex items-center gap-3">
+                                <div className="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
+                                    {selectedCompany.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                                            {selectedCompany.name}
+                                        </h3>
+                                        {(selectedCompany.is_saved_in_directory || selectedCompany.in_database) && (
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                                                MOIP Directory
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                                        {selectedCompany.domain ? (
+                                            <span className="font-mono text-zinc-700 dark:text-zinc-300 flex items-center gap-1 bg-zinc-200/60 dark:bg-zinc-700/60 px-1.5 py-0.5 rounded text-[11px]">
+                                                <Globe className="w-3 h-3 text-zinc-500" />
+                                                {selectedCompany.domain}
+                                            </span>
+                                        ) : (
+                                            <span className="text-[11px] text-amber-600 dark:text-amber-400 italic">
+                                                Domain belum diatur
+                                            </span>
+                                        )}
+                                        {(selectedCompany.city || selectedCompany.country) && (
+                                            <>
+                                                <span>•</span>
+                                                <span>{[selectedCompany.city, selectedCompany.country].filter(Boolean).join(", ")}</span>
+                                            </>
+                                        )}
+                                        {selectedCompany.industry && (
+                                            <>
+                                                <span>•</span>
+                                                <span>{selectedCompany.industry}</span>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-                                        {selectedCompany.name}
-                                    </h3>
-                                    {selectedCompany.is_saved_in_directory && (
-                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
-                                            MOIP Directory
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                                    {selectedCompany.domain && (
-                                        <span className="font-mono text-zinc-600 dark:text-zinc-300">
-                                            {selectedCompany.domain}
-                                        </span>
-                                    )}
-                                    {selectedCompany.industry && (
-                                        <>
-                                            <span>•</span>
-                                            <span>{selectedCompany.industry}</span>
-                                        </>
-                                    )}
-                                </div>
+
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setIsEditingDomain(!isEditingDomain)}
+                                    className="text-xs gap-1.5 h-8"
+                                >
+                                    <Globe className="w-3.5 h-3.5" />
+                                    <span>{selectedCompany.domain ? "Ubah Domain" : "Set Domain"}</span>
+                                </Button>
+                                {selectedCompany.id && (
+                                    <Link
+                                        href={`/companies/${selectedCompany.id}?tab=stakeholders`}
+                                        className="text-xs text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 flex items-center gap-1.5 transition h-8"
+                                    >
+                                        <span>Direktori MOIP</span>
+                                        <ArrowUpRight className="w-3.5 h-3.5" />
+                                    </Link>
+                                )}
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => handleSelectCompany(selectedCompany, selectedCompany.domain || undefined)}
+                                    disabled={isLoadingEmployees}
+                                    className="text-xs gap-1.5 h-8"
+                                >
+                                    <RefreshCw className={`w-3.5 h-3.5 ${isLoadingEmployees ? "animate-spin" : ""}`} />
+                                    <span>Segarkan Data Lusha</span>
+                                </Button>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            {selectedCompany.id && (
-                                <Link
-                                    href={`/companies/${selectedCompany.id}?tab=stakeholders`}
-                                    className="text-xs text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 flex items-center gap-1.5 transition"
-                                >
-                                    <span>Lihat Direktori Perusahaan</span>
-                                    <ArrowUpRight className="w-3.5 h-3.5" />
-                                </Link>
-                            )}
-                            <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={() => handleSelectCompany(selectedCompany)}
-                                disabled={isLoadingEmployees}
-                                className="text-xs gap-1.5 h-8"
-                            >
-                                <RefreshCw className={`w-3.5 h-3.5 ${isLoadingEmployees ? "animate-spin" : ""}`} />
-                                <span>Segarkan Data Lusha</span>
-                            </Button>
-                        </div>
+                        {/* Inline Domain Configuration Bar */}
+                        {isEditingDomain && (
+                            <div className="p-3 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/80 dark:border-indigo-800/80 rounded-xl flex flex-col sm:flex-row items-center gap-2">
+                                <div className="flex items-center gap-2 flex-1 w-full">
+                                    <Globe className="w-4 h-4 text-indigo-600 shrink-0" />
+                                    <Input
+                                        value={domainInputValue}
+                                        onChange={(e) => setDomainInputValue(e.target.value)}
+                                        placeholder="Contoh: ganeshaoperation.com atau bankmega.com"
+                                        className="h-9 text-xs bg-white dark:bg-zinc-900 font-mono"
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                                e.preventDefault();
+                                                handleSelectCompany(selectedCompany, domainInputValue);
+                                            }
+                                        }}
+                                    />
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+                                    <Button
+                                        size="sm"
+                                        onClick={() => handleSelectCompany(selectedCompany, domainInputValue)}
+                                        disabled={isLoadingEmployees}
+                                        className="h-9 text-xs px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+                                    >
+                                        {isLoadingEmployees ? (
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                        ) : (
+                                            "Terapkan & Cari Ulang"
+                                        )}
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setIsEditingDomain(false)}
+                                        className="h-9 text-xs px-2 text-zinc-500"
+                                    >
+                                        Batal
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </Card>
@@ -648,7 +823,7 @@ export default function ProspectingPage() {
                     <Button
                         variant="secondary"
                         size="sm"
-                        onClick={() => selectedCompany && handleSelectCompany(selectedCompany)}
+                        onClick={() => selectedCompany && handleSelectCompany(selectedCompany, selectedCompany.domain || undefined)}
                         className="h-7 text-xs"
                     >
                         Coba Lagi
@@ -656,87 +831,63 @@ export default function ProspectingPage() {
                 </div>
             )}
 
-            {/* Step 2: Employee Discovery Table & Pure Dynamic Job Title Filtering */}
+            {/* Main Prospecting Workspace */}
             {selectedCompany && (
                 <div className="space-y-4">
-                    {/* Controls & Filter Toolbar */}
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800">
-                        {/* Dynamic Job Title Filter & Search */}
-                        <div className="flex flex-wrap items-center gap-2 flex-1">
-                            <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400 shrink-0 mr-1">
-                                <Filter className="w-3.5 h-3.5" />
-                                <span>Filter Job Title:</span>
+                    {/* Discovery Toolbar */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-xs">
+                        {/* Dynamic Job Title Filter & Instant Text Search */}
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1">
+                            {/* Dynamic Job Title Dropdown */}
+                            <div className="relative min-w-[240px]">
+                                <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                                <select
+                                    value={selectedJobTitle}
+                                    onChange={(e) => setSelectedJobTitle(e.target.value)}
+                                    className="w-full pl-9 pr-8 h-9 text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-zinc-100 font-medium focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20"
+                                >
+                                    <option value="all">
+                                        Semua Jabatan ({employees.length} kontak)
+                                    </option>
+                                    {jobTitleOptions.map((opt, idx) => (
+                                        <option key={idx} value={opt.title}>
+                                            {opt.title} ({opt.count})
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
 
-                            {/* Dynamic Job Title Select */}
-                            <select
-                                value={selectedJobTitle}
-                                onChange={(e) => setSelectedJobTitle(e.target.value)}
-                                className="h-9 px-3 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium focus:ring-2 focus:ring-indigo-500 max-w-[280px] truncate"
-                            >
-                                <option value="all">
-                                    Semua Jabatan ({employees.length})
-                                </option>
-                                {jobTitleOptions.map((opt, i) => (
-                                    <option key={i} value={opt.title}>
-                                        {opt.title} ({opt.count})
-                                    </option>
-                                ))}
-                            </select>
-
-                            {/* Job Title / Name Keyword Search */}
-                            <div className="relative min-w-[200px] flex-1 max-w-xs">
-                                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                            {/* Instant Search Bar */}
+                            <div className="relative flex-1">
+                                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
                                 <Input
                                     value={jobTitleSearchQuery}
                                     onChange={(e) => setJobTitleSearchQuery(e.target.value)}
-                                    placeholder="Cari kata kunci jabatan / nama..."
-                                    className="pl-8 pr-7 h-9 text-xs bg-zinc-50 dark:bg-zinc-800"
+                                    placeholder="Filter nama atau kata kunci jabatan..."
+                                    className="pl-8 h-9 text-xs bg-zinc-50 dark:bg-zinc-800"
                                 />
                                 {jobTitleSearchQuery && (
                                     <button
                                         onClick={() => setJobTitleSearchQuery("")}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
                                     >
                                         <X className="w-3 h-3" />
                                     </button>
                                 )}
                             </div>
-
-                            {/* Clear Filter Button */}
-                            {(selectedJobTitle !== "all" || jobTitleSearchQuery) && (
-                                <button
-                                    onClick={() => {
-                                        setSelectedJobTitle("all");
-                                        setJobTitleSearchQuery("");
-                                    }}
-                                    className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 underline px-1"
-                                >
-                                    Reset Filter
-                                </button>
-                            )}
                         </div>
 
-                        {/* Action Buttons Toolbar */}
-                        <div className="flex flex-wrap items-center gap-2 shrink-0">
-                            {/* Counter */}
-                            <span className="text-xs text-zinc-500 dark:text-zinc-400 mr-2">
-                                Menampilkan <strong className="text-zinc-900 dark:text-zinc-100">{filteredEmployees.length}</strong> karyawan
-                                {selectedIds.size > 0 && (
-                                    <span className="ml-1 text-indigo-600 dark:text-indigo-400 font-semibold">
-                                        ({selectedIds.size} dipilih)
-                                    </span>
-                                )}
-                            </span>
-
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2 flex-wrap justify-end">
                             {/* Reveal Button */}
                             <Button
                                 onClick={handleOpenBulkReveal}
                                 disabled={selectedIds.size === 0 || isRevealingCredits}
-                                className="h-9 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5 shadow-xs"
+                                className="h-9 text-xs font-semibold gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs"
+                                title="Buka email & telepon kontak terpilih menggunakan kuota Lusha"
                             >
                                 <Unlock className="w-3.5 h-3.5" />
-                                <span>Buka Kontak {selectedIds.size > 0 ? `(${selectedIds.size})` : ""}</span>
+                                <span>Buka Kontak ({selectedIds.size})</span>
                             </Button>
 
                             {/* Save to Directory */}
@@ -788,74 +939,119 @@ export default function ProspectingPage() {
                                 </div>
                             </div>
                         ) : filteredEmployees.length === 0 ? (
-                            <div className="py-16 flex flex-col items-center justify-center text-center px-4">
+                            <div className="py-16 flex flex-col items-center justify-center text-center px-4 max-w-lg mx-auto">
                                 <Users className="w-10 h-10 text-zinc-300 dark:text-zinc-600 mb-2" />
                                 <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                                    Tidak Ada Karyawan yang Cocok
-                                </h4>
-                                <p className="text-xs text-zinc-500 max-w-md mt-1 mb-4">
                                     {employees.length === 0
-                                        ? "Database Lusha belum mengembalikan kontak publik untuk perusahaan ini."
-                                        : "Tidak ada karyawan dengan filter jabatan tersebut. Coba ganti pilihan filter jabatan Anda."}
+                                        ? "Tidak Ada Kontak Karyawan Ditemukan"
+                                        : "Tidak Ada Karyawan yang Cocok"}
+                                </h4>
+                                <p className="text-xs text-zinc-500 mt-1 mb-4 leading-relaxed">
+                                    {employees.length === 0
+                                        ? `Database Lusha belum mengembalikan kontak publik untuk "${selectedCompany.name}". Coba masukkan domain website resmi perusahaan agar Lusha dapat memetakan organisasi dengan akurat:`
+                                        : "Tidak ada karyawan dengan filter jabatan atau kata kunci tersebut. Coba reset filter jabatan Anda."}
                                 </p>
-                                {(selectedJobTitle !== "all" || jobTitleSearchQuery) && (
-                                    <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        onClick={() => {
-                                            setSelectedJobTitle("all");
-                                            setJobTitleSearchQuery("");
-                                        }}
-                                        className="text-xs"
-                                    >
-                                        Tampilkan Semua Karyawan ({employees.length})
-                                    </Button>
+
+                                {employees.length === 0 ? (
+                                    <div className="w-full space-y-3">
+                                        <div className="flex gap-2">
+                                            <Input
+                                                value={domainInputValue}
+                                                onChange={(e) => setDomainInputValue(e.target.value)}
+                                                placeholder="Contoh: ganeshaoperation.com atau bankmega.com"
+                                                className="h-9 text-xs bg-zinc-50 dark:bg-zinc-800 font-mono"
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        e.preventDefault();
+                                                        handleSelectCompany(selectedCompany, domainInputValue);
+                                                    }
+                                                }}
+                                            />
+                                            <Button
+                                                size="sm"
+                                                onClick={() => handleSelectCompany(selectedCompany, domainInputValue)}
+                                                disabled={isLoadingEmployees || !domainInputValue.trim()}
+                                                className="h-9 text-xs px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium shrink-0"
+                                            >
+                                                Cari Ulang
+                                            </Button>
+                                        </div>
+                                        <p className="text-[11px] text-zinc-400">
+                                            Tips: Perusahaan multinasional atau lokal seringkali terdaftar di Lusha dengan domain website resminya.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    (selectedJobTitle !== "all" || jobTitleSearchQuery) && (
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() => {
+                                                setSelectedJobTitle("all");
+                                                setJobTitleSearchQuery("");
+                                            }}
+                                            className="text-xs"
+                                        >
+                                            Reset Filter Jabatan
+                                        </Button>
+                                    )
                                 )}
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
-                                <table className="w-full text-left border-collapse text-xs">
+                                <table className="w-full text-left text-xs border-collapse">
                                     <thead>
-                                        <tr className="bg-zinc-50 dark:bg-zinc-800/60 border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider text-[11px]">
+                                        <tr className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-800/40 text-zinc-500 font-medium">
                                             <th className="py-3 px-4 w-10 text-center">
                                                 <button
                                                     onClick={handleToggleSelectAll}
-                                                    className="text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+                                                    className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 flex items-center justify-center mx-auto"
                                                     title={
                                                         selectedIds.size === filteredEmployees.length
-                                                            ? "Batal Pilih Semua"
-                                                            : "Pilih Semua"
+                                                            ? "Batalkan pilihan semua"
+                                                            : "Pilih semua"
                                                     }
                                                 >
-                                                    {selectedIds.size === filteredEmployees.length &&
-                                                    filteredEmployees.length > 0 ? (
+                                                    {selectedIds.size > 0 &&
+                                                    selectedIds.size === filteredEmployees.length ? (
                                                         <CheckSquare className="w-4 h-4 text-indigo-600" />
                                                     ) : (
                                                         <Square className="w-4 h-4" />
                                                     )}
                                                 </button>
                                             </th>
-                                            <th className="py-3 px-4">Nama Lengkap</th>
-                                            <th className="py-3 px-4">Job Title / Jabatan</th>
-                                            <th className="py-3 px-4">Work Email</th>
-                                            <th className="py-3 px-4">No. WhatsApp / HP</th>
-                                            <th className="py-3 px-4 text-center">LinkedIn</th>
-                                            <th className="py-3 px-4 text-center">Status Direktori</th>
-                                            <th className="py-3 px-4 text-right">Aksi</th>
+                                            <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300">
+                                                Karyawan & Jabatan
+                                            </th>
+                                            <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300">
+                                                Email
+                                            </th>
+                                            <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300">
+                                                Nomor Telepon
+                                            </th>
+                                            <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300 text-center w-24">
+                                                LinkedIn
+                                            </th>
+                                            <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300 text-center w-28">
+                                                Direktori MOIP
+                                            </th>
+                                            <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300 text-right w-28">
+                                                Aksi
+                                            </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                                    <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
                                         {filteredEmployees.map((emp) => {
                                             const isSelected = selectedIds.has(emp.id);
                                             const isRevealedEmail = Boolean(emp.email);
                                             const isRevealedPhone = Boolean(emp.phone);
+                                            const empName = emp.full_name || emp.name || "Stakeholder";
 
                                             return (
                                                 <tr
                                                     key={emp.id}
-                                                    className={`hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition ${
+                                                    className={`hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40 transition ${
                                                         isSelected
-                                                            ? "bg-indigo-50/40 dark:bg-indigo-950/20"
+                                                            ? "bg-indigo-50/30 dark:bg-indigo-950/20"
                                                             : ""
                                                     }`}
                                                 >
@@ -865,34 +1061,30 @@ export default function ProspectingPage() {
                                                             type="checkbox"
                                                             checked={isSelected}
                                                             onChange={() => handleToggleSelectOne(emp.id)}
-                                                            className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer w-4 h-4"
+                                                            className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                                                         />
                                                     </td>
 
-                                                    {/* Full Name */}
+                                                    {/* Name & Job Title */}
                                                     <td className="py-3 px-4">
-                                                        <div className="flex items-center gap-2.5">
-                                                            <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center justify-center shrink-0">
-                                                                {emp.name.charAt(0).toUpperCase()}
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center font-bold text-xs text-zinc-600 dark:text-zinc-300 shrink-0">
+                                                                {empName.charAt(0).toUpperCase()}
                                                             </div>
                                                             <div>
-                                                                <div className="font-semibold text-zinc-900 dark:text-zinc-100">
-                                                                    {emp.name}
+                                                                <div className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm flex items-center gap-2">
+                                                                    <span>{empName}</span>
+                                                                    {emp.department && (
+                                                                        <span className="text-[10px] text-zinc-400 font-normal bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
+                                                                            {emp.department}
+                                                                        </span>
+                                                                    )}
                                                                 </div>
-                                                                {emp.department && (
-                                                                    <div className="text-[11px] text-zinc-400">
-                                                                        {emp.department}
-                                                                    </div>
-                                                                )}
+                                                                <div className="text-zinc-600 dark:text-zinc-300 font-medium text-xs mt-0.5">
+                                                                    {emp.job_title}
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </td>
-
-                                                    {/* Exact Job Title */}
-                                                    <td className="py-3 px-4">
-                                                        <span className="font-medium text-zinc-900 dark:text-zinc-100 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">
-                                                            {emp.job_title}
-                                                        </span>
                                                     </td>
 
                                                     {/* Email */}
@@ -902,7 +1094,7 @@ export default function ProspectingPage() {
                                                                 <Mail className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                                                                 <a
                                                                     href={`mailto:${emp.email}`}
-                                                                    className="hover:underline truncate max-w-[180px]"
+                                                                    className="hover:underline truncate max-w-[200px]"
                                                                     title={emp.email!}
                                                                 >
                                                                     {emp.email}
@@ -911,7 +1103,7 @@ export default function ProspectingPage() {
                                                         ) : emp.has_email ? (
                                                             <button
                                                                 onClick={() => handleOpenSingleReveal(emp)}
-                                                                className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 px-2 py-0.5 rounded transition"
+                                                                className="inline-flex items-center gap-1 text-[11px] font-medium text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 px-2 py-0.5 rounded transition"
                                                                 title="Klik untuk membuka email via kuota Lusha"
                                                             >
                                                                 <Lock className="w-3 h-3" />
@@ -1022,7 +1214,7 @@ export default function ProspectingPage() {
                 onClose={() => setIsRevealModalOpen(false)}
                 contacts={candidatesToReveal.map((c) => ({
                     id: c.id,
-                    name: c.name,
+                    name: c.full_name || c.name || "Stakeholder",
                     job_title: c.job_title,
                     has_email: c.has_email,
                     has_phone: c.has_phone,
