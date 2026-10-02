@@ -11,6 +11,24 @@ from app.models.opportunity import Opportunity, TimelineEvent
 from app.models.user import User
 
 
+@pytest.fixture(autouse=True)
+def enable_prospecting_in_tests(monkeypatch):
+    from app.core.config import get_settings
+    settings = get_settings()
+    monkeypatch.setattr(settings, "ENABLE_PROSPECTING", True)
+
+
+class TestProspectingDisabledGlobally:
+    def test_prospecting_disabled_for_all(self, client, auth_headers, monkeypatch):
+        from app.core.config import get_settings
+        settings = get_settings()
+        monkeypatch.setattr(settings, "ENABLE_PROSPECTING", False)
+
+        resp = client.get("/api/prospecting/lusha/usage", headers=auth_headers)
+        assert resp.status_code == 403
+        assert "Fitur Prospecting dinonaktifkan" in resp.json()["detail"]
+
+
 class TestProspectingLushaUsage:
     """Test Lusha Usage Endpoint."""
 

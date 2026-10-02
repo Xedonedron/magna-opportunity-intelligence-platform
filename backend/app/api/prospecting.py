@@ -87,7 +87,13 @@ async def get_current_user_flexible(
 
 
 def check_prospecting_permission(user: User) -> User:
-    """Enforce that user has role LGO, Manager, Superadmin, or capability 'prospecting'."""
+    """Enforce that prospecting feature is enabled and user has permissions."""
+    settings = get_settings()
+    if not settings.ENABLE_PROSPECTING:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Fitur Prospecting dinonaktifkan untuk seluruh akun.",
+        )
     allowed_roles = {"lgo", "manager", "superadmin", "admin", "lead_gen", "managerial"}
     user_role = (user.role or "").lower()
     caps = [c.strip() for c in (user.capabilities or "").split(",")]

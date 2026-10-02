@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
     LayoutDashboard,
-    Target,
     FolderOpen,
     Calendar,
     Settings,
@@ -26,7 +25,7 @@ interface UserProfile {
 }
 
 interface NavItemDef {
-    key: "dashboard" | "prospecting" | "opportunities" | "meetings" | "settings";
+    key: "dashboard" | "opportunities" | "meetings" | "settings";
     href: string;
     icon: React.ComponentType<{ className?: string }>;
     badge?: number;
@@ -36,13 +35,6 @@ interface NavItemDef {
 
 const navItemDefs: NavItemDef[] = [
     { key: "dashboard", href: "/dashboard", icon: LayoutDashboard },
-    {
-        key: "prospecting",
-        href: "/prospecting",
-        icon: Target,
-        allowedRoles: ["lgo", "manager", "superadmin", "admin", "lead_gen", "managerial"],
-        requiredCapability: "prospecting",
-    },
     { key: "opportunities", href: "/opportunities", icon: FolderOpen },
     { key: "meetings", href: "/meetings", icon: Calendar },
     { key: "settings", href: "/settings", icon: Settings },

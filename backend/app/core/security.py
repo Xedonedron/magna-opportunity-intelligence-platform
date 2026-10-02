@@ -110,6 +110,13 @@ def require_superadmin(current_user: User = Depends(get_current_user)):
 
 def require_prospecting_access(current_user: User = Depends(get_current_user)):
     """Dependency helper to require prospecting capability or allowed roles (LGO, Manager, Superadmin)."""
+    from app.core.config import get_settings
+    settings = get_settings()
+    if not settings.ENABLE_PROSPECTING:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Fitur Prospecting dinonaktifkan untuk seluruh akun.",
+        )
     allowed_roles = {"lgo", "manager", "superadmin", "admin", "lead_gen", "managerial"}
     caps = [c.strip() for c in (current_user.capabilities or "").split(",")]
     user_role = (current_user.role or "").lower()
