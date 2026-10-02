@@ -122,7 +122,7 @@ export default function ProspectingPage() {
                 quota: number;
                 used: number;
                 limit: number;
-            }>("/prospecting/lusha/usage");
+            }>("/api/prospecting/lusha/usage");
 
             if (res.data && res.data.quota !== undefined) {
                 setQuota({
@@ -153,7 +153,7 @@ export default function ProspectingPage() {
             setIsSearchingCompany(true);
             try {
                 const res = await api.get<{ results?: CompanyCandidate[]; companies?: CompanyCandidate[] }>(
-                    `/prospecting/companies/search?q=${encodeURIComponent(companyQuery.trim())}`
+                    `/api/prospecting/companies/search?q=${encodeURIComponent(companyQuery.trim())}`
                 );
                 const list = res.data?.results || res.data?.companies || [];
                 setCompanyCandidates(list);
@@ -192,7 +192,7 @@ export default function ProspectingPage() {
                 contacts: ProspectCandidate[];
                 total: number;
                 message?: string;
-            }>("/prospecting/lusha/search", {
+            }>("/api/prospecting/lusha/search", {
                 company_name: activeCompany.name,
                 company_domain: resolvedDomain.trim() || undefined,
                 limit: 50,
@@ -331,7 +331,7 @@ export default function ProspectingPage() {
                 const firstName = cand.first_name || parts[0] || "Stakeholder";
                 const lastName = cand.last_name || (parts.length > 1 ? parts.slice(1).join(" ") : "Contact");
 
-                const res = await api.post<any>("/prospecting/lusha/enrich", {
+                const res = await api.post<any>("/api/prospecting/lusha/enrich", {
                     contact_id: cand.id,
                     first_name: firstName,
                     last_name: lastName,
@@ -406,7 +406,7 @@ export default function ProspectingPage() {
                 success: boolean;
                 company_id: string;
                 contacts_saved: number;
-            }>("/prospecting/save-to-stakeholders", payload);
+            }>("/api/prospecting/save-to-stakeholders", payload);
 
             if (res.data?.success) {
                 // Update local status
@@ -447,7 +447,7 @@ export default function ProspectingPage() {
                 : filteredEmployees;
 
             const res = await api.post(
-                "/prospecting/lusha/export-excel",
+                "/api/prospecting/export-excel",
                 {
                     company_name: selectedCompany.name,
                     contacts: targetContacts.map((c) => ({
