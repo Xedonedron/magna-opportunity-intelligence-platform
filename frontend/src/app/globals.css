@@ -174,3 +174,14 @@
 .recharts-wrapper g:focus {
     outline: none !important;
 }
+
+/* Google Sign-in iframe responsiveness */
+#google-signin-btn,
+#google-signin-btn-container {
+    width: 100% !important;
+}
+
+#google-signin-btn iframe {
+    max-width: 100% !important;
+    margin: 0 auto !important;
+}

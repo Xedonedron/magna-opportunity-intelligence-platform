@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, User, Building } from "lucide-react";
+import { Plus, User, Building, Download, FileSpreadsheet, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 import {
     useCompanyContacts,
     useDeleteCompanyContact,
@@ -31,8 +33,33 @@ export function StakeholdersTab({
     const [editingContact, setEditingContact] = useState<CompanyContact | null>(
         null
     );
+    const [isExporting, setIsExporting] = useState(false);
 
     const contacts = data?.items || [];
+
+    const handleExportExcel = async () => {
+        if (!companyId) return;
+        setIsExporting(true);
+        try {
+            const res = await api.get(`/companies/${companyId}/contacts/export-excel`, {
+                responseType: "blob",
+            });
+            const blobUrl = window.URL.createObjectURL(new Blob([res.data]));
+            const link = document.createElement("a");
+            link.href = blobUrl;
+            const safeName = (companyName || "Stakeholder").replace(/[^a-zA-Z0-9_-]/g, "_");
+            link.setAttribute("download", `Stakeholders_${safeName}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode?.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
+            toast.success("File Excel stakeholders berhasil diunduh!");
+        } catch (err: any) {
+            toast.error(err?.response?.data?.detail || "Gagal mengunduh file Excel stakeholders.");
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     const handleOpenCreate = () => {
         setEditingContact(null);
@@ -93,16 +120,35 @@ export function StakeholdersTab({
                         Daftar kontak kunci, pembuat keputusan, dan preferensi komunikasi lintas workspace.
                     </p>
                 </div>
-                {canEdit && (
-                    <Button
-                        onClick={handleOpenCreate}
-                        size="sm"
-                        className="flex items-center gap-1.5 self-start sm:self-auto"
-                    >
-                        <Plus className="w-4 h-4" />
-                        <span>Tambah Stakeholder</span>
-                    </Button>
-                )}
+                <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                    {contacts.length > 0 && (
+                        <Button
+                            onClick={handleExportExcel}
+                            disabled={isExporting}
+                            variant="secondary"
+                            size="sm"
+                            className="flex items-center gap-1.5 border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                            title="Unduh seluruh kontak stakeholder perusahaan ini ke format Excel (.xlsx)"
+                        >
+                            {isExporting ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                                <FileSpreadsheet className="w-3.5 h-3.5" />
+                            )}
+                            <span>Unduh Excel</span>
+                        </Button>
+                    )}
+                    {canEdit && (
+                        <Button
+                            onClick={handleOpenCreate}
+                            size="sm"
+                            className="flex items-center gap-1.5"
+                        >
+                            <Plus className="w-4 h-4" />
+                            <span>Tambah Stakeholder</span>
+                        </Button>
+                    )}
+                </div>
             </div>
             {isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

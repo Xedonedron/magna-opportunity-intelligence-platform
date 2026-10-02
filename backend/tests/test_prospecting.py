@@ -79,6 +79,64 @@ class TestProspectingLushaSearch:
         assert len(data["contacts"]) == 1
         assert data["contacts"][0]["full_name"] == "Agus Pratama"
 
+    @patch("app.api.prospecting.lusha_service.search_contacts", new_callable=AsyncMock)
+    def test_search_contacts_with_domain_and_titles(self, mock_search, client: TestClient):
+        mock_search.return_value = {
+            "success": True,
+            "total": 2,
+            "page": 0,
+            "contacts": [
+                {
+                    "id": "c1",
+                    "full_name": "Budi Santoso",
+                    "first_name": "Budi",
+                    "last_name": "Santoso",
+                    "job_title": "Chief Information Officer",
+                    "company_name": "PT Bank Mega Tbk",
+                    "company_domain": "bankmega.com",
+                    "has_email": True,
+                    "has_phone": True,
+                },
+                {
+                    "id": "c2",
+                    "full_name": "Siti Rahma",
+                    "first_name": "Siti",
+                    "last_name": "Rahma",
+                    "job_title": "Head of IT Security",
+                    "company_name": "PT Bank Mega Tbk",
+                    "company_domain": "bankmega.com",
+                    "has_email": True,
+                    "has_phone": False,
+                },
+            ],
+            "message": "Ditemukan 2 kontak terverifikasi di Lusha.",
+        }
+
+        response = client.post(
+            "/api/prospecting/lusha/search",
+            json={
+                "company_name": "PT Bank Mega Tbk",
+                "company_domain": "bankmega.com",
+                "job_titles": ["Chief Information Officer", "Head of IT Security"],
+                "limit": 25,
+            },
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert len(data["contacts"]) == 2
+        assert data["contacts"][0]["job_title"] == "Chief Information Officer"
+        mock_search.assert_called_once_with(
+            company_name="PT Bank Mega Tbk",
+            company_domain="bankmega.com",
+            country="Indonesia",
+            seniority=None,
+            job_function=None,
+            job_titles=["Chief Information Officer", "Head of IT Security"],
+            page=0,
+            limit=25,
+        )
+
 
 class TestProspectingLushaEnrich:
     """Test Lusha Contact Enrichment Endpoint."""
@@ -286,3 +344,193 @@ class TestProspectingConvert:
         assert response.status_code == 200
         data = response.json()
         assert data["company_name"] == "PT Fintek Nusantara"
+
+
+class TestProspectingInteractiveFlow:
+    """Test Company Disambiguation, Selective Enrich, Stakeholder Sync & Excel Export."""
+
+    @patch("app.api.prospecting.lusha_service.search_companies", new_callable=AsyncMock)
+    def test_search_companies_disambiguation(self, mock_search_comp, client: TestClient, db: Session):
+        import uuid as _uuid
+        # Prepopulate a local company
+        comp = Company(
+            id=_uuid.uuid4(),
+            name="Bank OCBC NISP",
+            normalized_name="bank ocbc nisp",
+            root_domain="ocbcnisp.com",
+            industry="Banking",
+        )
+        db.add(comp)
+        db.commit()
+
+        # Mock Lusha response
+        mock_search_comp.return_value = [
+            {
+                "name": "OCBC Bank Singapore",
+                "domain": "ocbc.com",
+                "industry": "Financial Services",
+                "country": "Singapore",
+                "city": "Singapore",
+                "employee_count": "10000+",
+            }
+        ]
+
+        response = client.get("/api/prospecting/companies/search?q=OCBC")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert len(data["results"]) >= 2
+        # Check that local company has in_database = True
+        local_item = next(r for r in data["results"] if r["name"] == "Bank OCBC NISP")
+        assert local_item["in_database"] is True
+        # Check that Lusha candidate has in_database = False
+        lusha_item = next(r for r in data["results"] if r["name"] == "OCBC Bank Singapore")
+        assert lusha_item["in_database"] is False
+
+    @patch("app.api.prospecting.lusha_service.enrich_contacts", new_callable=AsyncMock)
+    def test_enrich_contacts_selective(self, mock_enrich, client: TestClient):
+        mock_enrich.return_value = [
+            {
+                "id": "c1",
+                "fullName": "Jane Doe",
+                "jobTitle": "Chief Digital Officer",
+                "emails": [{"email": "jane@ocbc.com"}],
+                "phones": [{"number": "+628123456789"}],
+                "linkedinUrl": "https://linkedin.com/in/janedoe",
+            }
+        ]
+
+        response = client.post(
+            "/api/prospecting/lusha/enrich",
+            json={
+                "contact_ids": ["c1"],
+                "reveal": ["emails"],
+            },
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert len(data["contacts"]) == 1
+        assert data["contacts"][0]["emails"] == ["jane@ocbc.com"]
+        assert data["credits_charged"] == 1
+
+    def test_save_to_stakeholders_success(self, client: TestClient, db: Session):
+        payload = {
+            "company_name": "PT Astra Digital",
+            "company_domain": "astradigital.id",
+            "industry": "Technology",
+            "country": "Indonesia",
+            "contacts": [
+                {
+                    "name": "Budi Setiawan",
+                    "job_title": "VP of Engineering",
+                    "email": "budi@astradigital.id",
+                    "phone": "+628111222333",
+                }
+            ],
+        }
+        response = client.post("/api/prospecting/save-to-stakeholders", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert data["saved_count"] == 1
+
+        # Check DB
+        contact = (
+            db.query(CompanyContact)
+            .filter(CompanyContact.email == "budi@astradigital.id")
+            .first()
+        )
+        assert contact is not None
+        assert contact.name == "Budi Setiawan"
+        assert contact.job_title == "VP of Engineering"
+
+    def test_export_excel_success(self, client: TestClient):
+        import io
+        import openpyxl
+
+        payload = {
+            "company_name": "PT Telkom Indonesia",
+            "contacts": [
+                {
+                    "name": "Rudiantara",
+                    "job_title": "Commissioner",
+                    "email": "rudi@telkom.co.id",
+                    "phone": "+62812999999",
+                },
+                {
+                    "name": "Ririek Adriansyah",
+                    "job_title": "President Director",
+                    "email": "ririek@telkom.co.id",
+                    "phone": None,
+                },
+            ],
+        }
+        response = client.post("/api/prospecting/export-excel", json=payload)
+        assert response.status_code == 200
+        assert (
+            response.headers["content-type"]
+            == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        assert "attachment; filename=" in response.headers.get("content-disposition", "")
+
+        wb = openpyxl.load_workbook(io.BytesIO(response.content))
+        ws = wb.active
+        assert ws is not None
+        assert ws.title == "Stakeholders"
+        # Row 4 should be header
+        headers = [ws.cell(row=4, column=i).value for i in range(1, 6)]
+        assert headers == ["No", "Nama", "Job Title / Jabatan", "Email", "Nomor Telepon"]
+        # Row 5: first contact
+        assert ws.cell(row=5, column=2).value == "Rudiantara"
+        assert ws.cell(row=5, column=4).value == "rudi@telkom.co.id"
+        # Row 6: second contact with missing phone falling back to "-"
+        assert ws.cell(row=6, column=2).value == "Ririek Adriansyah"
+        assert ws.cell(row=6, column=5).value == "-"
+
+    def test_company_stakeholders_export_excel(
+        self,
+        client: TestClient,
+        db: Session,
+        auth_headers: dict[str, str],
+    ):
+        import io
+        import uuid as _uuid
+        import openpyxl
+
+        comp = Company(
+            id=_uuid.uuid4(),
+            name="PT Indosat Ooredoo Hutchison",
+            normalized_name="pt indosat ooredoo hutchison",
+            root_domain="ioh.co.id",
+            industry="Telecommunication",
+        )
+        db.add(comp)
+        db.commit()
+
+        c1 = CompanyContact(
+            company_id=comp.id,
+            name="Vikram Sinha",
+            job_title="President Director & CEO",
+            email="vikram@ioh.co.id",
+            phone="+628****0001",
+        )
+        db.add(c1)
+        db.commit()
+
+        response = client.get(
+            f"/api/companies/{comp.id}/contacts/export-excel",
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+        assert (
+            response.headers["content-type"]
+            == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        wb = openpyxl.load_workbook(io.BytesIO(response.content))
+        ws = wb.active
+        assert ws is not None
+        assert ws.cell(row=5, column=2).value == "Vikram Sinha"
+        assert ws.cell(row=5, column=4).value == "vikram@ioh.co.id"
+

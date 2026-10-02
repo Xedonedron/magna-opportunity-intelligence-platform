@@ -7,6 +7,7 @@ enrichment, and usage monitoring without browser automation or scraping.
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any, Dict, List, Optional
 import httpx
 
@@ -97,6 +98,7 @@ class LushaService:
     async def search_contacts(
         self,
         company_name: str,
+        company_domain: Optional[str] = None,
         country: str = "Indonesia",
         job_function: Optional[str] = None,
         seniority: Optional[str] = None,
@@ -119,6 +121,10 @@ class LushaService:
         companies_include: Dict[str, Any] = {
             "names": [company_name.strip()],
         }
+        if company_domain and company_domain.strip():
+            clean_dom = re.sub(r"^https?://(www\.)?", "", company_domain.strip()).split("/")[0].strip()
+            if clean_dom:
+                companies_include["domains"] = [clean_dom]
         if country:
             companies_include["locations"] = [{"country": country.strip()}]
 
@@ -170,12 +176,29 @@ class LushaService:
                 company_info = item.get("company", {}) or {}
                 location_info = item.get("location", {}) or {}
                 
+                job_title_raw = item.get("jobTitle")
+                if isinstance(job_title_raw, dict):
+                    job_title_str = job_title_raw.get("title") or "Stakeholder"
+                    dept_list = job_title_raw.get("departments", [])
+                    seniority_val = job_title_raw.get("seniority")
+                    department_str = dept_list[0] if dept_list else None
+                elif isinstance(job_title_raw, str):
+                    job_title_str = job_title_raw
+                    department_str = item.get("department")
+                    seniority_val = item.get("seniority")
+                else:
+                    job_title_str = "Stakeholder"
+                    department_str = None
+                    seniority_val = None
+
                 contacts_list.append({
                     "id": str(item.get("id")),
                     "first_name": item.get("firstName", ""),
                     "last_name": item.get("lastName", ""),
                     "full_name": item.get("fullName") or f"{item.get('firstName', '')} {item.get('lastName', '')}".strip(),
-                    "job_title": item.get("jobTitle", "Stakeholder"),
+                    "job_title": job_title_str,
+                    "department": department_str,
+                    "seniority": seniority_val,
                     "company_name": company_info.get("name") or company_name,
                     "company_domain": company_info.get("domain", ""),
                     "country": location_info.get("country", country),
@@ -185,9 +208,14 @@ class LushaService:
                     "has_phone": bool(item.get("hasPhone", False)),
                 })
 
+            available_job_titles = sorted(list(set(c["job_title"] for c in contacts_list if c.get("job_title"))))
+            available_departments = sorted(list(set(c["department"] for c in contacts_list if c.get("department"))))
+
             return {
                 "total": total,
                 "contacts": contacts_list,
+                "available_job_titles": available_job_titles,
+                "available_departments": available_departments,
                 "page": page,
                 "size": actual_size,
             }
@@ -272,6 +300,61 @@ class LushaService:
             "phones": [],
             "message": "Data kontak tidak ditemukan atau tidak tersedia.",
         }
+
+    async def search_companies(
+        self,
+        company_query: str,
+        country: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Search for companies via Lusha Companies Prospecting API.
+        Returns a list of matching company profiles.
+        """
+        if not self.is_configured:
+            return []
+
+        payload: Dict[str, Any] = {
+            "filters": {
+                "companies": {
+                    "include": {
+                        "names": [company_query]
+                    }
+                }
+            },
+            "pagination": {"page": 0, "size": 10},
+        }
+        if country:
+            payload["filters"]["companies"]["include"]["locations"] = [{"country": country}]
+
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.post(
+                    f"{LUSHA_BASE_URL}/companies/prospecting",
+                    headers=self.headers,
+                    json=payload,
+                )
+                if resp.status_code != 200:
+                    logger.warning(f"[LushaService] Company search returned {resp.status_code}: {resp.text}")
+                    return []
+
+                raw = resp.json()
+                results = raw.get("results", [])
+                companies_list = []
+                for item in results:
+                    loc = item.get("location", {}) or {}
+                    companies_list.append({
+                        "name": item.get("name", company_query),
+                        "domain": item.get("domain", ""),
+                        "industry": item.get("industry") or item.get("mainIndustry", ""),
+                        "country": loc.get("country", country or ""),
+                        "city": loc.get("city", ""),
+                        "employee_count": str(item.get("employeeCount", "")),
+                        "logo_url": item.get("logoUrl"),
+                    })
+                return companies_list
+        except Exception as e:
+            logger.warning(f"[LushaService] Company search failed: {e}")
+            return []
 
 
 lusha_service = LushaService()

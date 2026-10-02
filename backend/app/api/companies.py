@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import uuid
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func as sa_func, desc
 
@@ -15,6 +15,7 @@ from app.models.opportunity import Opportunity, TimelineEvent
 from app.models.meeting import Meeting
 from app.models.kyc_report import KYCReport
 from urllib.parse import urlparse
+from app.services.excel_service import generate_contacts_excel
 
 from app.schemas.company import (
     CompanyCreate,
@@ -650,3 +651,46 @@ async def create_company_opportunity(
         pass
 
     return OpportunityResponse.model_validate(opportunity)
+
+
+@router.get("/{company_id}/contacts/export-excel")
+async def export_company_stakeholders_excel(
+    company_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Export all stakeholders of a company to Excel (.xlsx) file with standard 4 columns."""
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if not company:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Perusahaan tidak ditemukan.",
+        )
+
+    contacts = db.query(CompanyContact).filter(CompanyContact.company_id == company_id).all()
+    raw_contacts = [
+        {
+            "name": c.name,
+            "job_title": c.job_title,
+            "email": c.email,
+            "phone": c.phone,
+        }
+        for c in contacts
+    ]
+
+    excel_bytes = generate_contacts_excel(
+        company_name=company.name,
+        contacts=raw_contacts,
+    )
+
+    safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', company.name).strip('_') or "Company"
+    filename = f"Stakeholders_{safe_name}.xlsx"
+
+    return Response(
+        content=excel_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Access-Control-Expose-Headers": "Content-Disposition",
+        },
+    )

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field
 
 
@@ -23,6 +23,7 @@ class LushaUsageResponse(BaseModel):
 
 class LushaSearchRequest(BaseModel):
     company_name: str = Field(..., min_length=1, description="Target company name")
+    company_domain: Optional[str] = Field(default=None, description="Target company website domain")
     country: str = Field(default="Indonesia", description="Company location country")
     job_function: Optional[str] = Field(None, description="Job function/pillar: network, security, cloud, data")
     seniority: Optional[str] = Field(None, description="Seniority level: c_level, vp_director, head_lead, manager, specialist")
@@ -49,15 +50,62 @@ class LushaCandidateContact(BaseModel):
     linkedin_url: Optional[str] = None
     has_email: bool = False
     has_phone: bool = False
+    department: Optional[str] = None
+    seniority: Optional[str] = None
+    is_unlocked: bool = False
+    unlocked_email: Optional[str] = None
+    unlocked_phone: Optional[str] = None
 
 
 class LushaSearchResponse(BaseModel):
     success: bool = True
     total: int = 0
     contacts: List[LushaCandidateContact] = []
+    available_job_titles: List[str] = []
+    available_departments: List[str] = []
     page: int = 0
     size: int = 10
     message: Optional[str] = None
+
+
+class CompanyCandidate(BaseModel):
+    company_id: Optional[str] = None
+    name: str
+    domain: Optional[str] = None
+    industry: Optional[str] = None
+    country: Optional[str] = None
+    city: Optional[str] = None
+    employee_count: Optional[str] = None
+    in_database: bool = False
+    stakeholder_count: int = 0
+    logo_url: Optional[str] = None
+
+
+class CompanySearchResponse(BaseModel):
+    success: bool = True
+    query: str
+    results: List[CompanyCandidate] = []
+    message: Optional[str] = None
+
+
+class ExportContactItem(BaseModel):
+    name: str
+    job_title: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+
+
+class ExportExcelRequest(BaseModel):
+    company_name: str
+    contacts: List[ExportContactItem]
+
+
+class SaveStakeholdersRequest(BaseModel):
+    company_name: str
+    company_domain: Optional[str] = None
+    industry: Optional[str] = None
+    country: Optional[str] = "Indonesia"
+    contacts: List[ExportContactItem]
 
 
 class LushaEnrichRequest(BaseModel):
@@ -87,8 +135,8 @@ class EnrichedContactResult(BaseModel):
     id: str
     full_name: str
     job_title: str
-    emails: List[EnrichedEmail] = []
-    phones: List[EnrichedPhone] = []
+    emails: List[Any] = []
+    phones: List[Any] = []
     primary_email: Optional[str] = None
     primary_phone: Optional[str] = None
     linkedin_url: Optional[str] = None
@@ -99,6 +147,9 @@ class LushaEnrichResponse(BaseModel):
     contact_id: Optional[str] = None
     emails: List[str] = []
     phones: List[str] = []
+    contact: Optional[Union[EnrichedContactResult, Dict[str, Any]]] = None
+    contacts: List[Union[EnrichedContactResult, Dict[str, Any]]] = []
+    credits_charged: int = 0
     results: List[EnrichedContactResult] = []
     message: Optional[str] = None
 
