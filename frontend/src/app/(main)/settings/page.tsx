@@ -529,7 +529,7 @@ export default function SettingsPage() {
         superadmin: "view,create_edit,delete,generate_kyc,user_management,prospecting",
     };
 
-    const isProspectingEnabled = process.env.NEXT_PUBLIC_ENABLE_PROSPECTING === "true";
+    const isProspectingEnabled = process.env.NEXT_PUBLIC_ENABLE_PROSPECTING !== "false";
     const ALL_CAPS = [
         "view",
         "create_edit",

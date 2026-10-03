@@ -88,7 +88,7 @@ interface LushaQuota {
 
 export default function ProspectingPage() {
     const router = useRouter();
-    const isProspectingEnabled = process.env.NEXT_PUBLIC_ENABLE_PROSPECTING === "true";
+    const isProspectingEnabled = process.env.NEXT_PUBLIC_ENABLE_PROSPECTING !== "false";
 
     useEffect(() => {
         if (!isProspectingEnabled) {

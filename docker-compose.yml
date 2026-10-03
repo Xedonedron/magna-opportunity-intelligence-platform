@@ -101,6 +101,7 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
         NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+        NEXT_PUBLIC_ENABLE_PROSPECTING: ${NEXT_PUBLIC_ENABLE_PROSPECTING:-true}
     container_name: moip_frontend
     ports:
       - "3009:3000"

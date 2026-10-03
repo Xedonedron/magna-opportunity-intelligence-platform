@@ -43,7 +43,7 @@ const navItemDefs: NavItemDef[] = [
         icon: Target,
         allowedRoles: ["lgo", "manager", "superadmin", "admin", "lead_gen", "managerial"],
         requiredCapability: "prospecting",
-        enabled: process.env.NEXT_PUBLIC_ENABLE_PROSPECTING === "true",
+        enabled: process.env.NEXT_PUBLIC_ENABLE_PROSPECTING !== "false",
     },
     { key: "opportunities", href: "/opportunities", icon: FolderOpen },
     { key: "meetings", href: "/meetings", icon: Calendar },
