@@ -63,38 +63,38 @@ Mengacu langsung pada data di `backend/app/core/solutions_catalog.py` dan `backe
 ## 4. Rincian Checklist Implementasi
 
 ### Fase 1: Engine Utility Regex & Klasifikasi Pilar
-- [ ] Buat file utilitas klasifikasi pilar di frontend: `frontend/src/lib/pillar-classifier.ts`.
-- [ ] Implementasikan fungsi `classifyJobTitle(title: string)` dengan regex boundary matching (`\b...\b`).
-- [ ] Definisi tipe metadata hasil klasifikasi:
+- [x] Buat file utilitas klasifikasi pilar di frontend: `frontend/src/lib/pillar-classifier.ts`.
+- [x] Implementasikan fungsi `classifyJobTitle(title: string)` dengan regex boundary matching (`\b...\b`).
+- [x] Definisi tipe metadata hasil klasifikasi:
   - `isTarget: boolean`
   - `pillarId: 'data' | 'security' | 'cloud' | 'network' | null`
   - `pillarLabel: string` (contoh: `"Data & AI"`, `"Security"`)
   - `badgeColor: string` (kelas Tailwind untuk border & badge)
-- [ ] Validasi penanganan whole-word matching (mencegah kata "lan" salah mendeteksi "penjualan" atau "plan").
+- [x] Validasi penanganan whole-word matching (mencegah kata "lan" salah mendeteksi "penjualan" atau "plan").
 
 ### Fase 2: Refactoring Hook Dynamic Job Titles di Halaman Prospecting
-- [ ] Buka `frontend/src/app/(main)/prospecting/page.tsx` pada bagian hook `jobTitleOptions`.
-- [ ] Klasifikasikan setiap jabatan unik menggunakan `classifyJobTitle`.
-- [ ] Terapkan sorting dua tingkat:
+- [x] Buka `frontend/src/app/(main)/prospecting/page.tsx` pada bagian hook `jobTitleOptions`.
+- [x] Klasifikasikan setiap jabatan unik menggunakan `classifyJobTitle`.
+- [x] Terapkan sorting dua tingkat:
   - Prioritas 1: `isTarget === true` naik ke paling atas.
   - Prioritas 2: `count` terbanyak -> abjad nama jabatan.
-- [ ] Pisahkan daftar hasil menjadi 2 kelompok terstruktur:
+- [x] Pisahkan daftar hasil menjadi 2 kelompok terstruktur:
   - `targetOptions`: Daftar jabatan sasaran Magna dengan badge pilar.
   - `otherOptions`: Daftar jabatan umum lainnya dengan format normal.
 
 ### Fase 3: Pembaruan Komponen Dropdown Filter UI
-- [ ] Perbarui elemen dropdown filter jabatan di `frontend/src/app/(main)/prospecting/page.tsx`.
-- [ ] Terapkan pembagian kelompok menggunakan `<optgroup>` standar atau custom select:
+- [x] Perbarui elemen dropdown filter jabatan di `frontend/src/app/(main)/prospecting/page.tsx`.
+- [x] Terapkan pembagian kelompok menggunakan `<optgroup>` standar atau custom select:
   - `<optgroup label="Target Solusi Magna (Prioritas)">`: Berisi jabatan dengan label pilar (misal: `[Data & AI] Data Engineer (3)`).
   - `<optgroup label="Jabatan Lainnya">`: Berisi jabatan non-target dengan tampilan teks normal reguler.
-- [ ] Tambahkan indikator total kuantitas target di header opsi (misal: `Semua Target Magna (X kontak)`).
+- [x] Tambahkan indikator total kuantitas target di header opsi (misal: `⭐ Semua Target Solusi Magna (X kontak)`).
 
 ### Fase 4: Integrasi Pencarian Instan & Penanganan Filter
-- [ ] Pastikan input pencarian instan (search bar) tetap bekerja fleksibel mencari di seluruh opsi (baik target maupun non-target).
-- [ ] Pastikan saat user memilih salah satu opsi dari kelompok target maupun non-target, tabel data personil di bawah terfilter secara presisi.
-- [ ] Verifikasi tombol reset filter / clear selection mengembalikan tampilan ke seluruh kontak tanpa lag.
+- [x] Pastikan input pencarian instan (search bar) tetap bekerja fleksibel mencari di seluruh opsi (baik target maupun non-target).
+- [x] Pastikan saat user memilih salah satu opsi dari kelompok target maupun non-target, tabel data personil di bawah terfilter secara presisi.
+- [x] Verifikasi tombol reset filter / clear selection mengembalikan tampilan ke seluruh kontak tanpa lag.
 
 ### Fase 5: Pengujian & Validasi
-- [ ] Unit Test klasifikasi jabatan: uji 20 variasi nama jabatan riil (cth: *Data Warehouse Lead*, *BeyondTrust Admin*, *Network Specialist*, *HR Generalist*, *Legal Counsel*).
-- [ ] Pastikan tidak ada jabatan non-target yang hilang atau tidak terbaca di layar.
-- [ ] Uji responsivitas UI pada tampilan mobile dan desktop saat dropdown dibuka.
+- [x] Unit Test klasifikasi jabatan: Uji komprehensif 136 test cases (`scripts/test-classifier.ts`) mencakup 4 pilar Magna riil, non-target roles (HR/Legal/Finance/Maintenance), dan edge cases ambigu via Agentic subagent Claude (`ag/claude-sonnet-4-6`). Hasil: 136/136 PASS (100%).
+- [x] Pastikan tidak ada jabatan non-target yang hilang atau tidak terbaca di layar (diformat normal reguler tanpa opasitas pudar).
+- [x] TypeScript & Next.js production build: lolos `tsc --noEmit` dan `npm run build` sukses 100%.

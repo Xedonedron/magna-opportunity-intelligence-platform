@@ -32,6 +32,7 @@ import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
 import { api } from "@/lib/api";
 import { CreditRevealModal } from "@/components/domains/prospecting/CreditRevealModal";
+import { classifyJobTitle } from "@/lib/pillar-classifier";
 
 interface CompanyCandidate {
     id?: string | null;
@@ -269,7 +270,7 @@ export default function ProspectingPage() {
         setSearchError(null);
     };
 
-    // Dynamic Job Titles extraction from actual Lusha response
+    // Dynamic Job Titles extraction from actual Lusha response with Magna Solution Pillar Prioritization
     const jobTitleOptions = useMemo(() => {
         const titleCounts = new Map<string, number>();
         employees.forEach((emp) => {
@@ -279,17 +280,41 @@ export default function ProspectingPage() {
             }
         });
 
-        return Array.from(titleCounts.entries())
-            .map(([title, count]) => ({ title, count }))
+        const classified = Array.from(titleCounts.entries()).map(([title, count]) => {
+            const meta = classifyJobTitle(title);
+            return {
+                ...meta,
+                count,
+            };
+        });
+
+        const targetOptions = classified
+            .filter((c) => c.isTarget)
             .sort((a, b) => b.count - a.count || a.title.localeCompare(b.title));
+
+        const otherOptions = classified
+            .filter((c) => !c.isTarget)
+            .sort((a, b) => b.count - a.count || a.title.localeCompare(b.title));
+
+        return {
+            targetOptions,
+            otherOptions,
+            allOptions: [...targetOptions, ...otherOptions],
+            totalTargetContacts: targetOptions.reduce((acc, curr) => acc + curr.count, 0),
+        };
     }, [employees]);
 
     // Filtered Employees based on exact Job Title & keyword search
     const filteredEmployees = useMemo(() => {
         return employees.filter((emp) => {
             // Match dropdown title
-            if (selectedJobTitle !== "all" && emp.job_title !== selectedJobTitle) {
-                return false;
+            if (selectedJobTitle !== "all") {
+                if (selectedJobTitle === "target:all") {
+                    const meta = classifyJobTitle(emp.job_title || "");
+                    if (!meta.isTarget) return false;
+                } else if (emp.job_title !== selectedJobTitle) {
+                    return false;
+                }
             }
             // Match text search (Title or Name)
             if (jobTitleSearchQuery.trim()) {
@@ -870,11 +895,29 @@ export default function ProspectingPage() {
                                     <option value="all">
                                         Semua Jabatan ({employees.length} kontak)
                                     </option>
-                                    {jobTitleOptions.map((opt, idx) => (
-                                        <option key={idx} value={opt.title}>
-                                            {opt.title} ({opt.count})
+                                    {jobTitleOptions.targetOptions.length > 0 && (
+                                        <option value="target:all" className="font-semibold text-indigo-600 dark:text-indigo-400">
+                                            ⭐ Semua Target Solusi Magna ({jobTitleOptions.totalTargetContacts} kontak)
                                         </option>
-                                    ))}
+                                    )}
+                                    {jobTitleOptions.targetOptions.length > 0 && (
+                                        <optgroup label="🎯 Target Solusi Magna (Prioritas)">
+                                            {jobTitleOptions.targetOptions.map((opt, idx) => (
+                                                <option key={`target-${idx}`} value={opt.title}>
+                                                    {opt.badgeLabel} {opt.title} ({opt.count})
+                                                </option>
+                                            ))}
+                                        </optgroup>
+                                    )}
+                                    {jobTitleOptions.otherOptions.length > 0 && (
+                                        <optgroup label="Jabatan Lainnya">
+                                            {jobTitleOptions.otherOptions.map((opt, idx) => (
+                                                <option key={`other-${idx}`} value={opt.title}>
+                                                    {opt.title} ({opt.count})
+                                                </option>
+                                            ))}
+                                        </optgroup>
+                                    )}
                                 </select>
                             </div>
 
@@ -1066,6 +1109,7 @@ export default function ProspectingPage() {
                                             const isRevealedEmail = Boolean(emp.email);
                                             const isRevealedPhone = Boolean(emp.phone);
                                             const empName = emp.full_name || emp.name || "Stakeholder";
+                                            const targetMeta = classifyJobTitle(emp.job_title || "");
 
                                             return (
                                                 <tr
@@ -1101,9 +1145,22 @@ export default function ProspectingPage() {
                                                                         </span>
                                                                     )}
                                                                 </div>
-                                                                <div className="text-zinc-600 dark:text-zinc-300 font-medium text-xs mt-0.5">
-                                                                    {emp.job_title}
-                                                                </div>
+                                                                {targetMeta.isTarget ? (
+                                                                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                                                        <span
+                                                                            className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border ${targetMeta.badgeClass}`}
+                                                                        >
+                                                                            {targetMeta.pillarLabel}
+                                                                        </span>
+                                                                        <span className="text-zinc-900 dark:text-zinc-100 font-medium text-xs">
+                                                                            {emp.job_title}
+                                                                        </span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="text-zinc-600 dark:text-zinc-300 font-medium text-xs mt-0.5">
+                                                                        {emp.job_title}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </td>
