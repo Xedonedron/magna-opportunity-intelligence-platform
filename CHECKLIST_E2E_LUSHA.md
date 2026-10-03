@@ -59,5 +59,8 @@ Dokumen ini memantau urutan eksekusi agentic pengujian integrasi Lusha Prospecti
 - [ ] **5.2 Filter Kategori**: Job title di ranah **"data"** (`Data Engineer`, `Data Scientist`, `Data Analyst`, `AI`, `Analytics`, `Business Intelligence`).
 - [ ] **5.3 Selective Reveal 2 Orang**: Ambil tepat 2 kandidat teratas di ranah data dan unmask detail kontak (email & phone).
 - [ ] **5.4 Save ke Stakeholders Directory**: Masukkan 2 kandidat ke tabel PostgreSQL `company_contacts` di bawah entitas Smartnet Magna Global.
-- [ ] **5.5 Ekspor ke Excel 4-Kolom**: Unduh file Excel dan verifikasi 2 baris data terisi lengkap.
-- **Status Eksekusi**: Siap dieksekusi otomatis via `backend/tests/test_e2e_live_lusha.py` segera setelah reset rate-limit harian Lusha (~14:33 WIB).
+- [ ] **5.5 Ekspor ke Excel 5-Kolom**: Unduh file Excel dan verifikasi 2 baris data terisi lengkap (No, Nama, Job Title, Email, No Telepon).
+- [ ] **5.6 Convert Stakeholders to Outbound Opportunity**: Pilih 2 stakeholder data, assign Primary PIC, mapping ke solusi resmi **Data Analytics Platform**, create deal.
+- [ ] **5.7 Database & Audit Trail Verification**: Verifikasi tabel `Opportunity` dan `TimelineEvent`, pastikan format dossier `customer_needs` bebas dari sintaks LaTeX (`\rightarrow`, `$`).
+- [ ] **5.8 Direct Candidate-to-Oppty Flow**: Uji konversi langsung kandidat Lusha menjadi deal **AI/ML Solutions** tanpa simpan manual terlebih dahulu.
+- **Status Eksekusi**: Siap dieksekusi otomatis via `backend/tests/test_e2e_live_lusha.py` segera setelah reset rate-limit harian Lusha (~14:34 WIB).

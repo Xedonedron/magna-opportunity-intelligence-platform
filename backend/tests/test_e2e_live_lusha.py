@@ -12,6 +12,7 @@ from app.services.auth import create_access_token
 from app.models.user import User
 from app.models.company_contact import CompanyContact
 from app.models.company import Company
+from app.models.opportunity import Opportunity, TimelineEvent
 from app.core.database import SessionLocal
 
 BASE_URL = "http://127.0.0.1:8000"
@@ -179,8 +180,107 @@ def main():
         row_vals = [ws.cell(row=row_idx, column=c).value for c in range(1, 6)]
         print(f" Row {row_idx}: {row_vals}")
 
+    # 6. Convert Enriched Stakeholders to Outbound Opportunity
+    print("\n[STEP 6] Mengonversi Stakeholder Menjadi Outbound Opportunity (Data Analytics Platform)...")
+    db = SessionLocal()
+    company = db.query(Company).filter(Company.name.ilike(target_company_name.strip())).first()
+    assert company is not None, f"Company {target_company_name} tidak ditemukan di database!"
+    
+    saved_contacts_db = db.query(CompanyContact).filter(CompanyContact.company_id == company.id).all()
+    assert len(saved_contacts_db) >= 2, f"Harus ada minimal 2 kontak tersimpan untuk {company.name}!"
+    db.close()
+
+    contact_ids = [str(c.id) for c in saved_contacts_db[:2]]
+    primary_contact_id = contact_ids[0]
+
+    oppty_payload = {
+        "company_id": str(company.id),
+        "contact_ids": contact_ids,
+        "primary_contact_id": primary_contact_id,
+        "solution_title": "Data Analytics Platform",
+        "pillar": "data",
+        "custom_title": f"[Data Analytics Platform] - {target_company_name} Lakehouse",
+        "pain_points": [
+            "Data silo antar divisi operasional",
+            "Pipeline ETL data lambat dan tidak scalable"
+        ],
+        "estimated_value": 350000000.0,
+        "notes": "Generated from live Lusha prospecting E2E test"
+    }
+
+    r = requests.post(f"{BASE_URL}/api/prospecting/convert-to-opportunity", headers=headers, json=oppty_payload)
+    print(f"Status: {r.status_code}")
+    print(f"Oppty Response: {r.json()}")
+    assert r.status_code == 200, f"Convert to opportunity failed: {r.text}"
+    oppty_res = r.json()
+    assert oppty_res.get("status") == "success"
+    oppty_id = oppty_res.get("opportunity_id")
+    assert oppty_id is not None, "opportunity_id tidak boleh null"
+
+    # 7. DB & Audit Verification for Created Opportunity
+    print("\n[STEP 7] Verifikasi Database & Audit Trail Opportunity...")
+    db = SessionLocal()
+    created_oppty = db.query(Opportunity).filter(Opportunity.id == oppty_id).first()
+    assert created_oppty is not None, f"Opportunity {oppty_id} tidak ditemukan di database!"
+    print(f"DB Verification: Opportunity '{created_oppty.title}' tersimpan dengan Stage: {created_oppty.stage}")
+    print(f"Nilai Estimasi: Rp {created_oppty.estimated_value:,.2f}")
+    assert created_oppty.estimated_value == 350000000.0
+    assert created_oppty.contacts is not None and len(created_oppty.contacts) == 2
+
+    # Verifikasi format dossier customer_needs
+    assert created_oppty.customer_needs is not None
+    assert "Data Analytics Platform" in created_oppty.customer_needs
+    # Strict negative check: Dilarang memakai syntax LaTeX
+    assert "\\rightarrow" not in created_oppty.customer_needs, "Dossier tidak boleh mengandung LaTeX \\rightarrow!"
+    assert "$" not in created_oppty.customer_needs, "Dossier tidak boleh mengandung karakter math LaTeX $!"
+    print("Dossier Verification: customer_needs tervalidasi bebas dari sintaks LaTeX.")
+
+    # Verifikasi timeline audit event
+    timeline_evt = db.query(TimelineEvent).filter(TimelineEvent.opportunity_id == created_oppty.id).first()
+    assert timeline_evt is not None, "TimelineEvent tidak tercatat untuk opportunity baru!"
+    assert timeline_evt.action == "outbound_opportunity_created"
+    print(f"Timeline Verification: Event '{timeline_evt.action}' tercatat oleh actor: {timeline_evt.actor_name}")
+    db.close()
+
+    # 8. Direct Outbound Opportunity from Candidate Contacts
+    print("\n[STEP 8] Menguji Direct Candidate-to-Oppty (AI/ML Solutions)...")
+    direct_payload = {
+        "company_name": target_company_name,
+        "candidate_contacts": [
+            {
+                "name": "Arif Wibowo",
+                "job_title": "Head of AI & Machine Learning",
+                "department": "Engineering",
+                "email": "arif.wibowo@magnaglobal.id",
+                "phone": "+62811223344",
+                "is_primary": True
+            }
+        ],
+        "solution_title": "AI/ML Solutions",
+        "pillar": "data",
+        "custom_title": f"[AI/ML Solutions] - {target_company_name} Enterprise AI",
+        "estimated_value": 500000000.0,
+        "notes": "Direct conversion from prospecting candidate contacts"
+    }
+    r = requests.post(f"{BASE_URL}/api/prospecting/convert-to-opportunity", headers=headers, json=direct_payload)
+    print(f"Status: {r.status_code}")
+    direct_res = r.json()
+    print(f"Direct Oppty Response: {direct_res}")
+    assert r.status_code == 200, f"Direct convert failed: {r.text}"
+    assert direct_res.get("status") == "success"
+    direct_oppty_id = direct_res.get("opportunity_id")
+
+    db = SessionLocal()
+    direct_oppty = db.query(Opportunity).filter(Opportunity.id == direct_oppty_id).first()
+    assert direct_oppty is not None
+    assert direct_oppty.solution_title == "AI/ML Solutions"
+    assert "Vertex AI" in direct_oppty.customer_needs
+    assert "\\rightarrow" not in direct_oppty.customer_needs
+    print(f"Direct Oppty DB Verification: '{direct_oppty.title}' tersimpan sukses.")
+    db.close()
+
     print("\n" + "=" * 60)
-    print("SUCCESS: SEMUA FLOW AGENTIC E2E LUSHA INTEGRATION VALID UNTUK SMARTNET MAGNA GLOBAL!")
+    print("SUCCESS: SEMUA FLOW AGENTIC E2E LUSHA + OUTBOUND OPPTY VALID!")
     print("=" * 60)
 
 if __name__ == "__main__":
