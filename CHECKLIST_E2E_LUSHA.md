@@ -54,13 +54,13 @@ Dokumen ini memantau urutan eksekusi agentic pengujian integrasi Lusha Prospecti
 
 ---
 
-### 5. Target Skenario Live Uji Berikutnya (User Directive)
-- [ ] **5.1 Target Perusahaan**: `"Smartnet Magna Global"` (domain: `magnaglobal.id`).
-- [ ] **5.2 Filter Kategori**: Job title di ranah **"data"** (`Data Engineer`, `Data Scientist`, `Data Analyst`, `AI`, `Analytics`, `Business Intelligence`).
-- [ ] **5.3 Selective Reveal 2 Orang**: Ambil tepat 2 kandidat teratas di ranah data dan unmask detail kontak (email & phone).
-- [ ] **5.4 Save ke Stakeholders Directory**: Masukkan 2 kandidat ke tabel PostgreSQL `company_contacts` di bawah entitas Smartnet Magna Global.
-- [ ] **5.5 Ekspor ke Excel 5-Kolom**: Unduh file Excel dan verifikasi 2 baris data terisi lengkap (No, Nama, Job Title, Email, No Telepon).
-- [ ] **5.6 Convert Stakeholders to Outbound Opportunity**: Pilih 2 stakeholder data, assign Primary PIC, mapping ke solusi resmi **Data Analytics Platform**, create deal.
-- [ ] **5.7 Database & Audit Trail Verification**: Verifikasi tabel `Opportunity` dan `TimelineEvent`, pastikan format dossier `customer_needs` bebas dari sintaks LaTeX (`\rightarrow`, `$`).
-- [ ] **5.8 Direct Candidate-to-Oppty Flow**: Uji konversi langsung kandidat Lusha menjadi deal **AI/ML Solutions** tanpa simpan manual terlebih dahulu.
-- **Status Eksekusi**: Siap dieksekusi otomatis via `backend/tests/test_e2e_live_lusha.py` segera setelah reset rate-limit harian Lusha (~14:34 WIB).
+### 5. Target Skenario Live Uji Terverifikasi (User Directive)
+- [x] **5.1 Target Perusahaan**: `"Smartnet Magna Global"` (domain: `www.magnaglobal.id`).
+- [x] **5.2 Filter Kategori**: Job title di ranah **"data"** (`Cloud Architect - Data`, `Data Engineer`, dll). Ditemukan 4 kandidat.
+- [x] **5.3 Selective Reveal 2 Orang**: Ambil tepat 2 kandidat teratas di ranah data dan unmask detail kontak: Devi Lestari (`devi.lestari@magnaglobal.id`) & Nixon Hutahaean (`nixon.hutahaean@magnaglobal.id`).
+- [x] **5.4 Save ke Stakeholders Directory**: Masukkan 2 kandidat ke tabel PostgreSQL `company_contacts` di bawah entitas Smartnet Magna Global (`4ad0e629-a1b4-4b4a-8032-ed2ed2b72736`).
+- [x] **5.5 Ekspor ke Excel 5-Kolom**: Unduh file Excel dan verifikasi 2 baris data terisi lengkap (No, Nama, Job Title, Email, No Telepon).
+- [x] **5.6 Convert Stakeholders to Outbound Opportunity**: Pilih 2 stakeholder data, assign Primary PIC, mapping ke solusi resmi **Data Analytics Platform**, create deal (`6c730dff-7700-4fff-bcfb-c5d80468013c`).
+- [x] **5.7 Database & Audit Trail Verification**: Verifikasi tabel `Opportunity` dan `TimelineEvent`, pastikan format dossier `customer_needs` bebas dari sintaks LaTeX (`\rightarrow`, `$`), nilai estimasi Rp 350.000.000,00, dan timeline event tercatat.
+- [x] **5.8 Direct Candidate-to-Oppty Flow**: Uji konversi langsung kandidat Lusha menjadi deal **AI/ML Solutions** (`7352f230-b228-4456-a0d5-1fb6e87b83c4`) tanpa simpan manual terlebih dahulu.
+- **Status Eksekusi**: **100% SUKSES & TERVERIFIKASI LIVE DI VM `magnasight`**.
