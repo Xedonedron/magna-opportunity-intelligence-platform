@@ -51,3 +51,13 @@ Dokumen ini memantau urutan eksekusi agentic pengujian integrasi Lusha Prospecti
 - Mitigasi yang Diterapkan:
   1. Penanganan rate limit human-readable (`5 jam 27 menit 3 detik` / `7 jam 4 menit 22 detik`) di backend & frontend.
   2. Test suite end-to-end integration (`tests/test_prospecting.py`, `tests/test_excel_service.py`) 100% lulus (25/25 tests passing).
+
+---
+
+### 5. Target Skenario Live Uji Berikutnya (User Directive)
+- [ ] **5.1 Target Perusahaan**: `"Smartnet Magna Global"` (domain: `magnaglobal.id`).
+- [ ] **5.2 Filter Kategori**: Job title di ranah **"data"** (`Data Engineer`, `Data Scientist`, `Data Analyst`, `AI`, `Analytics`, `Business Intelligence`).
+- [ ] **5.3 Selective Reveal 2 Orang**: Ambil tepat 2 kandidat teratas di ranah data dan unmask detail kontak (email & phone).
+- [ ] **5.4 Save ke Stakeholders Directory**: Masukkan 2 kandidat ke tabel PostgreSQL `company_contacts` di bawah entitas Smartnet Magna Global.
+- [ ] **5.5 Ekspor ke Excel 4-Kolom**: Unduh file Excel dan verifikasi 2 baris data terisi lengkap.
+- **Status Eksekusi**: Siap dieksekusi otomatis via `backend/tests/test_e2e_live_lusha.py` segera setelah reset rate-limit harian Lusha (~14:33 WIB).

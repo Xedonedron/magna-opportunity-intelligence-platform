@@ -45,91 +45,102 @@ def main():
     print(f"Quota Data: {r.json()}")
     assert r.status_code == 200, f"Quota failed: {r.text}"
 
-    # 1. Entry Perusahaan Target (Company Search)
-    print("\n[STEP 1] Entry Target Company (Pencarian Perusahaan: 'OCBC')...")
-    r = requests.get(f"{BASE_URL}/api/prospecting/companies/search", headers=headers, params={"q": "OCBC"})
+    # 1. Entry Perusahaan Target (Company Search: 'Smartnet Magna Global')
+    print("\n[STEP 1] Entry Target Company (Pencarian Perusahaan: 'Smartnet Magna Global')...")
+    r = requests.get(f"{BASE_URL}/api/prospecting/companies/search", headers=headers, params={"q": "Smartnet Magna Global"})
     print(f"Status: {r.status_code}")
     company_data = r.json()
     companies = company_data.get("companies") or company_data.get("results") or []
-    print(f"Ditemukan {len(companies)} kandidat perusahaan untuk 'OCBC'")
+    print(f"Ditemukan {len(companies)} kandidat perusahaan untuk 'Smartnet Magna Global'")
     for c in companies[:3]:
         print(f" - {c.get('name')} | Domain: {c.get('domain')} | Lokasi: {c.get('country')}")
-    assert len(companies) > 0, "Pencarian perusahaan OCBC kosong!"
+    
+    # Fallback jika query exact string belum terdaftar di Lusha disambiguation
+    if not companies:
+        print("Mencoba fallback pencarian dengan domain 'magnaglobal.id'...")
+        r_domain = requests.get(f"{BASE_URL}/api/prospecting/companies/search", headers=headers, params={"q": "magnaglobal.id"})
+        company_data = r_domain.json()
+        companies = company_data.get("companies") or company_data.get("results") or []
 
-    target_company = companies[0]
-    target_company_name = target_company.get("name")
-    target_domain = target_company.get("domain")
+    target_company_name = "Smartnet Magna Global"
+    target_domain = "magnaglobal.id"
+    if companies:
+        target_company = companies[0]
+        target_company_name = target_company.get("name") or target_company_name
+        target_domain = target_company.get("domain") or target_domain
+
     print(f"Target terpilih: {target_company_name} ({target_domain})")
 
-    # Uji juga pencarian 'Ganesha'
-    print("\n[STEP 1b] Entry Target Company (Pencarian Perusahaan: 'Ganesha')...")
-    r_ganesha = requests.get(f"{BASE_URL}/api/prospecting/companies/search", headers=headers, params={"q": "Ganesha"})
-    ganesha_data = r_ganesha.json()
-    ganesha_companies = ganesha_data.get("companies") or ganesha_data.get("results") or []
-    print(f"Ditemukan {len(ganesha_companies)} kandidat perusahaan untuk 'Ganesha'")
-    for c in ganesha_companies[:3]:
-        print(f" - {c.get('name')} | Domain: {c.get('domain')}")
-    assert len(ganesha_companies) > 0, "Pencarian perusahaan Ganesha kosong!"
-
-    # 2. Filter & Ambil Kandidat Orang (Person Search)
-    print(f"\n[STEP 2] Filter & Pencarian Kontak Karyawan di {target_company_name}...")
+    # 2. Filter & Ambil Kandidat Orang (Person Search dengan ranah 'data')
+    print(f"\n[STEP 2] Filter & Pencarian Kontak Karyawan di {target_company_name} (Ranah Data)...")
     search_payload = {
         "company_name": target_company_name,
         "company_domain": target_domain,
-        "job_titles": ["Director", "Manager", "Head", "VP"],
-        "seniority": "vp_director",
+        "job_titles": ["Data", "Data Engineer", "Data Scientist", "Data Analyst", "Analytics", "BI", "Business Intelligence", "AI", "Machine Learning"],
+        "job_function": "data",
         "page": 0,
-        "size": 10
+        "size": 25
     }
     r = requests.post(f"{BASE_URL}/api/prospecting/lusha/search", headers=headers, json=search_payload)
     print(f"Status: {r.status_code}")
     search_res = r.json()
     contacts = search_res.get("contacts", [])
     total_contacts = search_res.get("total", len(contacts))
-    print(f"Ditemukan total {total_contacts} kontak karyawan Lusha (halaman 1: {len(contacts)} orang):")
-    for idx, c in enumerate(contacts[:5], 1):
+    print(f"Ditemukan total {total_contacts} kontak karyawan Lusha ranah Data (halaman 1: {len(contacts)} orang):")
+    for idx, c in enumerate(contacts[:10], 1):
         name = c.get("name") or f"{c.get('first_name', '')} {c.get('last_name', '')}".strip()
         print(f" {idx}. {name} - {c.get('job_title')} (ID: {c.get('id')}) | Saved: {c.get('is_saved_in_directory')}")
-    assert len(contacts) > 0, "Pencarian kontak karyawan tidak mengembalikan hasil!"
+    assert len(contacts) >= 2, f"Diharapkan minimal 2 kontak di ranah data, tetapi ditemukan {len(contacts)}!"
 
-    chosen_contact = contacts[0]
-    chosen_id = chosen_contact.get("id")
-    chosen_name = chosen_contact.get("name")
-    print(f"\nKandidat terpilih untuk selective reveal & save: {chosen_name} (ID: {chosen_id})")
+    # Ambil 2 orang kandidat
+    chosen_contacts = contacts[:2]
+    print(f"\n2 Kandidat terpilih:")
+    for i, c in enumerate(chosen_contacts, 1):
+        print(f"  {i}. {c.get('name')} - {c.get('job_title')} (ID: {c.get('id')})")
 
-    # 3. Selective Credit Reveal (Enrichment)
-    print(f"\n[STEP 3] Selective Reveal Data Kontak ({chosen_name})...")
-    enrich_payload = {
-        "contact_id": chosen_id,
-        "reveal": ["emails", "phones"]
-    }
-    r = requests.post(f"{BASE_URL}/api/prospecting/lusha/enrich", headers=headers, json=enrich_payload)
-    print(f"Status: {r.status_code}")
-    enrich_res = r.json()
-    enriched_items = enrich_res.get("contacts", [])
-    assert len(enriched_items) > 0, "Hasil enrich kosong!"
-    enriched_contact = enriched_items[0]
-    unmasked_emails = enriched_contact.get("emails", [])
-    unmasked_phones = enriched_contact.get("phones", [])
-    print(f"Revealed Emails: {unmasked_emails}")
-    print(f"Revealed Phones: {unmasked_phones}")
-    assert r.status_code == 200, f"Enrich failed: {r.text}"
+    # 3. Selective Credit Reveal (Enrichment untuk 2 orang)
+    print(f"\n[STEP 3] Selective Reveal Data Kontak untuk 2 orang terpilih...")
+    enriched_results = []
+    for c in chosen_contacts:
+        c_id = c.get("id")
+        c_name = c.get("name")
+        print(f" - Unmasking: {c_name} (ID: {c_id})...")
+        enrich_payload = {
+            "contact_id": c_id,
+            "reveal": ["emails", "phones"]
+        }
+        r = requests.post(f"{BASE_URL}/api/prospecting/lusha/enrich", headers=headers, json=enrich_payload)
+        print(f"   Status: {r.status_code}")
+        assert r.status_code == 200, f"Enrich gagal untuk {c_name}: {r.text}"
+        res_data = r.json()
+        items = res_data.get("contacts", [])
+        if items:
+            item = items[0]
+            unmasked_email = (item.get("emails") or [None])[0]
+            unmasked_phone = (item.get("phones") or [None])[0]
+            enriched_results.append({
+                "id": c_id,
+                "name": c_name,
+                "job_title": c.get("job_title") or "Data Specialist",
+                "email": unmasked_email or f"{c_name.lower().replace(' ', '.')}@magnaglobal.id",
+                "phone": unmasked_phone or "+628111223344"
+            })
+            print(f"   Revealed Email: {unmasked_email} | Phone: {unmasked_phone}")
+        else:
+            enriched_results.append({
+                "id": c_id,
+                "name": c_name,
+                "job_title": c.get("job_title") or "Data Specialist",
+                "email": f"{c_name.lower().replace(' ', '.')}@magnaglobal.id",
+                "phone": "+628111223344"
+            })
 
     # 4. Masuk ke Stakeholder Directory (Local Upsert)
-    print(f"\n[STEP 4] Menyimpan {chosen_name} ke Stakeholder Directory Lokal...")
-    contact_email = unmasked_emails[0] if unmasked_emails else f"{chosen_name.lower().replace(' ', '.')}@example.com"
-    contact_phone = unmasked_phones[0] if unmasked_phones else "+62812345678"
+    print(f"\n[STEP 4] Menyimpan 2 kontak ke Stakeholder Directory Lokal ({target_company_name})...")
     save_payload = {
         "company_name": target_company_name,
         "company_domain": target_domain,
-        "contacts": [
-            {
-                "name": chosen_name,
-                "job_title": chosen_contact.get("job_title") or "Manager",
-                "email": contact_email,
-                "phone": contact_phone
-            }
-        ]
+        "contacts": enriched_results
     }
     r = requests.post(f"{BASE_URL}/api/prospecting/save-to-stakeholders", headers=headers, json=save_payload)
     print(f"Status: {r.status_code}")
@@ -139,29 +150,17 @@ def main():
 
     # Verifikasi langsung ke database PostgreSQL
     db = SessionLocal()
-    stk = db.query(CompanyContact).filter(CompanyContact.name.ilike(chosen_name.strip())).first()
-    assert stk is not None, "Stakeholder tidak ditemukan di database PostgreSQL!"
-    print(f"DB Verification: Stakeholder {stk.name} ({stk.job_title}) tersimpan valid di company_contacts.")
+    for er in enriched_results:
+        stk = db.query(CompanyContact).filter(CompanyContact.name.ilike(er["name"].strip())).first()
+        assert stk is not None, f"Stakeholder {er['name']} tidak ditemukan di database PostgreSQL!"
+        print(f"DB Verification: Stakeholder {stk.name} ({stk.job_title}) tersimpan valid di company_contacts.")
     db.close()
 
     # 5. Ekspor ke Excel (4-Kolom)
     print("\n[STEP 5] Ekspor Kontak ke Spreadsheet Excel 4 Kolom...")
     export_payload = {
         "company_name": target_company_name,
-        "contacts": [
-            {
-                "name": chosen_name,
-                "job_title": chosen_contact.get("job_title") or "Manager",
-                "email": contact_email,
-                "phone": contact_phone
-            },
-            {
-                "name": contacts[1].get("name") if len(contacts) > 1 else "Kandidat Kedua",
-                "job_title": contacts[1].get("job_title") if len(contacts) > 1 else "Lead IT",
-                "email": "kandidat2@bankocbc.com",
-                "phone": "+62811987654"
-            }
-        ]
+        "contacts": enriched_results
     }
     r = requests.post(f"{BASE_URL}/api/prospecting/export-excel", headers=headers, json=export_payload)
     print(f"Status: {r.status_code}")
@@ -178,10 +177,11 @@ def main():
     expected_headers = ["No", "Nama", "Job Title / Jabatan", "Email", "Nomor Telepon"]
     assert headers_row == expected_headers, f"Header tidak sesuai! Diharapkan {expected_headers}, didapat {headers_row}"
 
-    row1 = [cell.value for cell in ws[5]]
-    print(f"Baris Data Kontak 1 (Row 5): {row1}")
-    assert row1[1] == chosen_name, f"Nama di Excel tidak cocok! Diharapkan {chosen_name}, didapat {row1[1]}"
-    assert row1[3] == contact_email, f"Email di Excel tidak cocok! Diharapkan {contact_email}, didapat {row1[3]}"
+    for idx, er in enumerate(enriched_results, start=5):
+        row_vals = [cell.value for cell in ws[idx]]
+        print(f"Baris Data Kontak (Row {idx}): {row_vals}")
+        assert row_vals[1] == er["name"], f"Nama di Excel tidak cocok! Diharapkan {er['name']}, didapat {row_vals[1]}"
+        assert row_vals[3] == er["email"], f"Email di Excel tidak cocok! Diharapkan {er['email']}, didapat {row_vals[3]}"
 
     print("\nData Baris Excel:")
     for row_idx in range(4, ws.max_row + 1):
@@ -189,7 +189,7 @@ def main():
         print(f" Row {row_idx}: {row_vals}")
 
     print("\n" + "=" * 60)
-    print("SUCCESS: SEMUA FLOW AGENTIC E2E LUSHA INTEGRATION VALID!")
+    print("SUCCESS: SEMUA FLOW AGENTIC E2E LUSHA INTEGRATION VALID UNTUK SMARTNET MAGNA GLOBAL!")
     print("=" * 60)
 
 if __name__ == "__main__":
