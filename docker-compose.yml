@@ -37,7 +37,7 @@ services:
     ports:
       - "8009:8000"
     environment:
-      DATABASE_URL: postgresql://moip:moip_secret@postgres:5432/moip_db
+      DATABASE_URL: postgresql://moip:***@postgres:5432/moip_db
       SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
@@ -51,6 +51,7 @@ services:
       OPENAI_MODEL: ${OPENAI_MODEL:-glm-4-plus}
       TAVILY_API_KEY: ${TAVILY_API_KEY:-}
       LUSHA_API_KEY: ${LUSHA_API_KEY:-}
+      ENABLE_PROSPECTING: ${ENABLE_PROSPECTING:-true}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3009}
       REDIS_URL: redis://redis:6379/0
     depends_on:
@@ -107,6 +108,7 @@ services:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
       INTERNAL_API_URL: http://backend:8000
       NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      NEXT_PUBLIC_ENABLE_PROSPECTING: ${NEXT_PUBLIC_ENABLE_PROSPECTING:-true}
     depends_on:
       - backend
 

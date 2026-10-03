@@ -60,7 +60,7 @@ class Settings(BaseSettings):
 
     # Lusha API Integration
     LUSHA_API_KEY: str = ""
-    ENABLE_PROSPECTING: bool = False
+    ENABLE_PROSPECTING: bool = True
 
     class Config:
         env_file = ".env"
