@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -115,9 +115,25 @@ export default function ProspectingPage() {
     const [companyQuery, setCompanyQuery] = useState("");
     const [companyCandidates, setCompanyCandidates] = useState<CompanyCandidate[]>([]);
     const [isSearchingCompany, setIsSearchingCompany] = useState(false);
+    const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
+    const searchContainerRef = useRef<HTMLDivElement>(null);
     const [selectedCompany, setSelectedCompany] = useState<CompanyCandidate | null>(null);
     const [isEditingDomain, setIsEditingDomain] = useState(false);
     const [domainInputValue, setDomainInputValue] = useState("");
+
+    // Close dropdown on click outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+                setShowCompanyDropdown(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     // 3. Employee Discovery State
     const [employees, setEmployees] = useState<ProspectCandidate[]>([]);
@@ -171,6 +187,7 @@ export default function ProspectingPage() {
     useEffect(() => {
         if (!companyQuery.trim() || companyQuery.trim().length < 2) {
             setCompanyCandidates([]);
+            setShowCompanyDropdown(false);
             return;
         }
 
@@ -182,6 +199,7 @@ export default function ProspectingPage() {
                 );
                 const list = res.data?.results || res.data?.companies || [];
                 setCompanyCandidates(list);
+                setShowCompanyDropdown(true);
             } catch {
                 setCompanyCandidates([]);
             } finally {
@@ -201,6 +219,7 @@ export default function ProspectingPage() {
         };
 
         setSelectedCompany(activeCompany);
+        setShowCompanyDropdown(false);
         setDomainInputValue(resolvedDomain);
         setIsEditingDomain(false);
         setCompanyCandidates([]);
@@ -241,6 +260,7 @@ export default function ProspectingPage() {
 
     // Direct Search when user presses Enter or clicks 'Cari Karyawan'
     const handleDirectSearch = (overrideQuery?: string) => {
+        setShowCompanyDropdown(false);
         const q = (overrideQuery || companyQuery).trim();
         if (!q) return;
 
@@ -263,6 +283,7 @@ export default function ProspectingPage() {
     // Reset Selected Company
     const handleResetCompany = () => {
         setSelectedCompany(null);
+        setShowCompanyDropdown(false);
         setEmployees([]);
         setSelectedIds(new Set());
         setSelectedJobTitle("all");
@@ -626,7 +647,7 @@ export default function ProspectingPage() {
             )}
 
             {/* Target Company Search Section */}
-            <Card className="p-5 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-xs space-y-4">
+            <Card className="p-5 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-xs space-y-4 overflow-visible relative z-30">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Building2 className="w-4 h-4 text-zinc-500" />
@@ -645,29 +666,59 @@ export default function ProspectingPage() {
                 </div>
 
                 {!selectedCompany ? (
-                    <div className="relative">
+                    <div ref={searchContainerRef} className="relative">
                         <div className="flex gap-2">
                             <div className="relative flex-1">
                                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
                                 <Input
                                     value={companyQuery}
-                                    onChange={(e) => setCompanyQuery(e.target.value)}
+                                    onChange={(e) => {
+                                        setCompanyQuery(e.target.value);
+                                        if (e.target.value.trim().length >= 2) {
+                                            setShowCompanyDropdown(true);
+                                        } else {
+                                            setShowCompanyDropdown(false);
+                                        }
+                                    }}
+                                    onFocus={() => {
+                                        if (companyQuery.trim().length >= 2) {
+                                            setShowCompanyDropdown(true);
+                                        }
+                                    }}
                                     onKeyDown={(e) => {
                                         if (e.key === "Enter") {
                                             e.preventDefault();
+                                            setShowCompanyDropdown(false);
                                             handleDirectSearch();
+                                        } else if (e.key === "Escape") {
+                                            setShowCompanyDropdown(false);
                                         }
                                     }}
                                     placeholder="Ketik nama perusahaan (contoh: Bank Mega, OCBC, Ganesha, Telkomsel)..."
                                     className="pl-9 pr-9 h-11 text-sm bg-zinc-50 dark:bg-zinc-800/50"
                                     autoFocus
                                 />
-                                {isSearchingCompany && (
+                                {isSearchingCompany ? (
                                     <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-indigo-600 animate-spin" />
-                                )}
+                                ) : companyQuery ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setCompanyQuery("");
+                                            setCompanyCandidates([]);
+                                            setShowCompanyDropdown(false);
+                                        }}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                ) : null}
                             </div>
                             <Button
-                                onClick={() => handleDirectSearch()}
+                                onClick={() => {
+                                    setShowCompanyDropdown(false);
+                                    handleDirectSearch();
+                                }}
                                 disabled={!companyQuery.trim() || isLoadingEmployees}
                                 className="h-11 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm flex items-center gap-2 shrink-0 shadow-xs"
                             >
@@ -681,12 +732,15 @@ export default function ProspectingPage() {
                         </div>
 
                         {/* Dropdown Suggestions */}
-                        {companyQuery.trim().length >= 2 && (companyCandidates.length > 0 || !isSearchingCompany) && (
-                            <div className="absolute z-20 left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg max-h-72 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800">
+                        {showCompanyDropdown && companyQuery.trim().length >= 2 && (
+                            <div className="absolute z-50 left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl max-h-80 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800">
                                 {/* Direct Search Top Action */}
                                 <button
-                                    onClick={() => handleDirectSearch()}
-                                    className="w-full text-left p-3 bg-indigo-50/70 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition flex items-center justify-between gap-3 text-indigo-700 dark:text-indigo-300 font-semibold text-xs"
+                                    onClick={() => {
+                                        setShowCompanyDropdown(false);
+                                        handleDirectSearch();
+                                    }}
+                                    className="w-full text-left p-3.5 bg-indigo-50/80 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition flex items-center justify-between gap-3 text-indigo-700 dark:text-indigo-300 font-semibold text-xs border-b border-indigo-100 dark:border-indigo-900/50"
                                 >
                                     <span className="flex items-center gap-2">
                                         <Search className="w-3.5 h-3.5 shrink-0" />
@@ -699,10 +753,26 @@ export default function ProspectingPage() {
                                     </span>
                                 </button>
 
+                                {isSearchingCompany && (
+                                    <div className="p-3.5 text-center text-xs text-zinc-500 dark:text-zinc-400 flex items-center justify-center gap-2 bg-zinc-50/50 dark:bg-zinc-900/50">
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
+                                        <span>Mencari rekomendasi entitas perusahaan...</span>
+                                    </div>
+                                )}
+
+                                {!isSearchingCompany && companyCandidates.length === 0 && (
+                                    <div className="p-3.5 text-center text-xs text-zinc-400">
+                                        Tidak ada entitas serupa di database lokal. Tekan <strong>Enter ↵</strong> atau klik opsi di atas untuk mencari langsung di Lusha.
+                                    </div>
+                                )}
+
                                 {companyCandidates.map((cand, idx) => (
                                     <button
                                         key={idx}
-                                        onClick={() => handleSelectCompany(cand)}
+                                        onClick={() => {
+                                            setShowCompanyDropdown(false);
+                                            handleSelectCompany(cand);
+                                        }}
                                         className="w-full text-left p-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/70 transition flex items-center justify-between gap-3 group"
                                     >
                                         <div className="flex items-center gap-3 min-w-0">

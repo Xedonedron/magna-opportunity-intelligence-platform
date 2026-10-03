@@ -252,7 +252,7 @@ class LushaService:
                 
                 job_title_raw = item.get("jobTitle")
                 if isinstance(job_title_raw, dict):
-                    job_title_str = job_title_raw.get("title") or "Stakeholder"
+                    job_title_str = job_title_raw.get("title") or None
                     dept_list = job_title_raw.get("departments", [])
                     seniority_val = job_title_raw.get("seniority")
                     department_str = dept_list[0] if dept_list else None
@@ -261,11 +261,41 @@ class LushaService:
                     department_str = item.get("department")
                     seniority_val = item.get("seniority")
                 else:
-                    job_title_str = "Stakeholder"
+                    job_title_str = None
                     department_str = None
                     seniority_val = None
 
-                full_name_calc = item.get("fullName") or f"{item.get('firstName', '')} {item.get('lastName', '')}".strip() or "Unnamed"
+                full_name_calc = item.get("fullName") or f"{item.get('firstName', '')} {item.get('lastName', '')}".strip() or None
+                if not full_name_calc:
+                    logger.warning(f"[LushaService] Skipping contact {item.get('id')} without a valid name.")
+                    continue
+                
+                has_list = [str(h).lower() for h in (item.get("has", []) or [])]
+                can_reveal_raw = item.get("canReveal", []) or []
+
+                has_email = (
+                    "emails" in has_list
+                    or "email" in has_list
+                    or any("email" in str(cr.get("field", "")).lower() for cr in can_reveal_raw)
+                    or bool(item.get("hasEmail"))
+                )
+                has_phone = (
+                    "phones" in has_list
+                    or "phone" in has_list
+                    or any("phone" in str(cr.get("field", "")).lower() for cr in can_reveal_raw)
+                    or bool(item.get("hasPhone"))
+                )
+
+                email_credits = 1 if has_email else 0
+                phone_credits = 5 if has_phone else 0
+                for cr in can_reveal_raw:
+                    fld = str(cr.get("field", "")).lower()
+                    c_val = cr.get("credits", 0)
+                    if "email" in fld:
+                        email_credits = c_val
+                    elif "phone" in fld:
+                        phone_credits = c_val
+
                 contacts_list.append({
                     "id": str(item.get("id")),
                     "name": full_name_calc,
@@ -280,8 +310,11 @@ class LushaService:
                     "country": location_info.get("country", country),
                     "city": location_info.get("city", ""),
                     "linkedin_url": item.get("linkedinUrl") or item.get("socialUrl", ""),
-                    "has_email": bool(item.get("hasEmail", False)),
-                    "has_phone": bool(item.get("hasPhone", False)),
+                    "has_email": has_email,
+                    "has_phone": has_phone,
+                    "email_credits": email_credits,
+                    "phone_credits": phone_credits,
+                    "can_reveal": can_reveal_raw,
                     "is_unlocked": False,
                     "unlocked_email": None,
                     "unlocked_phone": None,
@@ -362,16 +395,19 @@ class LushaService:
 
             data = resp.json()
             results = data.get("results", [])
+            billing = data.get("billing", {}) or {}
+            credits_charged = billing.get("creditsCharged", 0)
             enriched = []
             for item in results:
                 raw_emails = item.get("emails", []) or []
-                raw_phones = item.get("phoneNumbers", []) or []
+                raw_phones = item.get("phones", []) or item.get("phoneNumbers", []) or []
 
                 emails = [{"email": e.get("email", ""), "type": e.get("type", "work")} for e in raw_emails if e.get("email")]
-                phones = [{"number": p.get("internationalNumber") or p.get("number", ""), "type": p.get("type", "mobile")} for p in raw_phones if (p.get("internationalNumber") or p.get("number"))]
+                phones = [{"number": p.get("number") or p.get("internationalNumber", ""), "type": p.get("type", "mobile")} for p in raw_phones if (p.get("number") or p.get("internationalNumber"))]
 
+                mobile_phones = [p for p in phones if p.get("type") == "mobile"]
+                primary_phone = mobile_phones[0]["number"] if mobile_phones else (phones[0]["number"] if phones else None)
                 primary_email = emails[0]["email"] if emails else None
-                primary_phone = phones[0]["number"] if phones else None
 
                 enriched.append({
                     "id": str(item.get("id")),
@@ -382,6 +418,7 @@ class LushaService:
                     "primary_email": primary_email,
                     "primary_phone": primary_phone,
                     "linkedin_url": item.get("linkedinUrl", ""),
+                    "credits_charged": credits_charged,
                 })
 
             return enriched
@@ -408,6 +445,7 @@ class LushaService:
                 "phone": primary_phone,
                 "primary_email": primary_email,
                 "primary_phone": primary_phone,
+                "credits_charged": first.get("credits_charged", 0),
                 "data": first,
                 "message": "Kontak berhasil diperkaya dengan data terverifikasi Lusha.",
             }

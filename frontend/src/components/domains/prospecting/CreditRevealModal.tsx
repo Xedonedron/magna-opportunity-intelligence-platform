@@ -10,6 +10,11 @@ export interface CandidateToReveal {
     job_title: string;
     has_email?: boolean;
     has_phone?: boolean;
+    email_credits?: number;
+    phone_credits?: number;
+    is_unlocked?: boolean;
+    unlocked_email?: string | null;
+    unlocked_phone?: string | null;
 }
 
 interface CreditRevealModalProps {
@@ -34,8 +39,20 @@ export function CreditRevealModal({
 
     if (!isOpen || contacts.length === 0) return null;
 
-    const attributesCount = (revealEmail ? 1 : 0) + (revealPhone ? 1 : 0);
-    const totalCreditsRequired = contacts.length * attributesCount;
+    let totalEmailCredits = 0;
+    let totalPhoneCredits = 0;
+
+    contacts.forEach((c) => {
+        const emailCost = c.unlocked_email ? 0 : (c.email_credits ?? 1);
+        const phoneCost = c.unlocked_phone ? 0 : (c.phone_credits ?? 1);
+        totalEmailCredits += emailCost;
+        totalPhoneCredits += phoneCost;
+    });
+
+    const emailCost = revealEmail ? totalEmailCredits : 0;
+    const phoneCost = revealPhone ? totalPhoneCredits : 0;
+    const totalCreditsRequired = emailCost + phoneCost;
+
     const isQuotaSufficient =
         currentQuota === null || currentQuota >= totalCreditsRequired;
 
@@ -107,7 +124,7 @@ export function CreditRevealModal({
                                 <span>Alamat Email Terverifikasi</span>
                             </div>
                         </div>
-                        <span className="text-[11px] text-zinc-500 font-mono">1 kredit / kontak</span>
+                        <span className="text-[11px] text-zinc-500 font-mono">Total {totalEmailCredits} kredit</span>
                     </label>
 
                     <label className="flex items-center justify-between p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 cursor-pointer transition">
@@ -123,7 +140,7 @@ export function CreditRevealModal({
                                 <span>Nomor HP / WhatsApp Direct</span>
                             </div>
                         </div>
-                        <span className="text-[11px] text-zinc-500 font-mono">1 kredit / kontak</span>
+                        <span className="text-[11px] text-zinc-500 font-mono">Total {totalPhoneCredits} kredit</span>
                     </label>
                 </div>
 
@@ -132,10 +149,6 @@ export function CreditRevealModal({
                     <div className="flex justify-between items-center text-zinc-700 dark:text-zinc-300">
                         <span>Total Kontak Dipilih:</span>
                         <span className="font-semibold">{contacts.length} orang</span>
-                    </div>
-                    <div className="flex justify-between items-center text-zinc-700 dark:text-zinc-300">
-                        <span>Kredit per Kontak:</span>
-                        <span className="font-semibold">{attributesCount} kredit</span>
                     </div>
                     <div className="border-t border-blue-200 dark:border-blue-900/60 pt-1.5 flex justify-between items-center font-bold text-blue-950 dark:text-blue-200">
                         <span>Total Biaya Kredit Lusha:</span>
@@ -171,7 +184,7 @@ export function CreditRevealModal({
                         type="button"
                         size="sm"
                         onClick={handleConfirm}
-                        disabled={isLoading || attributesCount === 0 || !isQuotaSufficient}
+                        disabled={isLoading || (!revealEmail && !revealPhone) || !isQuotaSufficient}
                         className="bg-blue-600 hover:bg-blue-700 text-white gap-2 font-medium"
                     >
                         {isLoading ? (

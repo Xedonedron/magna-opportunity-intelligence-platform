@@ -69,6 +69,13 @@ async def get_current_user_flexible(
             except Exception as e:
                 logger.warning(f"[Auth] Failed to decode user id from token: {e}")
 
+    settings = get_settings()
+    if getattr(settings, "ENVIRONMENT", "development") == "production":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token tidak valid atau tidak ditemukan."
+        )
+
     # Fallback to first active user in database (for local dev/prototyping)
     dev_user = db.query(User).filter(User.is_active == True).first()
     if dev_user:
@@ -341,7 +348,7 @@ async def enrich_lusha_contact(
             phone=phone_str,
             contact=single_contact,
             contacts=[single_contact],
-            credits_charged=len(request.reveal) if request.reveal else 2,
+            credits_charged=res.get("credits_charged", 0),
             message=res.get("message", "Kontak berhasil diperkaya dengan data terverifikasi Lusha."),
         )
 
@@ -382,11 +389,13 @@ async def enrich_lusha_contact(
             "primary_email": email_str,
             "primary_phone": phone_str,
             "linkedin_url": item.get("linkedinUrl", ""),
+            "credits_charged": item.get("credits_charged", 0),
         })
 
     first_item = enriched_items[0] if enriched_items else None
-    reveal_multiplier = len(request.reveal) if request.reveal else 2
-    credits_charged = len(contact_ids) * reveal_multiplier
+    credits_charged = 0
+    if enriched_items:
+        credits_charged = enriched_items[0].get("credits_charged", 0)
 
     return LushaEnrichResponse(
         success=True,
@@ -465,7 +474,7 @@ async def save_prospects_to_stakeholders(
             new_contact = CompanyContact(
                 company_id=company.id,
                 name=c.name.strip(),
-                job_title=c.job_title or "Stakeholder",
+                job_title=c.job_title or None,
                 email=c.email,
                 phone=c.phone,
                 notes="Diperoleh dari Lusha Prospecting Hub",

@@ -438,8 +438,9 @@ class TestProspectingInteractiveFlow:
                 "fullName": "Jane Doe",
                 "jobTitle": "Chief Digital Officer",
                 "emails": [{"email": "jane@ocbc.com"}],
-                "phones": [{"number": "+628123456789"}],
+                "phones": [{"number": "+628****6789"}],
                 "linkedinUrl": "https://linkedin.com/in/janedoe",
+                "credits_charged": 1,
             }
         ]
 

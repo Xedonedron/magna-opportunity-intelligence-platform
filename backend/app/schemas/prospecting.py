@@ -61,6 +61,9 @@ class LushaCandidateContact(BaseModel):
     unlocked_phone: Optional[str] = None
     is_saved_in_directory: bool = False
     local_contact_id: Optional[str] = None
+    email_credits: int = 0
+    phone_credits: int = 0
+    can_reveal: List[Dict[str, Any]] = []
 
 
 class LushaSearchResponse(BaseModel):

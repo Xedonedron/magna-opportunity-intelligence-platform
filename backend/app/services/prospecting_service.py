@@ -369,8 +369,8 @@ class ProspectingService:
                 name=raw_company_name,
                 normalized_name=norm_name,
                 website=req.website,
-                industry=req.industry or "General Enterprise",
-                employee_count="500+",
+                industry=req.industry or None,
+                employee_count=None,
             )
             db.add(company)
             db.flush()
@@ -408,8 +408,8 @@ class ProspectingService:
             contact_obj = CompanyContact(
                 company_id=company.id,
                 name=target_name,
-                job_title=req.contact.job_title or "Stakeholder",
-                department=req.contact.department or "Information Technology",
+                job_title=req.contact.job_title or None,
+                department=req.contact.department or None,
                 email=req.contact.email,
                 phone=req.contact.phone,
                 linkedin_url=req.contact.linkedin_url,
@@ -505,7 +505,7 @@ class ProspectingService:
         from a list of stakeholder job titles.
         """
         if not titles:
-            return "security"
+            return "general"
 
         scores = {"security": 0, "data": 0, "cloud": 0, "network": 0}
 
@@ -542,7 +542,7 @@ class ProspectingService:
 
         best_pillar = max(scores, key=lambda k: scores[k])
         if scores[best_pillar] == 0:
-            return "security"
+            return "general"
         return best_pillar
 
     @staticmethod
@@ -567,7 +567,7 @@ class ProspectingService:
             is_pic = " [Primary PIC]" if primary_contact and c.id == primary_contact.id else ""
             email_str = f" | {c.email}" if c.email else ""
             phone_str = f" | {c.phone}" if c.phone else ""
-            title_str = c.job_title or "Stakeholder"
+            title_str = c.job_title or "Contact"
             stakeholder_lines.append(f"- {c.name} ({title_str}){email_str}{phone_str}{is_pic}")
 
         pain_points = custom_pain_points if custom_pain_points else intel.get("pain_points", [])

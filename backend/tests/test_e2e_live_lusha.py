@@ -113,18 +113,18 @@ def main():
             enriched_results.append({
                 "id": c_id,
                 "name": c_name,
-                "job_title": c.get("job_title") or "Data Specialist",
-                "email": unmasked_email or f"{c_name.lower().replace(' ', '.')}@magnaglobal.id",
-                "phone": unmasked_phone or "+628111223344"
+                "job_title": c.get("job_title") or None,
+                "email": unmasked_email or None,
+                "phone": unmasked_phone or None
             })
             print(f"   Revealed Email: {unmasked_email} | Phone: {unmasked_phone}")
         else:
             enriched_results.append({
                 "id": c_id,
                 "name": c_name,
-                "job_title": c.get("job_title") or "Data Specialist",
-                "email": f"{c_name.lower().replace(' ', '.')}@magnaglobal.id",
-                "phone": "+628111223344"
+                "job_title": c.get("job_title") or None,
+                "email": None,
+                "phone": None
             })
 
     # 4. Masuk ke Stakeholder Directory (Local Upsert)
@@ -251,8 +251,8 @@ def main():
                 "name": "Arif Wibowo",
                 "job_title": "Head of AI & Machine Learning",
                 "department": "Engineering",
-                "email": "arif.wibowo@magnaglobal.id",
-                "phone": "+62811223344",
+                "email": None,
+                "phone": None,
                 "is_primary": True
             }
         ],

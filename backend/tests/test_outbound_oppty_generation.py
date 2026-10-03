@@ -183,18 +183,18 @@ class TestPillarDetection:
         result = service.detect_pillar_from_titles(["NOC Engineer", "LAN/WAN Specialist"])
         assert result == "network"
 
-    def test_empty_titles_defaults_to_security(self, service):
+    def test_empty_titles_defaults_to_general(self, service):
         result = service.detect_pillar_from_titles([])
-        assert result == "security"
+        assert result == "general"
 
     def test_none_entries_in_titles_handled(self, service):
-        # List with None and empty strings - should not crash, default to security
+        # List with None and empty strings - should not crash, default to general
         result = service.detect_pillar_from_titles(["", None, ""])
-        assert result == "security"
+        assert result == "general"
 
-    def test_no_keyword_match_defaults_to_security(self, service):
+    def test_no_keyword_match_defaults_to_general(self, service):
         result = service.detect_pillar_from_titles(["General Manager", "Commercial Director"])
-        assert result == "security"
+        assert result == "general"
 
     # --- False-positive filtering ---
     def test_false_positive_financial_analyst_is_not_data(self, service):
