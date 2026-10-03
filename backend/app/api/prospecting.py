@@ -317,18 +317,28 @@ async def enrich_lusha_contact(
         )
         emails = res.get("emails", [])
         phones = res.get("phones", [])
+        email_str = res.get("email") or (emails[0] if emails else None)
+        phone_str = res.get("phone") or (phones[0] if phones else None)
+        first_data = res.get("data") or {}
         single_contact = {
             "id": request.contact_id,
-            "full_name": "",
-            "job_title": "",
+            "full_name": first_data.get("full_name") or "",
+            "job_title": first_data.get("job_title") or "",
             "emails": emails,
             "phones": phones,
+            "email": email_str,
+            "phone": phone_str,
+            "primary_email": email_str,
+            "primary_phone": phone_str,
+            "linkedin_url": first_data.get("linkedin_url") or "",
         }
         return LushaEnrichResponse(
             success=res.get("success", True),
             contact_id=request.contact_id,
             emails=emails,
             phones=phones,
+            email=email_str,
+            phone=phone_str,
             contact=single_contact,
             contacts=[single_contact],
             credits_charged=len(request.reveal) if request.reveal else 2,
@@ -358,12 +368,19 @@ async def enrich_lusha_contact(
             job_t = job_t.get("title")
         job_t_str = str(job_t or "")
 
+        email_str = email_list[0] if email_list else None
+        phone_str = phone_list[0] if phone_list else None
+
         enriched_items.append({
             "id": str(item.get("id")),
             "full_name": full_n,
             "job_title": job_t_str,
             "emails": email_list,
             "phones": phone_list,
+            "email": email_str,
+            "phone": phone_str,
+            "primary_email": email_str,
+            "primary_phone": phone_str,
             "linkedin_url": item.get("linkedinUrl", ""),
         })
 
@@ -376,6 +393,8 @@ async def enrich_lusha_contact(
         contact_id=contact_ids[0],
         emails=first_item["emails"] if first_item else [],
         phones=first_item["phones"] if first_item else [],
+        email=first_item.get("email") if first_item else None,
+        phone=first_item.get("phone") if first_item else None,
         contact=first_item,
         contacts=enriched_items,
         credits_charged=credits_charged,

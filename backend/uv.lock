@@ -1677,7 +1677,7 @@ wheels = [
 
 [[package]]
 name = "moip-backend"
-version = "0.1.0"
+version = "1.7.0"
 source = { editable = "." }
 dependencies = [
     { name = "alembic" },

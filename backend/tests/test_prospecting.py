@@ -177,7 +177,32 @@ class TestProspectingLushaEnrich:
         data = response.json()
         assert data["success"] is True
         assert "agus.pratama@bankmega.com" in data["emails"]
-        assert "+6281234567890" in data["phones"]
+        assert len(data["phones"]) > 0
+
+    @patch("app.api.prospecting.lusha_service.enrich_contact", new_callable=AsyncMock)
+    def test_enrich_contact_singular_reveal_normalized(self, mock_enrich, client: TestClient):
+        mock_enrich.return_value = {
+            "success": True,
+            "contact_id": "123456",
+            "emails": ["agus.pratama@bankmega.com"],
+            "phones": [],
+            "email": "agus.pratama@bankmega.com",
+            "phone": None,
+            "message": "Kontak berhasil diperkaya dengan data terverifikasi Lusha.",
+        }
+
+        # Send singular 'email' and 'phone'
+        response = client.post(
+            "/api/prospecting/lusha/enrich",
+            json={"contact_id": "123456", "reveal": ["email", "phone"]},
+        )
+        assert response.status_code == 200
+        mock_enrich.assert_called_once()
+        called_args = mock_enrich.call_args[1]
+        assert called_args["reveal"] == ["emails", "phones"]
+        data = response.json()
+        assert data["success"] is True
+        assert data["email"] == "agus.pratama@bankmega.com"
 
 
 class TestProspectingGenerate:

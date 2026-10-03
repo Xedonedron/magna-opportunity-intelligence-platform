@@ -10,6 +10,7 @@ import logging
 import re
 from typing import Any, Dict, List, Optional
 import httpx
+from fastapi import HTTPException, status
 
 from app.core.config import settings
 from app.core.exceptions import RateLimitError
@@ -313,7 +314,21 @@ class LushaService:
         if not self.is_configured:
             raise ValueError("Lusha API Key is not configured in backend environment.")
 
-        reveal_fields = reveal or ["emails", "phones"]
+        reveal_fields = []
+        for r in (reveal or ["emails", "phones"]):
+            r_str = str(r).lower().strip()
+            if r_str in ("email", "emails"):
+                if "emails" not in reveal_fields:
+                    reveal_fields.append("emails")
+            elif r_str in ("phone", "phones", "phone_numbers"):
+                if "phones" not in reveal_fields:
+                    reveal_fields.append("phones")
+            elif r_str in ("emails", "phones"):
+                if r_str not in reveal_fields:
+                    reveal_fields.append(r_str)
+        if not reveal_fields:
+            reveal_fields = ["emails", "phones"]
+
         payload = {
             "ids": contact_ids,
             "reveal": reveal_fields,
@@ -334,7 +349,16 @@ class LushaService:
                         retry_after=reset_secs,
                         message=f"Batas kuota API Lusha tercapai. Kuota akan di-reset dalam {formatted}."
                     )
-                resp.raise_for_status()
+                err_detail = "Gagal memperkaya data kontak Lusha."
+                try:
+                    err_json = resp.json()
+                    err_detail = err_json.get("message") or err_json.get("error") or err_detail
+                except Exception:
+                    pass
+                raise HTTPException(
+                    status_code=resp.status_code if resp.status_code in (400, 401, 402, 403, 404) else status.HTTP_502_BAD_GATEWAY,
+                    detail=f"Lusha API: {err_detail}",
+                )
 
             data = resp.json()
             results = data.get("results", [])
@@ -373,11 +397,17 @@ class LushaService:
             first = results[0]
             email_list = [e.get("email") for e in first.get("emails", []) if e.get("email")]
             phone_list = [p.get("number") for p in first.get("phones", []) if p.get("number")]
+            primary_email = email_list[0] if email_list else None
+            primary_phone = phone_list[0] if phone_list else None
             return {
                 "success": True,
                 "contact_id": contact_id,
                 "emails": email_list,
                 "phones": phone_list,
+                "email": primary_email,
+                "phone": primary_phone,
+                "primary_email": primary_email,
+                "primary_phone": primary_phone,
                 "data": first,
                 "message": "Kontak berhasil diperkaya dengan data terverifikasi Lusha.",
             }

@@ -380,30 +380,44 @@ export default function ProspectingPage() {
                 const firstName = cand.first_name || parts[0] || "Stakeholder";
                 const lastName = cand.last_name || (parts.length > 1 ? parts.slice(1).join(" ") : "Contact");
 
+                const normalizedReveal = options.map((opt) => opt === "email" ? "emails" : opt === "phone" ? "phones" : opt);
+
                 const res = await api.post<any>("/api/prospecting/lusha/enrich", {
                     contact_id: cand.id,
                     first_name: firstName,
                     last_name: lastName,
                     company_name: selectedCompany.name,
                     company_domain: selectedCompany.domain || undefined,
-                    reveal: options,
+                    reveal: normalizedReveal,
                 });
 
-                if (res.data?.success && res.data?.contact) {
-                    const enriched = res.data.contact;
+                if (res.data?.success && (res.data?.contact || res.data?.emails || res.data?.phones)) {
+                    const enriched = res.data.contact || {};
+                    const emailsArr = Array.isArray(enriched.emails) ? enriched.emails : (Array.isArray(res.data.emails) ? res.data.emails : []);
+                    const phonesArr = Array.isArray(enriched.phones) ? enriched.phones : (Array.isArray(res.data.phones) ? res.data.phones : []);
+
+                    const firstEmailObj = emailsArr[0];
+                    const firstEmailVal = typeof firstEmailObj === "string" ? firstEmailObj : firstEmailObj?.email;
+
+                    const firstPhoneObj = phonesArr[0];
+                    const firstPhoneVal = typeof firstPhoneObj === "string" ? firstPhoneObj : (firstPhoneObj?.number || firstPhoneObj?.internationalNumber);
+
+                    const resolvedEmail = enriched.email || enriched.primary_email || firstEmailVal || res.data.email || null;
+                    const resolvedPhone = enriched.phone || enriched.primary_phone || firstPhoneVal || res.data.phone || null;
+
                     const idx = updatedEmployees.findIndex((e) => e.id === cand.id);
                     if (idx !== -1) {
+                        const finalEmail = resolvedEmail || updatedEmployees[idx].email;
+                        const finalPhone = resolvedPhone || updatedEmployees[idx].phone;
                         updatedEmployees[idx] = {
                             ...updatedEmployees[idx],
-                            email: enriched.email || updatedEmployees[idx].email,
-                            phone: enriched.phone || updatedEmployees[idx].phone,
-                            has_email: Boolean(enriched.email || updatedEmployees[idx].email),
-                            has_phone: Boolean(enriched.phone || updatedEmployees[idx].phone),
-                            is_saved_in_directory: true,
-                            local_contact_id: res.data.company_contact_id || updatedEmployees[idx].local_contact_id,
+                            email: finalEmail,
+                            phone: finalPhone,
+                            has_email: Boolean(finalEmail),
+                            has_phone: Boolean(finalPhone),
                             reveal_status: {
-                                email: Boolean(enriched.email || updatedEmployees[idx].reveal_status?.email),
-                                phone: Boolean(enriched.phone || updatedEmployees[idx].reveal_status?.phone),
+                                email: Boolean(finalEmail || updatedEmployees[idx].reveal_status?.email),
+                                phone: Boolean(finalPhone || updatedEmployees[idx].reveal_status?.phone),
                             },
                         };
                     }
@@ -416,7 +430,7 @@ export default function ProspectingPage() {
             fetchQuota();
             setFeedbackMessage({
                 type: "success",
-                text: `Berhasil membuka kontak ${candidatesToReveal.length} orang dan otomatis tersimpan ke Stakeholder Directory.`,
+                text: `Berhasil membuka kontak ${candidatesToReveal.length} orang.`,
             });
             setTimeout(() => setFeedbackMessage(null), 5000);
         } catch (err: any) {

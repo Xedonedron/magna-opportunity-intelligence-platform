@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 # ---------------------------------------------------------------------------
@@ -122,6 +122,26 @@ class LushaEnrichRequest(BaseModel):
     contact_ids: Optional[List[str]] = Field(None, description="List of contact IDs (batch)")
     reveal: List[str] = Field(default=["emails", "phones"], description="Data fields to reveal")
 
+    @field_validator("reveal", mode="before")
+    @classmethod
+    def normalize_reveal(cls, v):
+        if not v:
+            return ["emails", "phones"]
+        if isinstance(v, str):
+            v = [v]
+        normalized = []
+        for item in v:
+            item_lower = str(item).lower().strip()
+            if item_lower in ("email", "emails"):
+                if "emails" not in normalized:
+                    normalized.append("emails")
+            elif item_lower in ("phone", "phones", "phone_numbers"):
+                if "phones" not in normalized:
+                    normalized.append("phones")
+            elif item_lower:
+                normalized.append(item_lower)
+        return normalized or ["emails", "phones"]
+
     def get_effective_ids(self) -> List[str]:
         if self.contact_ids:
             return self.contact_ids
@@ -146,6 +166,8 @@ class EnrichedContactResult(BaseModel):
     job_title: str
     emails: List[Any] = []
     phones: List[Any] = []
+    email: Optional[str] = None
+    phone: Optional[str] = None
     primary_email: Optional[str] = None
     primary_phone: Optional[str] = None
     linkedin_url: Optional[str] = None
@@ -156,6 +178,8 @@ class LushaEnrichResponse(BaseModel):
     contact_id: Optional[str] = None
     emails: List[str] = []
     phones: List[str] = []
+    email: Optional[str] = None
+    phone: Optional[str] = None
     contact: Optional[Union[EnrichedContactResult, Dict[str, Any]]] = None
     contacts: List[Union[EnrichedContactResult, Dict[str, Any]]] = []
     credits_charged: int = 0
