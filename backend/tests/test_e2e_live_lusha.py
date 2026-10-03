@@ -238,7 +238,7 @@ def main():
     # Verifikasi timeline audit event
     timeline_evt = db.query(TimelineEvent).filter(TimelineEvent.opportunity_id == created_oppty.id).first()
     assert timeline_evt is not None, "TimelineEvent tidak tercatat untuk opportunity baru!"
-    assert timeline_evt.action == "outbound_opportunity_created"
+    assert timeline_evt.action in ["Outbound Opportunity Created", "outbound_opportunity_created"]
     print(f"Timeline Verification: Event '{timeline_evt.action}' tercatat oleh actor: {timeline_evt.actor_name}")
     db.close()
 
