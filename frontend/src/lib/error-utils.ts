@@ -4,6 +4,7 @@
  */
 
 import { AxiosError } from "axios";
+import { extractRateLimitSeconds, formatDurationHuman, humanizeRateLimitMessage } from "./formatters";
 
 /**
  * API error response structure from backend.
@@ -260,17 +261,28 @@ export function parsePipelineError(
         rawLower.includes("resourceexhausted") ||
         rawLower.includes("insufficient_quota")
     ) {
+        const resetSeconds = extractRateLimitSeconds(raw);
+        const durationFormatted = resetSeconds ? formatDurationHuman(resetSeconds) : null;
+        const humanizedSummary = durationFormatted
+            ? (lang === "id"
+                ? `Batas pemanggilan API telah tercapai. Kuota akan di-reset dalam ${durationFormatted}.`
+                : `API rate limit reached. Quota resets in ${durationFormatted}.`)
+            : (lang === "id"
+                ? "Batas pemanggilan per menit (RPM) atau kuota kredit API pada provider telah habis."
+                : "Request limit per minute or provider credit quota has been reached.");
+        const humanizedSuggestion = durationFormatted
+            ? (lang === "id"
+                ? `Silakan tunggu ${durationFormatted} sebelum mencoba kembali.`
+                : `Please wait ${durationFormatted} before retrying.`)
+            : (lang === "id"
+                ? "Tunggu 1-2 menit sebelum mencoba kembali, atau periksa kuota billing akun provider AI Anda."
+                : "Wait a moment before retrying or check your AI provider billing quota.");
+
         return {
             title: lang === "id" ? "Batas Kuota / Rate Limit Tercapai" : "Rate Limit or Quota Exceeded",
-            summary:
-                lang === "id"
-                    ? "Batas pemanggilan per menit (RPM) atau kuota kredit API pada provider telah habis."
-                    : "Request limit per minute or provider credit quota has been reached.",
-            suggestion:
-                lang === "id"
-                    ? "Tunggu 1-2 menit sebelum mencoba kembali, atau periksa kuota billing akun provider AI Anda."
-                    : "Wait a moment before retrying or check your AI provider billing quota.",
-            rawDetails: raw,
+            summary: humanizedSummary,
+            suggestion: humanizedSuggestion,
+            rawDetails: humanizeRateLimitMessage(raw),
             errorCategory: "RATE_LIMIT",
             statusCode: 429,
         };

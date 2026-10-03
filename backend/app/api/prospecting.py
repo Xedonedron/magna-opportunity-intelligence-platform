@@ -117,6 +117,8 @@ async def get_lusha_usage(user: User = Depends(require_prospecting_user)):
     """Retrieve current Lusha API usage, quota limits, and remaining credits."""
     data = await lusha_service.get_account_usage()
     if "error" in data:
+        if data.get("rate_limit_reset_formatted"):
+            return data
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"Gagal mengambil kuota Lusha API: {data['error']}",
@@ -262,6 +264,8 @@ async def search_lusha_contacts(
             total=0,
             page=request.page,
             contacts=[],
+            rate_limit_reset_seconds=res.get("rate_limit_reset_seconds"),
+            rate_limit_reset_formatted=res.get("rate_limit_reset_formatted"),
         )
 
     # Cross-reference existing contacts in internal directory

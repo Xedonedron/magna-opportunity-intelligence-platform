@@ -111,10 +111,17 @@ class ExternalServiceError(MOIPException):
 class RateLimitError(MOIPException):
     """Rate limit exceeded."""
 
-    def __init__(self, retry_after: int = 60):
+    def __init__(self, retry_after: int = 60, message: Optional[str] = None):
+        from app.core.formatters import format_duration_human
+
+        duration_formatted = format_duration_human(retry_after)
+        default_msg = f"Batas pemanggilan API tercapai. Silakan coba kembali dalam {duration_formatted}."
         super().__init__(
-            message="Rate limit exceeded",
+            message=message or default_msg,
             code="RATE_LIMIT_EXCEEDED",
             status_code=429,
-            details={"retry_after": retry_after},
+            details={
+                "retry_after": retry_after,
+                "retry_after_formatted": duration_formatted,
+            },
         )

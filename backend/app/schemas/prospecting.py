@@ -19,6 +19,9 @@ class LushaUsageResponse(BaseModel):
     renewal_date: Optional[str] = None
     rate_limit_per_minute: int = 40
     rate_limit_per_day: int = 100
+    rate_limit_reset_seconds: Optional[int] = None
+    rate_limit_reset_formatted: Optional[str] = None
+    error: Optional[str] = None
 
 
 class LushaSearchRequest(BaseModel):
@@ -69,6 +72,8 @@ class LushaSearchResponse(BaseModel):
     page: int = 0
     size: int = 10
     message: Optional[str] = None
+    rate_limit_reset_seconds: Optional[int] = None
+    rate_limit_reset_formatted: Optional[str] = None
 
 
 class CompanyCandidate(BaseModel):

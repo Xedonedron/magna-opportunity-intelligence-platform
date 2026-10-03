@@ -12,6 +12,12 @@ from typing import Any, Dict, List, Optional
 import httpx
 
 from app.core.config import settings
+from app.core.exceptions import RateLimitError
+from app.core.formatters import (
+    extract_rate_limit_seconds,
+    format_duration_human,
+    humanize_rate_limit_message,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +78,21 @@ class LushaService:
 
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.get(f"{LUSHA_BASE_URL}/account/usage", headers=self.headers)
+            if resp.status_code == 429:
+                reset_secs = extract_rate_limit_seconds(resp.text, dict(resp.headers)) or 3600
+                formatted = format_duration_human(reset_secs)
+                human_msg = humanize_rate_limit_message(resp.text, default_reset_seconds=reset_secs)
+                logger.warning(f"[LushaService] Rate limit exceeded on get_usage: {human_msg}")
+                return {
+                    "configured": True,
+                    "plan": "starter",
+                    "credits_remaining": 0,
+                    "credits_total": 0,
+                    "credits_used": 0,
+                    "rate_limit_reset_seconds": reset_secs,
+                    "rate_limit_reset_formatted": formatted,
+                    "error": human_msg,
+                }
             if resp.status_code != 200:
                 logger.error(f"[LushaService] Failed to get usage: {resp.status_code} - {resp.text}")
                 resp.raise_for_status()
@@ -203,6 +224,13 @@ class LushaService:
                         err_msg = f"{err_json['message']}"
                 except Exception:
                     pass
+
+                reset_secs = extract_rate_limit_seconds(resp.text, dict(resp.headers))
+                if resp.status_code == 429 or reset_secs is not None:
+                    err_msg = humanize_rate_limit_message(err_msg, default_reset_seconds=reset_secs)
+
+                duration_str = format_duration_human(reset_secs) if reset_secs is not None else None
+
                 return {
                     "success": False,
                     "total": 0,
@@ -212,6 +240,8 @@ class LushaService:
                     "page": page,
                     "size": actual_size,
                     "message": err_msg,
+                    "rate_limit_reset_seconds": reset_secs,
+                    "rate_limit_reset_formatted": duration_str,
                 }
 
             contacts_list = []
@@ -297,6 +327,13 @@ class LushaService:
             )
             if resp.status_code != 200:
                 logger.error(f"[LushaService] Contact enrichment failed: {resp.status_code} - {resp.text}")
+                if resp.status_code == 429:
+                    reset_secs = extract_rate_limit_seconds(resp.text, dict(resp.headers)) or 3600
+                    formatted = format_duration_human(reset_secs)
+                    raise RateLimitError(
+                        retry_after=reset_secs,
+                        message=f"Batas kuota API Lusha tercapai. Kuota akan di-reset dalam {formatted}."
+                    )
                 resp.raise_for_status()
 
             data = resp.json()
@@ -385,7 +422,11 @@ class LushaService:
                     json=payload,
                 )
                 if resp.status_code != 200:
-                    logger.warning(f"[LushaService] Company search returned {resp.status_code}: {resp.text}")
+                    if resp.status_code == 429:
+                        human_msg = humanize_rate_limit_message(resp.text)
+                        logger.warning(f"[LushaService] Company search rate limited: {human_msg}")
+                    else:
+                        logger.warning(f"[LushaService] Company search returned {resp.status_code}: {resp.text}")
                     return []
 
                 raw = resp.json()
