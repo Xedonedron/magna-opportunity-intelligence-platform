@@ -26,6 +26,7 @@ import {
     Save,
     Globe,
     HelpCircle,
+    Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -33,6 +34,7 @@ import { Card } from "@/components/ui/Card";
 import { api } from "@/lib/api";
 import { CreditRevealModal } from "@/components/domains/prospecting/CreditRevealModal";
 import { classifyJobTitle } from "@/lib/pillar-classifier";
+import { CreateOpportunityFromStakeholdersDialog } from "@/components/domains/stakeholders/CreateOpportunityFromStakeholdersDialog";
 
 interface CompanyCandidate {
     id?: string | null;
@@ -133,6 +135,7 @@ export default function ProspectingPage() {
     const [isRevealingCredits, setIsRevealingCredits] = useState(false);
     const [isExportingExcel, setIsExportingExcel] = useState(false);
     const [isSavingToDirectory, setIsSavingToDirectory] = useState(false);
+    const [isOpptyDialogOpen, setIsOpptyDialogOpen] = useState(false);
     const [feedbackMessage, setFeedbackMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
     // Fetch live quota from Lusha
@@ -943,6 +946,17 @@ export default function ProspectingPage() {
 
                         {/* Action Buttons */}
                         <div className="flex items-center gap-2 flex-wrap justify-end">
+                            {/* Buat Opportunity Button */}
+                            <Button
+                                onClick={() => setIsOpptyDialogOpen(true)}
+                                disabled={selectedIds.size === 0}
+                                className="h-9 text-xs font-semibold gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-xs"
+                                title="Buat entitas peluang deal outbound langsung dari kontak terpilih"
+                            >
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span>Buat Opportunity ({selectedIds.size})</span>
+                            </Button>
+
                             {/* Reveal Button */}
                             <Button
                                 onClick={handleOpenBulkReveal}
@@ -1301,6 +1315,28 @@ export default function ProspectingPage() {
                 isLoading={isRevealingCredits}
                 onConfirm={handleConfirmReveal}
             />
+
+            {/* Create Opportunity from Stakeholders Dialog */}
+            {isOpptyDialogOpen && (
+                <CreateOpportunityFromStakeholdersDialog
+                    companyId={selectedCompany?.company_id || selectedCompany?.id || undefined}
+                    companyName={selectedCompany?.name || companyQuery || "Target Enterprise"}
+                    industry={selectedCompany?.industry || null}
+                    website={domainInputValue.trim() ? (domainInputValue.startsWith("http") ? domainInputValue : `https://${domainInputValue}`) : null}
+                    selectedContacts={employees
+                        .filter((emp) => selectedIds.has(emp.id))
+                        .map((emp) => ({
+                            name: emp.name || emp.full_name || "Stakeholder",
+                            job_title: emp.job_title,
+                            department: emp.department,
+                            email: emp.email,
+                            phone: emp.phone,
+                            linkedin_url: emp.linkedin_url,
+                            is_primary: false,
+                        }))}
+                    onClose={() => setIsOpptyDialogOpen(false)}
+                />
+            )}
         </div>
     );
 }

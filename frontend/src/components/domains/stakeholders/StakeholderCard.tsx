@@ -6,41 +6,67 @@ import type { CompanyContact } from "@/types/company-contact";
 
 interface Props {
     contact: CompanyContact;
-    canEdit?: boolean;
+    canEdit: boolean;
+    selectable?: boolean;
+    isSelected?: boolean;
+    onToggleSelect?: (c: CompanyContact) => void;
     onEdit: (c: CompanyContact) => void;
     onDelete: (id: string) => void;
     onSetPrimary: (c: CompanyContact) => void;
 }
 
-export function StakeholderCard({ contact, canEdit, onEdit, onDelete, onSetPrimary }: Props) {
+export function StakeholderCard({ 
+    contact, 
+    canEdit, 
+    selectable,
+    isSelected,
+    onToggleSelect,
+    onEdit, 
+    onDelete, 
+    onSetPrimary 
+}: Props) {
     const [confirmDelete, setConfirmDelete] = useState(false);
 
     return (
         <div
-            className={`rounded-xl border p-4 bg-white dark:bg-zinc-900/70 flex flex-col justify-between ${
-                contact.is_primary
+            className={`rounded-xl border p-4 bg-white dark:bg-zinc-900/70 flex flex-col justify-between transition-all ${
+                isSelected
+                    ? "ring-2 ring-blue-500 border-blue-400 bg-blue-50/[0.04] dark:bg-blue-950/[0.15]"
+                    : contact.is_primary
                     ? "border-amber-400/60 dark:border-amber-500/40 bg-amber-500/[0.02]"
                     : "border-zinc-200 dark:border-zinc-800"
             }`}
         >
             <div>
                 <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm truncate">
-                                {contact.name}
-                            </h3>
-                            {contact.is_primary && (
-                                <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 font-medium border border-amber-300 dark:border-amber-800/60">
-                                    <Star className="w-3 h-3 fill-current" />
-                                    <span>Primary PIC</span>
-                                </span>
-                            )}
+                    <div className="min-w-0 flex-1 flex items-start gap-3">
+                        {selectable && (
+                            <div className="pt-0.5 shrink-0">
+                                <input
+                                    type="checkbox"
+                                    checked={isSelected || false}
+                                    onChange={() => onToggleSelect?.(contact)}
+                                    className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                />
+                            </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm truncate">
+                                    {contact.name}
+                                </h3>
+                                {contact.is_primary && (
+                                    <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 font-medium border border-amber-300 dark:border-amber-800/60">
+                                        <Star className="w-3 h-3 fill-current" />
+                                        <span>Primary PIC</span>
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
+                                {contact.job_title || "Posisi belum diisi"}
+                                {contact.department ? ` • ${contact.department}` : ""}
+                            </p>
                         </div>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
-                            {contact.job_title || "Posisi belum diisi"}
-                            {contact.department ? ` • ${contact.department}` : ""}
-                        </p>
                     </div>
                     {canEdit && (
                         <div className="flex items-center gap-1 shrink-0">

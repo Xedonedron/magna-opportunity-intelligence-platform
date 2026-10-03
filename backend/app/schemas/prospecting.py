@@ -237,3 +237,50 @@ class ProspectingConvertResponse(BaseModel):
     contact_id: str
     opportunity_id: str
     redirect_url: str
+
+
+# ---------------------------------------------------------------------------
+# Outbound Opportunity from Stakeholder Directory Schemas
+# ---------------------------------------------------------------------------
+
+class StakeholderOpportunityContactInput(BaseModel):
+    id: Optional[str] = None
+    name: str
+    job_title: Optional[str] = None
+    department: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    is_primary: Optional[bool] = False
+
+
+class ConvertStakeholdersToOpportunityRequest(BaseModel):
+    company_id: Optional[str] = Field(None, description="UUID of existing Company in database")
+    company_name: Optional[str] = Field(None, description="Company name if company_id is not provided")
+    industry: Optional[str] = Field(None, description="Company industry sector")
+    website: Optional[str] = Field(None, description="Company website URL")
+    contact_ids: List[str] = Field(default_factory=list, description="List of CompanyContact UUIDs saved in directory")
+    candidate_contacts: Optional[List[StakeholderOpportunityContactInput]] = Field(
+        default=None, 
+        description="Direct contacts from prospect search if not yet in DB"
+    )
+    primary_contact_id: Optional[str] = Field(None, description="UUID of primary stakeholder contact")
+    pillar: Optional[str] = Field(None, description="Target Magna solution pillar: security, data, cloud, network, or auto-detect")
+    solution_title: Optional[str] = Field(None, description="Custom solution title or recommended solution name")
+    custom_title: Optional[str] = Field(None, description="Custom deal/opportunity title")
+    pain_points: Optional[List[str]] = Field(default=None, description="Specific pain points or custom hypotheses")
+    estimated_value: Optional[float] = Field(default=0.0, description="Estimated deal value in IDR")
+    notes: Optional[str] = Field(default=None, description="Additional notes for the opportunity")
+
+
+class ConvertToOpportunityResponse(BaseModel):
+    status: str = "success"
+    message: str
+    opportunity_id: str
+    company_id: str
+    primary_contact_id: Optional[str] = None
+    contacts_count: int = 0
+    redirect_url: str
+    pillar: str
+    solution_title: str
+    opportunity_title: str

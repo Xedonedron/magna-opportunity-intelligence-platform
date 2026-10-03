@@ -38,6 +38,8 @@ from app.schemas.prospecting import (
     CompanySearchResponse,
     ExportExcelRequest,
     SaveStakeholdersRequest,
+    ConvertStakeholdersToOpportunityRequest,
+    ConvertToOpportunityResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -542,3 +544,34 @@ async def convert_to_opportunity(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Gagal mengonversi prospek ke pipeline deal: {str(e)}",
         )
+
+
+@router.post("/convert-to-opportunity", response_model=ConvertToOpportunityResponse)
+async def convert_stakeholders_to_opportunity(
+    request: ConvertStakeholdersToOpportunityRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_prospecting_user),
+):
+    """
+    Generate an active Opportunity directly from one or more Stakeholder Directory contacts,
+    associating primary PIC, key contacts list, tailored customer needs dossier,
+    and recording audit timeline events.
+    """
+    try:
+        result = prospecting_service.create_opportunity_from_stakeholders(
+            db=db,
+            req=request,
+            current_user=current_user,
+        )
+        return result
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        logger.error(f"[Convert Stakeholders Error] {e}", exc_info=True)
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Gagal membuat opportunity dari stakeholder: {str(e)}",
+        )
+

@@ -8,8 +8,10 @@ active Opportunities, Companies, and CompanyContacts in the MOIP database.
 from __future__ import annotations
 
 import logging
+import re
 import uuid
 from typing import Any, Dict, List, Optional
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func as sa_func
 
@@ -25,6 +27,8 @@ from app.schemas.prospecting import (
     OutreachCopy,
     ProspectingConvertRequest,
     ProspectingConvertResponse,
+    ConvertStakeholdersToOpportunityRequest,
+    ConvertToOpportunityResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -383,6 +387,353 @@ class ProspectingService:
             contact_id=str(contact_obj.id),
             opportunity_id=str(opportunity.id),
             redirect_url=f"/opportunities/{opportunity.id}",
+        )
+
+    @staticmethod
+    def detect_pillar_from_titles(titles: List[str]) -> str:
+        """
+        Determines the most relevant Magna solution pillar (security, data, cloud, network)
+        from a list of stakeholder job titles.
+        """
+        if not titles:
+            return "security"
+
+        scores = {"security": 0, "data": 0, "cloud": 0, "network": 0}
+
+        sec_pattern = re.compile(
+            r"\b(security|cyber|ciso|infosec|soc|siem|iam|pam|epm|privilege|pentest|penetration|vulnerability|firewall|keamanan)\b",
+            re.IGNORECASE,
+        )
+        data_pattern = re.compile(
+            r"\b(data|bigquery|vertex|analytics|bi|machine learning|ai|artificial intelligence|ml|database|dba|sql|warehouse|lakehouse|etl)\b",
+            re.IGNORECASE,
+        )
+        cloud_pattern = re.compile(
+            r"\b(cloud|nutanix|hci|vmware|aws|gcp|azure|devops|sre|site reliability|kubernetes|k8s|docker|infrastructure|infrastruktur|datacenter|sysadmin)\b",
+            re.IGNORECASE,
+        )
+        net_pattern = re.compile(
+            r"\b(network|cisco|catalyst|aruba|switching|routing|sd-wan|sdwan|lan|wan|noc|wireless|telecom|telekomunikasi|jaringan)\b",
+            re.IGNORECASE,
+        )
+
+        for title in titles:
+            if not title:
+                continue
+            lower_title = title.lower()
+            if sec_pattern.search(lower_title):
+                scores["security"] += 2
+            if data_pattern.search(lower_title):
+                if not re.search(r"\b(financial|finance|keuangan|business|bisnis|sales|penjualan)\s+analyst\b", lower_title):
+                    scores["data"] += 2
+            if cloud_pattern.search(lower_title):
+                scores["cloud"] += 2
+            if net_pattern.search(lower_title):
+                scores["network"] += 2
+
+        best_pillar = max(scores, key=lambda k: scores[k])
+        if scores[best_pillar] == 0:
+            return "security"
+        return best_pillar
+
+    @staticmethod
+    def generate_stakeholder_opportunity_dossier(
+        company_name: str,
+        pillar_key: str,
+        solution_title: str,
+        contacts: List[CompanyContact],
+        primary_contact: Optional[CompanyContact] = None,
+        custom_pain_points: Optional[List[str]] = None,
+        custom_notes: Optional[str] = None,
+    ) -> str:
+        """
+        Synthesizes a structured consultative customer_needs dossier formatted in clean markdown
+        tailored for Magna's enterprise solutions.
+        """
+        intel = PILLAR_INTELLIGENCE.get(pillar_key, PILLAR_INTELLIGENCE["security"])
+        pillar_name = intel["pillar"]
+
+        stakeholder_lines = []
+        for c in contacts:
+            is_pic = " [Primary PIC]" if primary_contact and c.id == primary_contact.id else ""
+            email_str = f" | {c.email}" if c.email else ""
+            phone_str = f" | {c.phone}" if c.phone else ""
+            title_str = c.job_title or "Stakeholder"
+            stakeholder_lines.append(f"- {c.name} ({title_str}){email_str}{phone_str}{is_pic}")
+
+        pain_points = custom_pain_points if custom_pain_points else intel.get("pain_points", [])
+        pain_points_lines = [f"- {p}" for p in pain_points]
+
+        benefits = intel.get("benefits", [])
+        benefits_lines = [f"- {b}" for b in benefits]
+
+        discovery_questions = intel.get("discovery_questions", [])
+        discovery_lines = [f"- {q}" for q in discovery_questions]
+
+        tech_stack = ", ".join(intel.get("tech_stack", []))
+
+        notes_section = ""
+        if custom_notes:
+            notes_section = f"\n## 6. Catatan Strategis & Next Step\n- {custom_notes}\n"
+
+        dossier = (
+            f"# PELUANG OUTBOUND SOLUSI MAGNA (Stakeholder Directory MOIP)\n\n"
+            f"## 1. Solusi Sasaran & Pilar\n"
+            f"- Pilar Portofolio: {pillar_name}\n"
+            f"- Target Solusi: {solution_title}\n"
+            f"- Kategori: Enterprise Outbound Opportunity\n"
+            f"- Referensi Tech Stack: {tech_stack}\n\n"
+            f"## 2. Pemangku Kepentingan Utama (Key Stakeholders)\n"
+            f"{chr(10).join(stakeholder_lines)}\n\n"
+            f"## 3. Analisis Kebutuhan & Hipotesis Masalah\n"
+            f"{chr(10).join(pain_points_lines)}\n\n"
+            f"## 4. Value Proposition & Manfaat Bisnis Solusi Magna\n"
+            f"{chr(10).join(benefits_lines)}\n\n"
+            f"## 5. Pertanyaan Kunci Discovery Awal (Sales Probing)\n"
+            f"{chr(10).join(discovery_lines)}\n"
+            f"{notes_section}"
+        )
+        return dossier
+
+    def create_opportunity_from_stakeholders(
+        self,
+        db: Session,
+        req: ConvertStakeholdersToOpportunityRequest,
+        current_user: User,
+    ) -> ConvertToOpportunityResponse:
+        """
+        Creates an active Opportunity from one or more Stakeholder Directory contacts,
+        associating primary PIC, key contacts list, tailored customer needs dossier,
+        and recording audit timeline events.
+        """
+        # 1. Resolve Company
+        company: Optional[Company] = None
+        if req.company_id:
+            try:
+                comp_uuid = uuid.UUID(req.company_id)
+                company = db.query(Company).filter(Company.id == comp_uuid).first()
+            except (ValueError, TypeError):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Format company_id tidak valid: {req.company_id}",
+                )
+            if not company:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Perusahaan dengan ID {req.company_id} tidak ditemukan.",
+                )
+        elif req.company_name and req.company_name.strip():
+            raw_name = req.company_name.strip()
+            norm_name = compute_normalized_name(raw_name)
+            company = (
+                db.query(Company)
+                .filter(
+                    (sa_func.lower(Company.name) == raw_name.lower())
+                    | (Company.normalized_name == norm_name)
+                )
+                .first()
+            )
+            if not company:
+                company = Company(
+                    name=raw_name,
+                    normalized_name=norm_name,
+                    industry=req.industry,
+                    website=req.website,
+                )
+                db.add(company)
+                db.flush()
+                logger.info(f"[Prospecting] Created new company from stakeholders: {company.name} ({company.id})")
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="company_id atau company_name wajib disediakan.",
+            )
+
+        # 2. Resolve Contacts
+        resolved_contacts: List[CompanyContact] = []
+        seen_contact_ids = set()
+
+        if req.contact_ids:
+            for cid in req.contact_ids:
+                try:
+                    c_uuid = uuid.UUID(cid)
+                except (ValueError, TypeError):
+                    continue
+                contact = (
+                    db.query(CompanyContact)
+                    .filter(CompanyContact.id == c_uuid, CompanyContact.company_id == company.id)
+                    .first()
+                )
+                if contact and contact.id not in seen_contact_ids:
+                    seen_contact_ids.add(contact.id)
+                    resolved_contacts.append(contact)
+
+        if req.candidate_contacts:
+            for cand in req.candidate_contacts:
+                existing = None
+                if cand.id:
+                    try:
+                        cand_uuid = uuid.UUID(cand.id)
+                        existing = (
+                            db.query(CompanyContact)
+                            .filter(CompanyContact.id == cand_uuid, CompanyContact.company_id == company.id)
+                            .first()
+                        )
+                    except (ValueError, TypeError):
+                        pass
+                if not existing and cand.email:
+                    existing = (
+                        db.query(CompanyContact)
+                        .filter(
+                            CompanyContact.company_id == company.id,
+                            sa_func.lower(CompanyContact.email) == cand.email.strip().lower(),
+                        )
+                        .first()
+                    )
+                if not existing and cand.name:
+                    existing = (
+                        db.query(CompanyContact)
+                        .filter(
+                            CompanyContact.company_id == company.id,
+                            sa_func.lower(CompanyContact.name) == cand.name.strip().lower(),
+                        )
+                        .first()
+                    )
+
+                if existing:
+                    if existing.id not in seen_contact_ids:
+                        seen_contact_ids.add(existing.id)
+                        resolved_contacts.append(existing)
+                else:
+                    new_contact = CompanyContact(
+                        company_id=company.id,
+                        name=cand.name.strip(),
+                        job_title=cand.job_title,
+                        department=cand.department,
+                        email=cand.email,
+                        phone=cand.phone,
+                        linkedin_url=cand.linkedin_url,
+                        is_primary=bool(cand.is_primary),
+                        notes="Ditambahkan via Outbound Opportunity Generation",
+                    )
+                    db.add(new_contact)
+                    db.flush()
+                    seen_contact_ids.add(new_contact.id)
+                    resolved_contacts.append(new_contact)
+
+        if not resolved_contacts:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Setidaknya satu kontak stakeholder yang valid harus dipilih untuk membuat opportunity.",
+            )
+
+        # 3. Resolve Primary Contact
+        primary_contact: Optional[CompanyContact] = None
+        if req.primary_contact_id:
+            for c in resolved_contacts:
+                if str(c.id) == req.primary_contact_id:
+                    primary_contact = c
+                    break
+
+        if not primary_contact:
+            for c in resolved_contacts:
+                if c.is_primary:
+                    primary_contact = c
+                    break
+
+        if not primary_contact:
+            primary_contact = resolved_contacts[0]
+
+        # 4. Pillar & Solution Matching
+        titles = [c.job_title or "" for c in resolved_contacts]
+        pillar_key = req.pillar.lower() if req.pillar and req.pillar.lower() in PILLAR_INTELLIGENCE else self.detect_pillar_from_titles(titles)
+        intel = PILLAR_INTELLIGENCE.get(pillar_key, PILLAR_INTELLIGENCE["security"])
+        solution_title = req.solution_title.strip() if req.solution_title and req.solution_title.strip() else intel["solution"]
+        opp_title = (
+            req.custom_title.strip()
+            if req.custom_title and req.custom_title.strip()
+            else f"[{solution_title}] - {company.name}"
+        )
+
+        # 5. Build Customer Needs Dossier
+        customer_needs = self.generate_stakeholder_opportunity_dossier(
+            company_name=company.name,
+            pillar_key=pillar_key,
+            solution_title=solution_title,
+            contacts=resolved_contacts,
+            primary_contact=primary_contact,
+            custom_pain_points=req.pain_points,
+            custom_notes=req.notes,
+        )
+
+        # 6. Build Contacts JSON
+        contacts_json = [
+            {
+                "id": str(c.id),
+                "name": c.name,
+                "job_title": c.job_title,
+                "department": c.department,
+                "email": c.email,
+                "phone": c.phone,
+                "linkedin_url": c.linkedin_url,
+                "is_primary": (c.id == primary_contact.id),
+            }
+            for c in resolved_contacts
+        ]
+
+        # 7. Create Opportunity
+        opportunity = Opportunity(
+            company_id=company.id,
+            primary_contact_id=primary_contact.id,
+            company_name=company.name,
+            contact_name=primary_contact.name,
+            email=primary_contact.email,
+            phone=primary_contact.phone,
+            website=company.website,
+            industry=company.industry,
+            product=solution_title,
+            customer_needs=customer_needs,
+            additional_notes=(
+                req.notes
+                if req.notes
+                else f"Pilar: {intel['pillar']}. Terhubung dengan {len(resolved_contacts)} kontak stakeholder direktori."
+            ),
+            potential_revenue=req.estimated_value or 0.0,
+            status="New",
+            created_by=current_user.id,
+            contacts=contacts_json,
+        )
+        db.add(opportunity)
+        db.flush()
+
+        # 8. Record Timeline Event
+        timeline = TimelineEvent(
+            opportunity_id=opportunity.id,
+            actor_id=current_user.id,
+            actor_name=current_user.full_name or "Consultant",
+            action="Outbound Opportunity Created",
+            description=(
+                f"Peluang outbound berhasil dibuat untuk {company.name} dengan target solusi {solution_title}. "
+                f"Terhubung dengan {len(resolved_contacts)} stakeholder (Primary PIC: {primary_contact.name})."
+            ),
+            event_type="create",
+        )
+        db.add(timeline)
+
+        db.commit()
+        db.refresh(opportunity)
+
+        return ConvertToOpportunityResponse(
+            status="success",
+            message=f"Peluang '{opportunity.company_name}' berhasil dibuat dan terhubung ke {len(resolved_contacts)} stakeholder.",
+            opportunity_id=str(opportunity.id),
+            company_id=str(company.id),
+            primary_contact_id=str(primary_contact.id),
+            contacts_count=len(resolved_contacts),
+            redirect_url=f"/opportunities/{opportunity.id}",
+            pillar=intel["pillar"],
+            solution_title=solution_title,
+            opportunity_title=opp_title,
         )
 
 

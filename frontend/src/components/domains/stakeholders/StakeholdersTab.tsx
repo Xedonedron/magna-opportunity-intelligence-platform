@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, User, Building, Download, FileSpreadsheet, Loader2 } from "lucide-react";
+import { Plus, User, Building, FileSpreadsheet, Loader2, Sparkles, CheckSquare, Square } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { api } from "@/lib/api";
-import { toast } from "sonner";
+import { StakeholderCard } from "./StakeholderCard";
+import { StakeholderFormDialog } from "./StakeholderFormDialog";
+import { CreateOpportunityFromStakeholdersDialog } from "./CreateOpportunityFromStakeholdersDialog";
 import {
     useCompanyContacts,
     useDeleteCompanyContact,
     useUpdateCompanyContact,
 } from "@/hooks/use-company-contacts";
-import { StakeholderFormDialog } from "./StakeholderFormDialog";
-import { StakeholderCard } from "./StakeholderCard";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 import type { CompanyContact } from "@/types/company-contact";
 
 interface StakeholdersTabProps {
@@ -35,13 +36,37 @@ export function StakeholdersTab({
     );
     const [isExporting, setIsExporting] = useState(false);
 
+    // Multi-selection for Opportunity generation
+    const [selectedContactIds, setSelectedContactIds] = useState<Set<string>>(new Set());
+    const [isOpptyDialogOpen, setIsOpptyDialogOpen] = useState(false);
+
     const contacts = data?.items || [];
+
+    const handleToggleSelect = (contact: CompanyContact) => {
+        setSelectedContactIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(contact.id)) {
+                next.delete(contact.id);
+            } else {
+                next.add(contact.id);
+            }
+            return next;
+        });
+    };
+
+    const handleToggleSelectAll = () => {
+        if (selectedContactIds.size === contacts.length) {
+            setSelectedContactIds(new Set());
+        } else {
+            setSelectedContactIds(new Set(contacts.map((c) => c.id)));
+        }
+    };
 
     const handleExportExcel = async () => {
         if (!companyId) return;
         setIsExporting(true);
         try {
-            const res = await api.get(`/companies/${companyId}/contacts/export-excel`, {
+            const res = await api.get(`/api/companies/${companyId}/contacts/export-excel`, {
                 responseType: "blob",
             });
             const blobUrl = window.URL.createObjectURL(new Blob([res.data]));
@@ -122,21 +147,53 @@ export function StakeholdersTab({
                 </div>
                 <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
                     {contacts.length > 0 && (
-                        <Button
-                            onClick={handleExportExcel}
-                            disabled={isExporting}
-                            variant="secondary"
-                            size="sm"
-                            className="flex items-center gap-1.5 border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
-                            title="Unduh seluruh kontak stakeholder perusahaan ini ke format Excel (.xlsx)"
-                        >
-                            {isExporting ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                                <FileSpreadsheet className="w-3.5 h-3.5" />
+                        <>
+                            <Button
+                                onClick={handleToggleSelectAll}
+                                variant="secondary"
+                                size="sm"
+                                className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-300"
+                                title={selectedContactIds.size === contacts.length ? "Batalkan semua pilihan" : "Pilih semua kontak"}
+                            >
+                                {selectedContactIds.size === contacts.length && contacts.length > 0 ? (
+                                    <CheckSquare className="w-3.5 h-3.5 text-blue-600" />
+                                ) : (
+                                    <Square className="w-3.5 h-3.5 text-zinc-400" />
+                                )}
+                                <span>
+                                    {selectedContactIds.size > 0
+                                        ? `${selectedContactIds.size}/${contacts.length} Terpilih`
+                                        : "Pilih Semua"}
+                                </span>
+                            </Button>
+
+                            {selectedContactIds.size > 0 && (
+                                <Button
+                                    onClick={() => setIsOpptyDialogOpen(true)}
+                                    size="sm"
+                                    className="flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm"
+                                >
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                    <span>Buat Opportunity ({selectedContactIds.size})</span>
+                                </Button>
                             )}
-                            <span>Unduh Excel</span>
-                        </Button>
+
+                            <Button
+                                onClick={handleExportExcel}
+                                disabled={isExporting}
+                                variant="secondary"
+                                size="sm"
+                                className="flex items-center gap-1.5 border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                                title="Unduh seluruh kontak stakeholder perusahaan ini ke format Excel (.xlsx)"
+                            >
+                                {isExporting ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                    <FileSpreadsheet className="w-3.5 h-3.5" />
+                                )}
+                                <span>Unduh Excel</span>
+                            </Button>
+                        </>
                     )}
                     {canEdit && (
                         <Button
@@ -187,6 +244,9 @@ export function StakeholdersTab({
                             key={c.id}
                             contact={c}
                             canEdit={canEdit}
+                            selectable={true}
+                            isSelected={selectedContactIds.has(c.id)}
+                            onToggleSelect={() => handleToggleSelect(c)}
                             onEdit={handleOpenEdit}
                             onDelete={handleDelete}
                             onSetPrimary={handleSetPrimary}
@@ -200,6 +260,15 @@ export function StakeholdersTab({
                     companyId={companyId}
                     contact={editingContact}
                     onClose={() => setIsDialogOpen(false)}
+                />
+            )}
+
+            {isOpptyDialogOpen && (
+                <CreateOpportunityFromStakeholdersDialog
+                    companyId={companyId}
+                    companyName={companyName || "Perusahaan"}
+                    selectedContacts={contacts.filter((c) => selectedContactIds.has(c.id))}
+                    onClose={() => setIsOpptyDialogOpen(false)}
                 />
             )}
         </div>

@@ -96,33 +96,33 @@ Sistem secara otomatis mendeteksi pilar solusi berdasarkan jabatan kontak dan me
 ## 4. Rincian Checklist Implementasi
 
 ### Fase 1: Backend Data Contracts & Logic
-- [ ] Buat schema Pydantic `ConvertStakeholdersToOpportunityRequest` dan `ConvertToOpportunityResponse` di `backend/app/schemas/prospecting.py`.
-- [ ] Tambahkan utilitas helper pendeteksi pilar otomatis berbasis kata kunci jabatan di `backend/app/services/prospecting_service.py`.
-- [ ] Buat service method `create_opportunity_from_stakeholders(...)` di `backend/app/services/prospecting_service.py` yang menangani:
+- [x] Buat schema Pydantic `ConvertStakeholdersToOpportunityRequest` dan `ConvertToOpportunityResponse` di `backend/app/schemas/prospecting.py`.
+- [x] Tambahkan utilitas helper pendeteksi pilar otomatis berbasis kata kunci jabatan di `backend/app/services/prospecting_service.py`.
+- [x] Buat service method `create_opportunity_from_stakeholders(...)` di `backend/app/services/prospecting_service.py` yang menangani:
   - Validasi keberadaan kontak dan perusahaan.
   - Konstruksi teks hipotesis `customer_needs` terstruktur.
   - Pembuatan record `Opportunity` dan asosiasi kontak.
   - Pencatatan timeline audit event.
-- [ ] Buat endpoint API `POST /api/prospecting/convert-to-opportunity` di `backend/app/api/prospecting.py`.
+- [x] Buat endpoint API `POST /api/prospecting/convert-to-opportunity` di `backend/app/api/prospecting.py`.
 
 ### Fase 2: Frontend Stakeholder Directory & Modal
-- [ ] Tambahkan checkbox selection pada baris kontak di komponen Stakeholder Directory (`frontend/src/app/(main)/companies/[id]` atau komponen terkait).
-- [ ] Buat aksi toolbar / bulk action button `Generate Opportunity Pitch`.
-- [ ] Buat dialog modal `GenerateOpportunityModal.tsx`:
+- [x] Tambahkan checkbox selection pada baris kontak di komponen Stakeholder Directory (`frontend/src/app/(main)/companies/[id]` atau komponen terkait).
+- [x] Buat aksi toolbar / bulk action button `Generate Opportunity Pitch`.
+- [x] Buat dialog modal `GenerateOpportunityModal.tsx`:
   - Menampilkan ringkasan kontak terpilih.
   - Dropdown pemilihan pilar solusi (Data Analytics & AI, Network, Security, Cloud).
   - Textarea preview `customer_needs` yang otomatis terisi template dan bisa diedit manual.
   - Input opsional nilai estimasi deal (`potential_revenue`).
   - Tombol submit `Create Opportunity`.
-- [ ] Integrasikan mutation API frontend ke endpoint `POST /api/prospecting/convert-to-opportunity`.
-- [ ] Tambahkan redirect atau notifikasi sukses yang mengarahkan user langsung ke halaman detail Opportunity yang baru terbentuk (`/opportunities/[new_id]`).
+- [x] Integrasikan mutation API frontend ke endpoint `POST /api/prospecting/convert-to-opportunity`.
+- [x] Tambahkan redirect atau notifikasi sukses yang mengarahkan user langsung ke halaman detail Opportunity yang baru terbentuk (`/opportunities/[new_id]`).
 
 ### Fase 3: Integrasi Downstream AI & Folder Asset
-- [ ] Pastikan generator KYC dapat membaca teks hipotesis `customer_needs` tanpa error saat status Opportunity masih `New`.
-- [ ] Pastikan folder penyimpanan dokumen opportunity di-generate secara otomatis saat record Opportunity tersimpan.
-- [ ] Verifikasi bahwa outreach copy (Email, WhatsApp, LinkedIn) langsung tersedia di tab komunikasi Opportunity.
+- [x] Pastikan generator KYC dapat membaca teks hipotesis `customer_needs` tanpa error saat status Opportunity masih `New`.
+- [x] Pastikan folder penyimpanan dokumen opportunity di-generate secara otomatis saat record Opportunity tersimpan.
+- [x] Verifikasi bahwa outreach copy (Email, WhatsApp, LinkedIn) langsung tersedia di tab komunikasi Opportunity.
 
 ### Fase 4: Pengujian & Validasi
-- [ ] Unit Test Backend: Tes deteksi pilar berdasarkan berbagai variasi varian kata kunci job title (Data Analyst -> Data, CISO -> Security, Cloud Architect -> Cloud).
-- [ ] Unit Test Backend: Tes pembuatan Opportunity dari kontak tanpa error, verifikasi keterkaitan `company_id` dan `primary_contact_id`.
-- [ ] E2E Flow Test: Jalankan alur dari pencarian perusahaan -> simpan kontak ke directory -> generate opportunity -> verifikasi record di DB dan kelengkapan field konteks AI.
+- [x] Unit Test Backend: Tes deteksi pilar berdasarkan berbagai variasi varian kata kunci job title (Data Analyst -> Data, CISO -> Security, Cloud Architect -> Cloud).
+- [x] Unit Test Backend: Tes pembuatan Opportunity dari kontak tanpa error, verifikasi keterkaitan `company_id` dan `primary_contact_id`.
+- [x] E2E Flow Test: Jalankan alur dari pencarian perusahaan -> simpan kontak ke directory -> generate opportunity -> verifikasi record di DB dan kelengkapan field konteks AI.
