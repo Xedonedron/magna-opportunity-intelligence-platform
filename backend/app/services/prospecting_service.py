@@ -33,91 +33,200 @@ from app.schemas.prospecting import (
 
 logger = logging.getLogger(__name__)
 
-# Catalog and domain intelligence mapping for Magna Solutions
+# ---------------------------------------------------------------------------
+# Magna Solutions Catalog & Domain Intelligence Mapping
+# Grounded to the 8 official solutions in DEFAULT_TARGET_SOLUTIONS and solutions_catalog.py
+# ---------------------------------------------------------------------------
+
+TARGET_SOLUTIONS_CATALOG: Dict[str, Dict[str, Any]] = {
+    "Data Analytics Platform": {
+        "pillar": "Data Analytics & AI",
+        "pillar_key": "data",
+        "solution": "Data Analytics Platform",
+        "tech_stack": ["Google BigQuery", "Databricks", "Dataflow", "Cloud Composer", "Looker", "dbt"],
+        "pain_points": [
+            "Silo data lintas departemen yang menghambat terciptanya Single Source of Truth bagi manajemen.",
+            "Proses ETL/data ingestion lambat dan query pelaporan BI yang lamban pada volume data transaksi besar.",
+            "Tingginya biaya operasional data warehouse legacy on-premise tanpa kemampuan auto-scaling.",
+        ],
+        "benefits": [
+            "Konsolidasi data lakehouse modern dengan kecepatan query analitik real-time berbasis serverless BigQuery.",
+            "Reduksi waktu pembuatan pipeline data analitik dari berminggu-minggu menjadi hitungan jam dengan dbt & Dataflow.",
+            "Efisiensi TCO storage dan komputasi analitik hingga 40% dengan arsitektur decoupled storage-compute.",
+        ],
+        "discovery_questions": [
+            "Bagaimana arsitektur data warehouse Anda saat ini menangani lonjakan volume data transaksi harian?",
+            "Berapa lama rata-rata waktu yang dibutuhkan untuk menyajikan dashboard laporan baru ke tim bisnis?",
+            "Apakah tim saat ini mengalami tantangan silo data antar sistem operasional dan analitik?",
+        ],
+    },
+    "AI/ML Solutions": {
+        "pillar": "Data Analytics & AI",
+        "pillar_key": "data",
+        "solution": "AI/ML Solutions",
+        "tech_stack": ["Google Vertex AI", "Gemini Enterprise", "BigQuery ML", "AutoML", "Document AI"],
+        "pain_points": [
+            "Kesulitan mengintegrasikan model machine learning ke sistem produksi bisnis yang berjalan secara aman.",
+            "Proses ekstraksi dokumen & verifikasi data manual (seperti KYC, invoice, PO) yang memakan waktu dan rentan human error.",
+            "Kekhawatiran keamanan dan kepatuhan privasi data perusahaan saat mengadopsi AI generatif.",
+        ],
+        "benefits": [
+            "Akselerasi deployment model ML enterprise dengan platform MLOps terkelola penuh di Vertex AI.",
+            "Otomatisasi pengolahan dokumen bisnis dengan akurasi tinggi menggunakan Document AI & multimodal Gemini.",
+            "Pemanfaatan model AI privat dengan kepatuhan penuh terhadap data sovereignty dan enterprise governance.",
+        ],
+        "discovery_questions": [
+            "Proses bisnis apa di perusahaan Anda yang saat ini masih sangat bergantung pada pemrosesan dokumen manual?",
+            "Bagaimana rencana atau inisiatif adopsi Generative AI di divisi Anda dalam 6-12 bulan ke depan?",
+            "Apakah tim data science Anda menghadapi kendala infrastruktur saat melakukan training dan deployment model ML?",
+        ],
+    },
+    "Google Workspace (GWS)": {
+        "pillar": "Network & Enterprise Workplace",
+        "pillar_key": "network",
+        "solution": "Google Workspace (GWS)",
+        "tech_stack": ["Google Workspace Enterprise", "Gmail Enterprise", "Google Drive DLP", "Google Meet", "Gemini for Workspace", "Google Vault"],
+        "pain_points": [
+            "Sistem email legacy (Zimbra/on-premise Exchange) yang sering mengalami downtime, spam tinggi, dan biaya maintenance server besar.",
+            "Tantangan kolaborasi real-time dan sharing dokumen antar karyawan di era kerja hybrid yang belum tersentralisasi aman.",
+            "Risiko kebocoran data sensitif perusahaan saat dikirim via email atau media penyimpanan cloud pihak ketiga tanpa proteksi DLP.",
+        ],
+        "benefits": [
+            "Jaminan 99.9% uptime SLA tanpa maintenance downtime berkala dengan proteksi anti-spam & phishing AI terdepan.",
+            "Peningkatan produktivitas kolaborasi hingga 171 jam per karyawan per tahun melalui integrasi Google Docs, Sheets, Meet, dan Gemini AI.",
+            "Tata kelola kepatuhan dan audit retensi data terpusat menggunakan Google Vault dan Data Loss Prevention (DLP).",
+        ],
+        "discovery_questions": [
+            "Platform email dan produktivitas apa yang digunakan organisasi saat ini, dan apakah ada kendala reliabilitas atau spam?",
+            "Apakah ada rencana modernisasi atau migrasi dari platform email on-premise (Zimbra/Exchange) ke cloud?",
+            "Bagaimana mekanisme perusahaan saat ini dalam mencegah kebocoran dokumen sensitif dan memenuhi audit retensi data?",
+        ],
+    },
+    "Google Maps Platform (GMaps)": {
+        "pillar": "Cloud Infrastructure & Modernization",
+        "pillar_key": "cloud",
+        "solution": "Google Maps Platform (GMaps)",
+        "tech_stack": ["Google Maps Platform", "Routes API & Fleet Engine", "Places API", "Geocoding API", "Distance Matrix API", "Location Intelligence"],
+        "pain_points": [
+            "Inakurasi perhitungan rute, estimasi waktu tiba (ETA), dan rute logistik armada pengiriman yang memboroskan bahan bakar dan waktu.",
+            "Tingginya kegagalan pengiriman akibat salah alamat atau validasi lokasi titik pengantaran pelanggan yang tidak presisi.",
+            "Kurangnya visibilitas visual real-time terhadap sebaran aset, outlet cabang, atau armada kendaraan di lapangan.",
+        ],
+        "benefits": [
+            "Optimalisasi rute armada multi-stop dengan Google Fleet Engine & Routes API, memangkas biaya bahan bakar hingga 15-20%.",
+            "Peningkatan akurasi verifikasi alamat hingga 99% menggunakan Places Autocomplete & Geocoding global terakurat.",
+            "Dashboard location intelligence real-time untuk pemantauan pergerakan armada dan performa SLA pengiriman.",
+        ],
+        "discovery_questions": [
+            "Bagaimana aplikasi Anda saat ini memvalidasi alamat pelanggan atau menentukan titik penjemputan/pengantaran?",
+            "Apakah tim logistik/operasional menghadapi kendala dalam optimasi rute armada pengiriman multi-titik?",
+            "Apakah akurasi estimasi waktu tiba (ETA) saat ini menjadi faktor penting dalam kepuasan pelanggan atau SLA operasional Anda?",
+        ],
+    },
+    "Cloud Infrastructure (GCP)": {
+        "pillar": "Cloud Infrastructure & Modernization",
+        "pillar_key": "cloud",
+        "solution": "Cloud Infrastructure (GCP)",
+        "tech_stack": ["Google Cloud Platform (GCP)", "Google Kubernetes Engine (GKE)", "Cloud Run", "Anthos Hybrid", "Cloud Spanner", "Cloud Storage"],
+        "pain_points": [
+            "Infrastruktur on-premise yang kaku dan sulit diskalakan saat terjadi lonjakan traffic aplikasi secara tiba-tiba.",
+            "Tingginya biaya lisensi software infrastruktur legacy dan lambatnya siklus rilis fitur aplikasi baru.",
+            "Kompleksitas operasional pengelolaan cluster Kubernetes mandiri tanpa managed service yang andal.",
+        ],
+        "benefits": [
+            "Skalabilitas elastis otomatis dengan Google Kubernetes Engine (GKE) untuk mengakomodasi jutaan concurrent users.",
+            "Percepatan time-to-market deployment aplikasi modern berbasis serverless Cloud Run dan CI/CD cloud native.",
+            "Efisiensi biaya komputasi dengan sustained use discounts dan komitmen resource fleksibel di Google Cloud.",
+        ],
+        "discovery_questions": [
+            "Bagaimana infrastruktur aplikasi utama Anda saat ini menangani lonjakan traffic di momen puncak transaksi?",
+            "Apakah perusahaan memiliki rencana modernisasi aplikasi menuju microservices atau migrasi ke platform public cloud?",
+            "Berapa lama siklus rilis fitur aplikasi dari tahap development hingga masuk ke tahap live production saat ini?",
+        ],
+    },
+    "Enterprise Server & Compute": {
+        "pillar": "Cloud Infrastructure & Modernization",
+        "pillar_key": "cloud",
+        "solution": "Enterprise Server & Compute",
+        "tech_stack": ["Dell PowerEdge Servers", "HPE ProLiant", "Nutanix Cloud Platform (HCI)", "VMware vSphere Modernization", "SAN/NAS Enterprise Storage"],
+        "pain_points": [
+            "Server fisik data center eksisting yang mendekati End-of-Life (EoL) dengan biaya maintenance kontrak tahunan yang melonjak.",
+            "Kenaikan drastis biaya lisensi virtualisasi legacy setelah perubahan skema lisensi vendor.",
+            "Keterbatasan kapasitas compute dan storage on-premise untuk memenuhi regulasi data residency lokal.",
+        ],
+        "benefits": [
+            "Modernisasi data center menggunakan Hyperconverged Infrastructure (HCI) yang memangkas footprint rak server dan konsumsi listrik.",
+            "Alternatif virtualisasi enterprise bebas kenaikan lisensi agresif dengan Nutanix AHV yang teruji performanya.",
+            "Kinerja komputasi tinggi generasi terbaru Dell/HPE dengan dukungan garansi dan SLA enterprise lokal 24/7.",
+        ],
+        "discovery_questions": [
+            "Kapan siklus hardware refresh server dan storage data center Anda berikutnya direncanakan?",
+            "Bagaimana dampak perubahan skema lisensi virtualisasi legacy terhadap anggaran IT perusahaan Anda?",
+            "Apakah ada kebutuhan mempertahankan workload tertentu di data center lokal untuk mematuhi regulasi data sovereignty?",
+        ],
+    },
+    "Cybersecurity Suite": {
+        "pillar": "Cybersecurity Suite",
+        "pillar_key": "security",
+        "solution": "Cybersecurity Suite",
+        "tech_stack": ["BeyondTrust Privileged Access Management (PAM)", "BeyondTrust Endpoint Privilege Management (EPM)", "Palo Alto Networks NGFW", "Fortinet Security Fabric", "Chronicle SIEM / Managed SOC"],
+        "pain_points": [
+            "Blindspot keamanan pada pengelolaan akun privilese (root, admin, vendor eksternal) yang berisiko disalahgunakan.",
+            "Kebutuhan mendesak memenuhi standar kepatuhan regulasi perlindungan data pribadi (UU PDP, OJK, ISO 27001).",
+            "Kelelahan tim security (alert fatigue) akibat banyaknya notifikasi ancaman tanpa korelasi dan respons otomatis.",
+        ],
+        "benefits": [
+            "Eliminasi credential sharing dan penegakan prinsip Least Privilege secara ketat dengan BeyondTrust PAM/EPM.",
+            "Deteksi dan respons ancaman siber berbasis AI dengan visibilitas telemetri komprehensif 24/7.",
+            "Laporan audit kepatuhan otomatis yang siap diaudit untuk regulasi OJK, Bank Indonesia, dan UU PDP.",
+        ],
+        "discovery_questions": [
+            "Bagaimana mekanisme tim Anda saat ini dalam mengontrol dan merekam aktivitas akses pengguna dengan hak privilese tinggi?",
+            "Bagaimana kesiapan infrastruktur IT perusahaan Anda dalam memenuhi persyaratan audit UU Perlindungan Data Pribadi (PDP)?",
+            "Berapa rata-rata waktu yang dibutuhkan untuk mendeteksi dan mengisolasi potensi insiden keamanan siber saat ini?",
+        ],
+    },
+    "Network Solutions": {
+        "pillar": "Network & Enterprise Workplace",
+        "pillar_key": "network",
+        "solution": "Network Solutions",
+        "tech_stack": ["Cisco Catalyst / Meraki", "Aruba CX Enterprise Switching", "HPE Aruba Wi-Fi 6/6E", "Fortinet Secure SD-WAN", "Network Monitoring"],
+        "pain_points": [
+            "Latensi tinggi dan kualitas konektivitas tidak stabil antar kantor cabang dengan data center/cloud.",
+            "Tingginya biaya leased line konvensional tanpa adanya load balancing cerdas antar penyedia bandwidth.",
+            "Kompleksitas manajemen perangkat switch, router, dan access point yang tersebar di banyak lokasi cabang.",
+        ],
+        "benefits": [
+            "Optimasi performa aplikasi bisnis cabang dengan Intelligent Dynamic Path Steering melalui SD-WAN.",
+            "Penyederhanaan manajemen jaringan cabang melalui Cloud-Managed Networking dengan konfigurasi Zero-Touch Provisioning.",
+            "Infrastruktur Wi-Fi 6 enterprise berkecepatan tinggi dengan segmentasi akses aman untuk karyawan dan tamu.",
+        ],
+        "discovery_questions": [
+            "Bagaimana performa konektivitas jaringan kantor cabang ke aplikasi sentral saat ini, apakah sering mengalami keluhan latensi?",
+            "Berapa lama waktu yang dibutuhkan tim jaringan untuk setup dan online-kan perangkat jaringan di cabang baru?",
+            "Apakah alokasi bandwidth jaringan Anda saat ini sudah bisa memprioritaskan aplikasi transaksi kritis secara otomatis?",
+            "Bagaimana visibilitas tim IT Anda terhadap anomali performa jaringan dan status perangkat di seluruh kantor cabang secara real-time?",
+        ],
+    },
+}
+
+# Legacy pillar key mapping for backwards compatibility with existing dossiers and tests
 PILLAR_INTELLIGENCE: Dict[str, Dict[str, Any]] = {
     "network": {
-        "pillar": "Network & Enterprise Workplace",
-        "solution": "Automated SD-WAN & Enterprise Campus Network Infrastructure",
-        "tech_stack": ["Cisco Catalyst / SD-WAN", "Aruba CX", "Fortinet Secure SD-WAN", "HPE Networking"],
-        "pain_points": [
-            "Kompleksitas routing multi-cabang & latensi tinggi pada aplikasi perbankan/ERP sentral.",
-            "Tingginya OPEX leased line konvensional dengan manajemen alokasi bandwidth yang belum tersentralisasi.",
-            "Visibilitas SLA jaringan antar cabang minim saat terjadi insiden packet loss atau failover lambat.",
-        ],
-        "benefits": [
-            "Reduksi biaya sirkuit leased-line hingga 35-40% dengan intelligent dynamic path steering.",
-            "Penerapan zero-touch provisioning untuk ekspansi titik cabang baru dalam hitungan jam.",
-            "Single-pane-of-glass dashboard monitoring real-time untuk SLA dan utilisasi aplikasi kritis.",
-        ],
-        "discovery_questions": [
-            "Berapa rata-rata Mean Time to Resolution (MTTR) tim network ketika terjadi gangguan link di kantor cabang?",
-            "Bagaimana rencana modernisasi WAN saat ini dalam mengimbangi adopsi aplikasi cloud & hybrid?",
-            "Apakah alokasi bandwidth saat ini sudah bisa memprioritaskan traffic transaksi kritikal secara otomatis?",
-            "Apa tantangan utama terkait manajemen SLA dengan provider telco saat ini?",
-        ],
+        **TARGET_SOLUTIONS_CATALOG["Network Solutions"],
+        "solution": "SD-WAN & Modern Network Infrastructure",
     },
     "security": {
-        "pillar": "Cybersecurity Suite",
-        "solution": "Zero-Trust Architecture & AI-Driven Managed SOC Defense",
-        "tech_stack": ["Palo Alto Networks NGFW", "CrowdStrike Falcon EDR", "Fortinet Security Fabric", "Splunk SIEM"],
-        "pain_points": [
-            "Kebutuhan kepatuhan ketat regulasi perlindungan data (UU PDP & regulasi OJK) pada infrastruktur perbankan.",
-            "Kelelahan audit & alert fatigue pada tim security akibat ribuan log insiden tanpa korelasi AI.",
-            "Blindspot keamanan pada hak akses privilese pihak ketiga (vendor & partner eksternal).",
-        ],
-        "benefits": [
-            "Pencegahan ancaman ransomware real-time dengan Mean Time to Detect (MTTD) di bawah 15 menit.",
-            "Otomatisasi laporan kepatuhan regulasi OJK/BI/PDP guna mempermudah audit internal berkala.",
-            "Konsolidasi postur keamanan multi-cabang dan data center dalam arsitektur Zero Trust terpadu.",
-        ],
-        "discovery_questions": [
-            "Bagaimana strategi tim saat ini dalam memastikan kepatuhan regulasi PDP dan mitigasi risiko kebocoran data?",
-            "Berapa lama waktu yang dibutuhkan tim SOC saat ini dari deteksi hingga isolasi insiden malware/ransomware?",
-            "Apakah saat ini sudah ada mekanisme segmentasi mikro untuk mengisolasi traffic transaksi sensitif?",
-            "Bagaimana visibilitas tim terhadap anomali aktivitas pengguna dengan hak akses privileged saat ini?",
-        ],
+        **TARGET_SOLUTIONS_CATALOG["Cybersecurity Suite"],
+        "solution": "Zero-Trust Security & Privileged Access Management",
     },
     "cloud": {
-        "pillar": "Cloud Infrastructure & Modernization",
-        "solution": "Enterprise Hybrid Cloud & Automated Disaster Recovery Infrastructure",
-        "tech_stack": ["Nutanix Cloud Platform (HCI)", "VMware Cloud Foundation", "Dell PowerEdge Servers", "AWS / Google Cloud Hybrid"],
-        "pain_points": [
-            "Biaya CAPEX lisensi & hardware legacy yang membengkak serta kompleksitas scaling data center.",
-            "Tantangan pencapaian RTO/RPO ketat pada skenario Disaster Recovery Center (DRC) saat terjadi kegagalan sistem.",
-            "Silo operasional antara infrastruktur on-premise eksisting dengan adopsi platform container/microservices.",
-        ],
-        "benefits": [
-            "Efisiensi CAPEX data center hingga 30-40% dengan migrasi ke Hyperconverged Infrastructure (HCI).",
-            "Otomatisasi pengujian dan failover DRC dengan Recovery Time Objective (RTO) di bawah 15 menit.",
-            "Infrastruktur terukur yang siap mengakomodasi beban kerja high-concurrency transaksi.",
-        ],
-        "discovery_questions": [
-            "Kapan jadwal siklus hardware refresh server data center Anda berikutnya, dan apa fokus efisiensinya?",
-            "Bagaimana kesiapan prosedur DRC saat ini dalam memenuhi batas toleransi downtime regulasi?",
-            "Apakah tim menghadapi kendala kapasitas storage atau komputasi saat terjadi lonjakan transaksi musiman?",
-            "Bagaimana arsitektur platform saat ini mendukung fleksibilitas deployment beban kerja hybrid?",
-        ],
+        **TARGET_SOLUTIONS_CATALOG["Enterprise Server & Compute"],
+        "solution": "Cloud Modernization & Nutanix HCI",
     },
     "data": {
-        "pillar": "Data Analytics & AI",
-        "solution": "Enterprise AI Knowledge Hub & Scalable Modern Data Platform",
-        "tech_stack": ["Google BigQuery / Snowflake", "OpenAI / Claude Enterprise", "PostgreSQL pgvector", "dbt DataOps"],
-        "pain_points": [
-            "Silo data antar divisi perbankan/operasional yang menghambat terciptanya Single Source of Truth.",
-            "Proses pelaporan analitik manual yang memakan waktu berhari-hari dan berisiko salah tafsir.",
-            "Kurangnya pemanfaatan AI generatif privat untuk mempercepat pencarian SOP & pengetahuan internal secara aman.",
-        ],
-        "benefits": [
-            "Akses analitik mandiri (self-service BI) yang mempercepat pengambilan keputusan manajerial hingga 5x lebih cepat.",
-            "AI Assistant internal yang berjalan di private tenant dengan jaminan perlindungan data intelektual perusahaan.",
-            "Pipeline data terotomasi dengan SLA sinkronisasi mendekati real-time.",
-        ],
-        "discovery_questions": [
-            "Seberapa cepat para stakeholder bisnis saat ini bisa mendapatkan dashboard laporan performa operasional?",
-            "Bagaimana tata kelola data eksisting dalam menjamin akurasi dan konsistensi antar cabang/divisi?",
-            "Apakah ada inisiatif pemanfaatan AI untuk membantu tim mempercepat akses dokumen SOP atau verifikasi data?",
-            "Apa hambatan utama saat mengintegrasikan sumber data legacy dengan platform analitik modern?",
-        ],
+        **TARGET_SOLUTIONS_CATALOG["Data Analytics Platform"],
+        "solution": "Google Cloud BigQuery & Data Intelligence",
     },
 }
 
@@ -450,7 +559,7 @@ class ProspectingService:
         Synthesizes a structured consultative customer_needs dossier formatted in clean markdown
         tailored for Magna's enterprise solutions.
         """
-        intel = PILLAR_INTELLIGENCE.get(pillar_key, PILLAR_INTELLIGENCE["security"])
+        intel = TARGET_SOLUTIONS_CATALOG.get(solution_title) or PILLAR_INTELLIGENCE.get(pillar_key, PILLAR_INTELLIGENCE["security"])
         pillar_name = intel["pillar"]
 
         stakeholder_lines = []
