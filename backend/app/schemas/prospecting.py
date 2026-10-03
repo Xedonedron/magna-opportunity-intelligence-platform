@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 # ---------------------------------------------------------------------------
@@ -101,10 +101,27 @@ class CompanySearchResponse(BaseModel):
 
 
 class ExportContactItem(BaseModel):
-    name: str
+    name: Optional[str] = None
+    full_name: Optional[str] = None
     job_title: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
+    department: Optional[str] = None
+    linkedin_url: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_name_and_fields(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            resolved_name = (
+                data.get("name")
+                or data.get("full_name")
+                or data.get("fullName")
+                or "Stakeholder"
+            )
+            data["name"] = resolved_name
+            data["full_name"] = resolved_name
+        return data
 
 
 class ExportExcelRequest(BaseModel):
@@ -116,14 +133,27 @@ class SaveStakeholdersRequest(BaseModel):
     company_name: str
     company_domain: Optional[str] = None
     industry: Optional[str] = None
+    company_industry: Optional[str] = None
     country: Optional[str] = "Indonesia"
     contacts: List[ExportContactItem]
+
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_industry(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if not data.get("industry") and data.get("company_industry"):
+                data["industry"] = data.get("company_industry")
+        return data
 
 
 class LushaEnrichRequest(BaseModel):
     contact_id: Optional[str] = Field(None, description="Single contact ID to enrich")
     contact_ids: Optional[List[str]] = Field(None, description="List of contact IDs (batch)")
     reveal: List[str] = Field(default=["emails", "phones"], description="Data fields to reveal")
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    company_name: Optional[str] = None
+    company_domain: Optional[str] = None
 
     @field_validator("reveal", mode="before")
     @classmethod

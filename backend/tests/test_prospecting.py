@@ -578,3 +578,91 @@ class TestProspectingInteractiveFlow:
         assert ws.cell(row=5, column=2).value == "Vikram Sinha"
         assert ws.cell(row=5, column=4).value == "vikram@ioh.co.id"
 
+    def test_save_to_stakeholders_with_full_name_and_company_industry(self, client: TestClient, db: Session):
+        payload = {
+            "company_name": "PT Maju Terus Pantang Mundur",
+            "company_domain": "majuterus.co.id",
+            "company_industry": "Information Technology",
+            "contacts": [
+                {
+                    "full_name": "Dewi Sartika",
+                    "job_title": "Head of Engineering",
+                    "department": "IT",
+                    "email": "dewi@majuterus.co.id",
+                    "phone": "+6281234567890",
+                    "linkedin_url": "https://linkedin.com/in/dewisartika",
+                }
+            ],
+        }
+        response = client.post("/api/prospecting/save-to-stakeholders", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert data["saved_count"] == 1
+        assert data["contacts_saved"] == 1
+
+        contact = (
+            db.query(CompanyContact)
+            .filter(CompanyContact.email == "dewi@majuterus.co.id")
+            .first()
+        )
+        assert contact is not None
+        assert contact.name == "Dewi Sartika"
+        assert contact.department == "IT"
+        assert contact.linkedin_url == "https://linkedin.com/in/dewisartika"
+
+    def test_export_excel_with_full_name(self, client: TestClient):
+        payload = {
+            "company_name": "PT Maju Terus Pantang Mundur",
+            "contacts": [
+                {
+                    "full_name": "Dewi Sartika",
+                    "job_title": "Head of Engineering",
+                    "email": "dewi@majuterus.co.id",
+                    "phone": "+6281234567890",
+                }
+            ],
+        }
+        response = client.post("/api/prospecting/export-excel", json=payload)
+        assert response.status_code == 200
+        assert (
+            response.headers["content-type"]
+            == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+    @patch("app.api.prospecting.lusha_service.enrich_contact", new_callable=AsyncMock)
+    def test_enrich_contact_auto_persists_to_company(self, mock_enrich, client: TestClient, db: Session):
+        mock_enrich.return_value = {
+            "success": True,
+            "credits_charged": 1,
+            "emails": ["ahmad@inovasi.id"],
+            "phones": ["+628119876543"],
+            "data": {
+                "full_name": "Ahmad Dahlan",
+                "job_title": "Chief Technology Officer",
+                "linkedin_url": "https://linkedin.com/in/ahmad-dahlan",
+            },
+        }
+
+        response = client.post(
+            "/api/prospecting/lusha/enrich",
+            json={
+                "contact_id": "contact_999",
+                "company_name": "PT Inovasi Solusi",
+                "company_domain": "inovasi.id",
+                "reveal": ["emails", "phones"],
+            },
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+
+        contact = (
+            db.query(CompanyContact)
+            .filter(CompanyContact.email == "ahmad@inovasi.id")
+            .first()
+        )
+        assert contact is not None
+        assert contact.name == "Ahmad Dahlan"
+        assert contact.phone == "+628119876543"
+

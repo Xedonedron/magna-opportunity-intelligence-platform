@@ -265,6 +265,64 @@ async def search_lusha_contacts(
 
     if not res.get("success"):
         logger.warning(f"[Lusha Search Error] {res.get('message')}")
+        # If Lusha search failed or rate-limited, check if we have local contacts for this company in DB
+        try:
+            matched_company = None
+            if request.company_domain:
+                matched_company = (
+                    db.query(Company)
+                    .filter(Company.root_domain == request.company_domain.strip().lower())
+                    .first()
+                )
+            if not matched_company and request.company_name:
+                matched_company = (
+                    db.query(Company)
+                    .filter(func.lower(Company.name) == request.company_name.strip().lower())
+                    .first()
+                )
+            if not matched_company and request.company_name:
+                norm = request.company_name.strip().lower().replace("pt ", "").replace("tbk", "").strip()
+                matched_company = (
+                    db.query(Company)
+                    .filter(Company.normalized_name.ilike(f"%{norm}%"))
+                    .first()
+                )
+
+            if matched_company:
+                local_contacts = (
+                    db.query(CompanyContact)
+                    .filter(CompanyContact.company_id == matched_company.id)
+                    .all()
+                )
+                if local_contacts:
+                    converted = []
+                    for lc in local_contacts:
+                        converted.append({
+                            "id": f"local_{lc.id}",
+                            "full_name": lc.name,
+                            "job_title": lc.job_title or "Stakeholder",
+                            "department": lc.department or "",
+                            "email": lc.email or "",
+                            "phone": lc.phone or "",
+                            "linkedin_url": lc.linkedin_url or "",
+                            "has_email": bool(lc.email),
+                            "has_phone": bool(lc.phone),
+                            "is_unlocked": bool(lc.email or lc.phone),
+                            "is_saved_in_directory": True,
+                            "local_contact_id": str(lc.id),
+                        })
+                    return LushaSearchResponse(
+                        success=True,
+                        message=f"Menampilkan {len(converted)} kontak tersimpan dari database internal MOIP ({res.get('message')})",
+                        total=len(converted),
+                        page=request.page,
+                        contacts=converted,
+                        rate_limit_reset_seconds=res.get("rate_limit_reset_seconds"),
+                        rate_limit_reset_formatted=res.get("rate_limit_reset_formatted"),
+                    )
+        except Exception as local_err:
+            logger.warning(f"[Lusha Search] Fallback to local contacts failed: {local_err}")
+
         # Return structured response with empty contacts rather than hard 500
         # so frontend displays helpful message
         return LushaSearchResponse(
@@ -287,12 +345,21 @@ async def search_lusha_contacts(
                     .filter(func.lower(CompanyContact.name).in_([n.lower() for n in contact_names]))
                     .all()
                 )
-                saved_map = {c.name.lower(): str(c.id) for c in db_contacts if c.name}
+                db_contacts_map = {c.name.lower(): c for c in db_contacts if c.name}
                 for c in res["contacts"]:
                     fn = c.get("full_name", "").strip().lower()
-                    if fn in saved_map:
+                    if fn in db_contacts_map:
+                        db_c = db_contacts_map[fn]
                         c["is_saved_in_directory"] = True
-                        c["local_contact_id"] = saved_map[fn]
+                        c["local_contact_id"] = str(db_c.id)
+                        if db_c.email and not c.get("email"):
+                            c["email"] = db_c.email
+                            c["has_email"] = True
+                        if db_c.phone and not c.get("phone"):
+                            c["phone"] = db_c.phone
+                            c["has_phone"] = True
+                        if db_c.email or db_c.phone:
+                            c["is_unlocked"] = True
         except Exception as e:
             logger.warning(f"[Lusha Search] Failed checking local contacts: {e}")
 
@@ -303,6 +370,7 @@ async def search_lusha_contacts(
 async def enrich_lusha_contact(
     request: LushaEnrichRequest,
     user: User = Depends(require_prospecting_user),
+    db: Session = Depends(get_db),
 ):
     """
     Enrich/reveal verified email and direct phone numbers for Lusha contact IDs.
@@ -339,6 +407,60 @@ async def enrich_lusha_contact(
             "primary_phone": phone_str,
             "linkedin_url": first_data.get("linkedin_url") or "",
         }
+
+        # Auto-persist single revealed contact if company_name is provided
+        if request.company_name:
+            try:
+                c_name_clean = request.company_name.strip()
+                company = db.query(Company).filter(
+                    or_(
+                        Company.name.ilike(c_name_clean),
+                        Company.root_domain.ilike(request.company_domain.strip()) if request.company_domain else False,
+                    )
+                ).first()
+                if not company:
+                    company = Company(
+                        name=c_name_clean,
+                        normalized_name=c_name_clean.lower().strip(),
+                        root_domain=request.company_domain,
+                        website=f"https://{request.company_domain}" if request.company_domain else None,
+                    )
+                    db.add(company)
+                    db.flush()
+
+                target_name = (single_contact["full_name"] or f"{request.first_name or ''} {request.last_name or ''}".strip() or "Stakeholder").strip()
+                existing_c = db.query(CompanyContact).filter(
+                    CompanyContact.company_id == company.id,
+                    or_(
+                        CompanyContact.name.ilike(target_name),
+                        CompanyContact.email.ilike(email_str) if email_str else False,
+                    )
+                ).first()
+                if existing_c:
+                    if single_contact["job_title"] and not existing_c.job_title:
+                        existing_c.job_title = single_contact["job_title"]
+                    if email_str and not existing_c.email:
+                        existing_c.email = email_str
+                    if phone_str and not existing_c.phone:
+                        existing_c.phone = phone_str
+                    if single_contact["linkedin_url"] and not existing_c.linkedin_url:
+                        existing_c.linkedin_url = single_contact["linkedin_url"]
+                else:
+                    new_c = CompanyContact(
+                        company_id=company.id,
+                        name=target_name,
+                        job_title=single_contact["job_title"] or None,
+                        email=email_str,
+                        phone=phone_str,
+                        linkedin_url=single_contact["linkedin_url"] or None,
+                        notes="Diperoleh dari Lusha Prospecting Hub",
+                    )
+                    db.add(new_c)
+                db.commit()
+            except Exception as auto_err:
+                db.rollback()
+                logger.warning(f"[Lusha Enrich Auto-Persist] Failed saving contact: {auto_err}")
+
         return LushaEnrichResponse(
             success=res.get("success", True),
             contact_id=request.contact_id,
@@ -391,6 +513,60 @@ async def enrich_lusha_contact(
             "linkedin_url": item.get("linkedinUrl", ""),
             "credits_charged": item.get("credits_charged", 0),
         })
+
+    # Auto-persist batch revealed contacts if company_name is provided
+    if request.company_name and enriched_items:
+        try:
+            c_name_clean = request.company_name.strip()
+            company = db.query(Company).filter(
+                or_(
+                    Company.name.ilike(c_name_clean),
+                    Company.root_domain.ilike(request.company_domain.strip()) if request.company_domain else False,
+                )
+            ).first()
+            if not company:
+                company = Company(
+                    name=c_name_clean,
+                    normalized_name=c_name_clean.lower().strip(),
+                    root_domain=request.company_domain,
+                    website=f"https://{request.company_domain}" if request.company_domain else None,
+                )
+                db.add(company)
+                db.flush()
+
+            for c_item in enriched_items:
+                target_name = (c_item["full_name"] or "Stakeholder").strip()
+                existing_c = db.query(CompanyContact).filter(
+                    CompanyContact.company_id == company.id,
+                    or_(
+                        CompanyContact.name.ilike(target_name),
+                        CompanyContact.email.ilike(c_item["email"]) if c_item.get("email") else False,
+                    )
+                ).first()
+                if existing_c:
+                    if c_item.get("job_title") and not existing_c.job_title:
+                        existing_c.job_title = c_item["job_title"]
+                    if c_item.get("email") and not existing_c.email:
+                        existing_c.email = c_item["email"]
+                    if c_item.get("phone") and not existing_c.phone:
+                        existing_c.phone = c_item["phone"]
+                    if c_item.get("linkedin_url") and not existing_c.linkedin_url:
+                        existing_c.linkedin_url = c_item["linkedin_url"]
+                else:
+                    new_c = CompanyContact(
+                        company_id=company.id,
+                        name=target_name,
+                        job_title=c_item.get("job_title") or None,
+                        email=c_item.get("email"),
+                        phone=c_item.get("phone"),
+                        linkedin_url=c_item.get("linkedin_url") or None,
+                        notes="Diperoleh dari Lusha Prospecting Hub",
+                    )
+                    db.add(new_c)
+            db.commit()
+        except Exception as auto_batch_err:
+            db.rollback()
+            logger.warning(f"[Lusha Enrich Batch Auto-Persist] Failed saving contacts: {auto_batch_err}")
 
     first_item = enriched_items[0] if enriched_items else None
     credits_charged = 0
@@ -465,18 +641,24 @@ async def save_prospects_to_stakeholders(
         if existing:
             if c.job_title and not existing.job_title:
                 existing.job_title = c.job_title
+            if c.department and not existing.department:
+                existing.department = c.department
             if c.email and not existing.email:
                 existing.email = c.email
             if c.phone and not existing.phone:
                 existing.phone = c.phone
+            if c.linkedin_url and not existing.linkedin_url:
+                existing.linkedin_url = c.linkedin_url
             saved_contacts.append(existing)
         else:
             new_contact = CompanyContact(
                 company_id=company.id,
                 name=c.name.strip(),
                 job_title=c.job_title or None,
+                department=c.department or None,
                 email=c.email,
                 phone=c.phone,
+                linkedin_url=c.linkedin_url,
                 notes="Diperoleh dari Lusha Prospecting Hub",
             )
             db.add(new_contact)
@@ -489,6 +671,7 @@ async def save_prospects_to_stakeholders(
         "company_id": str(company.id),
         "company_name": company.name,
         "saved_count": len(saved_contacts),
+        "contacts_saved": len(saved_contacts),
         "message": f"{len(saved_contacts)} kontak berhasil disimpan ke Stakeholder Directory {company.name}.",
     }
 

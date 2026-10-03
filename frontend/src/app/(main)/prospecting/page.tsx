@@ -183,6 +183,43 @@ export default function ProspectingPage() {
         fetchQuota();
     }, [fetchQuota]);
 
+    // Restore prospecting session cache on page refresh / return
+    useEffect(() => {
+        try {
+            const cached = sessionStorage.getItem("moip_prospecting_cache");
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (parsed.selectedCompany && Array.isArray(parsed.employees) && parsed.employees.length > 0) {
+                    setSelectedCompany(parsed.selectedCompany);
+                    setEmployees(parsed.employees);
+                    if (parsed.companyQuery) setCompanyQuery(parsed.companyQuery);
+                    if (parsed.selectedJobTitle) setSelectedJobTitle(parsed.selectedJobTitle);
+                }
+            }
+        } catch (e) {
+            console.warn("Gagal memulihkan sesi prospecting dari cache:", e);
+        }
+    }, []);
+
+    // Sync prospecting state changes to session cache
+    useEffect(() => {
+        if (selectedCompany && employees.length > 0) {
+            try {
+                sessionStorage.setItem(
+                    "moip_prospecting_cache",
+                    JSON.stringify({
+                        selectedCompany,
+                        employees,
+                        companyQuery,
+                        selectedJobTitle,
+                    })
+                );
+            } catch (e) {
+                console.warn("Gagal menyimpan sesi prospecting ke cache:", e);
+            }
+        }
+    }, [selectedCompany, employees, companyQuery, selectedJobTitle]);
+
     // Debounced Company Autocomplete Search
     useEffect(() => {
         if (!companyQuery.trim() || companyQuery.trim().length < 2) {
@@ -292,6 +329,11 @@ export default function ProspectingPage() {
         setDomainInputValue("");
         setIsEditingDomain(false);
         setSearchError(null);
+        try {
+            sessionStorage.removeItem("moip_prospecting_cache");
+        } catch {
+            // ignore
+        }
     };
 
     // Dynamic Job Titles extraction from actual Lusha response with Magna Solution Pillar Prioritization
@@ -477,8 +519,9 @@ export default function ProspectingPage() {
                 company_domain: selectedCompany.domain || undefined,
                 company_industry: selectedCompany.industry || undefined,
                 contacts: selectedCandidates.map((c) => ({
+                    name: c.full_name || c.name || "Stakeholder",
                     full_name: c.full_name || c.name || "Stakeholder",
-                    job_title: c.job_title,
+                    job_title: c.job_title || "",
                     department: c.department || undefined,
                     email: c.email || undefined,
                     phone: c.phone || undefined,
@@ -489,10 +532,13 @@ export default function ProspectingPage() {
             const res = await api.post<{
                 success: boolean;
                 company_id: string;
-                contacts_saved: number;
+                contacts_saved?: number;
+                saved_count?: number;
+                message?: string;
             }>("/api/prospecting/save-to-stakeholders", payload);
 
             if (res.data?.success) {
+                const count = res.data.contacts_saved ?? res.data.saved_count ?? selectedCandidates.length;
                 // Update local status
                 setEmployees((prev) =>
                     prev.map((e) =>
@@ -504,7 +550,7 @@ export default function ProspectingPage() {
                 );
                 setFeedbackMessage({
                     type: "success",
-                    text: `Berhasil menyimpan ${res.data.contacts_saved} kontak ke Stakeholder Directory!`,
+                    text: `Berhasil menyimpan ${count} kontak ke Stakeholder Directory!`,
                 });
                 setTimeout(() => setFeedbackMessage(null), 5000);
             }
@@ -535,8 +581,9 @@ export default function ProspectingPage() {
                 {
                     company_name: selectedCompany.name,
                     contacts: targetContacts.map((c) => ({
+                        name: c.full_name || c.name || "Stakeholder",
                         full_name: c.full_name || c.name || "Stakeholder",
-                        job_title: c.job_title,
+                        job_title: c.job_title || "",
                         email: c.email || "",
                         phone: c.phone || "",
                     })),
@@ -555,8 +602,12 @@ export default function ProspectingPage() {
             a.download = `Kontak_${safeCompanyName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
             document.body.appendChild(a);
             a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+            setTimeout(() => {
+                window.URL.revokeObjectURL(url);
+                if (document.body.contains(a)) {
+                    document.body.removeChild(a);
+                }
+            }, 1000);
 
             setFeedbackMessage({
                 type: "success",
