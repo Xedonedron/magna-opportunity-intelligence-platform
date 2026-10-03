@@ -45,31 +45,22 @@ def main():
     print(f"Quota Data: {r.json()}")
     assert r.status_code == 200, f"Quota failed: {r.text}"
 
-    # 1. Entry Perusahaan Target (Company Search: 'Smartnet Magna Global')
-    print("\n[STEP 1] Entry Target Company (Pencarian Perusahaan: 'Smartnet Magna Global')...")
+    # 1. Entry Perusahaan Target (Pure Input Nama Perusahaan: 'Smartnet Magna Global')
+    print("\n[STEP 1] Entry Target Company (Pencarian Murni Nama: 'Smartnet Magna Global')...")
     r = requests.get(f"{BASE_URL}/api/prospecting/companies/search", headers=headers, params={"q": "Smartnet Magna Global"})
     print(f"Status: {r.status_code}")
     company_data = r.json()
     companies = company_data.get("companies") or company_data.get("results") or []
-    print(f"Ditemukan {len(companies)} kandidat perusahaan untuk 'Smartnet Magna Global'")
+    print(f"Ditemukan {len(companies)} kandidat perusahaan untuk 'Smartnet Magna Global':")
     for c in companies[:3]:
         print(f" - {c.get('name')} | Domain: {c.get('domain')} | Lokasi: {c.get('country')}")
-    
-    # Fallback jika query exact string belum terdaftar di Lusha disambiguation
-    if not companies:
-        print("Mencoba fallback pencarian dengan domain 'magnaglobal.id'...")
-        r_domain = requests.get(f"{BASE_URL}/api/prospecting/companies/search", headers=headers, params={"q": "magnaglobal.id"})
-        company_data = r_domain.json()
-        companies = company_data.get("companies") or company_data.get("results") or []
+    assert len(companies) > 0, "Perusahaan 'Smartnet Magna Global' tidak ditemukan di Lusha!"
 
-    target_company_name = "Smartnet Magna Global"
-    target_domain = "magnaglobal.id"
-    if companies:
-        target_company = companies[0]
-        target_company_name = target_company.get("name") or target_company_name
-        target_domain = target_company.get("domain") or target_domain
+    target_company = companies[0]
+    target_company_name = target_company.get("name")
+    target_domain = target_company.get("domain")
 
-    print(f"Target terpilih: {target_company_name} ({target_domain})")
+    print(f"Target terpilih otomatis dari Lusha: {target_company_name} ({target_domain})")
 
     # 2. Filter & Ambil Kandidat Orang (Person Search dengan ranah 'data')
     print(f"\n[STEP 2] Filter & Pencarian Kontak Karyawan di {target_company_name} (Ranah Data)...")
