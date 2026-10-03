@@ -222,9 +222,9 @@ def main():
     db = SessionLocal()
     created_oppty = db.query(Opportunity).filter(Opportunity.id == oppty_id).first()
     assert created_oppty is not None, f"Opportunity {oppty_id} tidak ditemukan di database!"
-    print(f"DB Verification: Opportunity '{created_oppty.title}' tersimpan dengan Stage: {created_oppty.stage}")
-    print(f"Nilai Estimasi: Rp {created_oppty.estimated_value:,.2f}")
-    assert created_oppty.estimated_value == 350000000.0
+    print(f"DB Verification: Opportunity Company '{created_oppty.company_name}' ({created_oppty.product}) tersimpan dengan Status: {created_oppty.status}")
+    print(f"Nilai Estimasi: Rp {float(created_oppty.potential_revenue or 0):,.2f}")
+    assert float(created_oppty.potential_revenue or 0) == 350000000.0
     assert created_oppty.contacts is not None and len(created_oppty.contacts) == 2
 
     # Verifikasi format dossier customer_needs
@@ -273,10 +273,10 @@ def main():
     db = SessionLocal()
     direct_oppty = db.query(Opportunity).filter(Opportunity.id == direct_oppty_id).first()
     assert direct_oppty is not None
-    assert direct_oppty.solution_title == "AI/ML Solutions"
+    assert direct_oppty.product == "AI/ML Solutions"
     assert "Vertex AI" in direct_oppty.customer_needs
     assert "\\rightarrow" not in direct_oppty.customer_needs
-    print(f"Direct Oppty DB Verification: '{direct_oppty.title}' tersimpan sukses.")
+    print(f"Direct Oppty DB Verification: '{direct_oppty.company_name}' ({direct_oppty.product}) tersimpan sukses.")
     db.close()
 
     print("\n" + "=" * 60)
