@@ -316,14 +316,13 @@ async def create_opportunity(
     except Exception as exc:
         logger.error(f"Failed to dispatch opportunity created notification: {exc}")
 
-    # Trigger AI KYC pipeline automatically
-    # Status stays "New" until the Celery worker actually starts execution.
-    # If dispatch fails, opportunity remains "New" — no stuck "KYC Running".
-    if not data.meeting_schedule:
-        try:
-            run_kyc_pipeline_task.delay(str(opportunity.id), source_type="automatic")
-        except Exception as exc:
-            logger.error(f"Failed to dispatch automatic KYC task: {exc}")
+    # Trigger AI KYC pipeline automatically for ALL new opportunities.
+    # Status stays "New" (or "Meeting Scheduled") until the Celery worker
+    # actually starts execution. If dispatch fails, the status is preserved.
+    try:
+        run_kyc_pipeline_task.delay(str(opportunity.id), source_type="automatic")
+    except Exception as exc:
+        logger.error(f"Failed to dispatch automatic KYC task: {exc}")
 
     return opportunity
 

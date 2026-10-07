@@ -270,9 +270,12 @@ def run_kyc_pipeline_task(
                 else:
                     return {"status": "error", "message": "Version conflict — report already exists"}
 
-        # Update opportunity status atomically in the worker (not in the API layer)
+        # Update opportunity status atomically in the worker (not in the API layer).
+        # Only transition to "KYC Running" if status is "New". Preserve higher
+        # pipeline statuses (e.g. "Meeting Scheduled") to avoid status regression.
         old_status = opportunity.status
-        opportunity.status = "KYC Running"
+        if opportunity.status == "New":
+            opportunity.status = "KYC Running"
 
         # Add timeline event
         desc_text = f"AI KYC analysis initiated ({source_type})."
@@ -440,8 +443,11 @@ def run_kyc_pipeline_task(
             kyc_report.references = result.get("references")
             kyc_report.completed_at = datetime.now(timezone.utc)
 
-            # Update opportunity status
-            opportunity.status = "Ready Meeting"
+            # Update opportunity status — only advance to "Ready Meeting" if
+            # current status is "KYC Running" or "New". Do NOT regress status
+            # for opportunities already at "Meeting Scheduled" or later stages.
+            if opportunity.status in ("KYC Running", "New"):
+                opportunity.status = "Ready Meeting"
 
             # Add timeline event
             reused_flag = result.get("reused_company_profile", False)

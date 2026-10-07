@@ -167,3 +167,63 @@ def test_pipeline_failure_reverts_status():
     assert "quota" in report.error_message.lower()
     db.close()
 
+
+# 5. Opportunity with meeting_schedule still dispatches KYC
+def test_create_opportunity_with_meeting_schedule_dispatches_kyc(
+    client: TestClient, auth_headers: dict[str, str], db: Session
+):
+    """KYC pipeline must be dispatched even when meeting_schedule is provided."""
+    with patch("app.tasks.run_kyc_pipeline_task.delay") as mock_kyc_delay:
+        response = client.post(
+            "/api/opportunities", headers=auth_headers,
+            json={
+                "company_name": "Meeting Schedule Corp",
+                "customer_needs": "Test meeting schedule KYC trigger",
+                "industry": "Finance", "website": "https://meetingschedule.test",
+                "meeting_schedule": "2026-12-01T10:00:00Z",
+            },
+        )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["status"] == "Meeting Scheduled"
+    # Verify that KYC task was dispatched despite having meeting_schedule
+    mock_kyc_delay.assert_called_once_with(data["id"], source_type="automatic")
+
+
+# 6. KYC worker preserves "Meeting Scheduled" status (no regression)
+def test_kyc_preserves_meeting_scheduled_status():
+    """When opportunity is 'Meeting Scheduled', KYC worker must NOT regress status to 'Ready Meeting'."""
+    SessionFactory = _make_db()
+    # Seed with "Meeting Scheduled" status instead of "New"
+    db = SessionFactory()
+    user = User(id=uuid.uuid4(), email="meeting@test.com", full_name="Meeting Test", role="admin")
+    db.add(user)
+    opp = Opportunity(
+        id=uuid.uuid4(), company_name="PT Meeting Test",
+        customer_needs="Test status preservation", industry="Healthcare",
+        website="https://meetingtest.test", status="Meeting Scheduled", created_by=user.id,
+    )
+    db.add(opp)
+    db.commit()
+    opp_id = str(opp.id)
+    db.close()
+
+    async def mock_pipeline(*a, **kw):
+        return _COMPLETED_RESULT
+
+    with patch("app.tasks.SessionLocal", SessionFactory), \
+         patch("app.services.kyc_pipeline.run_kyc_pipeline", side_effect=mock_pipeline), \
+         patch("app.tasks.send_kyc_completed_notification.delay"):
+        from app.tasks import run_kyc_pipeline_task
+        result = run_kyc_pipeline_task(opp_id, source_type="automatic")
+
+    assert result["status"] == "success"
+    db = SessionFactory()
+    opp = db.query(Opportunity).filter(Opportunity.id == uuid.UUID(opp_id)).first()
+    # Status must remain "Meeting Scheduled", NOT regressed to "Ready Meeting"
+    assert opp.status == "Meeting Scheduled"
+    reports = db.query(KYCReport).filter(KYCReport.opportunity_id == uuid.UUID(opp_id)).all()
+    assert len(reports) == 1
+    assert reports[0].status == "completed"
+    db.close()
+
