@@ -153,6 +153,8 @@ export const id: Translations = {
             preSales: "Pre-Sales",
             unassigned: "Belum Ditugaskan",
             created: "Dibuat",
+            createdBy: "Dibuat oleh",
+            on: "pada",
         },
         overview: {
             potentialRevenue: "Estimasi Nilai / Potensi Pendapatan",

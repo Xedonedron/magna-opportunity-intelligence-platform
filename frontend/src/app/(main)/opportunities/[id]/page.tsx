@@ -45,7 +45,7 @@ import { ResourcesTab } from "@/components/domains/documents/ResourcesTab";
 import { TargetPersonaTab } from "@/components/domains/personas/TargetPersonaTab";
 import { StakeholdersTab } from "@/components/domains/stakeholders/StakeholdersTab";
 import { OpportunityChatSidebar } from "@/components/domains/opportunities/OpportunityChatSidebar";
-import { formatDateTime, timeAgo, formatCurrency } from "@/lib/utils";
+import { formatDate, formatDateTime, timeAgo, formatCurrency } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { ALL_STATUSES, type OpportunityStatus } from "@/types/opportunity";
 
@@ -232,7 +232,17 @@ export default function OpportunityDetailPage() {
                                         )}
                                     </span>
                                     <span className="hidden sm:inline">•</span>
-                                    <span>{t.opportunityDetail.header.created} {formatDateTime(opp.created_at)}</span>
+                                    <span>
+                                        {opp.creator?.full_name ? (
+                                            <>
+                                                {t.opportunityDetail.header.createdBy} {opp.creator.full_name} {t.opportunityDetail.header.on} {formatDate(opp.created_at)}
+                                            </>
+                                        ) : (
+                                            <>
+                                                {t.opportunityDetail.header.created} {formatDate(opp.created_at)}
+                                            </>
+                                        )}
+                                    </span>
                                 </div>
                             </div>
                             <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full md:w-auto">

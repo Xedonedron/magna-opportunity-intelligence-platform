@@ -153,6 +153,8 @@ export const en = {
             preSales: "Pre-Sales",
             unassigned: "Unassigned",
             created: "Created",
+            createdBy: "Created by",
+            on: "on",
         },
         overview: {
             potentialRevenue: "Potential Revenue / Deal Value",
