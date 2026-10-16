@@ -153,42 +153,16 @@ async def create_opportunity(
     """Create a new opportunity. Auto-logs timeline event and links or creates company folder."""
     # Auto-link to existing Company or create a new Company folder
     target_company_id = data.company_id
-    if not target_company_id:
-        from app.models.company import Company
-        from app.api.companies import compute_normalized_name, extract_root_domain
+    if not target_company_id and (data.company_name or data.website):
+        from app.api.companies import resolve_or_create_company
 
-        # 1. Primary Gold Standard: Match by Root Domain if website is provided
-        req_domain = extract_root_domain(data.website) if data.website else None
-        matched_by_domain = None
-        if req_domain:
-            matched_by_domain = db.query(Company).filter(Company.root_domain == req_domain).first()
-
-        if matched_by_domain:
-            target_company_id = matched_by_domain.id
-            if not matched_by_domain.industry and data.industry:
-                matched_by_domain.industry = data.industry
-        elif data.company_name:
-            # 2. Secondary: Fallback to normalized company name
-            norm_name = compute_normalized_name(data.company_name)
-            comp = db.query(Company).filter(Company.normalized_name == norm_name).first()
-            if comp:
-                target_company_id = comp.id
-                if not comp.website and data.website:
-                    comp.website = data.website
-                    comp.root_domain = req_domain
-                if not comp.industry and data.industry:
-                    comp.industry = data.industry
-            else:
-                new_comp = Company(
-                    name=data.company_name.strip(),
-                    normalized_name=norm_name,
-                    website=data.website,
-                    root_domain=req_domain,
-                    industry=data.industry,
-                )
-                db.add(new_comp)
-                db.flush()
-                target_company_id = new_comp.id
+        comp = resolve_or_create_company(
+            db,
+            name=data.company_name or "",
+            website=data.website,
+            industry=data.industry,
+        )
+        target_company_id = comp.id
 
     # Stakeholder linking / creation logic
     primary_contact_id = None
@@ -1090,7 +1064,10 @@ async def import_opportunities(
     if not rows:
         raise HTTPException(status_code=400, detail="File yang diunggah kosong atau tidak memiliki baris data.")
 
+    from app.api.companies import resolve_or_create_company
+
     created_items = []
+    created_opportunities: list[Opportunity] = []
     errors = []
 
     for idx, row in enumerate(rows, start=1):
@@ -1106,13 +1083,64 @@ async def import_opportunities(
                 m_dt = agenda_date if agenda_date.tzinfo else agenda_date.replace(tzinfo=timezone.utc)
                 opp_status = "Meeting Scheduled" if m_dt > now else "Meeting Done"
 
+            # Resolve or create Company folder
+            company = resolve_or_create_company(
+                db,
+                name=mapped_data["company_name"],
+                website=mapped_data.get("website"),
+                industry=mapped_data.get("industry"),
+            )
+
+            # Resolve or create CompanyContact if contact info provided
+            primary_contact_id = None
+            raw_contact_name = (mapped_data.get("contact_name") or "").strip()
+            raw_email = (mapped_data.get("email") or "").strip() or None
+            raw_phone = (mapped_data.get("phone") or "").strip() or None
+
+            if raw_contact_name and raw_contact_name.lower() != "unknown contact":
+                existing_contact = db.query(CompanyContact).filter(
+                    CompanyContact.company_id == company.id,
+                    sa_func.lower(CompanyContact.name) == raw_contact_name.lower(),
+                ).first()
+                if not existing_contact and raw_email:
+                    existing_contact = db.query(CompanyContact).filter(
+                        CompanyContact.company_id == company.id,
+                        sa_func.lower(CompanyContact.email) == raw_email.lower(),
+                    ).first()
+
+                if existing_contact:
+                    primary_contact_id = existing_contact.id
+                    if raw_email and not existing_contact.email:
+                        existing_contact.email = raw_email
+                    if raw_phone and not existing_contact.phone:
+                        existing_contact.phone = raw_phone
+                else:
+                    has_contacts = (
+                        db.query(CompanyContact)
+                        .filter(CompanyContact.company_id == company.id)
+                        .first()
+                        is not None
+                    )
+                    new_contact = CompanyContact(
+                        company_id=company.id,
+                        name=raw_contact_name,
+                        email=raw_email,
+                        phone=raw_phone,
+                        is_primary=not has_contacts,
+                    )
+                    db.add(new_contact)
+                    db.flush()
+                    primary_contact_id = new_contact.id
+
             opportunity = Opportunity(
+                company_id=company.id,
+                primary_contact_id=primary_contact_id,
                 company_name=mapped_data["company_name"],
                 contact_name=mapped_data["contact_name"],
-                website=mapped_data["website"],
-                email=mapped_data["email"],
-                phone=mapped_data["phone"],
-                industry=mapped_data["industry"],
+                website=mapped_data["website"] or company.website,
+                email=raw_email,
+                phone=raw_phone,
+                industry=mapped_data["industry"] or company.industry,
                 product=mapped_data["product"],
                 customer_needs=mapped_data["customer_needs"],
                 potential_revenue=mapped_data["potential_revenue"],
@@ -1144,11 +1172,11 @@ async def import_opportunities(
                 event_type="create",
             )
 
-            try:
-                run_kyc_pipeline_task.delay(str(opportunity.id), source_type="automatic")
-            except Exception:
-                pass
+            NotificationService.notify_opportunity_created(
+                db, opportunity, actor_id=current_user.id
+            )
 
+            created_opportunities.append(opportunity)
             created_items.append({
                 "id": str(opportunity.id),
                 "company_name": opportunity.company_name,
@@ -1159,6 +1187,13 @@ async def import_opportunities(
             errors.append(f"Baris {idx}: {str(err)}")
 
     db.commit()
+
+    # Dispatch async Celery tasks ONLY after db.commit() succeeds
+    for opp in created_opportunities:
+        try:
+            run_kyc_pipeline_task.delay(str(opp.id), source_type="automatic")
+        except Exception:
+            pass
 
     return {
         "imported_count": len(created_items),

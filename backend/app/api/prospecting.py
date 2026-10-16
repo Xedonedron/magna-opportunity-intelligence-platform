@@ -417,22 +417,13 @@ async def enrich_lusha_contact(
         # Auto-persist single revealed contact if company_name is provided
         if request.company_name:
             try:
-                c_name_clean = request.company_name.strip()
-                company = db.query(Company).filter(
-                    or_(
-                        Company.name.ilike(c_name_clean),
-                        Company.root_domain.ilike(request.company_domain.strip()) if request.company_domain else False,
-                    )
-                ).first()
-                if not company:
-                    company = Company(
-                        name=c_name_clean,
-                        normalized_name=c_name_clean.lower().strip(),
-                        root_domain=request.company_domain,
-                        website=f"https://{request.company_domain}" if request.company_domain else None,
-                    )
-                    db.add(company)
-                    db.flush()
+                from app.api.companies import resolve_or_create_company
+
+                company = resolve_or_create_company(
+                    db,
+                    name=request.company_name,
+                    company_domain=request.company_domain,
+                )
 
                 target_name = (single_contact["full_name"] or f"{request.first_name or ''} {request.last_name or ''}".strip() or "Stakeholder").strip()
                 existing_c = db.query(CompanyContact).filter(
@@ -523,22 +514,13 @@ async def enrich_lusha_contact(
     # Auto-persist batch revealed contacts if company_name is provided
     if request.company_name and enriched_items:
         try:
-            c_name_clean = request.company_name.strip()
-            company = db.query(Company).filter(
-                or_(
-                    Company.name.ilike(c_name_clean),
-                    Company.root_domain.ilike(request.company_domain.strip()) if request.company_domain else False,
-                )
-            ).first()
-            if not company:
-                company = Company(
-                    name=c_name_clean,
-                    normalized_name=c_name_clean.lower().strip(),
-                    root_domain=request.company_domain,
-                    website=f"https://{request.company_domain}" if request.company_domain else None,
-                )
-                db.add(company)
-                db.flush()
+            from app.api.companies import resolve_or_create_company
+
+            company = resolve_or_create_company(
+                db,
+                name=request.company_name,
+                company_domain=request.company_domain,
+            )
 
             for c_item in enriched_items:
                 target_name = (c_item["full_name"] or "Stakeholder").strip()
@@ -609,27 +591,17 @@ async def save_prospects_to_stakeholders(
             detail="Nama perusahaan wajib disertakan.",
         )
 
-    clean_name = request.company_name.strip()
-    
-    # 1. Find or create company
-    company = db.query(Company).filter(
-        or_(
-            Company.name.ilike(clean_name),
-            Company.root_domain.ilike(request.company_domain.strip()) if request.company_domain else False,
-        )
-    ).first()
+    from app.api.companies import resolve_or_create_company
 
-    if not company:
-        company = Company(
-            name=clean_name,
-            normalized_name=clean_name.lower().strip(),
-            root_domain=request.company_domain,
-            website=f"https://{request.company_domain}" if request.company_domain else None,
-            industry=request.industry,
-        )
-        db.add(company)
-        db.commit()
-        db.refresh(company)
+    # 1. Find or create company with canonical normalization
+    company = resolve_or_create_company(
+        db,
+        name=request.company_name,
+        company_domain=request.company_domain,
+        industry=request.industry,
+    )
+    db.commit()
+    db.refresh(company)
 
     saved_contacts = []
     for c in request.contacts:

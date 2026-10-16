@@ -24,7 +24,9 @@ logger = logging.getLogger(__name__)
 
 @celery_app.task(name="tasks.send_opportunity_created_notification")
 def send_opportunity_created_notification(opportunity_id: str) -> dict:
-    """Send notification when a new opportunity is created."""
+    """Send email notification when a new opportunity is created.
+    Note: In-app notifications are already created synchronously via NotificationService.notify_opportunity_created.
+    """
     db = SessionLocal()
     try:
         opportunity = db.query(Opportunity).filter(
@@ -32,16 +34,6 @@ def send_opportunity_created_notification(opportunity_id: str) -> dict:
         ).first()
         if not opportunity:
             return {"status": "error", "message": "Opportunity not found"}
-
-        # Create in-app notification for the creator
-        notification = Notification(
-            user_id=opportunity.created_by,
-            opportunity_id=opportunity.id,
-            type="opportunity_created",
-            title="Opportunity Created",
-            message=f"Opportunity for {opportunity.company_name} has been created.",
-        )
-        db.add(notification)
 
         # Send email to creator
         creator = db.query(User).filter(User.id == opportunity.created_by).first()
@@ -52,8 +44,7 @@ def send_opportunity_created_notification(opportunity_id: str) -> dict:
                 opportunity_id=str(opportunity.id),
             )
 
-        db.commit()
-        return {"status": "success", "notification_id": str(notification.id)}
+        return {"status": "success"}
     except Exception as e:
         db.rollback()
         logger.error(f"Error sending opportunity created notification: {e}")
@@ -64,7 +55,9 @@ def send_opportunity_created_notification(opportunity_id: str) -> dict:
 
 @celery_app.task(name="tasks.send_kyc_completed_notification")
 def send_kyc_completed_notification(opportunity_id: str, version: int = 1) -> dict:
-    """Send notification when KYC is completed."""
+    """Send email notification when KYC is completed.
+    Note: In-app notifications are already created in run_kyc_pipeline_task via NotificationService.notify_kyc_completed.
+    """
     db = SessionLocal()
     try:
         opportunity = db.query(Opportunity).filter(
@@ -72,9 +65,6 @@ def send_kyc_completed_notification(opportunity_id: str, version: int = 1) -> di
         ).first()
         if not opportunity:
             return {"status": "error", "message": "Opportunity not found"}
-
-        # In-app notifications
-        NotificationService.notify_kyc_completed(db, opportunity, version=version)
 
         # Send email
         creator = db.query(User).filter(User.id == opportunity.created_by).first()
@@ -85,7 +75,6 @@ def send_kyc_completed_notification(opportunity_id: str, version: int = 1) -> di
                 opportunity_id=str(opportunity.id),
             )
 
-        db.commit()
         return {"status": "success"}
     except Exception as e:
         db.rollback()
@@ -99,7 +88,9 @@ def send_kyc_completed_notification(opportunity_id: str, version: int = 1) -> di
 def send_status_changed_notification(
     opportunity_id: str, old_status: str, new_status: str, actor_id: str = None
 ) -> dict:
-    """Send notification when opportunity status changes."""
+    """Send email notification when opportunity status changes.
+    Note: In-app notifications are already created synchronously via NotificationService.notify_status_changed.
+    """
     db = SessionLocal()
     try:
         opportunity = db.query(Opportunity).filter(
@@ -107,11 +98,6 @@ def send_status_changed_notification(
         ).first()
         if not opportunity:
             return {"status": "error", "message": "Opportunity not found"}
-
-        parsed_actor_id = uuid.UUID(actor_id) if actor_id else None
-        NotificationService.notify_status_changed(
-            db, opportunity, old_status, new_status, actor_id=parsed_actor_id
-        )
 
         # Send email
         creator = db.query(User).filter(User.id == opportunity.created_by).first()
@@ -123,7 +109,6 @@ def send_status_changed_notification(
                 new_status=new_status,
             )
 
-        db.commit()
         return {"status": "success"}
     except Exception as e:
         db.rollback()
@@ -569,10 +554,12 @@ def send_meeting_reminder(meeting_id: str, reminder_type: str = "h1") -> dict:
 
         company_name = opportunity.company_name if opportunity else "Unknown"
 
-        # Send to all participants
-        attendees = [
-            p.strip() for p in (meeting.participants or "").split(",") if p.strip()
-        ]
+        # Send to all participants (handles JSON list or comma-separated string)
+        raw_participants = meeting.participants or []
+        if isinstance(raw_participants, str):
+            attendees = [p.strip() for p in raw_participants.split(",") if p.strip()]
+        else:
+            attendees = [str(p).strip() for p in raw_participants if str(p).strip()]
 
         for email in attendees:
             email_service.send_meeting_reminder_email(

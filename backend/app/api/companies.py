@@ -133,6 +133,69 @@ def compute_normalized_name(name: str) -> str:
     return key or name.strip().lower()
 
 
+def resolve_or_create_company(
+    db: Session,
+    name: str,
+    website: str | None = None,
+    company_domain: str | None = None,
+    industry: str | None = None,
+    employee_count: str | None = None,
+) -> Company:
+    """Centralized helper to resolve an existing Company (by root_domain or normalized_name)
+    or create a canonical Company record with normalized_name and root_domain populated.
+    """
+    clean_name = (name or "").strip()
+    norm_name = compute_normalized_name(clean_name)
+
+    eff_website = website.strip() if website and website.strip() else None
+    if not eff_website and company_domain and company_domain.strip():
+        dom_clean = company_domain.strip()
+        eff_website = dom_clean if dom_clean.startswith(("http://", "https://")) else f"https://{dom_clean}"
+
+    req_domain = extract_root_domain(eff_website or company_domain)
+
+    company = None
+    # 1. Primary Gold Standard: Match by Root Domain if available
+    if req_domain:
+        company = db.query(Company).filter(Company.root_domain == req_domain).first()
+
+    # 2. Secondary: Fallback to normalized company name or case-insensitive exact name
+    if not company and clean_name:
+        company = (
+            db.query(Company)
+            .filter(
+                (Company.normalized_name == norm_name)
+                | (sa_func.lower(Company.name) == clean_name.lower())
+            )
+            .first()
+        )
+
+    if company:
+        if not company.normalized_name and norm_name:
+            company.normalized_name = norm_name
+        if not company.website and eff_website:
+            company.website = eff_website
+        if not company.root_domain and req_domain:
+            company.root_domain = req_domain
+        if not company.industry and industry:
+            company.industry = industry
+        if not company.employee_count and employee_count:
+            company.employee_count = employee_count
+        return company
+
+    new_comp = Company(
+        name=clean_name,
+        normalized_name=norm_name,
+        website=eff_website,
+        root_domain=req_domain,
+        industry=industry,
+        employee_count=employee_count,
+    )
+    db.add(new_comp)
+    db.flush()
+    return new_comp
+
+
 @router.get("", response_model=CompanyListResponse)
 async def list_companies(
     page: int = Query(1, ge=1),
@@ -469,10 +532,33 @@ async def update_company(
 
     if "name" in update_dict and update_dict["name"]:
         update_dict["name"] = update_dict["name"].strip()
-        update_dict["normalized_name"] = compute_normalized_name(update_dict["name"])
+        new_norm = compute_normalized_name(update_dict["name"])
+        conflict_name = (
+            db.query(Company)
+            .filter(Company.id != company_id, Company.normalized_name == new_norm)
+            .first()
+        )
+        if conflict_name:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Perusahaan dengan nama serupa ('{conflict_name.name}') sudah terdaftar.",
+            )
+        update_dict["normalized_name"] = new_norm
 
     if "website" in update_dict:
-        update_dict["root_domain"] = extract_root_domain(update_dict["website"])
+        new_domain = extract_root_domain(update_dict["website"])
+        if new_domain:
+            conflict_domain = (
+                db.query(Company)
+                .filter(Company.id != company_id, Company.root_domain == new_domain)
+                .first()
+            )
+            if conflict_domain:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Domain '{new_domain}' sudah digunakan oleh perusahaan '{conflict_domain.name}'.",
+                )
+        update_dict["root_domain"] = new_domain
 
     for k, v in update_dict.items():
         setattr(company, k, v)

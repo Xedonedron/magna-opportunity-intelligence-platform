@@ -19,7 +19,7 @@ from app.models.company import Company
 from app.models.company_contact import CompanyContact
 from app.models.opportunity import Opportunity, TimelineEvent
 from app.models.user import User
-from app.api.companies import compute_normalized_name
+from app.api.companies import compute_normalized_name, resolve_or_create_company
 from app.schemas.prospecting import (
     ProspectingGenerateRequest,
     ProspectingGenerateResponse,
@@ -351,35 +351,13 @@ class ProspectingService:
         - Creates Opportunity with prefilled pain points, solution, and contact.
         - Records TimelineEvent.
         """
-        raw_company_name = req.company_name.strip()
-        norm_name = compute_normalized_name(raw_company_name)
-
-        # 1. Company Resolution
-        company = (
-            db.query(Company)
-            .filter(
-                (Company.normalized_name == norm_name)
-                | (sa_func.lower(Company.name) == raw_company_name.lower())
-            )
-            .first()
+        # 1. Company Resolution (canonical normalized_name + root_domain)
+        company = resolve_or_create_company(
+            db,
+            name=req.company_name,
+            website=req.website,
+            industry=req.industry or None,
         )
-
-        if not company:
-            company = Company(
-                name=raw_company_name,
-                normalized_name=norm_name,
-                website=req.website,
-                industry=req.industry or None,
-                employee_count=None,
-            )
-            db.add(company)
-            db.flush()
-            logger.info(f"[Prospecting] Created new company: {company.name} ({company.id})")
-        else:
-            if req.website and not company.website:
-                company.website = req.website
-            if req.industry and not company.industry:
-                company.industry = req.industry
 
         # 2. Contact Resolution
         target_name = req.contact.full_name.strip()
@@ -632,26 +610,12 @@ class ProspectingService:
                     detail=f"Perusahaan dengan ID {req.company_id} tidak ditemukan.",
                 )
         elif req.company_name and req.company_name.strip():
-            raw_name = req.company_name.strip()
-            norm_name = compute_normalized_name(raw_name)
-            company = (
-                db.query(Company)
-                .filter(
-                    (sa_func.lower(Company.name) == raw_name.lower())
-                    | (Company.normalized_name == norm_name)
-                )
-                .first()
+            company = resolve_or_create_company(
+                db,
+                name=req.company_name,
+                website=req.website,
+                industry=req.industry,
             )
-            if not company:
-                company = Company(
-                    name=raw_name,
-                    normalized_name=norm_name,
-                    industry=req.industry,
-                    website=req.website,
-                )
-                db.add(company)
-                db.flush()
-                logger.info(f"[Prospecting] Created new company from stakeholders: {company.name} ({company.id})")
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
