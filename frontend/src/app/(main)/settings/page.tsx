@@ -892,7 +892,7 @@ export default function SettingsPage() {
                                             className={!isSuperAdmin ? "bg-zinc-50 cursor-not-allowed" : ""}
                                         />
                                         <p className="text-[11px] text-zinc-500">
-                                            Dapatkan API Key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-blue-600 underline">Google AI Studio</a> untuk mengelola billing & kuota secara mandiri.
+                                            Dapatkan API Key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-zinc-900 dark:text-zinc-100 underline hover:text-zinc-700 dark:hover:text-zinc-300">Google AI Studio</a> untuk mengelola billing & kuota secara mandiri.
                                         </p>
                                     </div>
                                 )}
@@ -1135,14 +1135,14 @@ export default function SettingsPage() {
                                 {masterPresales.map((name) => (
                                     <span
                                         key={name}
-                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 font-medium text-xs border border-purple-200"
+                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium text-xs border border-zinc-200 dark:border-zinc-700"
                                     >
                                         <User className="w-3.5 h-3.5" />
                                         {name}
                                         <button
                                             type="button"
                                             onClick={() => handleRemovePresales(name)}
-                                            className="hover:text-purple-900 transition-colors"
+                                            className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
                                         >
                                             <X className="w-3.5 h-3.5" />
                                         </button>
@@ -1179,13 +1179,13 @@ export default function SettingsPage() {
                                 {masterIndustries.map((ind) => (
                                     <span
                                         key={ind}
-                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-medium text-xs border border-blue-200"
+                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium text-xs border border-zinc-200 dark:border-zinc-700"
                                     >
                                         {ind}
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveIndustry(ind)}
-                                            className="hover:text-blue-900 transition-colors"
+                                            className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
                                         >
                                             <X className="w-3.5 h-3.5" />
                                         </button>
@@ -1272,8 +1272,8 @@ export default function SettingsPage() {
                                                     <div className="min-w-0">
                                                         <div className="flex items-center gap-2 flex-wrap">
                                                             <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">{u.full_name}</p>
-                                                            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${u.role === "superadmin" ? "bg-violet-50 text-violet-700 border-violet-200" :
-                                                                u.role === "manager" ? "bg-blue-50 text-blue-700 border-blue-200" :
+                                                            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${u.role === "superadmin" ? "bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100" :
+                                                                u.role === "manager" ? "bg-zinc-200/80 text-zinc-800 border-zinc-300 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700" :
                                                                     "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700"
                                                                 }`}>{u.role}</span>
                                                             {isSelf && <span className="text-[10px] text-zinc-400 italic">(Anda)</span>}
@@ -1329,8 +1329,8 @@ export default function SettingsPage() {
                                                     <span className="text-zinc-500">Terakhir aktif:</span>
                                                     <strong className="text-zinc-900 font-semibold">{formatRelativeTime(lastActive)}</strong>
                                                     <span className="text-zinc-300">|</span>
-                                                    <Calendar className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-                                                    <span className="font-semibold text-purple-700">{daysActiveMonth} hari aktif</span>
+                                                    <Calendar className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400 shrink-0" />
+                                                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{daysActiveMonth} hari aktif</span>
                                                     <span className="text-zinc-400 font-normal">({actionsMonth} aksi)</span>
                                                 </div>
 

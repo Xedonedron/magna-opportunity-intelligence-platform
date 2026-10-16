@@ -62,15 +62,15 @@
 
 ---
 
-### ⏳ Fase 4 — Halaman Settings & Admin Monitoring (`/settings`) — STATUS: BELUM DIMULAI
+### ✅ Fase 4 — Halaman Settings & Admin Monitoring (`/settings`) — STATUS: SELESAI (100%)
 **Checklist File Fase 4:**
-- [ ] `frontend/src/app/(main)/settings/page.tsx`
+- [x] `frontend/src/app/(main)/settings/page.tsx`
   - Ubah 8 titik `blue`, 6 `purple`, 3 `violet` pada tab/tombol/badge non-semantik menjadi `zinc`.
-- [ ] `frontend/src/components/domains/admin/AITokenMonitoringTab.tsx`
+- [x] `frontend/src/components/domains/admin/AITokenMonitoringTab.tsx`
   - Ubah 76 titik `indigo`, 25 `blue`, 21 `purple` (sub-tab navigasi, kartu ringkasan token, tabel audit prompt, tombol filter) menjadi monochrome `zinc`.
-- [ ] `frontend/src/components/domains/admin/SolutionsCatalogTab.tsx`
+- [x] `frontend/src/components/domains/admin/SolutionsCatalogTab.tsx`
   - Sudah sebagian di-edit di working tree; verifikasi agar chrome UI & tombol menggunakan `zinc` sementara badge domain solusi tetap dipertahankan.
-- [ ] `frontend/src/components/domains/admin/UserActivityDrawer.tsx`
+- [x] `frontend/src/components/domains/admin/UserActivityDrawer.tsx`
   - Ubah aksen drawer, avatar, dan filter dari `purple`/`violet`/`blue` menjadi `zinc`.
 
 ---

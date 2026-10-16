@@ -75,42 +75,42 @@ const PILLAR_CONFIG: Record<string, { label: string; icon: React.ComponentType<{
 const COMPLIANCE_CONFIG: Record<string, { label: string; badgeBg: string }> = {
     ojk: {
         label: "OJK",
-        badgeBg: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-900",
+        badgeBg: "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
     },
     bi: {
         label: "BI",
-        badgeBg: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-900",
+        badgeBg: "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
     },
     uu_pdp: {
         label: "UU PDP",
-        badgeBg: "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/50 dark:text-teal-300 dark:border-teal-900",
+        badgeBg: "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
     },
     pci_dss: {
         label: "PCI-DSS",
-        badgeBg: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-900",
+        badgeBg: "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
     },
     iso27001: {
         label: "ISO 27001",
-        badgeBg: "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/50 dark:text-sky-300 dark:border-sky-900",
+        badgeBg: "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
     },
 };
 
 const ENVIRONMENT_CONFIG: Record<string, { label: string; badgeBg: string }> = {
     cloud: {
         label: "Cloud",
-        badgeBg: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900",
+        badgeBg: "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
     },
     on_premise: {
         label: "On-Premise",
-        badgeBg: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-900",
+        badgeBg: "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
     },
     hybrid: {
         label: "Hybrid",
-        badgeBg: "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-900",
+        badgeBg: "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
     },
     campus_lan: {
         label: "Campus LAN",
-        badgeBg: "bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950/40 dark:text-cyan-300 dark:border-cyan-900",
+        badgeBg: "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
     },
     unspecified: {
         label: "Unspecified",
@@ -417,14 +417,14 @@ export function SolutionsCatalogTab() {
     return (
         <div className="space-y-6">
             {/* Header / Banner */}
-            <div className="bg-gradient-to-r from-blue-50/80 via-indigo-50/60 to-purple-50/80 dark:from-blue-950/30 dark:via-indigo-950/20 dark:to-purple-950/30 border border-blue-200/70 dark:border-blue-900/40 p-5 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 p-5 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <Sparkles className="w-5 h-5 text-zinc-700 dark:text-zinc-300" />
                         <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-base">
                             Katalog Solusi & Playbook Presales Resmi
                         </h3>
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100/70 text-blue-800 border border-blue-300 dark:bg-blue-900/40 dark:text-blue-200">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-zinc-200/70 text-zinc-800 border border-zinc-300 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700">
                             {solutions.length} Solusi Aktif
                         </span>
                     </div>
@@ -439,13 +439,13 @@ export function SolutionsCatalogTab() {
                             onClick={handleSyncMaster}
                             disabled={syncing}
                             variant="outline"
-                            className="text-xs h-9 gap-1.5 border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/50"
+                            className="text-xs h-9 gap-1.5"
                             title="Sinkronkan database dengan Katalog & Playbook Presales resmi"
                         >
                             <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} />
                             {syncing ? "Menyinkronkan..." : "Sinkronkan Katalog Solusi"}
                         </Button>
-                        <Button onClick={openCreateDialog} className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-9 gap-1.5 shadow-xs">
+                        <Button onClick={openCreateDialog} className="text-xs h-9 gap-1.5 shadow-xs">
                             <Plus className="w-4 h-4" /> Tambah Solusi Baru
                         </Button>
                     </div>
@@ -504,14 +504,14 @@ export function SolutionsCatalogTab() {
                     <button
                         type="button"
                         onClick={() => setSelectedTier(1)}
-                        className={`px-2.5 py-1 rounded font-medium transition-all ${selectedTier === 1 ? "bg-white dark:bg-zinc-700 shadow-xs text-blue-700 dark:text-blue-300 font-semibold" : "text-zinc-500"}`}
+                        className={`px-2.5 py-1 rounded font-medium transition-all ${selectedTier === 1 ? "bg-white dark:bg-zinc-700 shadow-xs text-zinc-900 dark:text-zinc-100 font-semibold" : "text-zinc-500"}`}
                     >
                         Tier 1: Produk ({tier1Count})
                     </button>
                     <button
                         type="button"
                         onClick={() => setSelectedTier(2)}
-                        className={`px-2.5 py-1 rounded font-medium transition-all ${selectedTier === 2 ? "bg-white dark:bg-zinc-700 shadow-xs text-purple-700 dark:text-purple-300 font-semibold" : "text-zinc-500"}`}
+                        className={`px-2.5 py-1 rounded font-medium transition-all ${selectedTier === 2 ? "bg-white dark:bg-zinc-700 shadow-xs text-zinc-900 dark:text-zinc-100 font-semibold" : "text-zinc-500"}`}
                     >
                         Tier 2: Framework ({tier2Count})
                     </button>
@@ -521,7 +521,7 @@ export function SolutionsCatalogTab() {
             {/* Content List */}
             {loading ? (
                 <div className="py-20 flex flex-col items-center justify-center gap-3 text-zinc-400">
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                    <Loader2 className="w-8 h-8 animate-spin text-zinc-600 dark:text-zinc-400" />
                     <p className="text-sm">Memuat katalog solusi master data...</p>
                 </div>
             ) : filteredSolutions.length === 0 ? (
@@ -548,7 +548,7 @@ export function SolutionsCatalogTab() {
                         return (
                             <Card
                                 key={item.id}
-                                className="p-5 bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 hover:border-blue-300 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                                className="p-5 bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
                             >
                                 <div className="space-y-3">
                                     {/* Top Badges & Actions */}
@@ -562,7 +562,7 @@ export function SolutionsCatalogTab() {
 
                                             {/* Tier Badge */}
                                             <span
-                                                className={`text-[10px] font-medium py-0.5 px-2 rounded-full ${item.tier === 1 ? "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900" : "bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-900"}`}
+                                                className="text-[10px] font-medium py-0.5 px-2 rounded-full bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700"
                                             >
                                                 {item.tier === 1 ? "Tier 1: Produk" : "Tier 2: Framework"}
                                             </span>
@@ -614,7 +614,7 @@ export function SolutionsCatalogTab() {
                                     {/* Domain Tag */}
                                     {item.solution_domain && item.solution_domain !== "general_enterprise_it" && (
                                         <div className="inline-block">
-                                            <span className="text-[10px] font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-sm border border-indigo-200 dark:border-indigo-900">
+                                            <span className="text-[10px] font-semibold text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-sm border border-zinc-200 dark:border-zinc-700">
                                                 Domain: {formatSolutionDomain(item.solution_domain)}
                                             </span>
                                         </div>
@@ -622,7 +622,7 @@ export function SolutionsCatalogTab() {
 
                                     {/* Title */}
                                     <div>
-                                        <h4 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm leading-snug hover:text-blue-600 transition-colors">
+                                        <h4 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm leading-snug hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
                                             {item.title}
                                         </h4>
                                     </div>
@@ -670,7 +670,7 @@ export function SolutionsCatalogTab() {
                                                 className="w-full flex items-center justify-between text-xs font-semibold px-3 py-2 rounded-md bg-zinc-100/80 dark:bg-zinc-800/60 hover:bg-zinc-200/70 dark:hover:bg-zinc-700/60 text-zinc-800 dark:text-zinc-200 transition-colors border border-zinc-200/60 dark:border-zinc-700/60"
                                             >
                                                 <span className="flex items-center gap-1.5">
-                                                    <Swords className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                                                    <Swords className="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400" />
                                                     Playbook Presales (Bank Pertanyaan & Ammo)
                                                 </span>
                                                 {isExpanded ? <ChevronUp className="w-4 h-4 text-zinc-500" /> : <ChevronDown className="w-4 h-4 text-zinc-500" />}
@@ -738,7 +738,7 @@ export function SolutionsCatalogTab() {
                                             href={item.source_url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 font-medium"
+                                            className="text-xs text-zinc-700 dark:text-zinc-300 hover:underline flex items-center gap-1 font-medium"
                                         >
                                             Baca Artikel <ExternalLink className="w-3 h-3" />
                                         </a>
@@ -876,7 +876,7 @@ export function SolutionsCatalogTab() {
                                                 onClick={() => toggleComplianceTag(key)}
                                                 className={`text-xs px-2.5 py-1 rounded-md border font-medium flex items-center gap-1.5 transition-all ${
                                                     isSelected
-                                                        ? `${config.badgeBg} font-semibold ring-2 ring-blue-500/20 shadow-xs`
+                                                        ? `${config.badgeBg} font-semibold ring-2 ring-zinc-500/20 shadow-xs`
                                                         : "bg-zinc-100 text-zinc-500 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
                                                 }`}
                                             >
@@ -958,21 +958,21 @@ export function SolutionsCatalogTab() {
                             <div className="border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden space-y-0">
                                 <div className="bg-zinc-50 dark:bg-zinc-800/60 px-4 py-2.5 border-b border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
                                     <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
-                                        <Swords className="w-4 h-4 text-blue-600" />
+                                        <Swords className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
                                         Playbook Presales (Bank Pertanyaan & Battlecard Ammo)
                                     </span>
                                     <div className="flex gap-1 text-[11px]">
                                         <button
                                             type="button"
                                             onClick={() => setActiveAccordion(activeAccordion === "questions" ? null : "questions")}
-                                            className={`px-2 py-0.5 rounded ${activeAccordion === "questions" ? "bg-blue-600 text-white font-medium" : "text-zinc-500 hover:text-zinc-800"}`}
+                                            className={`px-2 py-0.5 rounded ${activeAccordion === "questions" ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-medium" : "text-zinc-500 hover:text-zinc-800"}`}
                                         >
                                             Pertanyaan
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => setActiveAccordion(activeAccordion === "ammo" ? null : "ammo")}
-                                            className={`px-2 py-0.5 rounded ${activeAccordion === "ammo" ? "bg-blue-600 text-white font-medium" : "text-zinc-500 hover:text-zinc-800"}`}
+                                            className={`px-2 py-0.5 rounded ${activeAccordion === "ammo" ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-medium" : "text-zinc-500 hover:text-zinc-800"}`}
                                         >
                                             Battlecard
                                         </button>
@@ -1063,7 +1063,7 @@ export function SolutionsCatalogTab() {
                                 <Button
                                     type="submit"
                                     disabled={submitting}
-                                    className="text-xs h-9 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                                    className="text-xs h-9 font-medium"
                                 >
                                     {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />}
                                     Simpan Playbook Solusi

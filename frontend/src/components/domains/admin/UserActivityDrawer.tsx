@@ -166,8 +166,8 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
         }
         if (act.includes("status")) {
             return (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-                    <CheckCircle2 className="w-3 h-3 text-purple-600" />
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-zinc-100 text-zinc-700 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700">
+                    <CheckCircle2 className="w-3 h-3 text-zinc-600 dark:text-zinc-400" />
                     {label || "Status Berubah"}
                 </span>
             );
@@ -190,15 +190,15 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
         }
         if (act.includes("user_access") || act.includes("master_data") || act.includes("settings")) {
             return (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                    <Shield className="w-3 h-3 text-blue-600" />
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-zinc-100 text-zinc-700 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700">
+                    <Shield className="w-3 h-3 text-zinc-600 dark:text-zinc-400" />
                     {label || "Admin"}
                 </span>
             );
         }
         return (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
-                <Edit3 className="w-3 h-3 text-sky-600" />
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-zinc-100 text-zinc-700 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700">
+                <Edit3 className="w-3 h-3 text-zinc-600 dark:text-zinc-400" />
                 {label || "Diperbarui"}
             </span>
         );
@@ -225,9 +225,9 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
                             <div className="flex items-center gap-2 flex-wrap">
                                 <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">{user.full_name}</h2>
                                 <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${user.role === "superadmin"
-                                    ? "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-900"
+                                    ? "bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100"
                                     : user.role === "manager"
-                                        ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900"
+                                        ? "bg-zinc-200/80 text-zinc-800 border-zinc-300 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
                                         : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700"
                                     }`}>
                                     {user.role}
@@ -270,11 +270,11 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
 
                     <div className="p-3 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between">
                         <div className="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400 text-[11px] font-semibold uppercase">
-                            <Calendar className="w-3.5 h-3.5 text-purple-500" />
+                            <Calendar className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
                             <span>Keaktifan Bulan Ini</span>
                         </div>
                         <div className="mt-1.5">
-                            <p className="text-base font-extrabold text-purple-700 dark:text-purple-400 leading-tight">
+                            <p className="text-base font-extrabold text-zinc-900 dark:text-zinc-100 leading-tight">
                                 {daysActive} <span className="text-xs font-normal text-zinc-500 dark:text-zinc-400">Hari Aktif</span>
                             </p>
                             <p className="text-[10px] text-zinc-400 mt-0.5">
@@ -348,7 +348,7 @@ export function UserActivityDrawer({ user, isOpen, onClose }: UserActivityDrawer
                                     setPage(1);
                                 }}
                                 className={`text-xs px-2.5 py-1 rounded-full font-medium transition-all shrink-0 ${category === c.id
-                                    ? "bg-emerald-700 text-white shadow-sm"
+                                    ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm"
                                     : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                                     }`}
                             >
