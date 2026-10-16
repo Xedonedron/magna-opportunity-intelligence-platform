@@ -106,6 +106,8 @@ class TestProspectingLushaUsage:
         )
         assert extracted["daily_requests_remaining"] == 91
         assert extracted["daily_requests_used"] == 9
+        assert svc._latest_header_limits["daily_requests_remaining"] == 91
+        assert svc._latest_header_limits["daily_requests_used"] == 9
         assert svc._cached_usage["daily_requests_remaining"] == 91
         assert svc._cached_usage["daily_requests_used"] == 9
         assert svc._cached_usage["credits_remaining"] == 2625

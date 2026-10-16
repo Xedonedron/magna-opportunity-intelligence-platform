@@ -64,6 +64,7 @@ class LushaService:
         }
         self._cached_usage: Optional[Dict[str, Any]] = None
         self._cached_usage_ts: float = 0.0
+        self._latest_header_limits: Dict[str, int] = {}
 
     @property
     def is_configured(self) -> bool:
@@ -107,14 +108,17 @@ class LushaService:
         if min_limit is not None:
             extracted["rate_limit_per_minute"] = min_limit
 
-        if self._cached_usage is not None and extracted:
-            self._cached_usage.update(extracted)
+        if extracted:
+            self._latest_header_limits.update(extracted)
+
+        if self._cached_usage is not None:
+            if extracted:
+                self._cached_usage.update(extracted)
             if credits_charged and credits_charged > 0:
                 self._cached_usage["credits_used"] = self._cached_usage.get("credits_used", 0) + credits_charged
                 self._cached_usage["credits_remaining"] = max(
                     0, self._cached_usage.get("credits_remaining", 0) - credits_charged
                 )
-            self._cached_usage_ts = time.time()
 
         return extracted
 
@@ -135,14 +139,17 @@ class LushaService:
                 "plan": "unconfigured",
             }
 
-        # Return fresh cached usage if available within 60s and not forced,
-        # avoiding unnecessary daily API call consumption on rapid tab switches.
+        # Return fresh cached usage if available within 10s and not forced,
+        # merging any newer header rate-limit counters captured from search/enrich calls.
         if (
             not force_refresh
             and self._cached_usage is not None
-            and (time.time() - self._cached_usage_ts) < 60.0
+            and (time.time() - self._cached_usage_ts) < 10.0
         ):
-            return dict(self._cached_usage)
+            merged = dict(self._cached_usage)
+            if self._latest_header_limits:
+                merged.update(self._latest_header_limits)
+            return merged
 
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.get(f"{LUSHA_BASE_URL}/account/usage", headers=self.headers)
@@ -184,26 +191,34 @@ class LushaService:
 
             daily_limit = daily_info.get("limit") or header_limits.get("rate_limit_per_day") or 100
             daily_used = (
-                daily_info.get("used")
-                if daily_info.get("used") is not None
-                else header_limits.get("daily_requests_used", 0)
+                header_limits.get("daily_requests_used")
+                if header_limits.get("daily_requests_used") is not None
+                else (daily_info.get("used") if daily_info.get("used") is not None else 0)
             )
             daily_remaining = (
-                daily_info.get("remaining")
-                if daily_info.get("remaining") is not None
-                else header_limits.get("daily_requests_remaining", max(0, daily_limit - daily_used))
+                header_limits.get("daily_requests_remaining")
+                if header_limits.get("daily_requests_remaining") is not None
+                else (
+                    daily_info.get("remaining")
+                    if daily_info.get("remaining") is not None
+                    else max(0, daily_limit - daily_used)
+                )
             )
 
             minute_limit = minute_info.get("limit") or header_limits.get("rate_limit_per_minute") or 40
             minute_used = (
-                minute_info.get("used")
-                if minute_info.get("used") is not None
-                else header_limits.get("minute_requests_used", 0)
+                header_limits.get("minute_requests_used")
+                if header_limits.get("minute_requests_used") is not None
+                else (minute_info.get("used") if minute_info.get("used") is not None else 0)
             )
             minute_remaining = (
-                minute_info.get("remaining")
-                if minute_info.get("remaining") is not None
-                else header_limits.get("minute_requests_remaining", max(0, minute_limit - minute_used))
+                header_limits.get("minute_requests_remaining")
+                if header_limits.get("minute_requests_remaining") is not None
+                else (
+                    minute_info.get("remaining")
+                    if minute_info.get("remaining") is not None
+                    else max(0, minute_limit - minute_used)
+                )
             )
 
             usage_payload = {

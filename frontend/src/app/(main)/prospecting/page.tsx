@@ -163,6 +163,7 @@ export default function ProspectingPage() {
     // 5. Selection & Action State
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [isRevealModalOpen, setIsRevealModalOpen] = useState(false);
+    const [revealModalMode, setRevealModalMode] = useState<"all" | "email" | "phone">("all");
     const [candidatesToReveal, setCandidatesToReveal] = useState<ProspectCandidate[]>([]);
     const [isRevealingCredits, setIsRevealingCredits] = useState(false);
     const [isExportingExcel, setIsExportingExcel] = useState(false);
@@ -321,7 +322,7 @@ export default function ProspectingPage() {
             }>("/api/prospecting/lusha/search", {
                 company_name: activeCompany.name,
                 company_domain: resolvedDomain.trim() || undefined,
-                limit: 50,
+                limit: 25,
             });
 
             if (res.data?.success && res.data?.contacts) {
@@ -342,7 +343,7 @@ export default function ProspectingPage() {
             setEmployees([]);
         } finally {
             setIsLoadingEmployees(false);
-            fetchQuota(false);
+            fetchQuota(true);
         }
     };
 
@@ -509,12 +510,17 @@ export default function ProspectingPage() {
     const handleOpenBulkReveal = () => {
         const toReveal = employees.filter((e) => selectedIds.has(e.id));
         if (toReveal.length === 0) return;
+        setRevealModalMode("all");
         setCandidatesToReveal(toReveal);
         setIsRevealModalOpen(true);
     };
 
     // Trigger Reveal Modal for Single Candidate
-    const handleOpenSingleReveal = (candidate: ProspectCandidate) => {
+    const handleOpenSingleReveal = (
+        candidate: ProspectCandidate,
+        mode: "all" | "email" | "phone" = "all",
+    ) => {
+        setRevealModalMode(mode);
         setCandidatesToReveal([candidate]);
         setIsRevealModalOpen(true);
     };
@@ -526,6 +532,7 @@ export default function ProspectingPage() {
 
         try {
             const updatedEmployees = [...employees];
+            let totalCreditsCharged = 0;
 
             for (const cand of candidatesToReveal) {
                 const fullName = cand.full_name || cand.name || "Stakeholder";
@@ -543,6 +550,10 @@ export default function ProspectingPage() {
                     company_domain: selectedCompany.domain || undefined,
                     reveal: normalizedReveal,
                 });
+
+                if (typeof res.data?.credits_charged === "number") {
+                    totalCreditsCharged += res.data.credits_charged;
+                }
 
                 if (res.data?.success && (res.data?.contact || res.data?.emails || res.data?.phones)) {
                     const enriched = res.data.contact || {};
@@ -580,13 +591,15 @@ export default function ProspectingPage() {
             setEmployees(updatedEmployees);
             setIsRevealModalOpen(false);
             setCandidatesToReveal([]);
-            fetchQuota();
+            await fetchQuota(true);
+            const creditInfo = totalCreditsCharged > 0 ? ` (${totalCreditsCharged} kredit Lusha terpakai)` : "";
             setFeedbackMessage({
                 type: "success",
-                text: `Berhasil membuka kontak ${candidatesToReveal.length} orang.`,
+                text: `Berhasil membuka kontak ${candidatesToReveal.length} orang${creditInfo}.`,
             });
             setTimeout(() => setFeedbackMessage(null), 5000);
         } catch (err: any) {
+            await fetchQuota(true);
             setFeedbackMessage({
                 type: "error",
                 text: err?.response?.data?.detail || "Terjadi kendala saat membuka kontak Lusha.",
@@ -1610,12 +1623,12 @@ export default function ProspectingPage() {
                                                             </div>
                                                         ) : emp.has_email ? (
                                                             <button
-                                                                onClick={() => handleOpenSingleReveal(emp)}
+                                                                onClick={() => handleOpenSingleReveal(emp, "email")}
                                                                 className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700 px-2 py-0.5 rounded transition"
-                                                                title="Klik untuk membuka email via kuota Lusha"
+                                                                title="Klik untuk membuka email via kuota Lusha (1 Kredit)"
                                                             >
                                                                 <Lock className="w-3 h-3" />
-                                                                <span>Tersedia (1 Kredit)</span>
+                                                                <span>Tersedia ({emp.email_credits || 1} Kredit)</span>
                                                             </button>
                                                         ) : (
                                                             <span className="text-zinc-300 dark:text-zinc-600">
@@ -1640,12 +1653,12 @@ export default function ProspectingPage() {
                                                             </div>
                                                         ) : emp.has_phone ? (
                                                             <button
-                                                                onClick={() => handleOpenSingleReveal(emp)}
+                                                                onClick={() => handleOpenSingleReveal(emp, "phone")}
                                                                 className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700 px-2 py-0.5 rounded transition"
-                                                                title="Klik untuk membuka nomor HP via kuota Lusha"
+                                                                title="Klik untuk membuka nomor HP via kuota Lusha (5 Kredit)"
                                                             >
                                                                 <Lock className="w-3 h-3" />
-                                                                <span>Tersedia (1 Kredit)</span>
+                                                                <span>Tersedia ({emp.phone_credits || 5} Kredit)</span>
                                                             </button>
                                                         ) : (
                                                             <span className="text-zinc-300 dark:text-zinc-600">
@@ -1693,7 +1706,7 @@ export default function ProspectingPage() {
                                                             <Button
                                                                 variant="secondary"
                                                                 size="sm"
-                                                                onClick={() => handleOpenSingleReveal(emp)}
+                                                                onClick={() => handleOpenSingleReveal(emp, "all")}
                                                                 className="h-7 text-[11px] px-2.5 font-medium gap-1"
                                                             >
                                                                 <Unlock className="w-3 h-3" />
@@ -1733,6 +1746,7 @@ export default function ProspectingPage() {
                 }))}
                 currentQuota={quota.creditsRemaining}
                 isLoading={isRevealingCredits}
+                initialMode={revealModalMode}
                 onConfirm={handleConfirmReveal}
             />
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Lock, Mail, Phone, AlertTriangle, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
@@ -23,6 +23,7 @@ interface CreditRevealModalProps {
     contacts: CandidateToReveal[];
     currentQuota: number | null;
     isLoading: boolean;
+    initialMode?: "all" | "email" | "phone";
     onConfirm: (revealOptions: ("email" | "phone")[]) => Promise<void>;
 }
 
@@ -32,10 +33,35 @@ export function CreditRevealModal({
     contacts,
     currentQuota,
     isLoading,
+    initialMode = "all",
     onConfirm,
 }: CreditRevealModalProps) {
     const [revealEmail, setRevealEmail] = useState(true);
     const [revealPhone, setRevealPhone] = useState(true);
+
+    useEffect(() => {
+        if (!isOpen || contacts.length === 0) return;
+        const anyEmailAvailable = contacts.some(
+            (c) => c.has_email !== false && !c.unlocked_email
+        );
+        const anyPhoneAvailable = contacts.some(
+            (c) => c.has_phone !== false && !c.unlocked_phone
+        );
+
+        if (initialMode === "email") {
+            setRevealEmail(anyEmailAvailable || true);
+            setRevealPhone(false);
+        } else if (initialMode === "phone") {
+            setRevealEmail(false);
+            setRevealPhone(anyPhoneAvailable || true);
+        } else {
+            setRevealEmail(anyEmailAvailable);
+            setRevealPhone(anyPhoneAvailable);
+            if (!anyEmailAvailable && !anyPhoneAvailable) {
+                setRevealEmail(true);
+            }
+        }
+    }, [isOpen, initialMode, contacts]);
 
     if (!isOpen || contacts.length === 0) return null;
 
@@ -43,8 +69,8 @@ export function CreditRevealModal({
     let totalPhoneCredits = 0;
 
     contacts.forEach((c) => {
-        const emailCost = c.unlocked_email || c.has_email === false ? 0 : (c.email_credits ?? 1);
-        const phoneCost = c.unlocked_phone || c.has_phone === false ? 0 : (c.phone_credits ?? 5);
+        const emailCost = c.unlocked_email || c.has_email === false ? 0 : (c.email_credits || 1);
+        const phoneCost = c.unlocked_phone || c.has_phone === false ? 0 : (c.phone_credits || 5);
         totalEmailCredits += emailCost;
         totalPhoneCredits += phoneCost;
     });
@@ -80,7 +106,7 @@ export function CreditRevealModal({
                             Konfirmasi Pembukaan Kredit Lusha
                         </h3>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                            Pilih atribut kontak yang ingin di-reveal. Kredit hanya akan dipotong sesuai atribut yang Anda pilih.
+                            Pilih atribut kontak yang ingin dibuka. Tarif resmi Lusha: <strong>Email = 1 kredit</strong>, <strong>Nomor HP/WA = 5 kredit</strong> per kontak.
                         </p>
                     </div>
                 </div>
@@ -119,12 +145,19 @@ export function CreditRevealModal({
                                 onChange={(e) => setRevealEmail(e.target.checked)}
                                 className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-zinc-500"
                             />
-                            <div className="flex items-center gap-2 text-xs font-medium text-zinc-800 dark:text-zinc-200">
-                                <Mail className="w-4 h-4 text-zinc-500" />
-                                <span>Alamat Email Terverifikasi</span>
+                            <div>
+                                <div className="flex items-center gap-2 text-xs font-medium text-zinc-800 dark:text-zinc-200">
+                                    <Mail className="w-4 h-4 text-zinc-500" />
+                                    <span>Alamat Email Terverifikasi</span>
+                                </div>
+                                <span className="text-[10px] text-zinc-400 ml-6">
+                                    Tarif Lusha: 1 kredit / kontak
+                                </span>
                             </div>
                         </div>
-                        <span className="text-[11px] text-zinc-500 font-mono">Total {totalEmailCredits} kredit</span>
+                        <span className="text-[11px] text-zinc-600 dark:text-zinc-300 font-mono font-semibold">
+                            Total {totalEmailCredits} kredit
+                        </span>
                     </label>
 
                     <label className="flex items-center justify-between p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 cursor-pointer transition">
@@ -135,12 +168,19 @@ export function CreditRevealModal({
                                 onChange={(e) => setRevealPhone(e.target.checked)}
                                 className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-zinc-500"
                             />
-                            <div className="flex items-center gap-2 text-xs font-medium text-zinc-800 dark:text-zinc-200">
-                                <Phone className="w-4 h-4 text-zinc-500" />
-                                <span>Nomor HP / WhatsApp Direct</span>
+                            <div>
+                                <div className="flex items-center gap-2 text-xs font-medium text-zinc-800 dark:text-zinc-200">
+                                    <Phone className="w-4 h-4 text-zinc-500" />
+                                    <span>Nomor HP / WhatsApp Direct</span>
+                                </div>
+                                <span className="text-[10px] text-zinc-400 ml-6">
+                                    Tarif Lusha: 5 kredit / kontak
+                                </span>
                             </div>
                         </div>
-                        <span className="text-[11px] text-zinc-500 font-mono">Total {totalPhoneCredits} kredit</span>
+                        <span className="text-[11px] text-zinc-600 dark:text-zinc-300 font-mono font-semibold">
+                            Total {totalPhoneCredits} kredit
+                        </span>
                     </label>
                 </div>
 
@@ -151,7 +191,7 @@ export function CreditRevealModal({
                         <span className="font-semibold">{contacts.length} orang</span>
                     </div>
                     <div className="border-t border-zinc-200 dark:border-zinc-700/80 pt-1.5 flex justify-between items-center font-bold text-zinc-900 dark:text-zinc-100">
-                        <span>Total Biaya Kredit Lusha:</span>
+                        <span>Estimasi Maksimal Kredit Lusha:</span>
                         <span className="text-sm">{totalCreditsRequired} Kredit</span>
                     </div>
                     {currentQuota !== null && (
