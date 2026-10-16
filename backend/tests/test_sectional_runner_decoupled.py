@@ -17,7 +17,9 @@ from app.schemas.kyc import (
     CategorizedQuestions,
 )
 from app.services.kyc_sectional_runner import (
+    _build_base_context,
     _build_company_foundation_context,
+    _build_deal_progression_context,
     run_company_foundation,
     run_opportunity_intelligence,
     run_sectional_kyc_pipeline,
@@ -217,6 +219,83 @@ async def test_orchestrator_full_pipeline_no_cache():
     assert result["executive_summary"] == "PT ABC Indonesia needs next-gen firewall..."
 
 
+@pytest.mark.asyncio
+async def test_living_opportunity_intelligence_mom_and_docs_injection():
+    """IMP-01: Verify Meeting MoM and OpportunityDocuments are injected into Layer B (Modules 3-6) and excluded from Layer A (Modules 1-2)."""
+    state = _mock_state(
+        meeting_history=[
+            {
+                "title": "Technical Deep Dive & Architecture Review",
+                "type": "technical_deep_dive",
+                "date": "2026-10-15T10:00:00Z",
+                "status": "completed",
+                "agenda": "Discuss Zero Trust segmentation",
+                "notes": "Client confirmed legacy VPN concentrator must be replaced by Q4.",
+                "action_items": [
+                    {"text": "Deliver PoC sizing matrix for 2500 concurrent users", "completed": False}
+                ],
+            }
+        ],
+        uploaded_documents=[
+            {
+                "title": "RFP Network Modernization 2026.pdf",
+                "url": "https://docs.abc.co.id/rfp-2026.pdf",
+                "description": "Mandatory SLA 99.99% and dual-DC active-active topology",
+                "labels": ["RFP", "Technical Spec"],
+            }
+        ],
+    )
+
+    foundation_ctx = _build_company_foundation_context(state)
+    base_ctx = _build_base_context(state)
+    progression_ctx = _build_deal_progression_context(state)
+
+    # Layer A must never receive meeting MoM or opportunity documents
+    assert "legacy VPN concentrator" not in foundation_ctx
+    assert "RFP Network Modernization 2026.pdf" not in foundation_ctx
+
+    # Layer B base context and progression context must include both MoM and documents
+    assert "Histori Diskusi Meeting (MoM) & Dokumen Terlampir" in progression_ctx
+    assert "legacy VPN concentrator" in base_ctx
+    assert "Deliver PoC sizing matrix" in base_ctx
+    assert "RFP Network Modernization 2026.pdf" in base_ctx
+    assert "Mandatory SLA 99.99%" in base_ctx
+
+    # Also verify Module 6 prompt receives the progression context
+    captured_prompts = {}
+
+    async def mock_invoke(llm, schema_cls, prompt, section_name, **kwargs):
+        captured_prompts[section_name] = prompt
+        if schema_cls == PainPointsNeedsOutput:
+            return _make_mod3()
+        if schema_cls == UseCasesOutput:
+            return _make_mod4()
+        if schema_cls == EngagementStrategyOutput:
+            return _make_mod5()
+        if schema_cls == ExecutiveSummaryOutput:
+            return _make_mod6()
+        raise ValueError(f"Unexpected schema {schema_cls}")
+
+    with patch("app.services.kyc_sectional_runner.invoke_section", side_effect=mock_invoke):
+        await run_opportunity_intelligence(
+            state=state,
+            mod1=_make_mod1(),
+            mod2=_make_mod2(),
+            llm=MagicMock(),
+            config=None,
+            update_progress_fn=AsyncMock(),
+            clean_json_fn=lambda x: x,
+            base_context=base_ctx,
+            use_cases_context="",
+            solutions_context="",
+            matched_smg_cards=[],
+        )
+
+    assert "legacy VPN concentrator" in captured_prompts["Module 3: Pain Points & Needs"]
+    assert "RFP Network Modernization 2026.pdf" in captured_prompts["Module 6: Executive Summary"]
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
 

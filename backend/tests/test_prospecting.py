@@ -310,6 +310,51 @@ class TestProspectingGenerate:
         assert "Zero-Trust" in data["hypothesis"]["recommended_solution"]
         assert "Solution Advisory" in data["outreach"]["whatsapp"]
 
+    def test_generate_dossier_personalized_with_user_and_db_context(
+        self,
+        client: TestClient,
+        lgo_auth_headers: dict[str, str],
+        db: Session,
+        lgo_user: User,
+    ):
+        """IMP-02: Verify authenticated user name/role and existing DB Company context personalize the dossier."""
+        from app.api.companies import compute_normalized_name
+
+        company = Company(
+            name="PT Bank Mandiri (Persero) Tbk",
+            normalized_name=compute_normalized_name("PT Bank Mandiri (Persero) Tbk"),
+            industry="Perbankan & Jasa Keuangan",
+            business_process="Core banking multi-region & super-app Livin'",
+            tech_stack=["Fortinet FortiGate", "Kubernetes"],
+        )
+        db.add(company)
+        db.commit()
+
+        payload = {
+            "company_name": "PT Bank Mandiri (Persero) Tbk",
+            "job_function": "security",
+            "seniority": "c_level",
+            "contact": {
+                "full_name": "Rudi Hartono",
+                "job_title": "Chief Information Security Officer",
+            },
+        }
+        response = client.post(
+            "/api/prospecting/generate",
+            json=payload,
+            headers=lgo_auth_headers,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        # Personalized with lgo_user.full_name ("LGO User") and role title
+        assert "Saya LGO User dari Solution Advisory (Lead Generation & Outbound Specialist)" in data["outreach"]["whatsapp"]
+        assert "LGO User | Lead Generation & Outbound Specialist" in data["outreach"]["email_body"]
+        assert "saya LGO User dari tim Magna Global" in data["outreach"]["linkedin"]
+        # Enriched with DB Company context
+        assert "Perbankan & Jasa Keuangan" in data["outreach"]["whatsapp"]
+        assert "Core banking multi-region" in data["outreach"]["email_body"]
+        assert "Kubernetes" in data["hypothesis"]["tech_stack"]
+
 
 class TestProspectingConvert:
     """Test Atomic Conversion of Prospect to Opportunity & Database Records."""

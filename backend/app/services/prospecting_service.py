@@ -17,8 +17,9 @@ from sqlalchemy import func as sa_func
 
 from app.models.company import Company
 from app.models.company_contact import CompanyContact
+from app.models.kyc_report import KYCReport
 from app.models.opportunity import Opportunity, TimelineEvent
-from app.models.user import User
+from app.models.user import User, normalize_role
 from app.api.companies import compute_normalized_name, resolve_or_create_company
 from app.schemas.prospecting import (
     ProspectingGenerateRequest,
@@ -243,25 +244,42 @@ def _build_outreach_copies(
     pillar_key: str,
     seniority: str,
     intel: Dict[str, Any],
+    sender_name: Optional[str] = None,
+    sender_role_title: Optional[str] = None,
+    company_context_note: Optional[str] = None,
 ) -> OutreachCopy:
     first_name = _get_first_name(contact_name)
     solution_name = intel["solution"]
     pillar_name = intel["pillar"]
 
+    resolved_sender = sender_name.strip() if sender_name and sender_name.strip() else "Dan"
+    resolved_role = sender_role_title.strip() if sender_role_title and sender_role_title.strip() else "Solution Advisory"
+    context_clause = f" {company_context_note.strip()}" if company_context_note and company_context_note.strip() else ""
+
     # WhatsApp tone
     if seniority in ["c_level", "vp_director"]:
+        wa_team = (
+            f"Solution Advisory ({resolved_role})"
+            if sender_role_title and resolved_role != "Solution Advisory"
+            else "Solution Advisory"
+        )
         wa_text = (
-            f"Selamat pagi/siang Pak/Bu {first_name}, salam kenal. Saya Dan dari Solution Advisory PT Smartnet Magna Global.\n\n"
-            f"Kami mengamati fokus penguatan infrastruktur digital di {company_name}. "
+            f"Selamat pagi/siang Pak/Bu {first_name}, salam kenal. Saya {resolved_sender} dari {wa_team} PT Smartnet Magna Global.\n\n"
+            f"Kami mengamati fokus penguatan infrastruktur digital di {company_name}.{context_clause} "
             f"Magna baru saja mendampingi rekanan enterprise terkemuka dalam modernisasi {solution_name}, "
             f"dengan pencapaian efisiensi OPEX hingga 35% dan peningkatan keandalan sistem.\n\n"
             f"Jika berkenan, kami ingin berbagi ringkasan benchmark arsitektur ini melalui diskusi santai 15 menit minggu ini. "
             f"Terima kasih banyak atas waktunya, Pak/Bu."
         )
     else:
+        wa_team = (
+            f"tim Solution Architect ({resolved_role})"
+            if sender_role_title and resolved_role not in ("Solution Architect", "Solution Advisory")
+            else "tim Solution Architect"
+        )
         wa_text = (
-            f"Halo Pak/Bu {first_name}, salam kenal. Saya Dan dari tim Solution Architect PT Smartnet Magna Global.\n\n"
-            f"Melihat peran Bapak/Ibu di {company_name} dalam mengawal operasional {pillar_name}, "
+            f"Halo Pak/Bu {first_name}, salam kenal. Saya {resolved_sender} dari {wa_team} PT Smartnet Magna Global.\n\n"
+            f"Melihat peran Bapak/Ibu di {company_name} dalam mengawal operasional {pillar_name},{context_clause} "
             f"kami ingin sharing arsitektur implementasi {solution_name} yang kami terapkan untuk mengatasi isu latency dan availability.\n\n"
             f"Boleh kami minta waktu 10-15 menit via virtual call atau coffee sync santai minggu ini? Terima kasih Pak/Bu."
         )
@@ -273,7 +291,7 @@ def _build_outreach_copies(
         f"{job_title} - {company_name}\n\n"
         f"Salam hangat dari PT Smartnet Magna Global (Magna).\n\n"
         f"Sebagai mitra integrasi sistem teknologi enterprise di Indonesia, kami mencermati komitmen {company_name} "
-        f"dalam memperkuat ketahanan operasional dan kepatuhan sistem informasi.\n\n"
+        f"dalam memperkuat ketahanan operasional dan kepatuhan sistem informasi.{context_clause}\n\n"
         f"Melalui pilar {pillar_name}, tim spesialis kami telah membantu berbagai institusi mengimplementasikan arsitektur {solution_name} "
         f"dengan keunggulan utama:\n"
         f"1. {intel['benefits'][0]}\n"
@@ -283,14 +301,14 @@ def _build_outreach_copies(
         f"dan studi kasus relevan tanpa komitmen awal.\n\n"
         f"Apakah hari Kamis atau Jumat ini ada waktu luang yang pas untuk diskusi virtual singkat?\n\n"
         f"Hormat kami,\n"
-        f"Dan | Solution Advisory\n"
+        f"{resolved_sender} | {resolved_role}\n"
         f"PT Smartnet Magna Global\n"
         f"www.magnaglobal.id"
     )
 
     # LinkedIn
     linkedin_note = (
-        f"Halo Pak/Bu {first_name}, salam kenal dari tim Magna Global. "
+        f"Halo Pak/Bu {first_name}, salam kenal, saya {resolved_sender} dari tim Magna Global. "
         f"Senang terhubung dengan profesional di {company_name}. "
         f"Kami banyak berkolaborasi di modernisasi {pillar_name} & kepatuhan SLA. "
         f"Senang jika bisa bertukar wawasan terkait benchmark arsitektur terkini. Salam!"
@@ -304,20 +322,104 @@ def _build_outreach_copies(
     )
 
 
+ROLE_DISPLAY_TITLES: Dict[str, str] = {
+    "lgo": "Lead Generation & Outbound Specialist",
+    "ae": "Account Executive",
+    "sa": "Solutions Architect",
+    "admin": "Principal Solution Advisory",
+}
+
+
 class ProspectingService:
-    def generate_dossier(self, req: ProspectingGenerateRequest) -> ProspectingGenerateResponse:
-        """Synthesize outbound strategy dossier from target company and contact input."""
+    def generate_dossier(
+        self,
+        req: ProspectingGenerateRequest,
+        current_user: Optional[User] = None,
+        db: Optional[Session] = None,
+    ) -> ProspectingGenerateResponse:
+        """Synthesize outbound strategy dossier from target company, contact input, active user identity, and DB intelligence."""
         function_key = req.job_function.lower() if req.job_function else "network"
         if function_key not in PILLAR_INTELLIGENCE:
             function_key = "network"
 
         intel = PILLAR_INTELLIGENCE[function_key]
 
+        # 1. Resolve dynamic sender identity from current_user (fallback to default "Dan" for unauthenticated/default dev user)
+        sender_name: Optional[str] = None
+        sender_role_title: Optional[str] = None
+        if current_user is not None:
+            user_email = (getattr(current_user, "email", "") or "").strip().lower()
+            user_full_name = (getattr(current_user, "full_name", "") or "").strip()
+            if user_email != "consultant@magnaglobal.id" and user_full_name not in ("", "Magna Solution Consultant"):
+                sender_name = user_full_name
+                norm_role = normalize_role(getattr(current_user, "role", None))
+                sender_role_title = ROLE_DISPLAY_TITLES.get(norm_role, "Solution Advisory")
+
+        # 2. Enrich hypothesis and outreach with existing corporate profile & KYC report from DB if available
+        pain_points = list(intel["pain_points"])
+        tech_stack = list(intel["tech_stack"])
+        company_context_note: Optional[str] = None
+
+        if db is not None and req.company_name and req.company_name.strip():
+            norm_company = compute_normalized_name(req.company_name)
+            existing_company = (
+                db.query(Company)
+                .filter(Company.normalized_name == norm_company)
+                .first()
+            )
+            if existing_company is not None:
+                context_parts: List[str] = []
+                effective_industry = existing_company.industry or req.industry
+                if effective_industry:
+                    context_parts.append(f"Khususnya pada sektor {effective_industry}")
+                if existing_company.business_process:
+                    bp_snippet = existing_company.business_process.strip().rstrip(".")
+                    if len(bp_snippet) > 140:
+                        bp_snippet = bp_snippet[:137] + "..."
+                    context_parts.append(f"dengan fokus operasional pada {bp_snippet}")
+
+                if isinstance(existing_company.tech_stack, list):
+                    for ts in existing_company.tech_stack:
+                        if isinstance(ts, str) and ts.strip() and ts.strip() not in tech_stack:
+                            tech_stack.append(ts.strip())
+
+                # Check latest completed KYCReport across opportunities of this company
+                latest_kyc = (
+                    db.query(KYCReport)
+                    .join(Opportunity, KYCReport.opportunity_id == Opportunity.id)
+                    .filter(
+                        Opportunity.company_id == existing_company.id,
+                        KYCReport.status == "completed",
+                    )
+                    .order_by(KYCReport.completed_at.desc(), KYCReport.created_at.desc())
+                    .first()
+                )
+                if latest_kyc is not None:
+                    if isinstance(latest_kyc.potential_pain_points, list):
+                        for pp in latest_kyc.potential_pain_points[:2]:
+                            pp_text = (
+                                pp.get("pain_point") or pp.get("title") or pp.get("description")
+                                if isinstance(pp, dict)
+                                else str(pp)
+                            )
+                            if pp_text and pp_text.strip() and pp_text.strip() not in pain_points:
+                                pain_points.append(pp_text.strip())
+                    if latest_kyc.customer_need_summary:
+                        need_snippet = latest_kyc.customer_need_summary.strip().rstrip(".")
+                        if len(need_snippet) > 140:
+                            need_snippet = need_snippet[:137] + "..."
+                        context_parts.append(f"serta prioritas inisiatif {need_snippet}")
+
+                if context_parts:
+                    company_context_note = ", ".join(context_parts) + "."
+            elif req.industry and req.industry.strip():
+                company_context_note = f"Khususnya dalam mendukung akselerasi digital di sektor {req.industry.strip()}."
+
         hypothesis = SolutionHypothesis(
-            pain_points=intel["pain_points"],
+            pain_points=pain_points,
             recommended_solution=intel["solution"],
             solution_pillar=intel["pillar"],
-            tech_stack=intel["tech_stack"],
+            tech_stack=tech_stack,
             key_benefits=intel["benefits"],
         )
 
@@ -328,6 +430,9 @@ class ProspectingService:
             pillar_key=function_key,
             seniority=req.seniority,
             intel=intel,
+            sender_name=sender_name,
+            sender_role_title=sender_role_title,
+            company_context_note=company_context_note,
         )
 
         return ProspectingGenerateResponse(

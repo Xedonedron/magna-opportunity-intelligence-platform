@@ -685,6 +685,7 @@ async def export_prospects_to_excel(
 @router.post("/generate", response_model=ProspectingGenerateResponse)
 async def generate_prospecting_dossier(
     request: ProspectingGenerateRequest,
+    db: Session = Depends(get_db),
     user: User = Depends(require_prospecting_user),
 ):
     """
@@ -697,7 +698,7 @@ async def generate_prospecting_dossier(
             detail="Nama perusahaan wajib diisi.",
         )
 
-    return prospecting_service.generate_dossier(request)
+    return prospecting_service.generate_dossier(request, current_user=user, db=db)
 
 
 @router.post("/convert", response_model=ProspectingConvertResponse)

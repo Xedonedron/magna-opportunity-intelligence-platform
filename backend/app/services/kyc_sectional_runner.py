@@ -68,6 +68,76 @@ def _build_company_foundation_context(state: Any) -> str:
 """
 
 
+def _build_deal_progression_context(state: Any) -> str:
+    """Format meeting MoM (notes, action items, agenda) and attached OpportunityDocuments for Layer B.
+
+    Strictly used only in Layer B (Modules 3-6) so Layer A (Company Foundation) remains uncontaminated.
+    """
+    if not state:
+        return ""
+
+    parts: list[str] = []
+    raw_progression = state.get("deal_progression_context")
+    if raw_progression and isinstance(raw_progression, str) and raw_progression.strip():
+        parts.append(raw_progression.strip())
+
+    meetings = state.get("meeting_history") or []
+    meaningful_meetings = [
+        m for m in meetings
+        if isinstance(m, dict) and (m.get("notes") or m.get("action_items") or m.get("agenda"))
+    ]
+    if meaningful_meetings:
+        m_lines = ["### Riwayat Diskusi Meeting & Minutes of Meeting (MoM):"]
+        for idx, m in enumerate(meaningful_meetings[:5], 1):
+            title = m.get("title") or "Meeting"
+            date_str = m.get("date") or "N/A"
+            m_lines.append(f"{idx}. **{title}** ({date_str})")
+            agenda = m.get("agenda")
+            if agenda:
+                ag_str = ", ".join(str(a) for a in agenda) if isinstance(agenda, list) else str(agenda)
+                if ag_str.strip():
+                    m_lines.append(f"   - Agenda: {ag_str}")
+            if m.get("notes"):
+                m_lines.append(f"   - Catatan / MoM: {str(m['notes']).strip()[:1200]}")
+            action_items = m.get("action_items")
+            if action_items:
+                if isinstance(action_items, list):
+                    ai_items = []
+                    for item in action_items:
+                        if isinstance(item, dict):
+                            txt = item.get("text") or item.get("title") or item.get("task") or str(item)
+                            done = " [Done]" if item.get("completed") or item.get("done") else ""
+                            ai_items.append(f"{txt}{done}")
+                        else:
+                            ai_items.append(str(item))
+                    ag_ai = "; ".join(ai_items)
+                else:
+                    ag_ai = str(action_items)
+                if ag_ai.strip():
+                    m_lines.append(f"   - Action Items / Tindak Lanjut: {ag_ai}")
+        parts.append("\n".join(m_lines))
+
+    docs = state.get("uploaded_documents") or []
+    if docs:
+        d_lines = ["### Dokumen & Referensi Teknis Opportunity Terlampir:"]
+        for idx, d in enumerate(docs[:8], 1):
+            if not isinstance(d, dict):
+                continue
+            d_title = d.get("title") or "Dokumen"
+            labels = d.get("labels") or []
+            label_str = f" [{', '.join(str(l) for l in labels)}]" if labels else ""
+            desc_str = f" — {d['description']}" if d.get("description") else ""
+            url_str = f" ({d['url']})" if d.get("url") else ""
+            d_lines.append(f"{idx}. **{d_title}**{label_str}{desc_str}{url_str}")
+        if len(d_lines) > 1:
+            parts.append("\n".join(d_lines))
+
+    if not parts:
+        return ""
+
+    return "\n## Histori Diskusi Meeting (MoM) & Dokumen Terlampir\n" + "\n\n".join(parts) + "\n"
+
+
 def _build_base_context(state: Any) -> tuple:
     external_research = _extract_external_research_context(state)
 
@@ -96,6 +166,7 @@ def _build_base_context(state: Any) -> tuple:
     )
 
     focus = f"\n## PANDUAN FOKUS KHUSUS (PRIORITAS TERTINGGI):\n{state['focus_notes']}\n" if state.get("focus_notes") else ""
+    deal_progression = _build_deal_progression_context(state)
 
     base = f"""## Informasi Perusahaan Klien
 - Nama Perusahaan: {state.get('company_name', 'Unknown')}
@@ -108,7 +179,7 @@ def _build_base_context(state: Any) -> tuple:
 
 ## Catatan Tambahan
 {state.get('additional_notes') or 'None'}
-{focus}
+{focus}{deal_progression}
 ## Data Riset & Intelijen Eksternal
 {external_research}
 """
@@ -313,6 +384,7 @@ Struktur output JSON yang WAJIB:
 
     # --- Step 3: Deal Executive Summary (Module 6) ---
     logger.info("[KYC Pipeline] Layer B Step 3: Executive Synthesis (Module 6)...")
+    deal_progression_ctx = _build_deal_progression_context(state)
     prompt_mod6 = f"""Tulis Executive Summary komprehensif 2-3 paragraf standar C-Level untuk klien ini:
 Profil: {mod1.company_overview.name} - {mod1.company_overview.description}
 Model Bisnis: {mod1.business_model}
@@ -321,7 +393,7 @@ Needs: {mod3.customer_need_summary}
 Pain points: {', '.join(mod3.potential_pain_points)}
 Use Cases: {', '.join([u.title for u in mod4.use_cases])}
 Target Meeting: {', '.join(mod5.meeting_objectives)}
-
+{deal_progression_ctx}
 Struktur output JSON yang WAJIB:
 {{
   "executive_summary": "Teks narasi Executive Summary 2-3 paragraf komprehensif..."

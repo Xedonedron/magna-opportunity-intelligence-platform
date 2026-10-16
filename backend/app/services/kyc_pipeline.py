@@ -54,6 +54,9 @@ class KYCState(TypedDict):
     company_id: Optional[str]
     existing_company_profile: Optional[dict]
     reused_company_profile: Optional[bool]
+    meeting_history: Optional[list[dict]]
+    uploaded_documents: Optional[list[dict]]
+    deal_progression_context: Optional[str]
 
     # Intermediate results
     search_results: dict
@@ -318,6 +321,9 @@ async def run_kyc_pipeline(
     model_name: Optional[str] = None,
     company_id: Optional[str] = None,
     existing_company_profile: Optional[dict] = None,
+    meeting_history: Optional[list[dict]] = None,
+    uploaded_documents: Optional[list[dict]] = None,
+    deal_progression_context: Optional[str] = None,
 ) -> dict[str, Any]:
     """Run the full KYC pipeline and return the report data.
 
@@ -347,6 +353,9 @@ async def run_kyc_pipeline(
         "company_id": company_id,
         "existing_company_profile": existing_company_profile,
         "reused_company_profile": False,
+        "meeting_history": meeting_history or [],
+        "uploaded_documents": uploaded_documents or [],
+        "deal_progression_context": deal_progression_context,
         "search_results": {},
         "website_content": None,
         "industry_use_cases": [],

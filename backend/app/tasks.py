@@ -359,6 +359,45 @@ def run_kyc_pipeline_task(
                         prior_kyc.version,
                     )
 
+        # Gather Living Opportunity Intelligence (MoM & Attached Documents) for Layer B
+        from app.models.meeting import Meeting
+        from app.models.opportunity import OpportunityDocument
+
+        meetings_rows = (
+            db.query(Meeting)
+            .filter(Meeting.opportunity_id == opportunity.id)
+            .order_by(Meeting.date.desc())
+            .all()
+        )
+        meeting_history = [
+            {
+                "title": m.title,
+                "date": m.date.strftime("%Y-%m-%d %H:%M") if m.date else "N/A",
+                "location": m.location,
+                "agenda": m.agenda or [],
+                "notes": m.notes,
+                "action_items": m.action_items or [],
+            }
+            for m in meetings_rows
+        ]
+
+        doc_rows = (
+            db.query(OpportunityDocument)
+            .filter(OpportunityDocument.opportunity_id == opportunity.id)
+            .order_by(OpportunityDocument.created_at.desc())
+            .all()
+        )
+        uploaded_documents = [
+            {
+                "title": d.title,
+                "url": d.url,
+                "description": d.description,
+                "labels": d.labels or [],
+                "uploaded_at": d.created_at.strftime("%Y-%m-%d") if d.created_at else None,
+            }
+            for d in doc_rows
+        ]
+
         # Run the async pipeline with in-place retry for transient errors
         effective_focus = focus_notes or (kyc_report.focus_notes if kyc_report else None)
         max_task_retries = 3
@@ -390,6 +429,8 @@ def run_kyc_pipeline_task(
                         model_name=model_name,
                         company_id=str(effective_company_id) if effective_company_id else None,
                         existing_company_profile=existing_company_profile,
+                        meeting_history=meeting_history,
+                        uploaded_documents=uploaded_documents,
                     )
                 )
             except Exception as task_exc:
