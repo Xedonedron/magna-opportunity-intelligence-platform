@@ -252,13 +252,15 @@ class LushaService:
         effective_size = limit if limit is not None else size
         actual_size = max(10, effective_size)
 
+        clean_dom = ""
+        if company_domain and company_domain.strip():
+            clean_dom = re.sub(r"^https?://(www\.)?", "", company_domain.strip()).split("/")[0].strip()
+
         companies_include: Dict[str, Any] = {
             "names": [company_name.strip()],
         }
-        if company_domain and company_domain.strip():
-            clean_dom = re.sub(r"^https?://(www\.)?", "", company_domain.strip()).split("/")[0].strip()
-            if clean_dom:
-                companies_include["domains"] = [clean_dom]
+        if clean_dom:
+            companies_include["domains"] = [clean_dom]
         if country:
             companies_include["locations"] = [{"country": country.strip()}]
 
@@ -329,6 +331,68 @@ class LushaService:
                     pagination = raw_data.get("pagination", {})
                     total = pagination.get("total", len(results))
                     resp = resp_fb
+
+            # Fallback 2: If domain was provided alongside company_name and strict name+domain returned 0,
+            # retry using domain alone so slight company name variations don't block results.
+            if resp.status_code == 200 and total == 0 and clean_dom:
+                payload_dom = {
+                    "pagination": {"page": page, "size": actual_size},
+                    "filters": {
+                        "companies": {"include": {"domains": [clean_dom]}},
+                    },
+                }
+                if contacts_include:
+                    payload_dom["filters"]["contacts"] = {"include": contacts_include}
+
+                resp_dom = await client.post(
+                    f"{LUSHA_BASE_URL}/contacts/prospecting",
+                    headers=self.headers,
+                    json=payload_dom,
+                )
+                self._sync_rate_limits_from_headers(resp_dom.headers)
+                if resp_dom.status_code == 200:
+                    raw_data = resp_dom.json()
+                    results = raw_data.get("results", [])
+                    pagination = raw_data.get("pagination", {})
+                    total = pagination.get("total", len(results))
+                    resp = resp_dom
+
+            # Fallback 3: If no domain was provided and raw company_name returned 0 contacts,
+            # resolve canonical company name/domain via Lusha Companies Prospecting API and retry.
+            if resp.status_code == 200 and total == 0 and not clean_dom:
+                matched_companies = await self.search_companies(company_name.strip(), country=country)
+                if matched_companies:
+                    top_comp = matched_companies[0]
+                    resolved_dom = (top_comp.get("domain") or "").strip()
+                    resolved_name = (top_comp.get("name") or "").strip()
+                    comp_inc_resolved: Dict[str, Any] = {}
+                    if resolved_dom:
+                        comp_inc_resolved["domains"] = [resolved_dom]
+                    elif resolved_name and resolved_name.lower() != company_name.strip().lower():
+                        comp_inc_resolved["names"] = [resolved_name]
+
+                    if comp_inc_resolved:
+                        payload_res = {
+                            "pagination": {"page": page, "size": actual_size},
+                            "filters": {
+                                "companies": {"include": comp_inc_resolved},
+                            },
+                        }
+                        if contacts_include:
+                            payload_res["filters"]["contacts"] = {"include": contacts_include}
+
+                        resp_res = await client.post(
+                            f"{LUSHA_BASE_URL}/contacts/prospecting",
+                            headers=self.headers,
+                            json=payload_res,
+                        )
+                        self._sync_rate_limits_from_headers(resp_res.headers)
+                        if resp_res.status_code == 200:
+                            raw_data = resp_res.json()
+                            results = raw_data.get("results", [])
+                            pagination = raw_data.get("pagination", {})
+                            total = pagination.get("total", len(results))
+                            resp = resp_res
 
             if resp.status_code != 200:
                 logger.error(f"[LushaService] Prospecting search failed: {resp.status_code} - {resp.text}")

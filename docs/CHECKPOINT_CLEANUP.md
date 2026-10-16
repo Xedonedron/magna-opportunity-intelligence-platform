@@ -8,20 +8,25 @@ Dokumen ini menjadi **referensi tunggal (living checklist)** untuk seluruh catat
 
 | ID | Kategori | Item Perbaikan | Lokasi File Utama | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **CP-01** | Bug & UX | **Fix Lusha Search di Halaman Detail (Active Company View)** | [`frontend/src/app/(main)/prospecting/page.tsx`](file:///srv/projects/magna-opportunity-intelligence-platform/frontend/src/app/(main)/prospecting/page.tsx) | ⏳ Antrean Berikutnya |
+| **CP-01** | Bug & UX | **Fix Lusha Search di Halaman Detail (Active Company View)** | [`frontend/src/app/(main)/prospecting/page.tsx`](file:///srv/projects/magna-opportunity-intelligence-platform/frontend/src/app/(main)/prospecting/page.tsx), [`backend/app/services/lusha_service.py`](file:///srv/projects/magna-opportunity-intelligence-platform/backend/app/services/lusha_service.py) | ✅ Selesai |
 | **CP-02** | Bug & API | **Ambil & Tampilkan Nilai Real-Time Lusha API Limit (100/hari) & Kredit** | [`backend/app/services/lusha_service.py`](file:///srv/projects/magna-opportunity-intelligence-platform/backend/app/services/lusha_service.py), [`frontend/src/app/(main)/prospecting/page.tsx`](file:///srv/projects/magna-opportunity-intelligence-platform/frontend/src/app/(main)/prospecting/page.tsx) | ✅ Selesai |
 
 ---
 
 ## Detail Catatan & Solusi
 
-### CP-01: Fix Bug Lusha Search di Detail View (⏳ Antrean Berikutnya)
+### CP-01: Fix Bug Lusha Search di Detail View (✅ Selesai)
 - **Keluhan User**:
   - Di halaman awal **Lusha Prospecting Hub**, pencarian perusahaan & tombol **Cari Karyawan** berjalan normal.
   - Namun setelah perusahaan dipilih dan daftar karyawan muncul (halaman detail), terdapat search bar di bagian atas daftar karyawan yang ketika diketik nama perusahaan lain **tidak menampilkan hasil / tidak berfungsi**, padahal saat dicek di Lusha perusahaan tersebut ada (dan baru bisa ditemukan bila kembali ke halaman awal).
-- **Root Cause**:
-  1. Saat `selectedCompany` bernilai aktif (termasuk saat otomatis dipulihkan dari `sessionStorage` `moip_prospecting_cache`), input pencarian perusahaan (`companyQuery` + tombol **Cari Karyawan**) di kartu atas disembunyikan sepenuhnya.
-  2. Satu-satunya search bar yang terlihat di halaman detail adalah input di Discovery Toolbar (`jobTitleSearchQuery`) yang hanya memfilter array `employees` lokal di memori berdasarkan nama karyawan, jabatan, atau departemen perusahaan lama.
+- **Perbaikan yang Telah Diimplementasikan**:
+  1. **Search Bar Perusahaan & Tombol `Cari Karyawan` Selalu Tampil**: Menghapus kondisi `{!selectedCompany ? ... : ...}` yang menyembunyikan search bar perusahaan saat ada perusahaan aktif. Kini search bar perusahaan beserta autocomplete live Lusha/MOIP selalu tampil di bagian atas kartu **Target Perusahaan**, dan kartu ringkasan perusahaan aktif ditampilkan tepat di bawahnya.
+  2. **Smart Company Lookup di Search Bar Detail (Discovery Toolbar)**:
+     - Memperjelas placeholder search bar di toolbar menjadi `Filter nama / jabatan di <Nama Perusahaan>...` dan menambahkan tombol cepat **`Cari Perusahaan "<Query>"`** di sebelahnya.
+     - Ketika user mengetik nama perusahaan baru di search bar detail dan menghasilkan 0 karyawan yang cocok pada perusahaan lama, sistem secara otomatis mengambil rekomendasi perusahaan dari `/api/prospecting/companies/search?q=...` dan menampilkannya langsung sebagai daftar perusahaan Lusha yang bisa diklik (atau tekan `Enter ↵`) di area hasil.
+  3. **Peningkatan Resolusi Perusahaan & Domain di Backend (`LushaService.search_contacts`)**:
+     - Menambahkan fallback pencarian `domains` saja bila pencarian gabungan `names` + `domains` mengembalikan 0 kontak karena perbedaan penulisan nama legal PT di Lusha.
+     - Menambahkan auto-resolution ke `LushaService.search_companies()` bila pencarian langsung menggunakan `company_name` tanpa domain menghasilkan 0 kontak, sehingga nama perusahaan dan domain resminya di Lusha otomatis dipetakan.
 
 ### CP-02: Ambil Nilai Real-Time Lusha API Limit (100 Call/Hari) & Kredit (✅ Selesai)
 - **Keluhan User**:

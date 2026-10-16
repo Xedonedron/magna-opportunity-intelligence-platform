@@ -157,6 +157,8 @@ export default function ProspectingPage() {
     // 4. Filtering State (Pure Dynamic Job Title)
     const [selectedJobTitle, setSelectedJobTitle] = useState<string>("all");
     const [jobTitleSearchQuery, setJobTitleSearchQuery] = useState<string>("");
+    const [toolbarCompanyCandidates, setToolbarCompanyCandidates] = useState<CompanyCandidate[]>([]);
+    const [isSearchingToolbarCompany, setIsSearchingToolbarCompany] = useState(false);
 
     // 5. Selection & Action State
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -231,7 +233,9 @@ export default function ProspectingPage() {
                 if (parsed.selectedCompany && Array.isArray(parsed.employees) && parsed.employees.length > 0) {
                     setSelectedCompany(parsed.selectedCompany);
                     setEmployees(parsed.employees);
-                    if (parsed.companyQuery) setCompanyQuery(parsed.companyQuery);
+                    if (parsed.selectedCompany.domain) {
+                        setDomainInputValue(parsed.selectedCompany.domain);
+                    }
                     if (parsed.selectedJobTitle) setSelectedJobTitle(parsed.selectedJobTitle);
                 }
             }
@@ -249,7 +253,6 @@ export default function ProspectingPage() {
                     JSON.stringify({
                         selectedCompany,
                         employees,
-                        companyQuery,
                         selectedJobTitle,
                     })
                 );
@@ -257,7 +260,7 @@ export default function ProspectingPage() {
                 console.warn("Gagal menyimpan sesi prospecting ke cache:", e);
             }
         }
-    }, [selectedCompany, employees, companyQuery, selectedJobTitle]);
+    }, [selectedCompany, employees, selectedJobTitle]);
 
     // Debounced Company Autocomplete Search
     useEffect(() => {
@@ -265,11 +268,6 @@ export default function ProspectingPage() {
         if (!trimmed || trimmed.length < 2) {
             setCompanyCandidates([]);
             setShowCompanyDropdown(false);
-            return;
-        }
-
-        // Avoid redundant autocomplete API call right after selecting a company
-        if (selectedCompany && trimmed.toLowerCase() === selectedCompany.name.trim().toLowerCase()) {
             return;
         }
 
@@ -291,7 +289,7 @@ export default function ProspectingPage() {
         }, 300);
 
         return () => clearTimeout(timer);
-    }, [companyQuery, selectedCompany, fetchQuota]);
+    }, [companyQuery, fetchQuota]);
 
     // Fetch Employees when Company is selected or re-searched with domain
     const handleSelectCompany = async (company: CompanyCandidate, domainOverride?: string) => {
@@ -306,7 +304,8 @@ export default function ProspectingPage() {
         setDomainInputValue(resolvedDomain);
         setIsEditingDomain(false);
         setCompanyCandidates([]);
-        setCompanyQuery(activeCompany.name);
+        setCompanyQuery("");
+        setToolbarCompanyCandidates([]);
         setSelectedIds(new Set());
         setSelectedJobTitle("all");
         setJobTitleSearchQuery("");
@@ -327,6 +326,11 @@ export default function ProspectingPage() {
 
             if (res.data?.success && res.data?.contacts) {
                 setEmployees(res.data.contacts);
+                const inferredDomain = res.data.contacts.find((c) => c.company_domain)?.company_domain;
+                if (!resolvedDomain && inferredDomain) {
+                    setSelectedCompany((prev) => (prev ? { ...prev, domain: inferredDomain } : prev));
+                    setDomainInputValue(inferredDomain);
+                }
             } else {
                 setEmployees([]);
                 if (res.data?.message) {
@@ -345,14 +349,23 @@ export default function ProspectingPage() {
     // Direct Search when user presses Enter or clicks 'Cari Karyawan'
     const handleDirectSearch = (overrideQuery?: string) => {
         setShowCompanyDropdown(false);
-        const q = (overrideQuery || companyQuery).trim();
+        const q = (overrideQuery ?? companyQuery).trim();
         if (!q) return;
 
-        // Pick exact match or first candidate if available, else search directly
+        // Match candidate against the actual query `q`
+        const qLower = q.toLowerCase();
         const exactMatch = companyCandidates.find(
-            (c) => c.name.toLowerCase() === q.toLowerCase()
+            (c) =>
+                c.name.toLowerCase() === qLower ||
+                (c.domain && c.domain.toLowerCase() === qLower)
         );
-        const candidateToUse = exactMatch || (companyCandidates.length === 1 ? companyCandidates[0] : null);
+        const partialMatches = companyCandidates.filter(
+            (c) =>
+                c.name.toLowerCase().includes(qLower) ||
+                (c.domain && c.domain.toLowerCase().includes(qLower))
+        );
+        const candidateToUse =
+            exactMatch || (partialMatches.length === 1 ? partialMatches[0] : null);
 
         if (candidateToUse) {
             handleSelectCompany(candidateToUse);
@@ -372,6 +385,7 @@ export default function ProspectingPage() {
         setSelectedIds(new Set());
         setSelectedJobTitle("all");
         setJobTitleSearchQuery("");
+        setToolbarCompanyCandidates([]);
         setCompanyQuery("");
         setDomainInputValue("");
         setIsEditingDomain(false);
@@ -442,6 +456,35 @@ export default function ProspectingPage() {
             return true;
         });
     }, [employees, selectedJobTitle, jobTitleSearchQuery]);
+
+    // When user types a query in the detail employee filter bar and gets 0 matching employees,
+    // automatically look up matching companies in Lusha/MOIP so they can switch company with 1 click
+    useEffect(() => {
+        const trimmed = jobTitleSearchQuery.trim();
+        if (employees.length === 0 || filteredEmployees.length > 0 || trimmed.length < 2) {
+            setToolbarCompanyCandidates([]);
+            setIsSearchingToolbarCompany(false);
+            return;
+        }
+
+        const timer = setTimeout(async () => {
+            setIsSearchingToolbarCompany(true);
+            try {
+                const res = await api.get<{ results?: CompanyCandidate[]; companies?: CompanyCandidate[] }>(
+                    `/api/prospecting/companies/search?q=${encodeURIComponent(trimmed)}`
+                );
+                const list = res.data?.results || res.data?.companies || [];
+                setToolbarCompanyCandidates(list);
+                fetchQuota(false);
+            } catch {
+                setToolbarCompanyCandidates([]);
+            } finally {
+                setIsSearchingToolbarCompany(false);
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [jobTitleSearchQuery, employees.length, filteredEmployees.length, fetchQuota]);
 
     // Selection Handlers
     const handleToggleSelectAll = () => {
@@ -825,181 +868,190 @@ export default function ProspectingPage() {
                             onClick={handleResetCompany}
                             className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline flex items-center gap-1 font-medium"
                         >
-                            <span>Ganti Perusahaan Target</span>
+                            <X className="w-3.5 h-3.5" />
+                            <span>Reset Hasil Pencarian</span>
                         </button>
                     )}
                 </div>
 
-                {!selectedCompany ? (
-                    <div ref={searchContainerRef} className="relative">
-                        <div className="flex gap-2">
-                            <div className="relative flex-1">
-                                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-                                <Input
-                                    value={companyQuery}
-                                    onChange={(e) => {
-                                        setCompanyQuery(e.target.value);
-                                        if (e.target.value.trim().length >= 2) {
-                                            setShowCompanyDropdown(true);
-                                        } else {
-                                            setShowCompanyDropdown(false);
-                                        }
+                {/* Always-Visible Company Search Bar + Autocomplete Dropdown */}
+                <div ref={searchContainerRef} className="relative">
+                    <div className="flex gap-2">
+                        <div className="relative flex-1">
+                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+                            <Input
+                                value={companyQuery}
+                                onChange={(e) => {
+                                    setCompanyQuery(e.target.value);
+                                    if (e.target.value.trim().length >= 2) {
+                                        setShowCompanyDropdown(true);
+                                    } else {
+                                        setShowCompanyDropdown(false);
+                                    }
+                                }}
+                                onFocus={() => {
+                                    if (companyQuery.trim().length >= 2) {
+                                        setShowCompanyDropdown(true);
+                                    }
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        setShowCompanyDropdown(false);
+                                        handleDirectSearch();
+                                    } else if (e.key === "Escape") {
+                                        setShowCompanyDropdown(false);
+                                    }
+                                }}
+                                placeholder={
+                                    selectedCompany
+                                        ? `Cari perusahaan lain di Lusha (sedang aktif: ${selectedCompany.name})...`
+                                        : "Ketik nama perusahaan (contoh: Bank Mega, OCBC, Ganesha, Telkomsel)..."
+                                }
+                                className="pl-9 pr-9 h-11 text-sm bg-zinc-50 dark:bg-zinc-800/50"
+                                autoFocus={!selectedCompany}
+                            />
+                            {isSearchingCompany ? (
+                                <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 animate-spin" />
+                            ) : companyQuery ? (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setCompanyQuery("");
+                                        setCompanyCandidates([]);
+                                        setShowCompanyDropdown(false);
                                     }}
-                                    onFocus={() => {
-                                        if (companyQuery.trim().length >= 2) {
-                                            setShowCompanyDropdown(true);
-                                        }
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            e.preventDefault();
-                                            setShowCompanyDropdown(false);
-                                            handleDirectSearch();
-                                        } else if (e.key === "Escape") {
-                                            setShowCompanyDropdown(false);
-                                        }
-                                    }}
-                                    placeholder="Ketik nama perusahaan (contoh: Bank Mega, OCBC, Ganesha, Telkomsel)..."
-                                    className="pl-9 pr-9 h-11 text-sm bg-zinc-50 dark:bg-zinc-800/50"
-                                    autoFocus
-                                />
-                                {isSearchingCompany ? (
-                                    <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 animate-spin" />
-                                ) : companyQuery ? (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setCompanyQuery("");
-                                            setCompanyCandidates([]);
-                                            setShowCompanyDropdown(false);
-                                        }}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                ) : null}
-                            </div>
-                            <Button
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            ) : null}
+                        </div>
+                        <Button
+                            onClick={() => {
+                                setShowCompanyDropdown(false);
+                                handleDirectSearch();
+                            }}
+                            disabled={!companyQuery.trim() || isLoadingEmployees}
+                            className="h-11 px-5 font-medium text-sm flex items-center gap-2 shrink-0"
+                        >
+                            {isLoadingEmployees ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Search className="w-4 h-4" />
+                            )}
+                            <span>Cari Karyawan</span>
+                        </Button>
+                    </div>
+
+                    {/* Dropdown Suggestions */}
+                    {showCompanyDropdown && companyQuery.trim().length >= 2 && (
+                        <div className="absolute z-50 left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl max-h-80 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800">
+                            {/* Direct Search Top Action */}
+                            <button
                                 onClick={() => {
                                     setShowCompanyDropdown(false);
                                     handleDirectSearch();
                                 }}
-                                disabled={!companyQuery.trim() || isLoadingEmployees}
-                                className="h-11 px-5 font-medium text-sm flex items-center gap-2 shrink-0"
+                                className="w-full text-left p-3.5 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition flex items-center justify-between gap-3 text-zinc-900 dark:text-zinc-100 font-semibold text-xs border-b border-zinc-200 dark:border-zinc-800"
                             >
-                                {isLoadingEmployees ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Search className="w-4 h-4" />
-                                )}
-                                <span>Cari Karyawan</span>
-                            </Button>
-                        </div>
+                                <span className="flex items-center gap-2">
+                                    <Search className="w-3.5 h-3.5 shrink-0" />
+                                    <span>
+                                        Cari langsung karyawan untuk <strong>"{companyQuery}"</strong> di database Lusha
+                                    </span>
+                                </span>
+                                <span className="text-[10px] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-2 py-0.5 rounded font-bold shrink-0">
+                                    Enter ↵
+                                </span>
+                            </button>
 
-                        {/* Dropdown Suggestions */}
-                        {showCompanyDropdown && companyQuery.trim().length >= 2 && (
-                            <div className="absolute z-50 left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl max-h-80 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800">
-                                {/* Direct Search Top Action */}
+                            {isSearchingCompany && (
+                                <div className="p-3.5 text-center text-xs text-zinc-500 dark:text-zinc-400 flex items-center justify-center gap-2 bg-zinc-50/50 dark:bg-zinc-900/50">
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-500" />
+                                    <span>Mencari rekomendasi entitas perusahaan...</span>
+                                </div>
+                            )}
+
+                            {!isSearchingCompany && companyCandidates.length === 0 && (
+                                <div className="p-3.5 text-center text-xs text-zinc-400">
+                                    Tidak ada entitas serupa di database lokal. Tekan <strong>Enter ↵</strong> atau klik opsi di atas untuk mencari langsung di Lusha.
+                                </div>
+                            )}
+
+                            {companyCandidates.map((cand, idx) => (
                                 <button
+                                    key={idx}
                                     onClick={() => {
                                         setShowCompanyDropdown(false);
-                                        handleDirectSearch();
+                                        handleSelectCompany(cand);
                                     }}
-                                    className="w-full text-left p-3.5 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition flex items-center justify-between gap-3 text-zinc-900 dark:text-zinc-100 font-semibold text-xs border-b border-zinc-200 dark:border-zinc-800"
+                                    className="w-full text-left p-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/70 transition flex items-center justify-between gap-3 group"
                                 >
-                                    <span className="flex items-center gap-2">
-                                        <Search className="w-3.5 h-3.5 shrink-0" />
-                                        <span>
-                                            Cari langsung karyawan untuk <strong>"{companyQuery}"</strong> di database Lusha
-                                        </span>
-                                    </span>
-                                    <span className="text-[10px] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-2 py-0.5 rounded font-bold shrink-0">
-                                        Enter ↵
-                                    </span>
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300 font-bold text-xs shrink-0 group-hover:bg-zinc-200 dark:group-hover:bg-zinc-700 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition">
+                                            {cand.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                                                {cand.name}
+                                            </div>
+                                            <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate flex items-center gap-2 mt-0.5">
+                                                {cand.domain && (
+                                                    <span className="font-mono text-[11px] text-zinc-500">
+                                                        {cand.domain}
+                                                    </span>
+                                                )}
+                                                {(cand.city || cand.country) && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <span>{[cand.city, cand.country].filter(Boolean).join(", ")}</span>
+                                                    </>
+                                                )}
+                                                {cand.industry && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <span>{cand.industry}</span>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="shrink-0">
+                                        {cand.is_saved_in_directory || cand.in_database ? (
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                                                <CheckCircle2 className="w-3 h-3" />
+                                                Tersimpan di MOIP ({cand.contacts_count ?? cand.stakeholder_count ?? 0})
+                                            </span>
+                                        ) : (
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                                                Database Lusha
+                                            </span>
+                                        )}
+                                    </div>
                                 </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
 
-                                {isSearchingCompany && (
-                                    <div className="p-3.5 text-center text-xs text-zinc-500 dark:text-zinc-400 flex items-center justify-center gap-2 bg-zinc-50/50 dark:bg-zinc-900/50">
-                                        <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-500" />
-                                        <span>Mencari rekomendasi entitas perusahaan...</span>
-                                    </div>
-                                )}
-
-                                {!isSearchingCompany && companyCandidates.length === 0 && (
-                                    <div className="p-3.5 text-center text-xs text-zinc-400">
-                                        Tidak ada entitas serupa di database lokal. Tekan <strong>Enter ↵</strong> atau klik opsi di atas untuk mencari langsung di Lusha.
-                                    </div>
-                                )}
-
-                                {companyCandidates.map((cand, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={() => {
-                                            setShowCompanyDropdown(false);
-                                            handleSelectCompany(cand);
-                                        }}
-                                        className="w-full text-left p-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/70 transition flex items-center justify-between gap-3 group"
-                                    >
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300 font-bold text-xs shrink-0 group-hover:bg-zinc-200 dark:group-hover:bg-zinc-700 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition">
-                                                {cand.name.charAt(0).toUpperCase()}
-                                            </div>
-                                            <div className="min-w-0">
-                                                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-                                                    {cand.name}
-                                                </div>
-                                                <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate flex items-center gap-2 mt-0.5">
-                                                    {cand.domain && (
-                                                        <span className="font-mono text-[11px] text-zinc-500">
-                                                            {cand.domain}
-                                                        </span>
-                                                    )}
-                                                    {(cand.city || cand.country) && (
-                                                        <>
-                                                            <span>•</span>
-                                                            <span>{[cand.city, cand.country].filter(Boolean).join(", ")}</span>
-                                                        </>
-                                                    )}
-                                                    {cand.industry && (
-                                                        <>
-                                                            <span>•</span>
-                                                            <span>{cand.industry}</span>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="shrink-0">
-                                            {cand.is_saved_in_directory || cand.in_database ? (
-                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                                                    <CheckCircle2 className="w-3 h-3" />
-                                                    Tersimpan di MOIP ({cand.contacts_count ?? cand.stakeholder_count ?? 0})
-                                                </span>
-                                            ) : (
-                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                                                    Database Lusha
-                                                </span>
-                                            )}
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    /* Active Selected Company Card */
-                    <div className="space-y-3">
+                {/* Active Selected Company Card */}
+                {selectedCompany && (
+                    <div className="space-y-3 pt-1">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-700/80">
                             <div className="flex items-center gap-3">
                                 <div className="w-11 h-11 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
                                     {selectedCompany.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 flex-wrap">
                                         <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
                                             {selectedCompany.name}
                                         </h3>
+                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-200/80 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200">
+                                            Perusahaan Aktif
+                                        </span>
                                         {(selectedCompany.is_saved_in_directory || selectedCompany.in_database) && (
                                             <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
                                                 MOIP Directory
@@ -1173,22 +1225,67 @@ export default function ProspectingPage() {
                                 </select>
                             </div>
 
-                            {/* Instant Search Bar */}
-                            <div className="relative flex-1">
-                                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-                                <Input
-                                    value={jobTitleSearchQuery}
-                                    onChange={(e) => setJobTitleSearchQuery(e.target.value)}
-                                    placeholder="Filter nama atau kata kunci jabatan..."
-                                    className="pl-8 h-9 text-xs bg-zinc-50 dark:bg-zinc-800"
-                                />
-                                {jobTitleSearchQuery && (
-                                    <button
-                                        onClick={() => setJobTitleSearchQuery("")}
-                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                            {/* Instant Employee Filter Search Bar + Quick Company Search Action */}
+                            <div className="flex items-center gap-2 flex-1">
+                                <div className="relative flex-1">
+                                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+                                    <Input
+                                        value={jobTitleSearchQuery}
+                                        onChange={(e) => setJobTitleSearchQuery(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (
+                                                e.key === "Enter" &&
+                                                filteredEmployees.length === 0 &&
+                                                jobTitleSearchQuery.trim().length >= 2
+                                            ) {
+                                                e.preventDefault();
+                                                const q = jobTitleSearchQuery.trim();
+                                                const exactCand = toolbarCompanyCandidates.find(
+                                                    (c) => c.name.toLowerCase() === q.toLowerCase()
+                                                );
+                                                if (exactCand) {
+                                                    handleSelectCompany(exactCand);
+                                                } else if (toolbarCompanyCandidates.length === 1) {
+                                                    handleSelectCompany(toolbarCompanyCandidates[0]);
+                                                } else {
+                                                    handleDirectSearch(q);
+                                                }
+                                            }
+                                        }}
+                                        placeholder={`Filter nama / jabatan di ${selectedCompany.name}...`}
+                                        className="pl-8 pr-7 h-9 text-xs bg-zinc-50 dark:bg-zinc-800"
+                                    />
+                                    {jobTitleSearchQuery && (
+                                        <button
+                                            onClick={() => setJobTitleSearchQuery("")}
+                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                                        >
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    )}
+                                </div>
+                                {jobTitleSearchQuery.trim().length >= 2 && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            const q = jobTitleSearchQuery.trim();
+                                            const exactCand = toolbarCompanyCandidates.find(
+                                                (c) => c.name.toLowerCase() === q.toLowerCase()
+                                            );
+                                            if (exactCand) {
+                                                handleSelectCompany(exactCand);
+                                            } else {
+                                                handleDirectSearch(q);
+                                            }
+                                        }}
+                                        disabled={isLoadingEmployees}
+                                        className="h-9 text-xs px-3 gap-1.5 shrink-0 border-zinc-300 dark:border-zinc-700"
+                                        title={`Cari "${jobTitleSearchQuery.trim()}" sebagai perusahaan baru di Lusha`}
                                     >
-                                        <X className="w-3 h-3" />
-                                    </button>
+                                        <Building2 className="w-3.5 h-3.5 text-zinc-500" />
+                                        <span>Cari Perusahaan "{jobTitleSearchQuery.trim()}"</span>
+                                    </Button>
                                 )}
                             </div>
                         </div>
@@ -1267,17 +1364,19 @@ export default function ProspectingPage() {
                                 </div>
                             </div>
                         ) : filteredEmployees.length === 0 ? (
-                            <div className="py-16 flex flex-col items-center justify-center text-center px-4 max-w-lg mx-auto">
+                            <div className="py-14 flex flex-col items-center justify-center text-center px-4 max-w-xl mx-auto">
                                 <Users className="w-10 h-10 text-zinc-300 dark:text-zinc-600 mb-2" />
                                 <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                                     {employees.length === 0
                                         ? "Tidak Ada Kontak Karyawan Ditemukan"
-                                        : "Tidak Ada Karyawan yang Cocok"}
+                                        : `Tidak Ada Karyawan di ${selectedCompany.name} yang Cocok`}
                                 </h4>
                                 <p className="text-xs text-zinc-500 mt-1 mb-4 leading-relaxed">
                                     {employees.length === 0
                                         ? `Database Lusha belum mengembalikan kontak publik untuk "${selectedCompany.name}". Coba masukkan domain website resmi perusahaan agar Lusha dapat memetakan organisasi dengan akurat:`
-                                        : "Tidak ada karyawan dengan filter jabatan atau kata kunci tersebut. Coba reset filter jabatan Anda."}
+                                        : jobTitleSearchQuery.trim().length >= 2
+                                          ? `Tidak ditemukan karyawan dengan nama atau jabatan "${jobTitleSearchQuery.trim()}" di ${selectedCompany.name}. Jika Anda bermaksud mencari perusahaan "${jobTitleSearchQuery.trim()}", pilih dari daftar perusahaan Lusha di bawah:`
+                                          : "Tidak ada karyawan dengan filter jabatan tersebut. Coba reset filter jabatan Anda."}
                                 </p>
 
                                 {employees.length === 0 ? (
@@ -1309,19 +1408,86 @@ export default function ProspectingPage() {
                                         </p>
                                     </div>
                                 ) : (
-                                    (selectedJobTitle !== "all" || jobTitleSearchQuery) && (
-                                        <Button
-                                            variant="secondary"
-                                            size="sm"
-                                            onClick={() => {
-                                                setSelectedJobTitle("all");
-                                                setJobTitleSearchQuery("");
-                                            }}
-                                            className="text-xs"
-                                        >
-                                            Reset Filter Jabatan
-                                        </Button>
-                                    )
+                                    <div className="w-full space-y-4">
+                                        {/* Company Search Fallback inside Empty State */}
+                                        {jobTitleSearchQuery.trim().length >= 2 && (
+                                            <div className="w-full text-left bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden divide-y divide-zinc-200/70 dark:divide-zinc-700/70">
+                                                <div className="px-3.5 py-2.5 bg-zinc-100/80 dark:bg-zinc-800 flex items-center justify-between">
+                                                    <span className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                                                        <Building2 className="w-3.5 h-3.5 text-zinc-500" />
+                                                        <span>Hasil Perusahaan untuk "{jobTitleSearchQuery.trim()}"</span>
+                                                    </span>
+                                                    {isSearchingToolbarCompany && (
+                                                        <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-500" />
+                                                    )}
+                                                </div>
+
+                                                {toolbarCompanyCandidates.map((cand, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        onClick={() => handleSelectCompany(cand)}
+                                                        className="w-full text-left p-3 hover:bg-white dark:hover:bg-zinc-800 transition flex items-center justify-between gap-3 group"
+                                                    >
+                                                        <div className="flex items-center gap-2.5 min-w-0">
+                                                            <div className="w-7 h-7 rounded-lg bg-zinc-200/80 dark:bg-zinc-700 flex items-center justify-center text-zinc-700 dark:text-zinc-200 font-bold text-xs shrink-0">
+                                                                {cand.name.charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <div className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                                                                    {cand.name}
+                                                                </div>
+                                                                <div className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate flex items-center gap-1.5">
+                                                                    {cand.domain && (
+                                                                        <span className="font-mono">{cand.domain}</span>
+                                                                    )}
+                                                                    {(cand.city || cand.country) && (
+                                                                        <>
+                                                                            <span>•</span>
+                                                                            <span>{[cand.city, cand.country].filter(Boolean).join(", ")}</span>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shrink-0">
+                                                            Pilih Perusahaan →
+                                                        </span>
+                                                    </button>
+                                                ))}
+
+                                                <button
+                                                    onClick={() => handleDirectSearch(jobTitleSearchQuery.trim())}
+                                                    className="w-full text-left p-3 hover:bg-white dark:hover:bg-zinc-800 transition flex items-center justify-between gap-2 text-xs font-semibold text-zinc-900 dark:text-zinc-100"
+                                                >
+                                                    <span className="flex items-center gap-2">
+                                                        <Search className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                                                        <span>
+                                                            Cari langsung karyawan perusahaan <strong>"{jobTitleSearchQuery.trim()}"</strong> di Lusha
+                                                        </span>
+                                                    </span>
+                                                    <span className="text-[10px] bg-zinc-200 dark:bg-zinc-700 px-2 py-0.5 rounded font-bold shrink-0">
+                                                        Enter ↵
+                                                    </span>
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {(selectedJobTitle !== "all" || jobTitleSearchQuery) && (
+                                            <div className="flex items-center justify-center gap-2">
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setSelectedJobTitle("all");
+                                                        setJobTitleSearchQuery("");
+                                                    }}
+                                                    className="text-xs"
+                                                >
+                                                    Reset Filter Karyawan
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         ) : (
