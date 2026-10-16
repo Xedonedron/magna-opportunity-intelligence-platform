@@ -43,8 +43,8 @@ export function CreditRevealModal({
     let totalPhoneCredits = 0;
 
     contacts.forEach((c) => {
-        const emailCost = c.unlocked_email ? 0 : (c.email_credits ?? 1);
-        const phoneCost = c.unlocked_phone ? 0 : (c.phone_credits ?? 1);
+        const emailCost = c.unlocked_email || c.has_email === false ? 0 : (c.email_credits ?? 1);
+        const phoneCost = c.unlocked_phone || c.has_phone === false ? 0 : (c.phone_credits ?? 5);
         totalEmailCredits += emailCost;
         totalPhoneCredits += phoneCost;
     });

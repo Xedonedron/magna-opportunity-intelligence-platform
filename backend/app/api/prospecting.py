@@ -122,9 +122,15 @@ async def require_prospecting_user(
 
 
 @router.get("/lusha/usage", response_model=LushaUsageResponse)
-async def get_lusha_usage(user: User = Depends(require_prospecting_user)):
+async def get_lusha_usage(
+    refresh: bool = Query(False, description="Force live refresh from Lusha API"),
+    user: User = Depends(require_prospecting_user),
+):
     """Retrieve current Lusha API usage, quota limits, and remaining credits."""
-    data = await lusha_service.get_account_usage()
+    if refresh:
+        data = await lusha_service.get_account_usage(force_refresh=True)
+    else:
+        data = await lusha_service.get_account_usage()
     if "error" in data:
         if data.get("rate_limit_reset_formatted"):
             return data

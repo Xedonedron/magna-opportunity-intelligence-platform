@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Dict, List, Optional
+import time
+from typing import Any, Dict, List, Mapping, Optional
 import httpx
 from fastapi import HTTPException, status
 
@@ -61,35 +62,110 @@ class LushaService:
             "Content-Type": "application/json",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         }
+        self._cached_usage: Optional[Dict[str, Any]] = None
+        self._cached_usage_ts: float = 0.0
 
     @property
     def is_configured(self) -> bool:
         return bool(self.api_key and self.api_key.strip())
 
-    async def get_usage(self) -> Dict[str, Any]:
-        """Fetch current Lusha account credit usage and limits."""
+    def _sync_rate_limits_from_headers(
+        self,
+        headers: Mapping[str, Any],
+        credits_charged: int = 0,
+    ) -> Dict[str, int]:
+        """Extract real-time daily and minute rate-limit counters from Lusha HTTP response headers."""
+        norm = {str(k).lower(): str(v) for k, v in (headers or {}).items()}
+        extracted: Dict[str, int] = {}
+
+        def _to_int(key: str) -> Optional[int]:
+            val = norm.get(key)
+            if val is not None:
+                try:
+                    return int(float(val.strip()))
+                except (ValueError, TypeError):
+                    return None
+            return None
+
+        daily_left = _to_int("x-daily-requests-left")
+        daily_used = _to_int("x-daily-usage")
+        daily_limit = _to_int("x-rate-limit-daily")
+        min_left = _to_int("x-minute-requests-left")
+        min_used = _to_int("x-minute-usage")
+        min_limit = _to_int("x-rate-limit-minute")
+
+        if daily_left is not None:
+            extracted["daily_requests_remaining"] = max(0, daily_left)
+        if daily_used is not None:
+            extracted["daily_requests_used"] = max(0, daily_used)
+        if daily_limit is not None:
+            extracted["rate_limit_per_day"] = daily_limit
+        if min_left is not None:
+            extracted["minute_requests_remaining"] = max(0, min_left)
+        if min_used is not None:
+            extracted["minute_requests_used"] = max(0, min_used)
+        if min_limit is not None:
+            extracted["rate_limit_per_minute"] = min_limit
+
+        if self._cached_usage is not None and extracted:
+            self._cached_usage.update(extracted)
+            if credits_charged and credits_charged > 0:
+                self._cached_usage["credits_used"] = self._cached_usage.get("credits_used", 0) + credits_charged
+                self._cached_usage["credits_remaining"] = max(
+                    0, self._cached_usage.get("credits_remaining", 0) - credits_charged
+                )
+            self._cached_usage_ts = time.time()
+
+        return extracted
+
+    async def get_usage(self, force_refresh: bool = False) -> Dict[str, Any]:
+        """Fetch current Lusha account credit usage and real-time daily/minute API call limits."""
         if not self.is_configured:
             return {
                 "configured": False,
                 "credits_remaining": 0,
                 "credits_total": 0,
                 "credits_used": 0,
+                "rate_limit_per_minute": 40,
+                "minute_requests_used": 0,
+                "minute_requests_remaining": 0,
+                "rate_limit_per_day": 100,
+                "daily_requests_used": 0,
+                "daily_requests_remaining": 0,
                 "plan": "unconfigured",
             }
 
+        # Return fresh cached usage if available within 60s and not forced,
+        # avoiding unnecessary daily API call consumption on rapid tab switches.
+        if (
+            not force_refresh
+            and self._cached_usage is not None
+            and (time.time() - self._cached_usage_ts) < 60.0
+        ):
+            return dict(self._cached_usage)
+
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.get(f"{LUSHA_BASE_URL}/account/usage", headers=self.headers)
+            header_limits = self._sync_rate_limits_from_headers(resp.headers)
             if resp.status_code == 429:
                 reset_secs = extract_rate_limit_seconds(resp.text, dict(resp.headers)) or 3600
                 formatted = format_duration_human(reset_secs)
                 human_msg = humanize_rate_limit_message(resp.text, default_reset_seconds=reset_secs)
                 logger.warning(f"[LushaService] Rate limit exceeded on get_usage: {human_msg}")
+                prev = self._cached_usage or {}
+                daily_lim = header_limits.get("rate_limit_per_day", prev.get("rate_limit_per_day", 100))
                 return {
                     "configured": True,
-                    "plan": "starter",
-                    "credits_remaining": 0,
-                    "credits_total": 0,
-                    "credits_used": 0,
+                    "plan": prev.get("plan", "starter"),
+                    "credits_remaining": prev.get("credits_remaining", 0),
+                    "credits_total": prev.get("credits_total", 0),
+                    "credits_used": prev.get("credits_used", 0),
+                    "rate_limit_per_minute": header_limits.get("rate_limit_per_minute", prev.get("rate_limit_per_minute", 40)),
+                    "minute_requests_used": header_limits.get("minute_requests_used", prev.get("minute_requests_used", 0)),
+                    "minute_requests_remaining": header_limits.get("minute_requests_remaining", 0),
+                    "rate_limit_per_day": daily_lim,
+                    "daily_requests_used": header_limits.get("daily_requests_used", daily_lim),
+                    "daily_requests_remaining": header_limits.get("daily_requests_remaining", 0),
                     "rate_limit_reset_seconds": reset_secs,
                     "rate_limit_reset_formatted": formatted,
                     "error": human_msg,
@@ -97,25 +173,61 @@ class LushaService:
             if resp.status_code != 200:
                 logger.error(f"[LushaService] Failed to get usage: {resp.status_code} - {resp.text}")
                 resp.raise_for_status()
-            
+
             data = resp.json()
-            credits_info = data.get("credits", {})
-            rate_limits = data.get("rateLimits", {})
-            plan_info = data.get("plan", {})
-            return {
+            credits_info = data.get("credits", {}) or {}
+            rate_limits = data.get("rateLimits", {}) or {}
+            plan_info = data.get("plan", {}) or {}
+
+            daily_info = rate_limits.get("daily") or {}
+            minute_info = rate_limits.get("minute") or {}
+
+            daily_limit = daily_info.get("limit") or header_limits.get("rate_limit_per_day") or 100
+            daily_used = (
+                daily_info.get("used")
+                if daily_info.get("used") is not None
+                else header_limits.get("daily_requests_used", 0)
+            )
+            daily_remaining = (
+                daily_info.get("remaining")
+                if daily_info.get("remaining") is not None
+                else header_limits.get("daily_requests_remaining", max(0, daily_limit - daily_used))
+            )
+
+            minute_limit = minute_info.get("limit") or header_limits.get("rate_limit_per_minute") or 40
+            minute_used = (
+                minute_info.get("used")
+                if minute_info.get("used") is not None
+                else header_limits.get("minute_requests_used", 0)
+            )
+            minute_remaining = (
+                minute_info.get("remaining")
+                if minute_info.get("remaining") is not None
+                else header_limits.get("minute_requests_remaining", max(0, minute_limit - minute_used))
+            )
+
+            usage_payload = {
                 "configured": True,
                 "plan": plan_info.get("category", "starter"),
                 "credits_remaining": credits_info.get("remaining", 0),
                 "credits_total": credits_info.get("total", 0),
                 "credits_used": credits_info.get("used", 0),
-                "renewal_date": plan_info.get("endDate"),
-                "rate_limit_per_minute": rate_limits.get("minute", {}).get("limit", 40) if rate_limits.get("minute") else 40,
-                "rate_limit_per_day": rate_limits.get("daily", {}).get("limit", 100) if rate_limits.get("daily") else 100,
+                "renewal_date": plan_info.get("endDate") or plan_info.get("NextRenewalDate"),
+                "rate_limit_per_minute": minute_limit,
+                "minute_requests_used": minute_used,
+                "minute_requests_remaining": minute_remaining,
+                "rate_limit_per_day": daily_limit,
+                "daily_requests_used": daily_used,
+                "daily_requests_remaining": daily_remaining,
+                "daily_resets_at": daily_info.get("resetsAt"),
             }
+            self._cached_usage = dict(usage_payload)
+            self._cached_usage_ts = time.time()
+            return usage_payload
 
-    async def get_account_usage(self) -> Dict[str, Any]:
+    async def get_account_usage(self, force_refresh: bool = False) -> Dict[str, Any]:
         """Alias for get_usage."""
-        return await self.get_usage()
+        return await self.get_usage(force_refresh=force_refresh)
 
     async def search_contacts(
         self,
@@ -185,6 +297,7 @@ class LushaService:
                 headers=self.headers,
                 json=payload,
             )
+            self._sync_rate_limits_from_headers(resp.headers)
             raw_data = resp.json() if resp.status_code == 200 else {}
             results = raw_data.get("results", [])
             pagination = raw_data.get("pagination", {})
@@ -209,6 +322,7 @@ class LushaService:
                     headers=self.headers,
                     json=payload_fb,
                 )
+                self._sync_rate_limits_from_headers(resp_fb.headers)
                 if resp_fb.status_code == 200:
                     raw_data = resp_fb.json()
                     results = raw_data.get("results", [])
@@ -374,6 +488,7 @@ class LushaService:
                 json=payload,
             )
             if resp.status_code != 200:
+                self._sync_rate_limits_from_headers(resp.headers)
                 logger.error(f"[LushaService] Contact enrichment failed: {resp.status_code} - {resp.text}")
                 if resp.status_code == 429:
                     reset_secs = extract_rate_limit_seconds(resp.text, dict(resp.headers)) or 3600
@@ -397,6 +512,7 @@ class LushaService:
             results = data.get("results", [])
             billing = data.get("billing", {}) or {}
             credits_charged = billing.get("creditsCharged", 0)
+            self._sync_rate_limits_from_headers(resp.headers, credits_charged=credits_charged)
             enriched = []
             for item in results:
                 raw_emails = item.get("emails", []) or []
@@ -489,6 +605,7 @@ class LushaService:
                     headers=self.headers,
                     json=payload,
                 )
+                self._sync_rate_limits_from_headers(resp.headers)
                 if resp.status_code != 200:
                     if resp.status_code == 429:
                         human_msg = humanize_rate_limit_message(resp.text)
@@ -517,6 +634,7 @@ class LushaService:
                         headers=self.headers,
                         json=payload_fb,
                     )
+                    self._sync_rate_limits_from_headers(resp_fb.headers)
                     if resp_fb.status_code == 200:
                         raw_fb = resp_fb.json()
                         results = raw_fb.get("results", [])

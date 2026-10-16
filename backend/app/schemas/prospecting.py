@@ -12,13 +12,19 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 # ---------------------------------------------------------------------------
 
 class LushaUsageResponse(BaseModel):
+    configured: bool = True
     plan: str = "starter"
     credits_remaining: int
     credits_total: int
     credits_used: int
     renewal_date: Optional[str] = None
     rate_limit_per_minute: int = 40
+    minute_requests_used: int = 0
+    minute_requests_remaining: int = 40
     rate_limit_per_day: int = 100
+    daily_requests_used: int = 0
+    daily_requests_remaining: int = 100
+    daily_resets_at: Optional[str] = None
     rate_limit_reset_seconds: Optional[int] = None
     rate_limit_reset_formatted: Optional[str] = None
     error: Optional[str] = None

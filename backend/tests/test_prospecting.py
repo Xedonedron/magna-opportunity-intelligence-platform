@@ -37,18 +37,80 @@ class TestProspectingLushaUsage:
         mock_get_usage.return_value = {
             "plan": "Starter",
             "credits_total": 4820,
-            "credits_used": 1838,
-            "credits_remaining": 2982,
+            "credits_used": 2190,
+            "credits_remaining": 2630,
             "features": {"contactSearch": 1, "revealEmail": 1, "revealPhone": 5},
             "rate_limit_per_minute": 40,
+            "minute_requests_used": 1,
+            "minute_requests_remaining": 39,
             "rate_limit_per_day": 100,
+            "daily_requests_used": 8,
+            "daily_requests_remaining": 92,
+            "daily_resets_at": "2026-10-17T02:54:08.999Z",
         }
 
         response = client.get("/api/prospecting/lusha/usage")
         assert response.status_code == 200
         data = response.json()
-        assert data["credits_remaining"] == 2982
+        assert data["credits_remaining"] == 2630
+        assert data["credits_total"] == 4820
+        assert data["daily_requests_remaining"] == 92
+        assert data["daily_requests_used"] == 8
+        assert data["rate_limit_per_day"] == 100
         assert data["plan"] == "Starter"
+        mock_get_usage.assert_called_once_with()
+
+    @patch("app.api.prospecting.lusha_service.get_account_usage", new_callable=AsyncMock)
+    def test_get_usage_force_refresh(self, mock_get_usage, client: TestClient):
+        mock_get_usage.return_value = {
+            "plan": "starter",
+            "credits_total": 4820,
+            "credits_used": 2190,
+            "credits_remaining": 2630,
+            "rate_limit_per_minute": 40,
+            "rate_limit_per_day": 100,
+            "daily_requests_used": 9,
+            "daily_requests_remaining": 91,
+        }
+
+        response = client.get("/api/prospecting/lusha/usage?refresh=true")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["daily_requests_remaining"] == 91
+        mock_get_usage.assert_called_once_with(force_refresh=True)
+
+    def test_sync_rate_limits_from_headers(self):
+        from app.services.lusha_service import LushaService
+
+        svc = LushaService(api_key="test-key")
+        svc._cached_usage = {
+            "configured": True,
+            "plan": "starter",
+            "credits_total": 4820,
+            "credits_used": 2190,
+            "credits_remaining": 2630,
+            "rate_limit_per_day": 100,
+            "daily_requests_used": 7,
+            "daily_requests_remaining": 93,
+        }
+        extracted = svc._sync_rate_limits_from_headers(
+            {
+                "x-daily-requests-left": "91",
+                "x-daily-usage": "9",
+                "x-rate-limit-daily": "100",
+                "x-minute-requests-left": "38",
+                "x-minute-usage": "2",
+                "x-rate-limit-minute": "40",
+            },
+            credits_charged=5,
+        )
+        assert extracted["daily_requests_remaining"] == 91
+        assert extracted["daily_requests_used"] == 9
+        assert svc._cached_usage["daily_requests_remaining"] == 91
+        assert svc._cached_usage["daily_requests_used"] == 9
+        assert svc._cached_usage["credits_remaining"] == 2625
+        assert svc._cached_usage["credits_used"] == 2195
+
 
 
 class TestProspectingLushaSearch:

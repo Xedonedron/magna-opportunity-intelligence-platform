@@ -67,6 +67,8 @@ interface ProspectCandidate {
     linkedin_url?: string | null;
     has_email: boolean;
     has_phone: boolean;
+    email_credits?: number;
+    phone_credits?: number;
     company_name?: string | null;
     company_domain?: string | null;
     is_saved_in_directory?: boolean;
@@ -81,9 +83,13 @@ interface ProspectCandidate {
 }
 
 interface LushaQuota {
-    used: number;
-    remaining: number;
-    total: number;
+    dailyUsed: number;
+    dailyRemaining: number | null;
+    dailyLimit: number;
+    creditsUsed: number;
+    creditsRemaining: number | null;
+    creditsTotal: number;
+    plan?: string;
 }
 
 export default function ProspectingPage() {
@@ -107,9 +113,17 @@ export default function ProspectingPage() {
         );
     }
 
-    // 1. Quota State
-    const [quota, setQuota] = useState<LushaQuota>({ used: 0, remaining: 74, total: 100 });
-    const [isLoadingQuota, setIsLoadingQuota] = useState(false);
+    // 1. Quota State (Real-time from Lusha API)
+    const [quota, setQuota] = useState<LushaQuota>({
+        dailyUsed: 0,
+        dailyRemaining: null,
+        dailyLimit: 100,
+        creditsUsed: 0,
+        creditsRemaining: null,
+        creditsTotal: 0,
+        plan: "starter",
+    });
+    const [isLoadingQuota, setIsLoadingQuota] = useState(true);
 
     // 2. Company Search & Selection State
     const [companyQuery, setCompanyQuery] = useState("");
@@ -155,32 +169,57 @@ export default function ProspectingPage() {
     const [feedbackMessage, setFeedbackMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
     // Fetch live quota from Lusha
-    const fetchQuota = useCallback(async () => {
+    const fetchQuota = useCallback(async (forceRefresh = false) => {
         setIsLoadingQuota(true);
         try {
+            const endpoint = forceRefresh
+                ? "/api/prospecting/lusha/usage?refresh=true"
+                : "/api/prospecting/lusha/usage";
             const res = await api.get<{
-                success: boolean;
-                quota: number;
-                used: number;
-                limit: number;
-            }>("/api/prospecting/lusha/usage");
+                plan?: string;
+                credits_remaining?: number;
+                credits_total?: number;
+                credits_used?: number;
+                rate_limit_per_day?: number;
+                daily_requests_used?: number;
+                daily_requests_remaining?: number;
+                quota?: number;
+                used?: number;
+                limit?: number;
+            }>(endpoint);
 
-            if (res.data && res.data.quota !== undefined) {
+            if (res.data) {
+                const dailyLim = res.data.rate_limit_per_day ?? res.data.limit ?? 100;
+                const dailyRem =
+                    res.data.daily_requests_remaining !== undefined
+                        ? res.data.daily_requests_remaining
+                        : res.data.quota !== undefined
+                          ? res.data.quota
+                          : dailyLim;
+                const dailyUsedVal =
+                    res.data.daily_requests_used !== undefined
+                        ? res.data.daily_requests_used
+                        : Math.max(0, dailyLim - dailyRem);
+
                 setQuota({
-                    used: res.data.used ?? 0,
-                    remaining: res.data.quota,
-                    total: res.data.limit ?? 100,
+                    dailyUsed: dailyUsedVal,
+                    dailyRemaining: dailyRem,
+                    dailyLimit: dailyLim,
+                    creditsUsed: res.data.credits_used ?? res.data.used ?? 0,
+                    creditsRemaining: res.data.credits_remaining ?? res.data.quota ?? 0,
+                    creditsTotal: res.data.credits_total ?? 0,
+                    plan: res.data.plan ?? "starter",
                 });
             }
         } catch {
-            // Keep fallback quota
+            // Keep existing quota state if network fails
         } finally {
             setIsLoadingQuota(false);
         }
     }, []);
 
     useEffect(() => {
-        fetchQuota();
+        fetchQuota(false);
     }, [fetchQuota]);
 
     // Restore prospecting session cache on page refresh / return
@@ -222,9 +261,15 @@ export default function ProspectingPage() {
 
     // Debounced Company Autocomplete Search
     useEffect(() => {
-        if (!companyQuery.trim() || companyQuery.trim().length < 2) {
+        const trimmed = companyQuery.trim();
+        if (!trimmed || trimmed.length < 2) {
             setCompanyCandidates([]);
             setShowCompanyDropdown(false);
+            return;
+        }
+
+        // Avoid redundant autocomplete API call right after selecting a company
+        if (selectedCompany && trimmed.toLowerCase() === selectedCompany.name.trim().toLowerCase()) {
             return;
         }
 
@@ -232,11 +277,12 @@ export default function ProspectingPage() {
             setIsSearchingCompany(true);
             try {
                 const res = await api.get<{ results?: CompanyCandidate[]; companies?: CompanyCandidate[] }>(
-                    `/api/prospecting/companies/search?q=${encodeURIComponent(companyQuery.trim())}`
+                    `/api/prospecting/companies/search?q=${encodeURIComponent(trimmed)}`
                 );
                 const list = res.data?.results || res.data?.companies || [];
                 setCompanyCandidates(list);
                 setShowCompanyDropdown(true);
+                fetchQuota(false);
             } catch {
                 setCompanyCandidates([]);
             } finally {
@@ -245,7 +291,7 @@ export default function ProspectingPage() {
         }, 300);
 
         return () => clearTimeout(timer);
-    }, [companyQuery]);
+    }, [companyQuery, selectedCompany, fetchQuota]);
 
     // Fetch Employees when Company is selected or re-searched with domain
     const handleSelectCompany = async (company: CompanyCandidate, domainOverride?: string) => {
@@ -292,6 +338,7 @@ export default function ProspectingPage() {
             setEmployees([]);
         } finally {
             setIsLoadingEmployees(false);
+            fetchQuota(false);
         }
     };
 
@@ -639,31 +686,98 @@ export default function ProspectingPage() {
                     </p>
                 </div>
 
-                {/* Quota Widget */}
-                <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-800/80 px-4 py-2.5 rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 shadow-2xs">
+                {/* Quota Widget (Real-time Daily API Calls & Reveal Credits) */}
+                <div className="flex items-center gap-3.5 bg-zinc-50 dark:bg-zinc-800/80 px-4 py-2.5 rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 shadow-2xs">
+                    {/* Daily API Call Rate Limit (100/day) */}
                     <div className="text-right">
-                        <div className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
-                            Sisa Kuota Lusha
+                        <div className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider flex items-center justify-end gap-1.5">
+                            <span>Limit API Harian</span>
+                            {quota.dailyRemaining !== null && !isLoadingQuota && (
+                                <span
+                                    className={`inline-block w-1.5 h-1.5 rounded-full ${
+                                        quota.dailyRemaining <= 10
+                                            ? "bg-red-500 animate-pulse"
+                                            : quota.dailyRemaining <= 25
+                                              ? "bg-amber-500"
+                                              : "bg-emerald-500"
+                                    }`}
+                                    title={
+                                        quota.dailyRemaining <= 10
+                                            ? "Limit API harian hampir habis!"
+                                            : quota.dailyRemaining <= 25
+                                              ? "Limit API harian mulai menipis"
+                                              : "Limit API harian aman"
+                                    }
+                                />
+                            )}
                         </div>
                         <div className="text-sm font-extrabold text-zinc-900 dark:text-zinc-100">
-                            {isLoadingQuota ? (
+                            {isLoadingQuota && quota.dailyRemaining === null ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin inline mr-1 text-zinc-500" />
+                            ) : (
+                                <>
+                                    <span
+                                        className={
+                                            quota.dailyRemaining !== null && quota.dailyRemaining <= 10
+                                                ? "text-red-600 dark:text-red-400"
+                                                : quota.dailyRemaining !== null && quota.dailyRemaining <= 25
+                                                  ? "text-amber-600 dark:text-amber-400"
+                                                  : "text-zinc-900 dark:text-zinc-100"
+                                        }
+                                    >
+                                        {quota.dailyRemaining ?? "-"}
+                                    </span>
+                                    <span className="text-zinc-400 font-normal"> / {quota.dailyLimit} call</span>
+                                </>
+                            )}
+                        </div>
+                        {quota.dailyRemaining !== null && (
+                            <div className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-tight">
+                                Terpakai hari ini: {quota.dailyUsed}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="h-8 w-px bg-zinc-200 dark:bg-zinc-700" />
+
+                    {/* Account Reveal Credits */}
+                    <div className="text-right">
+                        <div className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
+                            Kredit Reveal
+                        </div>
+                        <div className="text-sm font-extrabold text-zinc-900 dark:text-zinc-100">
+                            {isLoadingQuota && quota.creditsRemaining === null ? (
                                 <Loader2 className="w-3.5 h-3.5 animate-spin inline mr-1 text-zinc-500" />
                             ) : (
                                 <>
                                     <span className="text-zinc-900 dark:text-zinc-100">
-                                        {quota.remaining}
+                                        {quota.creditsRemaining !== null
+                                            ? quota.creditsRemaining.toLocaleString("id-ID")
+                                            : "-"}
                                     </span>
-                                    <span className="text-zinc-400 font-normal">/ {quota.total} kredit</span>
+                                    {quota.creditsTotal > 0 && (
+                                        <span className="text-zinc-400 font-normal">
+                                            {" "}
+                                            / {quota.creditsTotal.toLocaleString("id-ID")}
+                                        </span>
+                                    )}
+                                    <span className="text-zinc-400 font-normal"> kredit</span>
                                 </>
                             )}
                         </div>
+                        {quota.creditsRemaining !== null && quota.creditsTotal > 0 && (
+                            <div className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-tight">
+                                Terpakai: {quota.creditsUsed.toLocaleString("id-ID")}
+                            </div>
+                        )}
                     </div>
+
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={fetchQuota}
+                        onClick={() => fetchQuota(true)}
                         disabled={isLoadingQuota}
-                        title="Segarkan kuota Lusha"
+                        title="Segarkan kuota real-time dari Lusha API"
                         className="h-8 w-8 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
                     >
                         <RefreshCw className={`w-3.5 h-3.5 ${isLoadingQuota ? "animate-spin" : ""}`} />
@@ -1446,8 +1560,12 @@ export default function ProspectingPage() {
                     job_title: c.job_title,
                     has_email: c.has_email,
                     has_phone: c.has_phone,
+                    email_credits: c.email_credits,
+                    phone_credits: c.phone_credits,
+                    unlocked_email: c.email || c.unlocked_email,
+                    unlocked_phone: c.phone || c.unlocked_phone,
                 }))}
-                currentQuota={quota.remaining}
+                currentQuota={quota.creditsRemaining}
                 isLoading={isRevealingCredits}
                 onConfirm={handleConfirmReveal}
             />
