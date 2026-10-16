@@ -27,6 +27,9 @@ import {
     Globe,
     HelpCircle,
     Sparkles,
+    ChevronLeft,
+    ChevronRight,
+    Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -149,9 +152,14 @@ export default function ProspectingPage() {
         };
     }, []);
 
-    // 3. Employee Discovery State
+    // 3. Employee Discovery & Pagination State
     const [employees, setEmployees] = useState<ProspectCandidate[]>([]);
+    const [totalLushaContacts, setTotalLushaContacts] = useState<number>(0);
+    const [lushaLoadedPage, setLushaLoadedPage] = useState<number>(0);
     const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
+    const [isLoadingMoreEmployees, setIsLoadingMoreEmployees] = useState(false);
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [pageSize, setPageSize] = useState<number>(25);
     const [searchError, setSearchError] = useState<string | null>(null);
 
     // 4. Filtering State (Pure Dynamic Job Title)
@@ -234,6 +242,12 @@ export default function ProspectingPage() {
                 if (parsed.selectedCompany && Array.isArray(parsed.employees) && parsed.employees.length > 0) {
                     setSelectedCompany(parsed.selectedCompany);
                     setEmployees(parsed.employees);
+                    setTotalLushaContacts(
+                        typeof parsed.totalLushaContacts === "number" && parsed.totalLushaContacts >= parsed.employees.length
+                            ? parsed.totalLushaContacts
+                            : parsed.employees.length
+                    );
+                    setLushaLoadedPage(typeof parsed.lushaLoadedPage === "number" ? parsed.lushaLoadedPage : 0);
                     if (parsed.selectedCompany.domain) {
                         setDomainInputValue(parsed.selectedCompany.domain);
                     }
@@ -254,6 +268,8 @@ export default function ProspectingPage() {
                     JSON.stringify({
                         selectedCompany,
                         employees,
+                        totalLushaContacts,
+                        lushaLoadedPage,
                         selectedJobTitle,
                     })
                 );
@@ -261,7 +277,7 @@ export default function ProspectingPage() {
                 console.warn("Gagal menyimpan sesi prospecting ke cache:", e);
             }
         }
-    }, [selectedCompany, employees, selectedJobTitle]);
+    }, [selectedCompany, employees, totalLushaContacts, lushaLoadedPage, selectedJobTitle]);
 
     // Debounced Company Autocomplete Search
     useEffect(() => {
@@ -310,6 +326,9 @@ export default function ProspectingPage() {
         setSelectedIds(new Set());
         setSelectedJobTitle("all");
         setJobTitleSearchQuery("");
+        setCurrentPage(1);
+        setLushaLoadedPage(0);
+        setTotalLushaContacts(0);
         setSearchError(null);
         setIsLoadingEmployees(true);
 
@@ -318,22 +337,29 @@ export default function ProspectingPage() {
                 success: boolean;
                 contacts: ProspectCandidate[];
                 total: number;
+                page?: number;
                 message?: string;
             }>("/api/prospecting/lusha/search", {
                 company_name: activeCompany.name,
                 company_domain: resolvedDomain.trim() || undefined,
+                page: 0,
                 limit: 25,
             });
 
             if (res.data?.success && res.data?.contacts) {
-                setEmployees(res.data.contacts);
-                const inferredDomain = res.data.contacts.find((c) => c.company_domain)?.company_domain;
+                const fetchedContacts = res.data.contacts;
+                setEmployees(fetchedContacts);
+                setTotalLushaContacts(Math.max(res.data.total || 0, fetchedContacts.length));
+                setLushaLoadedPage(0);
+                setCurrentPage(1);
+                const inferredDomain = fetchedContacts.find((c) => c.company_domain)?.company_domain;
                 if (!resolvedDomain && inferredDomain) {
                     setSelectedCompany((prev) => (prev ? { ...prev, domain: inferredDomain } : prev));
                     setDomainInputValue(inferredDomain);
                 }
             } else {
                 setEmployees([]);
+                setTotalLushaContacts(0);
                 if (res.data?.message) {
                     setSearchError(res.data.message);
                 }
@@ -341,8 +367,76 @@ export default function ProspectingPage() {
         } catch (err: any) {
             setSearchError(err?.response?.data?.detail || "Gagal menarik data karyawan dari Lusha.");
             setEmployees([]);
+            setTotalLushaContacts(0);
         } finally {
             setIsLoadingEmployees(false);
+            fetchQuota(true);
+        }
+    };
+
+    // Fetch Next Batch of 25 Employees from Lusha API (Server-Side Pagination)
+    const handleLoadMoreFromLusha = async () => {
+        if (!selectedCompany || isLoadingMoreEmployees || isLoadingEmployees) return;
+        const nextLushaPage = lushaLoadedPage + 1;
+        setIsLoadingMoreEmployees(true);
+        setSearchError(null);
+
+        try {
+            const resolvedDomain = (domainInputValue || selectedCompany.domain || "").trim();
+            const res = await api.post<{
+                success: boolean;
+                contacts: ProspectCandidate[];
+                total: number;
+                page?: number;
+                message?: string;
+            }>("/api/prospecting/lusha/search", {
+                company_name: selectedCompany.name,
+                company_domain: resolvedDomain || undefined,
+                page: nextLushaPage,
+                limit: 25,
+            });
+
+            if (res.data?.success && Array.isArray(res.data?.contacts)) {
+                const incoming = res.data.contacts;
+                if (incoming.length > 0) {
+                    let combinedLength = employees.length;
+                    setEmployees((prev) => {
+                        const existingIds = new Set(prev.map((e) => e.id));
+                        const uniqueNew = incoming.filter((c) => !existingIds.has(c.id));
+                        const merged = [...prev, ...uniqueNew];
+                        combinedLength = merged.length;
+                        return merged;
+                    });
+                    setLushaLoadedPage(nextLushaPage);
+                    setTotalLushaContacts((prevTotal) =>
+                        Math.max(prevTotal, res.data.total || 0, combinedLength)
+                    );
+                    // Reset filters if active so user immediately sees the newly loaded page
+                    if (selectedJobTitle === "all" && !jobTitleSearchQuery.trim()) {
+                        const targetPage = Math.ceil((employees.length + 1) / pageSize);
+                        setCurrentPage(targetPage);
+                    }
+                    setFeedbackMessage({
+                        type: "success",
+                        text: `Berhasil memuat +${incoming.length} karyawan baru dari Lusha (Halaman API #${nextLushaPage + 1}).`,
+                    });
+                    setTimeout(() => setFeedbackMessage(null), 5000);
+                } else {
+                    // Lusha returned 0 contacts on next page -> we have reached the end
+                    setTotalLushaContacts(employees.length);
+                    setFeedbackMessage({
+                        type: "success",
+                        text: "Seluruh kontak yang tersedia di Lusha untuk perusahaan ini sudah ditampilkan.",
+                    });
+                    setTimeout(() => setFeedbackMessage(null), 5000);
+                }
+            } else if (res.data?.message) {
+                setSearchError(res.data.message);
+            }
+        } catch (err: any) {
+            setSearchError(err?.response?.data?.detail || "Gagal memuat halaman karyawan berikutnya dari Lusha.");
+        } finally {
+            setIsLoadingMoreEmployees(false);
             fetchQuota(true);
         }
     };
@@ -383,6 +477,9 @@ export default function ProspectingPage() {
         setSelectedCompany(null);
         setShowCompanyDropdown(false);
         setEmployees([]);
+        setTotalLushaContacts(0);
+        setLushaLoadedPage(0);
+        setCurrentPage(1);
         setSelectedIds(new Set());
         setSelectedJobTitle("all");
         setJobTitleSearchQuery("");
@@ -457,6 +554,25 @@ export default function ProspectingPage() {
             return true;
         });
     }, [employees, selectedJobTitle, jobTitleSearchQuery]);
+
+    // Reset table page to 1 when filter or page size changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [selectedJobTitle, jobTitleSearchQuery, pageSize]);
+
+    const totalTablePages = useMemo(
+        () => Math.max(1, Math.ceil(filteredEmployees.length / pageSize)),
+        [filteredEmployees.length, pageSize]
+    );
+
+    const safeCurrentPage = Math.min(currentPage, totalTablePages);
+
+    const paginatedEmployees = useMemo(() => {
+        const start = (safeCurrentPage - 1) * pageSize;
+        return filteredEmployees.slice(start, start + pageSize);
+    }, [filteredEmployees, safeCurrentPage, pageSize]);
+
+    const hasMoreInLusha = totalLushaContacts > employees.length;
 
     // When user types a query in the detail employee filter bar and gets 0 matching employees,
     // automatically look up matching companies in Lusha/MOIP so they can switch company with 1 click
@@ -1070,6 +1186,13 @@ export default function ProspectingPage() {
                                                 MOIP Directory
                                             </span>
                                         )}
+                                        {employees.length > 0 && (
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100/80 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300">
+                                                {totalLushaContacts > employees.length
+                                                    ? `${employees.length} dari ${totalLushaContacts.toLocaleString("id-ID")} Karyawan Lusha`
+                                                    : `${employees.length} Karyawan Lusha`}
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                                         {selectedCompany.domain ? (
@@ -1486,7 +1609,7 @@ export default function ProspectingPage() {
                                         )}
 
                                         {(selectedJobTitle !== "all" || jobTitleSearchQuery) && (
-                                            <div className="flex items-center justify-center gap-2">
+                                            <div className="flex items-center justify-center gap-2 flex-wrap">
                                                 <Button
                                                     variant="secondary"
                                                     size="sm"
@@ -1498,232 +1621,382 @@ export default function ProspectingPage() {
                                                 >
                                                     Reset Filter Karyawan
                                                 </Button>
+                                                {hasMoreInLusha && (
+                                                    <Button
+                                                        variant="primary"
+                                                        size="sm"
+                                                        onClick={handleLoadMoreFromLusha}
+                                                        disabled={isLoadingMoreEmployees}
+                                                        className="text-xs gap-1.5"
+                                                    >
+                                                        {isLoadingMoreEmployees ? (
+                                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                        ) : (
+                                                            <Plus className="w-3.5 h-3.5" />
+                                                        )}
+                                                        <span>
+                                                            Muat 25 Kontak Berikutnya dari Lusha (1 Kredit)
+                                                        </span>
+                                                    </Button>
+                                                )}
                                             </div>
                                         )}
                                     </div>
                                 )}
                             </div>
                         ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left text-xs border-collapse">
-                                    <thead>
-                                        <tr className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-800/40 text-zinc-500 font-medium">
-                                            <th className="py-3 px-4 w-10 text-center">
-                                                <button
-                                                    onClick={handleToggleSelectAll}
-                                                    className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 flex items-center justify-center mx-auto"
-                                                    title={
-                                                        selectedIds.size === filteredEmployees.length
-                                                            ? "Batalkan pilihan semua"
-                                                            : "Pilih semua"
-                                                    }
-                                                >
-                                                    {selectedIds.size > 0 &&
-                                                    selectedIds.size === filteredEmployees.length ? (
-                                                        <CheckSquare className="w-4 h-4 text-zinc-900 dark:text-zinc-100" />
-                                                    ) : (
-                                                        <Square className="w-4 h-4" />
-                                                    )}
-                                                </button>
-                                            </th>
-                                            <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300">
-                                                Karyawan & Jabatan
-                                            </th>
-                                            <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300">
-                                                Email
-                                            </th>
-                                            <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300">
-                                                Nomor Telepon
-                                            </th>
-                                            <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300 text-center w-24">
-                                                LinkedIn
-                                            </th>
-                                            <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300 text-center w-28">
-                                                Direktori MOIP
-                                            </th>
-                                            <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300 text-right w-28">
-                                                Aksi
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
-                                        {filteredEmployees.map((emp) => {
-                                            const isSelected = selectedIds.has(emp.id);
-                                            const isRevealedEmail = Boolean(emp.email);
-                                            const isRevealedPhone = Boolean(emp.phone);
-                                            const empName = emp.full_name || emp.name || "Stakeholder";
-                                            const targetMeta = classifyJobTitle(emp.job_title || "");
+                            <>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left text-xs border-collapse">
+                                        <thead>
+                                            <tr className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-800/40 text-zinc-500 font-medium">
+                                                <th className="py-3 px-4 w-10 text-center">
+                                                    <button
+                                                        onClick={handleToggleSelectAll}
+                                                        className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 flex items-center justify-center mx-auto"
+                                                        title={
+                                                            selectedIds.size === filteredEmployees.length
+                                                                ? "Batalkan pilihan semua"
+                                                                : "Pilih semua"
+                                                        }
+                                                    >
+                                                        {selectedIds.size > 0 &&
+                                                        selectedIds.size === filteredEmployees.length ? (
+                                                            <CheckSquare className="w-4 h-4 text-zinc-900 dark:text-zinc-100" />
+                                                        ) : (
+                                                            <Square className="w-4 h-4" />
+                                                        )}
+                                                    </button>
+                                                </th>
+                                                <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300">
+                                                    Karyawan & Jabatan
+                                                </th>
+                                                <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300">
+                                                    Email
+                                                </th>
+                                                <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300">
+                                                    Nomor Telepon
+                                                </th>
+                                                <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300 text-center w-24">
+                                                    LinkedIn
+                                                </th>
+                                                <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300 text-center w-28">
+                                                    Direktori MOIP
+                                                </th>
+                                                <th className="py-3 px-4 font-semibold text-zinc-700 dark:text-zinc-300 text-right w-28">
+                                                    Aksi
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+                                            {paginatedEmployees.map((emp) => {
+                                                const isSelected = selectedIds.has(emp.id);
+                                                const isRevealedEmail = Boolean(emp.email);
+                                                const isRevealedPhone = Boolean(emp.phone);
+                                                const empName = emp.full_name || emp.name || "Stakeholder";
+                                                const targetMeta = classifyJobTitle(emp.job_title || "");
 
-                                            return (
-                                                <tr
-                                                    key={emp.id}
-                                                    className={`hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40 transition ${
-                                                        isSelected
-                                                            ? "bg-zinc-100/70 dark:bg-zinc-800/50"
-                                                            : ""
-                                                    }`}
-                                                >
-                                                    {/* Checkbox */}
-                                                    <td className="py-3 px-4 text-center">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={isSelected}
-                                                            onChange={() => handleToggleSelectOne(emp.id)}
-                                                            className="rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-zinc-500 cursor-pointer"
-                                                        />
-                                                    </td>
+                                                return (
+                                                    <tr
+                                                        key={emp.id}
+                                                        className={`hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40 transition ${
+                                                            isSelected
+                                                                ? "bg-zinc-100/70 dark:bg-zinc-800/50"
+                                                                : ""
+                                                        }`}
+                                                    >
+                                                        {/* Checkbox */}
+                                                        <td className="py-3 px-4 text-center">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={isSelected}
+                                                                onChange={() => handleToggleSelectOne(emp.id)}
+                                                                className="rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-zinc-500 cursor-pointer"
+                                                            />
+                                                        </td>
 
-                                                    {/* Name & Job Title */}
-                                                    <td className="py-3 px-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center font-bold text-xs text-zinc-600 dark:text-zinc-300 shrink-0">
-                                                                {empName.charAt(0).toUpperCase()}
-                                                            </div>
-                                                            <div>
-                                                                <div className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm flex items-center gap-2">
-                                                                    <span>{empName}</span>
-                                                                    {emp.department && (
-                                                                        <span className="text-[10px] text-zinc-400 font-normal bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
-                                                                            {emp.department}
-                                                                        </span>
+                                                        {/* Name & Job Title */}
+                                                        <td className="py-3 px-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center font-bold text-xs text-zinc-600 dark:text-zinc-300 shrink-0">
+                                                                    {empName.charAt(0).toUpperCase()}
+                                                                </div>
+                                                                <div>
+                                                                    <div className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm flex items-center gap-2">
+                                                                        <span>{empName}</span>
+                                                                        {emp.department && (
+                                                                            <span className="text-[10px] text-zinc-400 font-normal bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
+                                                                                {emp.department}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    {targetMeta.isTarget ? (
+                                                                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                                                            <span
+                                                                                className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border ${targetMeta.badgeClass}`}
+                                                                            >
+                                                                                {targetMeta.pillarLabel}
+                                                                            </span>
+                                                                            <span className="text-zinc-900 dark:text-zinc-100 font-medium text-xs">
+                                                                                {emp.job_title}
+                                                                            </span>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="text-zinc-600 dark:text-zinc-300 font-medium text-xs mt-0.5">
+                                                                            {emp.job_title}
+                                                                        </div>
                                                                     )}
                                                                 </div>
-                                                                {targetMeta.isTarget ? (
-                                                                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                                                                        <span
-                                                                            className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border ${targetMeta.badgeClass}`}
-                                                                        >
-                                                                            {targetMeta.pillarLabel}
-                                                                        </span>
-                                                                        <span className="text-zinc-900 dark:text-zinc-100 font-medium text-xs">
-                                                                            {emp.job_title}
-                                                                        </span>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="text-zinc-600 dark:text-zinc-300 font-medium text-xs mt-0.5">
-                                                                        {emp.job_title}
-                                                                    </div>
-                                                                )}
                                                             </div>
-                                                        </div>
-                                                    </td>
+                                                        </td>
 
-                                                    {/* Email */}
-                                                    <td className="py-3 px-4">
-                                                        {isRevealedEmail ? (
-                                                            <div className="flex items-center gap-1.5 text-zinc-800 dark:text-zinc-200 font-mono text-[11px]">
-                                                                <Mail className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                                                <a
-                                                                    href={`mailto:${emp.email}`}
-                                                                    className="hover:underline truncate max-w-[200px]"
-                                                                    title={emp.email!}
+                                                        {/* Email */}
+                                                        <td className="py-3 px-4">
+                                                            {isRevealedEmail ? (
+                                                                <div className="flex items-center gap-1.5 text-zinc-800 dark:text-zinc-200 font-mono text-[11px]">
+                                                                    <Mail className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                                                    <a
+                                                                        href={`mailto:${emp.email}`}
+                                                                        className="hover:underline truncate max-w-[200px]"
+                                                                        title={emp.email!}
+                                                                    >
+                                                                        {emp.email}
+                                                                    </a>
+                                                                </div>
+                                                            ) : emp.has_email ? (
+                                                                <button
+                                                                    onClick={() => handleOpenSingleReveal(emp, "email")}
+                                                                    className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700 px-2 py-0.5 rounded transition"
+                                                                    title="Klik untuk membuka email via kuota Lusha (1 Kredit)"
                                                                 >
-                                                                    {emp.email}
-                                                                </a>
-                                                            </div>
-                                                        ) : emp.has_email ? (
-                                                            <button
-                                                                onClick={() => handleOpenSingleReveal(emp, "email")}
-                                                                className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700 px-2 py-0.5 rounded transition"
-                                                                title="Klik untuk membuka email via kuota Lusha (1 Kredit)"
-                                                            >
-                                                                <Lock className="w-3 h-3" />
-                                                                <span>Tersedia ({emp.email_credits || 1} Kredit)</span>
-                                                            </button>
-                                                        ) : (
-                                                            <span className="text-zinc-300 dark:text-zinc-600">
-                                                                —
-                                                            </span>
-                                                        )}
-                                                    </td>
+                                                                    <Lock className="w-3 h-3" />
+                                                                    <span>Tersedia ({emp.email_credits || 1} Kredit)</span>
+                                                                </button>
+                                                            ) : (
+                                                                <span className="text-zinc-300 dark:text-zinc-600">
+                                                                    —
+                                                                </span>
+                                                            )}
+                                                        </td>
 
-                                                    {/* Phone */}
-                                                    <td className="py-3 px-4">
-                                                        {isRevealedPhone ? (
-                                                            <div className="flex items-center gap-1.5 text-zinc-800 dark:text-zinc-200 font-mono text-[11px]">
-                                                                <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                                        {/* Phone */}
+                                                        <td className="py-3 px-4">
+                                                            {isRevealedPhone ? (
+                                                                <div className="flex items-center gap-1.5 text-zinc-800 dark:text-zinc-200 font-mono text-[11px]">
+                                                                    <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                                                    <a
+                                                                        href={`https://wa.me/${emp.phone!.replace(/[^0-9]/g, "")}`}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="hover:underline truncate"
+                                                                    >
+                                                                        {emp.phone}
+                                                                    </a>
+                                                                </div>
+                                                            ) : emp.has_phone ? (
+                                                                <button
+                                                                    onClick={() => handleOpenSingleReveal(emp, "phone")}
+                                                                    className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700 px-2 py-0.5 rounded transition"
+                                                                    title="Klik untuk membuka nomor HP via kuota Lusha (5 Kredit)"
+                                                                >
+                                                                    <Lock className="w-3 h-3" />
+                                                                    <span>Tersedia ({emp.phone_credits || 5} Kredit)</span>
+                                                                </button>
+                                                            ) : (
+                                                                <span className="text-zinc-300 dark:text-zinc-600">
+                                                                    —
+                                                                </span>
+                                                            )}
+                                                        </td>
+
+                                                        {/* LinkedIn */}
+                                                        <td className="py-3 px-4 text-center">
+                                                            {emp.linkedin_url ? (
                                                                 <a
-                                                                    href={`https://wa.me/${emp.phone!.replace(/[^0-9]/g, "")}`}
+                                                                    href={emp.linkedin_url}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className="hover:underline truncate"
+                                                                    className="inline-flex p-1.5 rounded-lg text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+                                                                    title="Buka Profil LinkedIn"
                                                                 >
-                                                                    {emp.phone}
+                                                                    <Linkedin className="w-4 h-4" />
                                                                 </a>
-                                                            </div>
-                                                        ) : emp.has_phone ? (
-                                                            <button
-                                                                onClick={() => handleOpenSingleReveal(emp, "phone")}
-                                                                className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700 px-2 py-0.5 rounded transition"
-                                                                title="Klik untuk membuka nomor HP via kuota Lusha (5 Kredit)"
-                                                            >
-                                                                <Lock className="w-3 h-3" />
-                                                                <span>Tersedia ({emp.phone_credits || 5} Kredit)</span>
-                                                            </button>
-                                                        ) : (
-                                                            <span className="text-zinc-300 dark:text-zinc-600">
-                                                                —
-                                                            </span>
-                                                        )}
-                                                    </td>
+                                                            ) : (
+                                                                <span className="text-zinc-300 dark:text-zinc-600">
+                                                                    —
+                                                                </span>
+                                                            )}
+                                                        </td>
 
-                                                    {/* LinkedIn */}
-                                                    <td className="py-3 px-4 text-center">
-                                                        {emp.linkedin_url ? (
-                                                            <a
-                                                                href={emp.linkedin_url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="inline-flex p-1.5 rounded-lg text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
-                                                                title="Buka Profil LinkedIn"
-                                                            >
-                                                                <Linkedin className="w-4 h-4" />
-                                                            </a>
-                                                        ) : (
-                                                            <span className="text-zinc-300 dark:text-zinc-600">
-                                                                —
-                                                            </span>
-                                                        )}
-                                                    </td>
+                                                        {/* Directory Status */}
+                                                        <td className="py-3 px-4 text-center">
+                                                            {emp.is_saved_in_directory ? (
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300">
+                                                                    <UserCheck className="w-3 h-3" />
+                                                                    Tersimpan
+                                                                </span>
+                                                            ) : (
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-400">
+                                                                    Belum Ada
+                                                                </span>
+                                                            )}
+                                                        </td>
 
-                                                    {/* Directory Status */}
-                                                    <td className="py-3 px-4 text-center">
-                                                        {emp.is_saved_in_directory ? (
-                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300">
-                                                                <UserCheck className="w-3 h-3" />
-                                                                Tersimpan
-                                                            </span>
-                                                        ) : (
-                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-400">
-                                                                Belum Ada
-                                                            </span>
-                                                        )}
-                                                    </td>
+                                                        {/* Action */}
+                                                        <td className="py-3 px-4 text-right">
+                                                            {!isRevealedEmail || !isRevealedPhone ? (
+                                                                <Button
+                                                                    variant="secondary"
+                                                                    size="sm"
+                                                                    onClick={() => handleOpenSingleReveal(emp, "all")}
+                                                                    className="h-7 text-[11px] px-2.5 font-medium gap-1"
+                                                                >
+                                                                    <Unlock className="w-3 h-3" />
+                                                                    <span>Buka Kontak</span>
+                                                                </Button>
+                                                            ) : (
+                                                                <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                                                                    Lengkap
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
 
-                                                    {/* Action */}
-                                                    <td className="py-3 px-4 text-right">
-                                                        {!isRevealedEmail || !isRevealedPhone ? (
-                                                            <Button
-                                                                variant="secondary"
-                                                                size="sm"
-                                                                onClick={() => handleOpenSingleReveal(emp, "all")}
-                                                                className="h-7 text-[11px] px-2.5 font-medium gap-1"
-                                                            >
-                                                                <Unlock className="w-3 h-3" />
-                                                                <span>Buka Kontak</span>
-                                                            </Button>
-                                                        ) : (
-                                                            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                                                                Lengkap
-                                                            </span>
+                                {/* Hybrid Table Pagination & Load More from Lusha Footer */}
+                                <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/40 dark:bg-zinc-800/20 flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs">
+                                    {/* Left: Status info & rows per page */}
+                                    <div className="flex flex-wrap items-center gap-3 text-zinc-600 dark:text-zinc-400">
+                                        <span>
+                                            Menampilkan{" "}
+                                            <strong className="text-zinc-900 dark:text-zinc-100">
+                                                {(safeCurrentPage - 1) * pageSize + 1}–
+                                                {Math.min(safeCurrentPage * pageSize, filteredEmployees.length)}
+                                            </strong>{" "}
+                                            dari{" "}
+                                            <strong className="text-zinc-900 dark:text-zinc-100">
+                                                {filteredEmployees.length}
+                                            </strong>{" "}
+                                            kontak
+                                            {filteredEmployees.length !== employees.length && (
+                                                <span> (difilter dari {employees.length} ter-load)</span>
+                                            )}
+                                        </span>
+
+                                        {totalLushaContacts > employees.length && (
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800">
+                                                Total di Lusha: {totalLushaContacts} karyawan
+                                            </span>
+                                        )}
+
+                                        <div className="flex items-center gap-1.5 ml-auto lg:ml-2">
+                                            <span className="text-[11px] text-zinc-500">Baris:</span>
+                                            <select
+                                                value={pageSize}
+                                                onChange={(e) => {
+                                                    setPageSize(Number(e.target.value));
+                                                    setCurrentPage(1);
+                                                }}
+                                                className="h-7 px-2 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-zinc-700 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-zinc-400"
+                                            >
+                                                <option value={10}>10</option>
+                                                <option value={25}>25</option>
+                                                <option value={50}>50</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {/* Right: Page controls & Load More from Lusha button */}
+                                    <div className="flex flex-wrap items-center justify-between lg:justify-end gap-2">
+                                        {hasMoreInLusha && (
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                onClick={handleLoadMoreFromLusha}
+                                                disabled={isLoadingMoreEmployees}
+                                                className="h-8 text-xs gap-1.5 border-amber-300 dark:border-amber-800 bg-amber-50/80 hover:bg-amber-100/80 dark:bg-amber-950/40 dark:hover:bg-amber-900/50 text-amber-900 dark:text-amber-200 font-semibold"
+                                                title={`Muat batch berikutnya (maks. 25 kontak) dari total ${totalLushaContacts} karyawan di Lusha`}
+                                            >
+                                                {isLoadingMoreEmployees ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                ) : (
+                                                    <Plus className="w-3.5 h-3.5" />
+                                                )}
+                                                <span>
+                                                    Muat {Math.min(25, totalLushaContacts - employees.length)} Kontak Berikutnya dari Lusha (1 Kredit)
+                                                </span>
+                                            </Button>
+                                        )}
+
+                                        {totalTablePages > 1 && (
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                                    disabled={safeCurrentPage <= 1}
+                                                    className="inline-flex items-center gap-1 h-8 px-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 disabled:opacity-40 disabled:pointer-events-none transition font-medium"
+                                                >
+                                                    <ChevronLeft className="w-3.5 h-3.5" />
+                                                    <span>Prev</span>
+                                                </button>
+
+                                                <div className="flex items-center gap-1 px-1">
+                                                    {Array.from({ length: totalTablePages }, (_, idx) => idx + 1)
+                                                        .filter(
+                                                            (page) =>
+                                                                page === 1 ||
+                                                                page === totalTablePages ||
+                                                                Math.abs(page - safeCurrentPage) <= 1
+                                                        )
+                                                        .reduce<(number | "ellipsis")[]>((acc, page, idx, arr) => {
+                                                            if (idx > 0 && page - (arr[idx - 1] as number) > 1) {
+                                                                acc.push("ellipsis");
+                                                            }
+                                                            acc.push(page);
+                                                            return acc;
+                                                        }, [])
+                                                        .map((item, idx) =>
+                                                            item === "ellipsis" ? (
+                                                                <span
+                                                                    key={`ellipsis-${idx}`}
+                                                                    className="px-1.5 text-zinc-400"
+                                                                >
+                                                                    …
+                                                                </span>
+                                                            ) : (
+                                                                <button
+                                                                    key={item}
+                                                                    onClick={() => setCurrentPage(item)}
+                                                                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition ${
+                                                                        safeCurrentPage === item
+                                                                            ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900"
+                                                                            : "border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                                                                    }`}
+                                                                >
+                                                                    {item}
+                                                                </button>
+                                                            )
                                                         )}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
+                                                </div>
+
+                                                <button
+                                                    onClick={() =>
+                                                        setCurrentPage((p) => Math.min(totalTablePages, p + 1))
+                                                    }
+                                                    disabled={safeCurrentPage >= totalTablePages}
+                                                    className="inline-flex items-center gap-1 h-8 px-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 disabled:opacity-40 disabled:pointer-events-none transition font-medium"
+                                                >
+                                                    <span>Next</span>
+                                                    <ChevronRight className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </>
                         )}
                     </Card>
                 </div>

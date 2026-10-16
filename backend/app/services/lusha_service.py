@@ -308,21 +308,35 @@ class LushaService:
             "filters": filters,
         }
 
+        def _extract_total(data_obj: Dict[str, Any], res_len: int) -> int:
+            pag = data_obj.get("pagination") or {}
+            for candidate in (
+                pag.get("total"),
+                pag.get("totalResults"),
+                pag.get("total_results"),
+                data_obj.get("totalResults"),
+                data_obj.get("total"),
+                data_obj.get("total_results"),
+            ):
+                if isinstance(candidate, int) and candidate >= 0:
+                    return max(candidate, res_len)
+            return res_len
+
         async with httpx.AsyncClient(timeout=20.0) as client:
             resp = await client.post(
                 f"{LUSHA_BASE_URL}/contacts/prospecting",
                 headers=self.headers,
                 json=payload,
             )
-            self._sync_rate_limits_from_headers(resp.headers)
             raw_data = resp.json() if resp.status_code == 200 else {}
+            credits_charged = (raw_data.get("billing") or {}).get("creditsCharged", 0) if isinstance(raw_data, dict) else 0
+            self._sync_rate_limits_from_headers(resp.headers, credits_charged=credits_charged)
             results = raw_data.get("results", [])
-            pagination = raw_data.get("pagination", {})
-            total = pagination.get("total", len(results))
+            total = _extract_total(raw_data, len(results))
 
             # If 0 results and country filter was applied, retry without strict company location
             # (Allows finding employees of MNCs, branches, or companies registered with foreign HQ e.g. OCBC, Ganesha)
-            if resp.status_code == 200 and total == 0 and country:
+            if resp.status_code == 200 and len(results) == 0 and country:
                 companies_include_fb = dict(companies_include)
                 companies_include_fb.pop("locations", None)
                 payload_fb = {
@@ -339,17 +353,18 @@ class LushaService:
                     headers=self.headers,
                     json=payload_fb,
                 )
-                self._sync_rate_limits_from_headers(resp_fb.headers)
+                raw_fb = resp_fb.json() if resp_fb.status_code == 200 else {}
+                fb_credits = (raw_fb.get("billing") or {}).get("creditsCharged", 0) if isinstance(raw_fb, dict) else 0
+                self._sync_rate_limits_from_headers(resp_fb.headers, credits_charged=fb_credits)
                 if resp_fb.status_code == 200:
-                    raw_data = resp_fb.json()
+                    raw_data = raw_fb
                     results = raw_data.get("results", [])
-                    pagination = raw_data.get("pagination", {})
-                    total = pagination.get("total", len(results))
+                    total = _extract_total(raw_data, len(results))
                     resp = resp_fb
 
             # Fallback 2: If domain was provided alongside company_name and strict name+domain returned 0,
             # retry using domain alone so slight company name variations don't block results.
-            if resp.status_code == 200 and total == 0 and clean_dom:
+            if resp.status_code == 200 and len(results) == 0 and clean_dom:
                 payload_dom = {
                     "pagination": {"page": page, "size": actual_size},
                     "filters": {
@@ -364,17 +379,18 @@ class LushaService:
                     headers=self.headers,
                     json=payload_dom,
                 )
-                self._sync_rate_limits_from_headers(resp_dom.headers)
+                raw_dom = resp_dom.json() if resp_dom.status_code == 200 else {}
+                dom_credits = (raw_dom.get("billing") or {}).get("creditsCharged", 0) if isinstance(raw_dom, dict) else 0
+                self._sync_rate_limits_from_headers(resp_dom.headers, credits_charged=dom_credits)
                 if resp_dom.status_code == 200:
-                    raw_data = resp_dom.json()
+                    raw_data = raw_dom
                     results = raw_data.get("results", [])
-                    pagination = raw_data.get("pagination", {})
-                    total = pagination.get("total", len(results))
+                    total = _extract_total(raw_data, len(results))
                     resp = resp_dom
 
             # Fallback 3: If no domain was provided and raw company_name returned 0 contacts,
             # resolve canonical company name/domain via Lusha Companies Prospecting API and retry.
-            if resp.status_code == 200 and total == 0 and not clean_dom:
+            if resp.status_code == 200 and len(results) == 0 and not clean_dom:
                 matched_companies = await self.search_companies(company_name.strip(), country=country)
                 if matched_companies:
                     top_comp = matched_companies[0]
@@ -401,12 +417,13 @@ class LushaService:
                             headers=self.headers,
                             json=payload_res,
                         )
-                        self._sync_rate_limits_from_headers(resp_res.headers)
+                        raw_res = resp_res.json() if resp_res.status_code == 200 else {}
+                        res_credits = (raw_res.get("billing") or {}).get("creditsCharged", 0) if isinstance(raw_res, dict) else 0
+                        self._sync_rate_limits_from_headers(resp_res.headers, credits_charged=res_credits)
                         if resp_res.status_code == 200:
-                            raw_data = resp_res.json()
+                            raw_data = raw_res
                             results = raw_data.get("results", [])
-                            pagination = raw_data.get("pagination", {})
-                            total = pagination.get("total", len(results))
+                            total = _extract_total(raw_data, len(results))
                             resp = resp_res
 
             if resp.status_code != 200:
