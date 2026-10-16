@@ -631,7 +631,7 @@ export default function ProspectingPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center gap-2.5">
-                        <Users className="w-6 h-6 text-indigo-600" />
+                        <Users className="w-6 h-6 text-zinc-700 dark:text-zinc-300" />
                         <span>Lusha Prospecting Hub</span>
                     </h1>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
@@ -647,10 +647,10 @@ export default function ProspectingPage() {
                         </div>
                         <div className="text-sm font-extrabold text-zinc-900 dark:text-zinc-100">
                             {isLoadingQuota ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin inline mr-1 text-indigo-600" />
+                                <Loader2 className="w-3.5 h-3.5 animate-spin inline mr-1 text-zinc-500" />
                             ) : (
                                 <>
-                                    <span className="text-indigo-600 dark:text-indigo-400">
+                                    <span className="text-zinc-900 dark:text-zinc-100">
                                         {quota.remaining}
                                     </span>
                                     <span className="text-zinc-400 font-normal">/ {quota.total} kredit</span>
@@ -709,7 +709,7 @@ export default function ProspectingPage() {
                     {selectedCompany && (
                         <button
                             onClick={handleResetCompany}
-                            className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-medium"
+                            className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline flex items-center gap-1 font-medium"
                         >
                             <span>Ganti Perusahaan Target</span>
                         </button>
@@ -750,7 +750,7 @@ export default function ProspectingPage() {
                                     autoFocus
                                 />
                                 {isSearchingCompany ? (
-                                    <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-indigo-600 animate-spin" />
+                                    <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 animate-spin" />
                                 ) : companyQuery ? (
                                     <button
                                         type="button"
@@ -771,7 +771,7 @@ export default function ProspectingPage() {
                                     handleDirectSearch();
                                 }}
                                 disabled={!companyQuery.trim() || isLoadingEmployees}
-                                className="h-11 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm flex items-center gap-2 shrink-0 shadow-xs"
+                                className="h-11 px-5 font-medium text-sm flex items-center gap-2 shrink-0"
                             >
                                 {isLoadingEmployees ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -791,7 +791,7 @@ export default function ProspectingPage() {
                                         setShowCompanyDropdown(false);
                                         handleDirectSearch();
                                     }}
-                                    className="w-full text-left p-3.5 bg-indigo-50/80 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition flex items-center justify-between gap-3 text-indigo-700 dark:text-indigo-300 font-semibold text-xs border-b border-indigo-100 dark:border-indigo-900/50"
+                                    className="w-full text-left p-3.5 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition flex items-center justify-between gap-3 text-zinc-900 dark:text-zinc-100 font-semibold text-xs border-b border-zinc-200 dark:border-zinc-800"
                                 >
                                     <span className="flex items-center gap-2">
                                         <Search className="w-3.5 h-3.5 shrink-0" />
@@ -799,14 +799,14 @@ export default function ProspectingPage() {
                                             Cari langsung karyawan untuk <strong>"{companyQuery}"</strong> di database Lusha
                                         </span>
                                     </span>
-                                    <span className="text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded font-bold shrink-0">
+                                    <span className="text-[10px] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-2 py-0.5 rounded font-bold shrink-0">
                                         Enter ↵
                                     </span>
                                 </button>
 
                                 {isSearchingCompany && (
                                     <div className="p-3.5 text-center text-xs text-zinc-500 dark:text-zinc-400 flex items-center justify-center gap-2 bg-zinc-50/50 dark:bg-zinc-900/50">
-                                        <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-500" />
                                         <span>Mencari rekomendasi entitas perusahaan...</span>
                                     </div>
                                 )}
@@ -827,11 +827,11 @@ export default function ProspectingPage() {
                                         className="w-full text-left p-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/70 transition flex items-center justify-between gap-3 group"
                                     >
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300 font-bold text-xs shrink-0 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/40 group-hover:text-indigo-600 transition">
+                                            <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300 font-bold text-xs shrink-0 group-hover:bg-zinc-200 dark:group-hover:bg-zinc-700 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition">
                                                 {cand.name.charAt(0).toUpperCase()}
                                             </div>
                                             <div className="min-w-0">
-                                                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate group-hover:text-indigo-600 transition">
+                                                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
                                                     {cand.name}
                                                 </div>
                                                 <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate flex items-center gap-2 mt-0.5">
@@ -878,7 +878,7 @@ export default function ProspectingPage() {
                     <div className="space-y-3">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-700/80">
                             <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
+                                <div className="w-11 h-11 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
                                     {selectedCompany.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
@@ -953,9 +953,9 @@ export default function ProspectingPage() {
 
                         {/* Inline Domain Configuration Bar */}
                         {isEditingDomain && (
-                            <div className="p-3 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/80 dark:border-indigo-800/80 rounded-xl flex flex-col sm:flex-row items-center gap-2">
+                            <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl flex flex-col sm:flex-row items-center gap-2">
                                 <div className="flex items-center gap-2 flex-1 w-full">
-                                    <Globe className="w-4 h-4 text-indigo-600 shrink-0" />
+                                    <Globe className="w-4 h-4 text-zinc-500 shrink-0" />
                                     <Input
                                         value={domainInputValue}
                                         onChange={(e) => setDomainInputValue(e.target.value)}
@@ -974,7 +974,7 @@ export default function ProspectingPage() {
                                         size="sm"
                                         onClick={() => handleSelectCompany(selectedCompany, domainInputValue)}
                                         disabled={isLoadingEmployees}
-                                        className="h-9 text-xs px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+                                        className="h-9 text-xs px-3 font-medium"
                                     >
                                         {isLoadingEmployees ? (
                                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -1028,13 +1028,13 @@ export default function ProspectingPage() {
                                 <select
                                     value={selectedJobTitle}
                                     onChange={(e) => setSelectedJobTitle(e.target.value)}
-                                    className="w-full pl-9 pr-8 h-9 text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-zinc-100 font-medium focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20"
+                                    className="w-full pl-9 pr-8 h-9 text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-zinc-100 font-medium focus:outline-hidden focus:ring-2 focus:ring-zinc-500/20"
                                 >
                                     <option value="all">
                                         Semua Jabatan ({employees.length} kontak)
                                     </option>
                                     {jobTitleOptions.targetOptions.length > 0 && (
-                                        <option value="target:all" className="font-semibold text-indigo-600 dark:text-indigo-400">
+                                        <option value="target:all" className="font-semibold text-zinc-900 dark:text-zinc-100">
                                             ⭐ Semua Target Solusi Magna ({jobTitleOptions.totalTargetContacts} kontak)
                                         </option>
                                     )}
@@ -1085,7 +1085,7 @@ export default function ProspectingPage() {
                             <Button
                                 onClick={() => setIsOpptyDialogOpen(true)}
                                 disabled={selectedIds.size === 0}
-                                className="h-9 text-xs font-semibold gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-xs"
+                                className="h-9 text-xs font-semibold gap-1.5"
                                 title="Buat entitas peluang deal outbound langsung dari kontak terpilih"
                             >
                                 <Sparkles className="w-3.5 h-3.5" />
@@ -1094,9 +1094,10 @@ export default function ProspectingPage() {
 
                             {/* Reveal Button */}
                             <Button
+                                variant="secondary"
                                 onClick={handleOpenBulkReveal}
                                 disabled={selectedIds.size === 0 || isRevealingCredits}
-                                className="h-9 text-xs font-semibold gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs"
+                                className="h-9 text-xs font-semibold gap-1.5"
                                 title="Buka email & telepon kontak terpilih menggunakan kuota Lusha"
                             >
                                 <Unlock className="w-3.5 h-3.5" />
@@ -1124,7 +1125,7 @@ export default function ProspectingPage() {
                                 variant="secondary"
                                 onClick={handleExportExcel}
                                 disabled={isExportingExcel || filteredEmployees.length === 0}
-                                className="h-9 text-xs font-semibold gap-1.5 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                                className="h-9 text-xs font-semibold gap-1.5"
                                 title="Unduh spreadsheet Excel (.xlsx) dengan 4 kolom: Nama, Job Title, Email, Nomor Telepon"
                             >
                                 {isExportingExcel ? (
@@ -1141,7 +1142,7 @@ export default function ProspectingPage() {
                     <Card className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-xs">
                         {isLoadingEmployees ? (
                             <div className="py-20 flex flex-col items-center justify-center text-center space-y-3">
-                                <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+                                <Loader2 className="w-8 h-8 text-zinc-500 animate-spin" />
                                 <div>
                                     <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                                         Menghubungkan ke Database Lusha...
@@ -1184,7 +1185,7 @@ export default function ProspectingPage() {
                                                 size="sm"
                                                 onClick={() => handleSelectCompany(selectedCompany, domainInputValue)}
                                                 disabled={isLoadingEmployees || !domainInputValue.trim()}
-                                                className="h-9 text-xs px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium shrink-0"
+                                                className="h-9 text-xs px-3 font-medium shrink-0"
                                             >
                                                 Cari Ulang
                                             </Button>
@@ -1226,7 +1227,7 @@ export default function ProspectingPage() {
                                                 >
                                                     {selectedIds.size > 0 &&
                                                     selectedIds.size === filteredEmployees.length ? (
-                                                        <CheckSquare className="w-4 h-4 text-indigo-600" />
+                                                        <CheckSquare className="w-4 h-4 text-zinc-900 dark:text-zinc-100" />
                                                     ) : (
                                                         <Square className="w-4 h-4" />
                                                     )}
@@ -1265,7 +1266,7 @@ export default function ProspectingPage() {
                                                     key={emp.id}
                                                     className={`hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40 transition ${
                                                         isSelected
-                                                            ? "bg-indigo-50/30 dark:bg-indigo-950/20"
+                                                            ? "bg-zinc-100/70 dark:bg-zinc-800/50"
                                                             : ""
                                                     }`}
                                                 >
@@ -1275,7 +1276,7 @@ export default function ProspectingPage() {
                                                             type="checkbox"
                                                             checked={isSelected}
                                                             onChange={() => handleToggleSelectOne(emp.id)}
-                                                            className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                                            className="rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-zinc-500 cursor-pointer"
                                                         />
                                                     </td>
 
@@ -1330,7 +1331,7 @@ export default function ProspectingPage() {
                                                         ) : emp.has_email ? (
                                                             <button
                                                                 onClick={() => handleOpenSingleReveal(emp)}
-                                                                className="inline-flex items-center gap-1 text-[11px] font-medium text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 px-2 py-0.5 rounded transition"
+                                                                className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700 px-2 py-0.5 rounded transition"
                                                                 title="Klik untuk membuka email via kuota Lusha"
                                                             >
                                                                 <Lock className="w-3 h-3" />
@@ -1360,7 +1361,7 @@ export default function ProspectingPage() {
                                                         ) : emp.has_phone ? (
                                                             <button
                                                                 onClick={() => handleOpenSingleReveal(emp)}
-                                                                className="inline-flex items-center gap-1 text-[11px] font-medium text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 px-2 py-0.5 rounded transition"
+                                                                className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700 px-2 py-0.5 rounded transition"
                                                                 title="Klik untuk membuka nomor HP via kuota Lusha"
                                                             >
                                                                 <Lock className="w-3 h-3" />
@@ -1380,7 +1381,7 @@ export default function ProspectingPage() {
                                                                 href={emp.linkedin_url}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                className="inline-flex p-1.5 rounded-lg text-zinc-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950 transition"
+                                                                className="inline-flex p-1.5 rounded-lg text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
                                                                 title="Buka Profil LinkedIn"
                                                             >
                                                                 <Linkedin className="w-4 h-4" />
@@ -1413,7 +1414,7 @@ export default function ProspectingPage() {
                                                                 variant="secondary"
                                                                 size="sm"
                                                                 onClick={() => handleOpenSingleReveal(emp)}
-                                                                className="h-7 text-[11px] px-2.5 font-medium gap-1 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950"
+                                                                className="h-7 text-[11px] px-2.5 font-medium gap-1"
                                                             >
                                                                 <Unlock className="w-3 h-3" />
                                                                 <span>Buka Kontak</span>

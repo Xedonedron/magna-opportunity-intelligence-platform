@@ -72,7 +72,7 @@ export function CreditRevealModal({
                 aria-modal="true"
             >
                 <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shrink-0">
                         <Lock className="w-5 h-5" />
                     </div>
                     <div>
@@ -117,10 +117,10 @@ export function CreditRevealModal({
                                 type="checkbox"
                                 checked={revealEmail}
                                 onChange={(e) => setRevealEmail(e.target.checked)}
-                                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                                className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-zinc-500"
                             />
                             <div className="flex items-center gap-2 text-xs font-medium text-zinc-800 dark:text-zinc-200">
-                                <Mail className="w-4 h-4 text-emerald-600" />
+                                <Mail className="w-4 h-4 text-zinc-500" />
                                 <span>Alamat Email Terverifikasi</span>
                             </div>
                         </div>
@@ -133,10 +133,10 @@ export function CreditRevealModal({
                                 type="checkbox"
                                 checked={revealPhone}
                                 onChange={(e) => setRevealPhone(e.target.checked)}
-                                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                                className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-zinc-500"
                             />
                             <div className="flex items-center gap-2 text-xs font-medium text-zinc-800 dark:text-zinc-200">
-                                <Phone className="w-4 h-4 text-blue-600" />
+                                <Phone className="w-4 h-4 text-zinc-500" />
                                 <span>Nomor HP / WhatsApp Direct</span>
                             </div>
                         </div>
@@ -145,12 +145,12 @@ export function CreditRevealModal({
                 </div>
 
                 {/* Credit Summary Box */}
-                <div className="p-3.5 bg-blue-50/60 dark:bg-blue-950/30 rounded-xl border border-blue-200/60 dark:border-blue-900/40 space-y-1.5 text-xs">
+                <div className="p-3.5 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1.5 text-xs">
                     <div className="flex justify-between items-center text-zinc-700 dark:text-zinc-300">
                         <span>Total Kontak Dipilih:</span>
                         <span className="font-semibold">{contacts.length} orang</span>
                     </div>
-                    <div className="border-t border-blue-200 dark:border-blue-900/60 pt-1.5 flex justify-between items-center font-bold text-blue-950 dark:text-blue-200">
+                    <div className="border-t border-zinc-200 dark:border-zinc-700/80 pt-1.5 flex justify-between items-center font-bold text-zinc-900 dark:text-zinc-100">
                         <span>Total Biaya Kredit Lusha:</span>
                         <span className="text-sm">{totalCreditsRequired} Kredit</span>
                     </div>
@@ -185,7 +185,7 @@ export function CreditRevealModal({
                         size="sm"
                         onClick={handleConfirm}
                         disabled={isLoading || (!revealEmail && !revealPhone) || !isQuotaSufficient}
-                        className="bg-blue-600 hover:bg-blue-700 text-white gap-2 font-medium"
+                        className="gap-2 font-medium"
                     >
                         {isLoading ? (
                             <>
