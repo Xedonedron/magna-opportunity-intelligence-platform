@@ -49,6 +49,12 @@ class Opportunity(Base):
     assigned_engineer: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )
+    assigned_engineer_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     created_by: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
     )
@@ -65,6 +71,9 @@ class Opportunity(Base):
     )
     primary_contact: Mapped["CompanyContact | None"] = relationship(
         "CompanyContact", foreign_keys=[primary_contact_id], lazy="joined"
+    )
+    assigned_engineer_user: Mapped["User | None"] = relationship(
+        "User", foreign_keys=[assigned_engineer_id], lazy="joined"
     )
     creator: Mapped["User"] = relationship(
         "User", foreign_keys=[created_by], lazy="joined"

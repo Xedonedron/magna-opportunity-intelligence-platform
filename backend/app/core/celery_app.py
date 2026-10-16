@@ -9,6 +9,8 @@ celery_app = Celery(
     backend=settings.REDIS_URL,
 )
 
+from celery.schedules import crontab
+
 celery_app.conf.update(
     task_serializer="json",
     accept_content=["json"],
@@ -18,6 +20,12 @@ celery_app.conf.update(
     task_track_started=True,
     task_acks_late=True,
     worker_prefetch_multiplier=1,
+    beat_schedule={
+        "check-upcoming-meetings-and-stale-deals-hourly": {
+            "task": "tasks.check_upcoming_meetings_and_stale_deals",
+            "schedule": crontab(minute=0),  # Every hour at :00
+        },
+    },
 )
 
 # Auto-discover tasks
@@ -26,7 +34,12 @@ celery_app.autodiscover_tasks(["app.tasks"])
 
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
-    pass
+    """Ensure periodic tasks are registered on Celery Beat startup."""
+    sender.add_periodic_task(
+        crontab(minute=0),
+        sender.signature("tasks.check_upcoming_meetings_and_stale_deals"),
+        name="check-upcoming-meetings-and-stale-deals-hourly",
+    )
 
 
 from celery.signals import worker_process_init

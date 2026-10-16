@@ -37,6 +37,7 @@ class OpportunityCreate(BaseModel):
     estimated_agenda_date: datetime | None = None
     meeting_schedule: datetime | None = None
     assigned_engineer: str | None = None
+    assigned_engineer_id: uuid.UUID | None = None
 
     @field_validator("website")
     @classmethod
@@ -74,6 +75,7 @@ class OpportunityUpdate(BaseModel):
     status: str | None = Field(None, max_length=50)
     meeting_schedule: datetime | None = None
     assigned_engineer: str | None = None
+    assigned_engineer_id: uuid.UUID | None = None
 
 
 class UserBrief(BaseModel):
@@ -103,6 +105,7 @@ class OpportunityResponse(BaseModel):
     status: str
     meeting_schedule: datetime | None
     assigned_engineer: str | None
+    assigned_engineer_id: uuid.UUID | None = None
     created_by: uuid.UUID
     creator: UserBrief
     created_at: datetime

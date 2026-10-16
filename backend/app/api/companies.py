@@ -24,12 +24,13 @@ from app.schemas.company import (
     CompanyDetailResponse,
     CompanyListResponse,
     CompanyOpportunityCreate,
+    CompanyMergeResponse,
     CompanySimilarityMatch,
     CompanySimilarityCheckResponse,
     CompanyKYCSummaryResponse,
 )
 from app.schemas.opportunity import OpportunityResponse
-from app.core.security import get_current_user, require_capability
+from app.core.security import get_current_user, require_capability, normalize_role
 from app.services.notification_service import NotificationService
 from app.tasks import (
     send_opportunity_created_notification,
@@ -667,6 +668,13 @@ async def create_company_opportunity(
             email = new_contact.email
             phone = new_contact.phone
 
+    from app.api.opportunities import _resolve_engineer_assignment
+    resolved_eng_name, resolved_eng_id = _resolve_engineer_assignment(
+        db,
+        assigned_engineer=data.assigned_engineer,
+        assigned_engineer_id=data.assigned_engineer_id,
+    )
+
     opportunity = Opportunity(
         company_id=company.id,
         primary_contact_id=primary_contact_id,
@@ -682,7 +690,8 @@ async def create_company_opportunity(
         potential_revenue=data.potential_revenue,
         estimated_agenda_date=data.estimated_agenda_date,
         meeting_schedule=data.meeting_schedule,
-        assigned_engineer=data.assigned_engineer,
+        assigned_engineer=resolved_eng_name,
+        assigned_engineer_id=resolved_eng_id,
         created_by=current_user.id,
         status=data.status or "New",
     )
@@ -737,6 +746,215 @@ async def create_company_opportunity(
         pass
 
     return OpportunityResponse.model_validate(opportunity)
+
+
+@router.post(
+    "/{target_company_id}/merge/{source_company_id}",
+    response_model=CompanyMergeResponse,
+)
+async def merge_companies(
+    target_company_id: uuid.UUID,
+    source_company_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Atomically merge source_company into target_company (restricted to Admin / Manager).
+    Reassigns all Opportunity and CompanyContact records (deduplicating matching contacts
+    and resolving is_primary conflicts) and deletes source_company.
+    """
+    user_role = normalize_role(current_user.role)
+    if user_role not in ("admin", "manager"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Hanya Admin atau Manager yang memiliki izin untuk menggabungkan folder perusahaan.",
+        )
+
+    if target_company_id == source_company_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Tidak dapat menggabungkan perusahaan ke dirinya sendiri.",
+        )
+
+    target_company = db.query(Company).filter(Company.id == target_company_id).first()
+    if not target_company:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Target company not found")
+
+    source_company = db.query(Company).filter(Company.id == source_company_id).first()
+    if not source_company:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Source company not found")
+
+    source_company_name = source_company.name
+
+    # 1. Enrich target_company metadata from source_company if missing on target
+    if not target_company.website and source_company.website:
+        target_company.website = source_company.website
+    if not target_company.root_domain and source_company.root_domain:
+        target_company.root_domain = source_company.root_domain
+    if not target_company.industry and source_company.industry:
+        target_company.industry = source_company.industry
+    if not target_company.business_process and source_company.business_process:
+        target_company.business_process = source_company.business_process
+    if not target_company.employee_count and source_company.employee_count:
+        target_company.employee_count = source_company.employee_count
+    if not target_company.tech_stack and source_company.tech_stack:
+        target_company.tech_stack = source_company.tech_stack
+
+    # 2. Merge & deduplicate CompanyContact records
+    target_contacts = (
+        db.query(CompanyContact)
+        .filter(CompanyContact.company_id == target_company.id)
+        .all()
+    )
+    source_contacts = (
+        db.query(CompanyContact)
+        .filter(CompanyContact.company_id == source_company.id)
+        .all()
+    )
+
+    target_has_primary = any(c.is_primary for c in target_contacts)
+    target_by_email: dict[str, CompanyContact] = {}
+    target_by_name: dict[str, CompanyContact] = {}
+    for tc in target_contacts:
+        if tc.email and tc.email.strip():
+            target_by_email[tc.email.strip().lower()] = tc
+        if tc.name and tc.name.strip():
+            target_by_name[tc.name.strip().lower()] = tc
+
+    moved_contacts_count = 0
+    deduplicated_contacts_count = 0
+    contact_id_remap: dict[uuid.UUID, uuid.UUID] = {}
+
+    for sc in source_contacts:
+        sc_email_key = sc.email.strip().lower() if sc.email and sc.email.strip() else None
+        sc_name_key = sc.name.strip().lower() if sc.name and sc.name.strip() else None
+
+        matched_tc = None
+        if sc_email_key and sc_email_key in target_by_email:
+            matched_tc = target_by_email[sc_email_key]
+        elif sc_name_key and sc_name_key in target_by_name:
+            matched_tc = target_by_name[sc_name_key]
+
+        if matched_tc:
+            # Enrich missing fields on target contact before deleting duplicate source contact
+            if not matched_tc.email and sc.email:
+                matched_tc.email = sc.email
+            if not matched_tc.phone and sc.phone:
+                matched_tc.phone = sc.phone
+            if not matched_tc.job_title and sc.job_title:
+                matched_tc.job_title = sc.job_title
+            if not matched_tc.department and sc.department:
+                matched_tc.department = sc.department
+            if not matched_tc.linkedin_url and sc.linkedin_url:
+                matched_tc.linkedin_url = sc.linkedin_url
+            if not matched_tc.notes and sc.notes:
+                matched_tc.notes = sc.notes
+            if sc.is_primary and not target_has_primary:
+                matched_tc.is_primary = True
+                target_has_primary = True
+
+            contact_id_remap[sc.id] = matched_tc.id
+            deduplicated_contacts_count += 1
+        else:
+            sc.company_id = target_company.id
+            if sc.is_primary:
+                if target_has_primary:
+                    sc.is_primary = False
+                else:
+                    target_has_primary = True
+            moved_contacts_count += 1
+            if sc_email_key:
+                target_by_email[sc_email_key] = sc
+            if sc_name_key:
+                target_by_name[sc_name_key] = sc
+
+    # 3. Reassign Opportunity records from source_company to target_company
+    source_opportunities = (
+        db.query(Opportunity)
+        .filter(Opportunity.company_id == source_company.id)
+        .all()
+    )
+    moved_opportunities_count = 0
+
+    for opp in source_opportunities:
+        opp.company_id = target_company.id
+        opp.company_name = target_company.name
+        if not opp.website and target_company.website:
+            opp.website = target_company.website
+        if not opp.industry and target_company.industry:
+            opp.industry = target_company.industry
+
+        if opp.primary_contact_id and opp.primary_contact_id in contact_id_remap:
+            opp.primary_contact_id = contact_id_remap[opp.primary_contact_id]
+
+        db.add(
+            TimelineEvent(
+                opportunity_id=opp.id,
+                actor_id=current_user.id,
+                actor_name=current_user.full_name,
+                action="Company Folder Merged",
+                description=(
+                    f"Opportunity moved from duplicate folder '{source_company_name}' "
+                    f"into canonical folder '{target_company.name}'."
+                ),
+                event_type="update",
+            )
+        )
+        moved_opportunities_count += 1
+
+    # Also remap any other opportunity in DB referencing a deduplicated source contact
+    if contact_id_remap:
+        for old_cid, new_cid in contact_id_remap.items():
+            db.query(Opportunity).filter(Opportunity.primary_contact_id == old_cid).update(
+                {Opportunity.primary_contact_id: new_cid},
+                synchronize_session=False,
+            )
+            dup_contact = db.query(CompanyContact).filter(CompanyContact.id == old_cid).first()
+            if dup_contact:
+                db.delete(dup_contact)
+
+    db.flush()
+
+    # 4. Delete source_company after detaching moved relationships
+    db.refresh(source_company)
+    db.delete(source_company)
+    db.commit()
+    db.refresh(target_company)
+
+    total_target_opps = (
+        db.query(sa_func.count(Opportunity.id))
+        .filter(Opportunity.company_id == target_company.id)
+        .scalar()
+        or 0
+    )
+
+    target_resp = CompanyResponse(
+        id=target_company.id,
+        name=target_company.name,
+        normalized_name=target_company.normalized_name,
+        website=target_company.website,
+        industry=target_company.industry,
+        business_process=target_company.business_process,
+        employee_count=target_company.employee_count,
+        tech_stack=target_company.tech_stack,
+        opportunities_count=total_target_opps,
+        created_at=target_company.created_at,
+        updated_at=target_company.updated_at,
+    )
+
+    return CompanyMergeResponse(
+        target_company=target_resp,
+        source_company_id=source_company_id,
+        source_company_name=source_company_name,
+        moved_opportunities_count=moved_opportunities_count,
+        moved_contacts_count=moved_contacts_count,
+        deduplicated_contacts_count=deduplicated_contacts_count,
+        message=(
+            f"Successfully merged '{source_company_name}' into '{target_company.name}' "
+            f"({moved_opportunities_count} opportunities moved, "
+            f"{moved_contacts_count} contacts moved, "
+            f"{deduplicated_contacts_count} duplicate contacts consolidated)."
+        ),
+    )
 
 
 @router.get("/{company_id}/contacts/export-excel")

@@ -35,6 +35,50 @@ class NotificationService:
     """Service to create and dispatch in-app notifications with targeted audience routing."""
 
     @staticmethod
+    def _resolve_engineer_users(
+        db: Session,
+        opportunity: Opportunity,
+    ) -> List[User]:
+        """Resolve assigned pre-sales engineer User(s), prioritizing relational assigned_engineer_id
+        and falling back to fuzzy matching on assigned_engineer string.
+        """
+        engineers: List[User] = []
+        seen_ids: set[uuid.UUID] = set()
+
+        # 1. Relational FK priority
+        eng_id = getattr(opportunity, "assigned_engineer_id", None)
+        if eng_id:
+            eng_user = (
+                db.query(User)
+                .filter(User.id == eng_id, User.is_active == True)
+                .first()
+            )
+            if eng_user:
+                engineers.append(eng_user)
+                seen_ids.add(eng_user.id)
+
+        # 2. Fallback to string matching if no active user was resolved via FK
+        if not engineers and opportunity.assigned_engineer:
+            eng_name = opportunity.assigned_engineer.strip()
+            if eng_name:
+                engineer = (
+                    db.query(User)
+                    .filter(
+                        User.is_active == True,
+                        (
+                            User.full_name.ilike(f"%{eng_name}%")
+                            | (User.email.ilike(f"{eng_name}%"))
+                        ),
+                    )
+                    .first()
+                )
+                if engineer and engineer.id not in seen_ids:
+                    engineers.append(engineer)
+                    seen_ids.add(engineer.id)
+
+        return engineers
+
+    @staticmethod
     def resolve_recipients(
         db: Session,
         opportunity: Opportunity,
@@ -59,22 +103,9 @@ class NotificationService:
             if creator:
                 recipients_map[creator.id] = creator
 
-        # 2. Assigned Engineer
-        if opportunity.assigned_engineer:
-            eng_name = opportunity.assigned_engineer.strip()
-            engineer = (
-                db.query(User)
-                .filter(
-                    User.is_active == True,
-                    (
-                        User.full_name.ilike(f"%{eng_name}%")
-                        | (User.email.ilike(f"{eng_name}%"))
-                    ),
-                )
-                .first()
-            )
-            if engineer:
-                recipients_map[engineer.id] = engineer
+        # 2. Assigned Engineer (prioritizes assigned_engineer_id FK, fallback to string)
+        for engineer in NotificationService._resolve_engineer_users(db, opportunity):
+            recipients_map[engineer.id] = engineer
 
         # 3. Superadmins / Admins (all active superadmin/admin accounts get notified)
         superadmins = (
@@ -260,7 +291,10 @@ class NotificationService:
             title=title,
             message=message,
             link_url=link_url,
-            metadata_dict={"assigned_engineer": assigned_engineer},
+            metadata_dict={
+                "assigned_engineer": assigned_engineer,
+                "assigned_engineer_id": str(opportunity.assigned_engineer_id) if getattr(opportunity, "assigned_engineer_id", None) else None,
+            },
         )
 
     @classmethod
@@ -311,4 +345,66 @@ class NotificationService:
             message=message,
             link_url=link_url,
             metadata_dict={"company_name": opportunity.company_name},
+        )
+
+    @classmethod
+    def notify_meeting_reminder(
+        cls,
+        db: Session,
+        opportunity: Opportunity,
+        meeting_id: uuid.UUID,
+        meeting_title: str,
+        meeting_date_str: str,
+        reminder_window: str = "24h",
+    ) -> List[Notification]:
+        """Triggered by periodic scheduler when a meeting is approaching."""
+        recipients = cls.resolve_recipients(db, opportunity, actor_id=None)
+        title = f"Upcoming Meeting: {opportunity.company_name}"
+        message = f"Reminder: '{meeting_title}' is scheduled for {meeting_date_str}."
+        link_url = f"/opportunities/{opportunity.id}?tab=meetings"
+
+        return cls.create_notifications_for_recipients(
+            db=db,
+            opportunity=opportunity,
+            recipients=recipients,
+            notif_type="meeting_reminder",
+            title=title,
+            message=message,
+            link_url=link_url,
+            metadata_dict={
+                "meeting_id": str(meeting_id),
+                "meeting_title": meeting_title,
+                "meeting_date": meeting_date_str,
+                "reminder_window": reminder_window,
+            },
+        )
+
+    @classmethod
+    def notify_stale_opportunity(
+        cls,
+        db: Session,
+        opportunity: Opportunity,
+        days_stagnant: int,
+    ) -> List[Notification]:
+        """Triggered by periodic scheduler when an active opportunity has had no updates for >= 7 days."""
+        recipients = cls.resolve_recipients(db, opportunity, actor_id=None)
+        title = f"Stale Deal Alert: {opportunity.company_name}"
+        message = (
+            f"Opportunity '{opportunity.company_name}' (status: {opportunity.status}) "
+            f"has not been updated for {days_stagnant} days."
+        )
+        link_url = f"/opportunities/{opportunity.id}?tab=overview"
+
+        return cls.create_notifications_for_recipients(
+            db=db,
+            opportunity=opportunity,
+            recipients=recipients,
+            notif_type="stale_opportunity",
+            title=title,
+            message=message,
+            link_url=link_url,
+            metadata_dict={
+                "status": opportunity.status,
+                "days_stagnant": days_stagnant,
+            },
         )

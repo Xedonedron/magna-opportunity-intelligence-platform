@@ -45,6 +45,41 @@ VALID_STATUSES = [
 ]
 
 
+def _resolve_engineer_assignment(
+    db: Session,
+    assigned_engineer: str | None = None,
+    assigned_engineer_id: uuid.UUID | None = None,
+) -> tuple[str | None, uuid.UUID | None]:
+    """Synchronize relational assigned_engineer_id and display assigned_engineer string."""
+    clean_name = assigned_engineer.strip() if assigned_engineer and assigned_engineer.strip() else None
+
+    if assigned_engineer_id:
+        user = db.query(User).filter(User.id == assigned_engineer_id).first()
+        if user:
+            return (clean_name or user.full_name, user.id)
+        return (clean_name, None)
+
+    if clean_name:
+        user = (
+            db.query(User)
+            .filter(
+                User.is_active == True,
+                (
+                    (sa_func.lower(User.full_name) == clean_name.lower())
+                    | (sa_func.lower(User.email) == clean_name.lower())
+                    | User.full_name.ilike(f"%{clean_name}%")
+                    | User.email.ilike(f"{clean_name}%")
+                ),
+            )
+            .first()
+        )
+        if user:
+            return (clean_name, user.id)
+        return (clean_name, None)
+
+    return (None, None)
+
+
 def _log_timeline(
     db: Session,
     opportunity_id: uuid.UUID,
@@ -229,6 +264,12 @@ async def create_opportunity(
                 email = company_primary.email
                 phone = company_primary.phone
 
+    resolved_eng_name, resolved_eng_id = _resolve_engineer_assignment(
+        db,
+        assigned_engineer=data.assigned_engineer,
+        assigned_engineer_id=data.assigned_engineer_id,
+    )
+
     opportunity = Opportunity(
         company_id=target_company_id,
         primary_contact_id=primary_contact_id,
@@ -244,7 +285,8 @@ async def create_opportunity(
         potential_revenue=data.potential_revenue,
         estimated_agenda_date=data.estimated_agenda_date,
         meeting_schedule=data.meeting_schedule,
-        assigned_engineer=data.assigned_engineer,
+        assigned_engineer=resolved_eng_name,
+        assigned_engineer_id=resolved_eng_id,
         created_by=current_user.id,
         status="New",
     )
@@ -349,6 +391,7 @@ async def update_opportunity(
     update_data = data.model_dump(exclude_unset=True)
     old_status = opportunity.status
     old_engineer = opportunity.assigned_engineer
+    old_engineer_id = opportunity.assigned_engineer_id
     old_revenue = opportunity.potential_revenue
 
     # Validate status
@@ -357,6 +400,35 @@ async def update_opportunity(
             status_code=422,
             detail=f"Invalid status. Must be one of: {', '.join(VALID_STATUSES)}",
         )
+
+    # Synchronize assigned_engineer and assigned_engineer_id when either is updated
+    if "assigned_engineer" in update_data or "assigned_engineer_id" in update_data:
+        raw_eng_name = update_data.get("assigned_engineer")
+        raw_eng_id = update_data.get("assigned_engineer_id")
+        if (
+            "assigned_engineer" in update_data
+            and not raw_eng_name
+            and "assigned_engineer_id" not in update_data
+        ):
+            # Explicitly unassigning via assigned_engineer=None/""
+            update_data["assigned_engineer"] = None
+            update_data["assigned_engineer_id"] = None
+        elif (
+            "assigned_engineer_id" in update_data
+            and raw_eng_id is None
+            and "assigned_engineer" not in update_data
+        ):
+            # Explicitly unassigning via assigned_engineer_id=None
+            update_data["assigned_engineer"] = None
+            update_data["assigned_engineer_id"] = None
+        else:
+            resolved_name, resolved_id = _resolve_engineer_assignment(
+                db,
+                assigned_engineer=raw_eng_name,
+                assigned_engineer_id=raw_eng_id,
+            )
+            update_data["assigned_engineer"] = resolved_name
+            update_data["assigned_engineer_id"] = resolved_id
 
     # Handle company_id change (Move Opportunity to another company folder)
     if "company_id" in update_data:
@@ -458,9 +530,12 @@ async def update_opportunity(
         )
 
     # Log engineer / pre-sales assignment change
-    engineer_changed = "assigned_engineer" in update_data and update_data["assigned_engineer"] != old_engineer
+    engineer_changed = (
+        ("assigned_engineer" in update_data and update_data["assigned_engineer"] != old_engineer)
+        or ("assigned_engineer_id" in update_data and update_data["assigned_engineer_id"] != old_engineer_id)
+    )
     if engineer_changed:
-        new_eng = update_data["assigned_engineer"]
+        new_eng = opportunity.assigned_engineer
         if new_eng:
             _log_timeline(
                 db,

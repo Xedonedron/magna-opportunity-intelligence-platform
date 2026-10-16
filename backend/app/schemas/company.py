@@ -118,7 +118,18 @@ class CompanyOpportunityCreate(BaseModel):
     estimated_agenda_date: Optional[datetime] = None
     meeting_schedule: Optional[datetime] = None
     assigned_engineer: Optional[str] = None
+    assigned_engineer_id: Optional[uuid.UUID] = None
     status: str = Field("New", max_length=50)
+
+
+class CompanyMergeResponse(BaseModel):
+    target_company: CompanyResponse
+    source_company_id: uuid.UUID
+    source_company_name: str
+    moved_opportunities_count: int = 0
+    moved_contacts_count: int = 0
+    deduplicated_contacts_count: int = 0
+    message: str
 
 
 class CompanySimilarityMatch(BaseModel):

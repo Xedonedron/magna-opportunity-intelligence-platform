@@ -617,3 +617,140 @@ def send_meeting_reminder(meeting_id: str, reminder_type: str = "h1") -> dict:
         return {"status": "error", "message": str(e)}
     finally:
         db.close()
+
+
+TERMINAL_OPPORTUNITY_STATUSES = ("Won", "Lost", "Closed", "Cancelled", "On Hold")
+
+
+@celery_app.task(name="tasks.check_upcoming_meetings_and_stale_deals")
+def check_upcoming_meetings_and_stale_deals_task(
+    meeting_window_hours: int = 24,
+    stale_days_threshold: int = 7,
+) -> dict:
+    """Periodic task to:
+    1. Send reminders (in-app + email) for upcoming meetings within the next `meeting_window_hours` hours
+       (with deduplication so each meeting only triggers one reminder per window).
+    2. Alert stakeholders on active opportunities that have been stagnant (`updated_at < now - stale_days_threshold`)
+       without spamming if an unread or recent (< 7 days) stale notification already exists.
+    """
+    from datetime import timezone
+    from app.models.meeting import Meeting
+
+    db = SessionLocal()
+    try:
+        now = datetime.now(timezone.utc)
+        window_end = now + timedelta(hours=meeting_window_hours)
+        stale_cutoff = now - timedelta(days=stale_days_threshold)
+
+        meeting_reminders_triggered = 0
+        stale_alerts_triggered = 0
+
+        # 1. Check upcoming meetings in (now, now + 24h]
+        upcoming_meetings = (
+            db.query(Meeting)
+            .filter(
+                Meeting.date > now,
+                Meeting.date <= window_end,
+            )
+            .all()
+        )
+
+        for meeting in upcoming_meetings:
+            opportunity = (
+                db.query(Opportunity)
+                .filter(Opportunity.id == meeting.opportunity_id)
+                .first()
+            )
+            if not opportunity or opportunity.status in ("Lost", "Cancelled"):
+                continue
+
+            meeting_id_str = str(meeting.id)
+            existing_reminder = (
+                db.query(Notification)
+                .filter(
+                    Notification.opportunity_id == opportunity.id,
+                    Notification.type == "meeting_reminder",
+                    Notification.metadata_json.like(f"%{meeting_id_str}%"),
+                )
+                .first()
+            )
+            if existing_reminder:
+                continue
+
+            m_date_str = (
+                meeting.date.strftime("%d %b %Y, %H:%M")
+                if meeting.date
+                else "Upcoming"
+            )
+            NotificationService.notify_meeting_reminder(
+                db=db,
+                opportunity=opportunity,
+                meeting_id=meeting.id,
+                meeting_title=meeting.title,
+                meeting_date_str=m_date_str,
+                reminder_window=f"{meeting_window_hours}h",
+            )
+            meeting_reminders_triggered += 1
+
+            # Trigger email reminder asynchronously (or fallback synchronously if broker unavailable)
+            try:
+                send_meeting_reminder.delay(meeting_id_str, reminder_type="h1")
+            except Exception as email_exc:
+                logger.warning(f"Failed to enqueue meeting email reminder for {meeting_id_str}: {email_exc}")
+
+        # 2. Check active opportunities stagnant for >= stale_days_threshold days
+        stale_opportunities = (
+            db.query(Opportunity)
+            .filter(
+                Opportunity.status.notin_(TERMINAL_OPPORTUNITY_STATUSES),
+                Opportunity.updated_at <= stale_cutoff,
+            )
+            .all()
+        )
+
+        for opp in stale_opportunities:
+            # Deduplication: skip if there is already an unread stale_opportunity notification
+            # or any stale_opportunity notification created within the last stale_days_threshold days
+            existing_stale_notif = (
+                db.query(Notification)
+                .filter(
+                    Notification.opportunity_id == opp.id,
+                    Notification.type == "stale_opportunity",
+                    (
+                        (Notification.is_read == False)
+                        | (Notification.created_at >= stale_cutoff)
+                    ),
+                )
+                .first()
+            )
+            if existing_stale_notif:
+                continue
+
+            opp_updated = opp.updated_at
+            if opp_updated and opp_updated.tzinfo is None:
+                opp_updated = opp_updated.replace(tzinfo=timezone.utc)
+            days_stagnant = (
+                max(stale_days_threshold, (now - opp_updated).days)
+                if opp_updated
+                else stale_days_threshold
+            )
+
+            NotificationService.notify_stale_opportunity(
+                db=db,
+                opportunity=opp,
+                days_stagnant=days_stagnant,
+            )
+            stale_alerts_triggered += 1
+
+        db.commit()
+        return {
+            "status": "success",
+            "meeting_reminders_triggered": meeting_reminders_triggered,
+            "stale_alerts_triggered": stale_alerts_triggered,
+        }
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error checking upcoming meetings and stale deals: {e}")
+        return {"status": "error", "message": str(e)}
+    finally:
+        db.close()
