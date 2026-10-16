@@ -483,8 +483,8 @@ export default function CreateOpportunityPage() {
                                 {...register("additional_notes")}
                             />
                         </div>
-                        <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900 text-blue-800 dark:text-blue-300 text-sm p-4 rounded-md flex gap-3">
-                            <Activity className="w-5 h-5 shrink-0" />
+                        <div className="bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm p-4 rounded-md flex gap-3">
+                            <Activity className="w-5 h-5 shrink-0 text-zinc-500 dark:text-zinc-400" />
                             <p>
                                 Upon submission, Magna AI will automatically scan public records
                                 and generate a comprehensive KYC report based on these needs.

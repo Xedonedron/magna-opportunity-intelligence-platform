@@ -627,9 +627,9 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                 {renderHeader()}
                 <div className="max-w-3xl mx-auto mt-4 space-y-3">
                     {otherCompletedVersion && (
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-blue-50/90 border border-blue-200 rounded-xl text-blue-900 shadow-sm animate-in fade-in">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 shadow-sm animate-in fade-in">
                             <div className="flex items-center gap-2.5">
-                                <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
+                                <Sparkles className="w-4 h-4 text-zinc-600 dark:text-zinc-400 shrink-0" />
                                 <span className="text-xs">
                                     Versi ini gagal dibuat, namun <strong>v{otherCompletedVersion.version}{otherCompletedVersion.title ? ` - ${otherCompletedVersion.title}` : ""}</strong> telah berhasil dibuat.
                                 </span>
@@ -637,7 +637,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                             <Button
                                 size="sm"
                                 variant="secondary"
-                                className="text-xs h-7 bg-white dark:bg-blue-950/40 hover:bg-blue-50 dark:hover:bg-blue-900/60 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 shrink-0 shadow-xs"
+                                className="text-xs h-7 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 shrink-0 shadow-xs"
                                 onClick={() => setSelectedReportId(otherCompletedVersion.id)}
                             >
                                 Buka v{otherCompletedVersion.version}
@@ -722,11 +722,11 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
 
             {/* Focus Notes banner if present for this version */}
             {report.focus_notes && (
-                <div className="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60 text-amber-900 dark:text-amber-200 px-4 py-3 rounded-xl text-xs flex items-start gap-2.5 shadow-sm -mt-4">
-                    <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                <div className="bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-200 px-4 py-3 rounded-xl text-xs flex items-start gap-2.5 shadow-sm -mt-4">
+                    <Sparkles className="w-4 h-4 text-zinc-500 dark:text-zinc-400 mt-0.5 shrink-0" />
                     <div className="min-w-0">
-                        <span className="font-semibold text-amber-900 dark:text-amber-100">Fokus Analisis Versi v{report.version}: </span>
-                        <span className="text-amber-800/90 dark:text-amber-300 whitespace-normal break-words leading-relaxed">
+                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">Fokus Analisis Versi v{report.version}: </span>
+                        <span className="text-zinc-600 dark:text-zinc-300 whitespace-normal break-words leading-relaxed">
                             {report.focus_notes}
                         </span>
                     </div>
@@ -981,14 +981,14 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                 {hasBusiness && (
                                     <Card className="p-6">
                                         <div className="flex items-center gap-2 mb-4">
-                                            <Briefcase className="w-4 h-4 text-indigo-500" />
-                                            <h4 className="text-sm font-semibold text-indigo-700 dark:text-indigo-400">Business Discovery</h4>
+                                            <Briefcase className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+                                            <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Business Discovery</h4>
                                         </div>
                                         <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-3">Target: C-Level / Business Owner / VP</p>
                                         <ul className="space-y-2">
                                             {rq.business.map((q, i) => (
                                                 <li key={i} className="flex items-start gap-2 text-sm text-zinc-600 dark:text-zinc-300">
-                                                    <HelpCircle className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+                                                    <HelpCircle className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0 mt-0.5" />
                                                     {q}
                                                 </li>
                                             ))}
@@ -998,14 +998,14 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                 {hasTechnical && (
                                     <Card className="p-6">
                                         <div className="flex items-center gap-2 mb-4">
-                                            <Wrench className="w-4 h-4 text-emerald-500" />
-                                            <h4 className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Technical Discovery</h4>
+                                            <Wrench className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+                                            <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Technical Discovery</h4>
                                         </div>
                                         <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-3">Target: CTO / IT Manager / DevOps / SecOps</p>
                                         <ul className="space-y-2">
                                             {rq.technical.map((q, i) => (
                                                 <li key={i} className="flex items-start gap-2 text-sm text-zinc-600 dark:text-zinc-300">
-                                                    <HelpCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                                                    <HelpCircle className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0 mt-0.5" />
                                                     {q}
                                                 </li>
                                             ))}
@@ -1051,7 +1051,7 @@ export function KYCReportTab({ opportunityId }: { opportunityId: string }) {
                                         href={ref.url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
+                                        className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline"
                                     >
                                         <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                                         <span className="truncate">{ref.title || ref.url}</span>

@@ -184,7 +184,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
                     <SectionLabel>{sec.recommendedQuestions || "Recommended Questions"}</SectionLabel>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div>
-                            <p className="text-xs font-medium text-indigo-600 dark:text-indigo-400 mb-2">💼 Business Discovery</p>
+                            <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-2">💼 Business Discovery</p>
                             <ListInput
                                 values={normalizeRecommendedQuestions(report.recommended_questions).business}
                                 onChange={(v) => {
@@ -195,7 +195,7 @@ export function KYCEditForm({ report, onChange }: KYCEditFormProps) {
                             />
                         </div>
                         <div>
-                            <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 mb-2">🔧 Technical Discovery</p>
+                            <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-2">🔧 Technical Discovery</p>
                             <ListInput
                                 values={normalizeRecommendedQuestions(report.recommended_questions).technical}
                                 onChange={(v) => {

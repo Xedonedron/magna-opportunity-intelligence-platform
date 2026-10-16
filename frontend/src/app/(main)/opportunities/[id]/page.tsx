@@ -52,7 +52,7 @@ import { ALL_STATUSES, type OpportunityStatus } from "@/types/opportunity";
 const eventTypeIcons: Record<string, React.ReactNode> = {
     create: <CheckCircle2 className="w-4 h-4 text-green-500" />,
     update: <GitCommit className="w-4 h-4 text-zinc-500" />,
-    meeting: <Calendar className="w-4 h-4 text-blue-500" />,
+    meeting: <Calendar className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />,
     system: <Zap className="w-4 h-4 text-zinc-500" />,
     status_change: <GitCommit className="w-4 h-4 text-orange-500" />,
 };
@@ -302,9 +302,9 @@ export default function OpportunityDetailPage() {
                             <div className="space-y-6">
                                 {/* Key Opportunity Metrics (Potential Revenue & Agenda Date) */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <Card className="p-5 border-emerald-200/80 dark:border-emerald-800/60 bg-gradient-to-br from-emerald-50/50 to-white dark:from-emerald-950/30 dark:to-zinc-900 shadow-sm">
+                                    <Card className="p-5 shadow-xs">
                                         <div className="flex items-center gap-3.5">
-                                            <div className="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 flex items-center justify-center border border-emerald-200/60 dark:border-emerald-800/80 shrink-0">
+                                            <div className="w-11 h-11 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center border border-zinc-200 dark:border-zinc-700 shrink-0">
                                                 <Coins className="w-5 h-5" />
                                             </div>
                                             <div>
@@ -321,9 +321,9 @@ export default function OpportunityDetailPage() {
                                         </div>
                                     </Card>
 
-                                    <Card className="p-5 border-blue-200/80 dark:border-blue-800/60 bg-gradient-to-br from-blue-50/50 to-white dark:from-blue-950/30 dark:to-zinc-900 shadow-sm">
+                                    <Card className="p-5 shadow-xs">
                                         <div className="flex items-center gap-3.5">
-                                            <div className="w-11 h-11 rounded-xl bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 flex items-center justify-center border border-blue-200/60 dark:border-blue-800/80 shrink-0">
+                                            <div className="w-11 h-11 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center border border-zinc-200 dark:border-zinc-700 shrink-0">
                                                 <CalendarClock className="w-5 h-5" />
                                             </div>
                                             <div>
@@ -391,7 +391,7 @@ export default function OpportunityDetailPage() {
                                                     <button
                                                         type="button"
                                                         onClick={() => setActiveTab("stakeholders")}
-                                                        className="text-blue-600 dark:text-blue-400 hover:underline font-medium text-xs flex items-center gap-1"
+                                                        className="text-zinc-900 dark:text-zinc-100 hover:underline font-medium text-xs flex items-center gap-1"
                                                     >
                                                         + Atur di Stakeholders
                                                     </button>
@@ -605,7 +605,7 @@ function InfoRow({
                         href={value.startsWith("http://") || value.startsWith("https://") ? value : `https://${value}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                        className="text-sm text-zinc-900 dark:text-zinc-100 underline decoration-zinc-300 dark:decoration-zinc-700 hover:decoration-zinc-900 dark:hover:decoration-zinc-100"
                     >
                         {value}
                     </a>

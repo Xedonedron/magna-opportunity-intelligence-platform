@@ -103,7 +103,7 @@ export function UseCaseAccordion({ useCases }: { useCases: KYCUseCase[] }) {
                                             {(uc.google_products || []).map((p) => (
                                                 <span
                                                     key={p}
-                                                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900"
+                                                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 text-zinc-700 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700"
                                                 >
                                                     {p}
                                                 </span>
@@ -112,13 +112,13 @@ export function UseCaseAccordion({ useCases }: { useCases: KYCUseCase[] }) {
                                     </div>
                                     <div>
                                         <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                            <Building2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" /> {details?.smartnetSolutions || "Smartnet Solutions"}
+                                            <Building2 className="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400" /> {details?.smartnetSolutions || "Smartnet Solutions"}
                                         </h4>
                                         <div className="flex flex-wrap gap-1.5">
                                             {(uc.smartnet_solutions || []).map((s) => (
                                                 <span
                                                     key={s}
-                                                    className="inline-flex items-center px-2.5 py-1 rounded text-xs font-semibold bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-700 border border-indigo-200/80 dark:from-indigo-950/40 dark:to-violet-950/40 dark:text-indigo-300 dark:border-indigo-800"
+                                                    className="inline-flex items-center px-2.5 py-1 rounded text-xs font-semibold bg-zinc-100 text-zinc-900 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700"
                                                 >
                                                     {s}
                                                 </span>
@@ -129,7 +129,7 @@ export function UseCaseAccordion({ useCases }: { useCases: KYCUseCase[] }) {
                                                 href={uc.case_study_url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-500 transition-colors shadow-sm"
+                                                className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors shadow-xs"
                                             >
                                                 <ExternalLink className="w-3 h-3" />
                                                 Case Study Resmi SMG: {uc.case_study_title || "Lihat Artikel"} ↗

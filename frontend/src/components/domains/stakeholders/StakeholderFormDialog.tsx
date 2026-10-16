@@ -88,7 +88,7 @@ export function StakeholderFormDialog({
             <div className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-zinc-200 dark:border-zinc-800 p-6 z-10 max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800 mb-5">
                     <div className="flex items-center gap-2">
-                        <div className="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
+                        <div className="p-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-lg">
                             <User className="w-5 h-5" />
                         </div>
                         <div>
@@ -189,7 +189,7 @@ export function StakeholderFormDialog({
                             id="is_primary"
                             checked={isPrimary}
                             onChange={(e) => setIsPrimary(e.target.checked)}
-                            className="w-4 h-4 text-blue-600 rounded border-zinc-300 dark:border-zinc-600 focus:ring-blue-500 cursor-pointer"
+                            className="w-4 h-4 text-zinc-900 rounded border-zinc-300 dark:border-zinc-600 focus:ring-zinc-500 cursor-pointer accent-zinc-900 dark:accent-zinc-100"
                         />
                         <label
                             htmlFor="is_primary"
@@ -211,7 +211,7 @@ export function StakeholderFormDialog({
                             placeholder="Contoh: Lebih responsif via WhatsApp. Tertarik dengan efisiensi lisensi cloud."
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            className="w-full text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2.5 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                            className="w-full text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2.5 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-hidden focus:ring-2 focus:ring-zinc-500"
                         />
                     </div>
 

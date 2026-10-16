@@ -153,7 +153,7 @@ export function CompanyFolderView({
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center p-16 gap-3 text-zinc-500">
-                <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+                <Loader2 className="w-8 h-8 animate-spin text-zinc-600 dark:text-zinc-400" />
                 <p className="text-sm">Loading company folders...</p>
             </div>
         );
@@ -177,7 +177,7 @@ export function CompanyFolderView({
                     <Button
                         size="sm"
                         onClick={() => setIsCreateCompanyOpen(true)}
-                        className="h-8 text-xs font-medium flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white"
+                        className="h-8 text-xs font-medium flex items-center gap-1.5"
                     >
                         <FolderPlus className="w-3.5 h-3.5" />
                         <span>New Company Folder</span>
@@ -219,7 +219,7 @@ export function CompanyFolderView({
                         variant="outline"
                         size="sm"
                         onClick={() => setIsCreateCompanyOpen(true)}
-                        className="h-7 text-xs font-medium flex items-center gap-1.5 border-indigo-200 dark:border-indigo-900/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
+                        className="h-7 text-xs font-medium flex items-center gap-1.5 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800"
                     >
                         <FolderPlus className="w-3.5 h-3.5" />
                         <span>New Company Folder</span>
@@ -228,7 +228,7 @@ export function CompanyFolderView({
                     <button
                         type="button"
                         onClick={expandAll}
-                        className="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 px-2 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                        className="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 px-2 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                     >
                         Expand All
                     </button>
@@ -236,7 +236,7 @@ export function CompanyFolderView({
                     <button
                         type="button"
                         onClick={collapseAll}
-                        className="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 px-2 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                        className="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 px-2 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                     >
                         Collapse All
                     </button>
@@ -375,7 +375,7 @@ function CompanyCard({
                         )}
                     </button>
 
-                    <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+                    <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
                         {isExpanded ? (
                             <FolderOpen className="w-5 h-5" />
                         ) : (
@@ -391,7 +391,7 @@ function CompanyCard({
                                     e.stopPropagation();
                                     onOpenDrawer();
                                 }}
-                                className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline transition-colors text-left"
+                                className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 hover:text-zinc-700 dark:hover:text-zinc-300 hover:underline transition-colors text-left"
                                 title="Buka Detail Perusahaan & Stakeholders"
                             >
                                 {company.name}
@@ -403,7 +403,7 @@ function CompanyCard({
                                         e.stopPropagation();
                                         onOpenDrawer();
                                     }}
-                                    className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors cursor-pointer"
+                                    className="inline-flex items-center gap-1 text-[10px] font-semibold text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200/70 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
                                     title="Lihat KYC Intelligence"
                                 >
                                     <Sparkles className="w-2.5 h-2.5" />
@@ -424,7 +424,7 @@ function CompanyCard({
                                     target="_blank"
                                     rel="noreferrer"
                                     onClick={(e) => e.stopPropagation()}
-                                    className="hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1"
+                                    className="hover:text-zinc-900 dark:hover:text-zinc-200 hover:underline flex items-center gap-1"
                                 >
                                     <span>{company.website}</span>
                                     <ExternalLink className="w-2.5 h-2.5" />
@@ -449,7 +449,7 @@ function CompanyCard({
                                 e.stopPropagation();
                                 onAddOppty();
                             }}
-                            className="h-8 text-xs font-medium border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
+                            className="h-8 text-xs font-medium border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800"
                         >
                             <Plus className="w-3.5 h-3.5 mr-1" />
                             <span>New Oppty</span>
@@ -559,7 +559,7 @@ function CompanyChildOpportunities({
                 <button
                     type="button"
                     onClick={onAddOppty}
-                    className="inline-flex items-center text-xs text-indigo-600 dark:text-indigo-400 font-medium hover:underline mt-2"
+                    className="inline-flex items-center text-xs text-zinc-900 dark:text-zinc-100 font-semibold hover:underline mt-2"
                 >
                     <Plus className="w-3 h-3 mr-1" /> Add First Oppty
                 </button>
@@ -607,7 +607,7 @@ function OpptyRow({
                 <div className="flex items-center gap-2 flex-wrap">
                     <Link
                         href={`/opportunities/${opp.id}`}
-                        className="font-medium text-zinc-900 dark:text-zinc-100 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1.5"
+                        className="font-medium text-zinc-900 dark:text-zinc-100 hover:underline flex items-center gap-1.5"
                     >
                         <Briefcase className="w-3.5 h-3.5 text-zinc-400" />
                         <span>{opptyTitle}</span>
@@ -633,7 +633,7 @@ function OpptyRow({
 
                 {!hideFinancialNumbers && (
                     <div className="flex items-center gap-1 text-zinc-800 dark:text-zinc-200 font-medium">
-                        <DollarSign className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                        <DollarSign className="w-3 h-3 text-zinc-500 dark:text-zinc-400" />
                         <span>
                             {opp.potential_revenue
                                 ? formatCurrency(opp.potential_revenue)
@@ -652,7 +652,7 @@ function OpptyRow({
                         variant="ghost"
                         size="sm"
                         onClick={(e) => onMove(e, opp, companyName)}
-                        className="h-7 px-2 text-xs text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 flex items-center gap-1 transition-colors"
+                        className="h-7 px-2 text-xs text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-1 transition-colors"
                         title="Pindahkan deal ke folder perusahaan lain"
                     >
                         <FolderSymlink className="w-3.5 h-3.5" />
@@ -790,9 +790,9 @@ function CreateCompanyOpptyModal({
                 </div>
 
                 {/* Company Context Banner */}
-                <div className="px-4 py-2.5 bg-indigo-50/60 dark:bg-indigo-950/30 border-b border-indigo-100/80 dark:border-indigo-900/40 flex items-center justify-between text-xs flex-wrap gap-2">
-                    <div className="flex items-center gap-2 text-indigo-900 dark:text-indigo-200 font-medium">
-                        <Building2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                <div className="px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/60 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-xs flex-wrap gap-2">
+                    <div className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100 font-medium">
+                        <Building2 className="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400 shrink-0" />
                         <span>{company.name}</span>
                         {company.industry && (
                             <span className="text-zinc-500 dark:text-zinc-400">• {company.industry}</span>
@@ -801,8 +801,8 @@ function CreateCompanyOpptyModal({
                             <span className="text-zinc-500 dark:text-zinc-400">• {company.website}</span>
                         )}
                     </div>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-700">
+                        <CheckCircle2 className="w-3 h-3 text-zinc-600 dark:text-zinc-400" />
                         Zero KYC Redundancy
                     </span>
                 </div>
@@ -811,7 +811,7 @@ function CreateCompanyOpptyModal({
                 {isSubmitting ? (
                     <div className="p-6 sm:p-8 space-y-6">
                         <div className="text-center">
-                            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 mb-4">
+                            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-lg mb-4">
                                 <Zap className="w-7 h-7" />
                             </div>
                             <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
@@ -832,7 +832,7 @@ function CreateCompanyOpptyModal({
                                         key={step.id}
                                         className={`p-3.5 rounded-xl border transition-all duration-300 ${
                                             isActive
-                                                ? "border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/40 dark:bg-indigo-950/20 shadow-xs"
+                                                ? "border-zinc-900 dark:border-zinc-100 ring-2 ring-zinc-900/10 dark:ring-zinc-100/10 bg-zinc-50 dark:bg-zinc-800/60 shadow-xs"
                                                 : isDone
                                                 ? "border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/60"
                                                 : "border-zinc-100 dark:border-zinc-800/60 opacity-40"
@@ -843,7 +843,7 @@ function CreateCompanyOpptyModal({
                                                 {isDone ? (
                                                     <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                                                 ) : isActive ? (
-                                                    <CircleDashed className="w-5 h-5 text-indigo-600 dark:text-indigo-400 animate-spin" />
+                                                    <CircleDashed className="w-5 h-5 text-zinc-900 dark:text-zinc-100 animate-spin" />
                                                 ) : (
                                                     <CircleDashed className="w-5 h-5 text-zinc-300 dark:text-zinc-600" />
                                                 )}
@@ -886,7 +886,7 @@ function CreateCompanyOpptyModal({
                                 placeholder="e.g. Supply Chain Analytics / Cloud Migration"
                                 value={dealTitle}
                                 onChange={(e) => setDealTitle(e.target.value)}
-                                className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-zinc-500 outline-none"
                             />
                         </div>
 
@@ -913,7 +913,7 @@ function CreateCompanyOpptyModal({
                                 placeholder="Deskripsi kendala bisnis, target arsitektur, atau pain point klien..."
                                 value={customerNeeds}
                                 onChange={(e) => setCustomerNeeds(e.target.value)}
-                                className="w-full p-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                className="w-full p-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-zinc-500 outline-none"
                                 required
                             />
                         </div>
@@ -927,7 +927,7 @@ function CreateCompanyOpptyModal({
                                 <select
                                     value={assignedEngineer}
                                     onChange={(e) => setAssignedEngineer(e.target.value)}
-                                    className="w-full h-9 px-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                    className="w-full h-9 px-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-zinc-500 outline-none"
                                 >
                                     <option value="">Unassigned</option>
                                     {presalesList.map((p) => (
@@ -946,7 +946,7 @@ function CreateCompanyOpptyModal({
                                     placeholder="e.g. 500000000"
                                     value={potentialRevenue}
                                     onChange={(e) => setPotentialRevenue(e.target.value)}
-                                    className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                    className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-zinc-500 outline-none"
                                 />
                             </div>
                         </div>
@@ -960,7 +960,7 @@ function CreateCompanyOpptyModal({
                                 type="datetime-local"
                                 value={estimatedAgendaDate}
                                 onChange={(e) => setEstimatedAgendaDate(e.target.value)}
-                                className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-zinc-500 outline-none"
                             />
                         </div>
 
@@ -974,7 +974,7 @@ function CreateCompanyOpptyModal({
                                 placeholder="Catatan teknis tambahan atau instruksi spesifik untuk pipeline intelligence..."
                                 value={additionalNotes}
                                 onChange={(e) => setAdditionalNotes(e.target.value)}
-                                className="w-full p-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                className="w-full p-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-zinc-500 outline-none"
                             />
                         </div>
 
@@ -993,7 +993,7 @@ function CreateCompanyOpptyModal({
                                 type="submit"
                                 size="sm"
                                 disabled={createMutation.isPending}
-                                className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
+                                className="text-xs"
                             >
                                 {createMutation.isPending ? (
                                     <>
@@ -1050,7 +1050,7 @@ function CreateCompanyModal({ onClose }: { onClose: () => void }) {
                 <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/60 dark:bg-zinc-800/40">
                     <div>
                         <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm flex items-center gap-1.5">
-                            <FolderPlus className="w-4 h-4 text-indigo-600" />
+                            <FolderPlus className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
                             <span>New Company Folder</span>
                         </h3>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
@@ -1082,7 +1082,7 @@ function CreateCompanyModal({ onClose }: { onClose: () => void }) {
                             placeholder="e.g. PT Telekomunikasi Selular / Asuransi Jasindo"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                            className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-zinc-500 outline-none"
                             required
                         />
                     </div>
@@ -1097,7 +1097,7 @@ function CreateCompanyModal({ onClose }: { onClose: () => void }) {
                                 placeholder="e.g. jasindo.co.id"
                                 value={website}
                                 onChange={(e) => setWebsite(e.target.value)}
-                                className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-zinc-500 outline-none"
                             />
                         </div>
                         <div>
@@ -1109,7 +1109,7 @@ function CreateCompanyModal({ onClose }: { onClose: () => void }) {
                                 placeholder="e.g. Financial Services"
                                 value={industry}
                                 onChange={(e) => setIndustry(e.target.value)}
-                                className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-zinc-500 outline-none"
                             />
                         </div>
                     </div>
@@ -1124,7 +1124,7 @@ function CreateCompanyModal({ onClose }: { onClose: () => void }) {
                                 placeholder="Nama Kontak Person"
                                 value={contactName}
                                 onChange={(e) => setContactName(e.target.value)}
-                                className="w-full h-8 px-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                className="w-full h-8 px-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-zinc-500 outline-none"
                             />
                             <div className="grid grid-cols-2 gap-2">
                                 <input
@@ -1132,14 +1132,14 @@ function CreateCompanyModal({ onClose }: { onClose: () => void }) {
                                     placeholder="Email"
                                     value={contactEmail}
                                     onChange={(e) => setContactEmail(e.target.value)}
-                                    className="w-full h-8 px-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                    className="w-full h-8 px-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-zinc-500 outline-none"
                                 />
                                 <input
                                     type="text"
                                     placeholder="Nomor Telepon"
                                     value={contactPhone}
                                     onChange={(e) => setContactPhone(e.target.value)}
-                                    className="w-full h-8 px-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                    className="w-full h-8 px-2.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-zinc-500 outline-none"
                                 />
                             </div>
                         </div>
@@ -1159,7 +1159,7 @@ function CreateCompanyModal({ onClose }: { onClose: () => void }) {
                             type="submit"
                             size="sm"
                             disabled={createMutation.isPending}
-                            className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
+                            className="text-xs"
                         >
                             {createMutation.isPending ? (
                                 <>
@@ -1222,7 +1222,7 @@ function MoveCompanyOpptyModal({
                 <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/60 dark:bg-zinc-800/40">
                     <div>
                         <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm flex items-center gap-1.5">
-                            <FolderSymlink className="w-4 h-4 text-indigo-600" />
+                            <FolderSymlink className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
                             <span>Pindahkan Peluang</span>
                         </h3>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
@@ -1266,7 +1266,7 @@ function MoveCompanyOpptyModal({
                             <select
                                 value={targetCompanyId}
                                 onChange={(e) => setTargetCompanyId(e.target.value)}
-                                className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                                className="w-full h-9 px-3 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs focus:ring-1 focus:ring-zinc-500 outline-none"
                                 required
                             >
                                 <option value="" disabled>
@@ -1295,7 +1295,7 @@ function MoveCompanyOpptyModal({
                             type="submit"
                             size="sm"
                             disabled={!targetCompanyId || updateOpptyMutation.isPending}
-                            className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
+                            className="text-xs"
                         >
                             {updateOpptyMutation.isPending ? (
                                 <>

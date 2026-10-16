@@ -130,7 +130,7 @@ export function VersionSelector({
                                                     version.status === "completed"
                                                         ? "bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-300"
                                                         : version.status === "running"
-                                                            ? "bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300"
+                                                            ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
                                                             : version.status === "failed"
                                                                 ? "bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-300"
                                                                 : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
@@ -149,8 +149,8 @@ export function VersionSelector({
 
                                         {/* Version Focus Notes with Word Wrap */}
                                         {version.focus_notes && (
-                                            <div className="text-[11px] text-zinc-600 dark:text-zinc-300 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-900/40 rounded px-2 py-1 break-words whitespace-normal leading-snug">
-                                                <span className="font-semibold text-amber-800 dark:text-amber-200">Fokus: </span>
+                                            <div className="text-[11px] text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-700/60 rounded px-2 py-1 break-words whitespace-normal leading-snug">
+                                                <span className="font-semibold text-zinc-800 dark:text-zinc-200">Fokus: </span>
                                                 <span>{version.focus_notes}</span>
                                             </div>
                                         )}

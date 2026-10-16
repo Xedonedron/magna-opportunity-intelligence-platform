@@ -55,7 +55,7 @@ export function KanbanColumn({
                         {...provided.droppableProps}
                         className={`p-2.5 flex-1 overflow-y-auto space-y-2.5 transition-colors rounded-b-2xl min-h-[150px] ${
                             snapshot.isDraggingOver
-                                ? "bg-blue-50/50 dark:bg-blue-950/20 ring-2 ring-blue-400/30 dark:ring-blue-500/30 ring-inset"
+                                ? "bg-zinc-100/70 dark:bg-zinc-800/50 ring-2 ring-zinc-400/40 dark:ring-zinc-500/40 ring-inset"
                                 : ""
                         }`}
                     >

@@ -36,7 +36,7 @@ export function KanbanCard({
                     {...provided.draggableProps}
                     className={`group bg-white dark:bg-zinc-900 border rounded-xl p-3.5 shadow-sm transition-all text-xs space-y-3 relative ${
                         snapshot.isDragging
-                            ? "shadow-lg border-blue-400 dark:border-blue-500 ring-2 ring-blue-400/20 rotate-1 z-50 bg-white dark:bg-zinc-800"
+                            ? "shadow-lg border-zinc-400 dark:border-zinc-500 ring-2 ring-zinc-400/20 rotate-1 z-50 bg-white dark:bg-zinc-800"
                             : "border-zinc-200/90 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow dark:shadow-zinc-950/50"
                     }`}
                 >
@@ -55,7 +55,7 @@ export function KanbanCard({
                             <div className="min-w-0">
                                 <Link
                                     href={`/opportunities/${opportunity.id}`}
-                                    className="font-bold text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 hover:underline text-sm leading-tight block truncate"
+                                    className="font-bold text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 hover:underline text-sm leading-tight block truncate"
                                 >
                                     {opportunity.company_name}
                                 </Link>

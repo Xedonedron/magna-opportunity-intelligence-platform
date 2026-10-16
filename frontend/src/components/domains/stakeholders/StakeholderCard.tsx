@@ -31,7 +31,7 @@ export function StakeholderCard({
         <div
             className={`rounded-xl border p-4 bg-white dark:bg-zinc-900/70 flex flex-col justify-between transition-all ${
                 isSelected
-                    ? "ring-2 ring-blue-500 border-blue-400 bg-blue-50/[0.04] dark:bg-blue-950/[0.15]"
+                    ? "ring-2 ring-zinc-900 dark:ring-zinc-100 border-zinc-900 dark:border-zinc-100 bg-zinc-50/60 dark:bg-zinc-800/40"
                     : contact.is_primary
                     ? "border-amber-400/60 dark:border-amber-500/40 bg-amber-500/[0.02]"
                     : "border-zinc-200 dark:border-zinc-800"
@@ -46,7 +46,7 @@ export function StakeholderCard({
                                     type="checkbox"
                                     checked={isSelected || false}
                                     onChange={() => onToggleSelect?.(contact)}
-                                    className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                    className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 focus:ring-zinc-500 cursor-pointer accent-zinc-900 dark:accent-zinc-100"
                                 />
                             </div>
                         )}
@@ -82,7 +82,7 @@ export function StakeholderCard({
                             <button
                                 onClick={() => onEdit(contact)}
                                 title="Edit"
-                                className="p-1.5 text-zinc-400 hover:text-blue-500 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                                className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                             >
                                 <Edit2 className="w-4 h-4" />
                             </button>
@@ -100,7 +100,7 @@ export function StakeholderCard({
                     {contact.email && (
                         <div className="flex items-center gap-2 truncate">
                             <Mail className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                            <a href={`mailto:${contact.email}`} className="hover:underline text-blue-600 dark:text-blue-400 truncate">
+                            <a href={`mailto:${contact.email}`} className="hover:underline text-zinc-700 dark:text-zinc-300 truncate">
                                 {contact.email}
                             </a>
                         </div>
@@ -115,8 +115,8 @@ export function StakeholderCard({
                     )}
                     {contact.linkedin_url && (
                         <div className="flex items-center gap-2 truncate">
-                            <Linkedin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                            <a href={contact.linkedin_url} target="_blank" rel="noreferrer" className="hover:underline text-blue-600 dark:text-blue-400 truncate">
+                            <Linkedin className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                            <a href={contact.linkedin_url} target="_blank" rel="noreferrer" className="hover:underline text-zinc-700 dark:text-zinc-300 truncate">
                                 Profil LinkedIn
                             </a>
                         </div>

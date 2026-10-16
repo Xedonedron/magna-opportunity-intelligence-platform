@@ -304,7 +304,7 @@ export function CreateOpportunityFromStakeholdersDialog({
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 shrink-0 bg-zinc-50/50 dark:bg-zinc-900/50">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-700 dark:text-zinc-300">
                             <Sparkles className="w-5 h-5" />
                         </div>
                         <div>
@@ -408,7 +408,7 @@ export function CreateOpportunityFromStakeholdersDialog({
                                 Target Solusi Magna ({MAGNA_TARGET_SOLUTIONS.length} Solusi Resmi)
                             </label>
                             <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                                Rekomendasi: <span className="font-medium text-blue-600 dark:text-blue-400">{detectedSolution.name}</span>
+                                Rekomendasi: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{detectedSolution.name}</span>
                             </span>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -432,7 +432,7 @@ export function CreateOpportunityFromStakeholdersDialog({
                                                 <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">
                                                     {s.name}
                                                 </h4>
-                                                {isSelected && <Check className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />}
+                                                {isSelected && <Check className="w-3.5 h-3.5 text-zinc-900 dark:text-zinc-100" />}
                                             </div>
                                             <p className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
                                                 {s.description}
@@ -495,7 +495,7 @@ export function CreateOpportunityFromStakeholdersDialog({
                             onChange={(e) => setNotes(e.target.value)}
                             rows={3}
                             placeholder="Tuliskan konteks inisiatif, temuan awal, atau kebutuhan khusus stakeholder..."
-                            className="w-full text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-500"
                         />
                     </div>
                 </form>
@@ -516,7 +516,7 @@ export function CreateOpportunityFromStakeholdersDialog({
                         size="sm"
                         onClick={handleSubmit}
                         disabled={isSubmitting}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                        className="flex items-center gap-2"
                     >
                         {isSubmitting ? (
                             <>

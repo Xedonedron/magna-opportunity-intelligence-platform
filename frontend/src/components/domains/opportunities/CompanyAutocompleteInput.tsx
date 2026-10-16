@@ -197,7 +197,7 @@ export function CompanyAutocompleteInput({
                                                 className={cn(
                                                     "px-3 py-2.5 cursor-pointer transition-colors flex items-center justify-between gap-2 border-b border-zinc-50 dark:border-zinc-800/50 last:border-none",
                                                     isHighlighted
-                                                        ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-900 dark:text-indigo-200"
+                                                        ? "bg-zinc-100 dark:bg-zinc-700/70 text-zinc-900 dark:text-zinc-100"
                                                         : "hover:bg-zinc-50 dark:hover:bg-zinc-700/50 text-zinc-900 dark:text-zinc-100"
                                                 )}
                                             >
@@ -221,7 +221,7 @@ export function CompanyAutocompleteInput({
                                                     <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
                                                         {company.opportunities_count} deal{company.opportunities_count !== 1 ? "s" : ""}
                                                     </span>
-                                                    <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                                                    <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
                                                         Pilih
                                                     </span>
                                                 </div>

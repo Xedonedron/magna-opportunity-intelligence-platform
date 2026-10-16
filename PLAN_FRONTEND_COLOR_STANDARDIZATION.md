@@ -35,20 +35,18 @@
 
 ---
 
-### 🔄 Fase 2 — Halaman Opportunities, Company Folders, Stakeholders & KYC (`/opportunities` & `/opportunities/[id]`) — STATUS: IN PROGRESS (Draft Edit di Working Tree)
-**Catatan untuk Sesi Berikutnya:**
-Sebagian file di bawah ini sudah memiliki draft perubahan di working tree dari sesi sebelumnya, namun masih ada beberapa komponen di halaman Opportunities yang belum tuntas dibersihkan.
+### ✅ Fase 2 — Halaman Opportunities, Company Folders, Stakeholders & KYC (`/opportunities` & `/opportunities/[id]`) — STATUS: SELESAI (100%)
 **Checklist File Fase 2:**
-- [ ] `frontend/src/app/(main)/opportunities/page.tsx` (Draft edited — perlu verifikasi akhir)
-- [ ] `frontend/src/components/domains/opportunities/CompanyFolderView.tsx` (Draft edited — perlu verifikasi akhir)
-- [ ] `frontend/src/components/domains/opportunities/CompanyAutocompleteInput.tsx` (Draft edited — perlu verifikasi akhir)
-- [ ] `frontend/src/components/domains/opportunities/DuplicateCompanyConfirmModal.tsx` (Draft edited — perlu verifikasi akhir)
-- [ ] `frontend/src/app/(main)/opportunities/[id]/page.tsx` (Masih ada 5 titik `blue` pada badge/link yang perlu dicek)
-- [ ] `frontend/src/app/(main)/opportunities/create/page.tsx` (Masih ada 6 titik `blue` pada info box/fokus input)
-- [ ] `frontend/src/components/domains/opportunities/KanbanCard.tsx` & `KanbanColumn.tsx` (Masih ada `blue` pada indikator drag/drop dan link)
-- [ ] `frontend/src/components/domains/stakeholders/StakeholdersTab.tsx`, `StakeholderCard.tsx`, `StakeholderFormDialog.tsx`, `CreateOpportunityFromStakeholdersDialog.tsx` (Draft edited — perlu verifikasi akhir, biarkan warna 8 solusi pilar tetap ada)
-- [ ] `frontend/src/components/domains/personas/TargetPersonaTab.tsx` (Draft edited — perlu verifikasi akhir)
-- [ ] `frontend/src/components/domains/kyc/KYCReportTab.tsx`, `KYCEditForm.tsx`, `UseCaseAccordion.tsx`, `VersionSelector.tsx` (Perlu bersihkan sisa `indigo` dan `blue` non-status di `KYCReportTab.tsx` dan `KYCEditForm.tsx`)
+- [x] `frontend/src/app/(main)/opportunities/page.tsx`
+- [x] `frontend/src/components/domains/opportunities/CompanyFolderView.tsx`
+- [x] `frontend/src/components/domains/opportunities/CompanyAutocompleteInput.tsx`
+- [x] `frontend/src/components/domains/opportunities/DuplicateCompanyConfirmModal.tsx`
+- [x] `frontend/src/app/(main)/opportunities/[id]/page.tsx`
+- [x] `frontend/src/app/(main)/opportunities/create/page.tsx`
+- [x] `frontend/src/components/domains/opportunities/KanbanCard.tsx` & `KanbanColumn.tsx`
+- [x] `frontend/src/components/domains/stakeholders/StakeholdersTab.tsx`, `StakeholderCard.tsx`, `StakeholderFormDialog.tsx`, `CreateOpportunityFromStakeholdersDialog.tsx` (Mempertahankan warna 8 solusi pilar resmi)
+- [x] `frontend/src/components/domains/personas/TargetPersonaTab.tsx`
+- [x] `frontend/src/components/domains/kyc/KYCReportTab.tsx`, `KYCEditForm.tsx`, `UseCaseAccordion.tsx`, `VersionSelector.tsx`
 
 ---
 
@@ -88,13 +86,13 @@ Sebagian file di bawah ini sudah memiliki draft perubahan di working tree dari s
 ## 3. Protokol Verifikasi Wajib di Setiap Akhir Fase
 
 Setiap selesai 1 Fase:
-1. **Typecheck Frontend**:
+1. **Typecheck Frontend** (jalankan di direktori `frontend/`):
    ```bash
-   npx --prefix frontend tsc --noEmit
+   npx tsc --noEmit
    ```
 2. **Update Knowledge Graph (Wajib sesuai `.agents/AGENTS.md`)**:
    ```bash
-   PYTHONPATH=/srv/hermes-data/profiles/bot2/home/.local/share/uv/tools/graphifyy/lib/python3.12/site-packages python3 /srv/hermes-data/profiles/bot2/home/.local/share/uv/tools/graphifyy/bin/graphify update .
+   PYTHONPATH=/srv/hermes-data/profiles/bot2/home/.local/share/uv/tools/graphifyy/lib/python3.12/site-packages /srv/hermes-data/profiles/bot2/home/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12 /srv/hermes-data/profiles/bot2/home/.local/share/uv/tools/graphifyy/bin/graphify update .
    ```
 3. **Update Checklist di `PLAN_FRONTEND_COLOR_STANDARDIZATION.md` & Commit per Fase**:
    Commit hanya file pada fase yang telah diverifikasi beserta `PLAN_FRONTEND_COLOR_STANDARDIZATION.md` dan `graphify-out/`.

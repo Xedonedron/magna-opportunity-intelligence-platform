@@ -33,7 +33,7 @@ export function DuplicateCompanyConfirmModal({
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
             <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150 my-8">
                 {/* Header */}
-                <div className="p-5 border-b border-zinc-100 dark:border-zinc-800 flex items-start justify-between bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-transparent">
+                <div className="p-5 border-b border-zinc-100 dark:border-zinc-800 flex items-start justify-between bg-zinc-50/50 dark:bg-zinc-900/50">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
                             <Building2 className="w-5 h-5" />
@@ -65,12 +65,12 @@ export function DuplicateCompanyConfirmModal({
                     </p>
 
                     {/* Comparison Card */}
-                    <div className="p-4 rounded-xl border border-indigo-200 dark:border-indigo-800/60 bg-indigo-50/50 dark:bg-indigo-950/30 space-y-3">
+                    <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-800/50 space-y-3">
                         <div className="flex items-start justify-between gap-3">
                             <div>
                                 <div className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm flex items-center gap-2">
                                     <span>{matchedCompany.name}</span>
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300">
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-200/80 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">
                                         {matchedCompany.opportunities_count} Deal{matchedCompany.opportunities_count !== 1 ? "s" : ""}
                                     </span>
                                 </div>
@@ -83,8 +83,8 @@ export function DuplicateCompanyConfirmModal({
                             </div>
                         </div>
 
-                        <div className="pt-2 border-t border-indigo-100 dark:border-indigo-800/40 flex items-center gap-2 text-xs text-indigo-700 dark:text-indigo-300 font-medium">
-                            <Sparkles className="w-4 h-4 shrink-0 text-indigo-500" />
+                        <div className="pt-2 border-t border-zinc-200/80 dark:border-zinc-700/60 flex items-center gap-2 text-xs text-zinc-700 dark:text-zinc-300 font-medium">
+                            <Sparkles className="w-4 h-4 shrink-0 text-zinc-500" />
                             <span>Menautkan ke folder ini mewarisi Company Profile & menghemat ~50% token KYC.</span>
                         </div>
                     </div>
@@ -122,7 +122,7 @@ export function DuplicateCompanyConfirmModal({
                         type="button"
                         size="sm"
                         onClick={onConfirmLink}
-                        className="w-full sm:w-auto text-xs bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+                        className="w-full sm:w-auto text-xs"
                     >
                         <ArrowRight className="w-3.5 h-3.5 mr-1.5" />
                         Ya, Masukkan ke Folder Ini

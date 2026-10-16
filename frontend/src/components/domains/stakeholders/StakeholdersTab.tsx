@@ -156,7 +156,7 @@ export function StakeholdersTab({
                                 title={selectedContactIds.size === contacts.length ? "Batalkan semua pilihan" : "Pilih semua kontak"}
                             >
                                 {selectedContactIds.size === contacts.length && contacts.length > 0 ? (
-                                    <CheckSquare className="w-3.5 h-3.5 text-blue-600" />
+                                    <CheckSquare className="w-3.5 h-3.5 text-zinc-900 dark:text-zinc-100" />
                                 ) : (
                                     <Square className="w-3.5 h-3.5 text-zinc-400" />
                                 )}
@@ -171,7 +171,7 @@ export function StakeholdersTab({
                                 <Button
                                     onClick={() => setIsOpptyDialogOpen(true)}
                                     size="sm"
-                                    className="flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm"
+                                    className="flex items-center gap-1.5"
                                 >
                                     <Sparkles className="w-3.5 h-3.5" />
                                     <span>Buat Opportunity ({selectedContactIds.size})</span>
@@ -183,7 +183,7 @@ export function StakeholdersTab({
                                 disabled={isExporting}
                                 variant="secondary"
                                 size="sm"
-                                className="flex items-center gap-1.5 border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                                className="flex items-center gap-1.5"
                                 title="Unduh seluruh kontak stakeholder perusahaan ini ke format Excel (.xlsx)"
                             >
                                 {isExporting ? (
