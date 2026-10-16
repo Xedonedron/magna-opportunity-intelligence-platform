@@ -291,6 +291,7 @@ class ProspectingConvertRequest(BaseModel):
     contact: TargetContactInput
     opportunity: Optional[ProspectingOpportunityInput] = None
     hypothesis: Optional[SolutionHypothesis] = None
+    trigger_kyc: bool = Field(default=True, description="Automatically trigger AI KYC pipeline upon conversion")
 
 
 class ProspectingConvertResponse(BaseModel):
@@ -334,6 +335,7 @@ class ConvertStakeholdersToOpportunityRequest(BaseModel):
     pain_points: Optional[List[str]] = Field(default=None, description="Specific pain points or custom hypotheses")
     estimated_value: Optional[float] = Field(default=0.0, description="Estimated deal value in IDR")
     notes: Optional[str] = Field(default=None, description="Additional notes for the opportunity")
+    trigger_kyc: bool = Field(default=True, description="Automatically trigger AI KYC pipeline upon conversion")
 
 
 class ConvertToOpportunityResponse(BaseModel):

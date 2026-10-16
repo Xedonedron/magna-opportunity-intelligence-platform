@@ -76,10 +76,10 @@ class NotificationService:
             if engineer:
                 recipients_map[engineer.id] = engineer
 
-        # 3. Superadmins (all active superadmins get notified)
+        # 3. Superadmins / Admins (all active superadmin/admin accounts get notified)
         superadmins = (
             db.query(User)
-            .filter(User.role == "superadmin", User.is_active == True)
+            .filter(User.role.in_(("superadmin", "admin")), User.is_active == True)
             .all()
         )
         for sa in superadmins:

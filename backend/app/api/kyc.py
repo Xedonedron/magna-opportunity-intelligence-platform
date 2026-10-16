@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 import re
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -106,6 +107,27 @@ async def regenerate_kyc_report(
     Creates a new version and runs the AI pipeline asynchronously.
     """
     opportunity = _get_opportunity_or_404(db, opportunity_id)
+
+    # Guard against concurrent KYC regenerations for the same opportunity
+    running_reports = (
+        db.query(KYCReport)
+        .filter(KYCReport.opportunity_id == opportunity_id, KYCReport.status == "running")
+        .order_by(KYCReport.version.desc())
+        .all()
+    )
+    now_utc = datetime.now(timezone.utc)
+    for running in running_reports:
+        created = running.created_at
+        if created is not None:
+            if created.tzinfo is None:
+                created = created.replace(tzinfo=timezone.utc)
+            if (now_utc - created) < timedelta(minutes=5):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Proses KYC sedang berjalan untuk opportunity ini.",
+                )
+        running.status = "failed"
+        running.error_message = "Timed out / superseded by new regeneration"
 
     # Determine next version
     max_version = (

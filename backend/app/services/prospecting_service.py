@@ -383,6 +383,11 @@ class ProspectingService:
             if req.contact.job_title and not contact_obj.job_title:
                 contact_obj.job_title = req.contact.job_title
         else:
+            # Demote any existing primary contact before creating a new primary contact
+            db.query(CompanyContact).filter(
+                CompanyContact.company_id == company.id,
+                CompanyContact.is_primary == True,
+            ).update({"is_primary": False})
             contact_obj = CompanyContact(
                 company_id=company.id,
                 name=target_name,
@@ -415,6 +420,7 @@ class ProspectingService:
         )
 
         customer_needs = (
+            f"Judul Inisiatif: {opp_title}\n\n"
             f"Peluang Outbound Hasil Analisis Prospek Lusha:\n\n"
             f"Solusi Sasaran: {solution_title} ({pillar_text})\n"
             f"Stakeholder Kunci: {contact_obj.name} ({contact_obj.job_title})\n\n"
@@ -457,15 +463,34 @@ class ProspectingService:
             actor_name=current_user.full_name or "Consultant",
             action="Prospecting Converted",
             description=(
-                f"Peluang outbound berhasil dibuat untuk {company.name}. "
+                f"Peluang outbound '{opp_title}' berhasil dibuat untuk {company.name}. "
                 f"Target kontak: {contact_obj.name} ({contact_obj.job_title}) via Lusha Prospecting Hub."
             ),
             event_type="create",
         )
         db.add(timeline)
 
+        # 5. Create in-app notifications via NotificationService before commit
+        from app.services.notification_service import NotificationService
+        NotificationService.notify_opportunity_created(
+            db, opportunity, actor_id=current_user.id
+        )
+
         db.commit()
         db.refresh(opportunity)
+
+        # 6. Trigger async notifications & KYC pipeline after commit
+        from app.tasks import send_opportunity_created_notification, run_kyc_pipeline_task
+        try:
+            send_opportunity_created_notification.delay(str(opportunity.id))
+        except Exception:
+            pass
+
+        if getattr(req, "trigger_kyc", True):
+            try:
+                run_kyc_pipeline_task.delay(str(opportunity.id), source_type="automatic")
+            except Exception:
+                pass
 
         return ProspectingConvertResponse(
             status="success",
@@ -532,6 +557,7 @@ class ProspectingService:
         primary_contact: Optional[CompanyContact] = None,
         custom_pain_points: Optional[List[str]] = None,
         custom_notes: Optional[str] = None,
+        opportunity_title: Optional[str] = None,
     ) -> str:
         """
         Synthesizes a structured consultative customer_needs dossier formatted in clean markdown
@@ -563,9 +589,12 @@ class ProspectingService:
         if custom_notes:
             notes_section = f"\n## 6. Catatan Strategis & Next Step\n- {custom_notes}\n"
 
+        title_line = f"- Judul Inisiatif: {opportunity_title}\n" if opportunity_title else ""
+
         dossier = (
             f"# PELUANG OUTBOUND SOLUSI MAGNA (Stakeholder Directory MOIP)\n\n"
             f"## 1. Solusi Sasaran & Pilar\n"
+            f"{title_line}"
             f"- Pilar Portofolio: {pillar_name}\n"
             f"- Target Solusi: {solution_title}\n"
             f"- Kategori: Enterprise Outbound Opportunity\n"
@@ -678,6 +707,11 @@ class ProspectingService:
                         seen_contact_ids.add(existing.id)
                         resolved_contacts.append(existing)
                 else:
+                    if cand.is_primary:
+                        db.query(CompanyContact).filter(
+                            CompanyContact.company_id == company.id,
+                            CompanyContact.is_primary == True,
+                        ).update({"is_primary": False})
                     new_contact = CompanyContact(
                         company_id=company.id,
                         name=cand.name.strip(),
@@ -737,6 +771,7 @@ class ProspectingService:
             primary_contact=primary_contact,
             custom_pain_points=req.pain_points,
             custom_notes=req.notes,
+            opportunity_title=opp_title,
         )
 
         # 6. Build Contacts JSON
@@ -786,15 +821,34 @@ class ProspectingService:
             actor_name=current_user.full_name or "Consultant",
             action="Outbound Opportunity Created",
             description=(
-                f"Peluang outbound berhasil dibuat untuk {company.name} dengan target solusi {solution_title}. "
+                f"Peluang outbound '{opp_title}' berhasil dibuat untuk {company.name} dengan target solusi {solution_title}. "
                 f"Terhubung dengan {len(resolved_contacts)} stakeholder (Primary PIC: {primary_contact.name})."
             ),
             event_type="create",
         )
         db.add(timeline)
 
+        # 9. Create in-app notifications via NotificationService before commit
+        from app.services.notification_service import NotificationService
+        NotificationService.notify_opportunity_created(
+            db, opportunity, actor_id=current_user.id
+        )
+
         db.commit()
         db.refresh(opportunity)
+
+        # 10. Trigger async notifications & KYC pipeline after commit
+        from app.tasks import send_opportunity_created_notification, run_kyc_pipeline_task
+        try:
+            send_opportunity_created_notification.delay(str(opportunity.id))
+        except Exception:
+            pass
+
+        if getattr(req, "trigger_kyc", True):
+            try:
+                run_kyc_pipeline_task.delay(str(opportunity.id), source_type="automatic")
+            except Exception:
+                pass
 
         return ConvertToOpportunityResponse(
             status="success",

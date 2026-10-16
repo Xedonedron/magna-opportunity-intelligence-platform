@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.user import User
 from app.models.opportunity import Opportunity
-from app.core.security import get_current_user
+from app.core.security import get_current_user, normalize_role
 from app.schemas.dashboard import (
     DashboardMetrics,
     StatusCount,
@@ -44,10 +44,10 @@ async def get_dashboard_metrics(
     Get dashboard metrics with role-based and pre-sales filtering.
     
     Role logic:
-    - lgo: See only opportunities they created
+    - lgo / lead_gen: See only opportunities they created
     - All roles can filter by specific presales engineer name
     """
-    user_role = current_user.role
+    user_role = normalize_role(current_user.role)
     filtered_by_user = False
     effective_engineer = engineer_name or engineer_id
     
@@ -232,44 +232,64 @@ async def get_dashboard_metrics(
         for opp in upcoming_results
     ]
     
-    # Trend data (last 30 days)
+    # Trend data (last 30 days) — 2 grouped SQL queries instead of 90 sequential queries
+    window_start_day = today - timedelta(days=29)
+    window_start_dt = datetime.combine(window_start_day, datetime.min.time())
+    window_end_dt = datetime.combine(today + timedelta(days=1), datetime.min.time())
+
+    new_trend_query = db.query(
+        sa_func.date(Opportunity.created_at).label("day"),
+        sa_func.count(Opportunity.id).label("cnt"),
+    ).filter(
+        Opportunity.created_at >= window_start_dt,
+        Opportunity.created_at < window_end_dt,
+    )
+    if user_role == "lgo":
+        new_trend_query = new_trend_query.filter(Opportunity.created_by == current_user.id)
+    if effective_engineer:
+        new_trend_query = new_trend_query.filter(Opportunity.assigned_engineer == effective_engineer)
+    if status:
+        new_trend_query = new_trend_query.filter(Opportunity.status == status)
+
+    new_by_day = {
+        str(r.day): int(r.cnt)
+        for r in new_trend_query.group_by(sa_func.date(Opportunity.created_at)).all()
+        if r.day is not None
+    }
+
+    closed_trend_query = db.query(
+        sa_func.date(Opportunity.updated_at).label("day"),
+        Opportunity.status.label("status"),
+        sa_func.count(Opportunity.id).label("cnt"),
+    ).filter(
+        Opportunity.status.in_(["Won", "Lost"]),
+        Opportunity.updated_at >= window_start_dt,
+        Opportunity.updated_at < window_end_dt,
+    )
+    if user_role == "lgo":
+        closed_trend_query = closed_trend_query.filter(Opportunity.created_by == current_user.id)
+    if effective_engineer:
+        closed_trend_query = closed_trend_query.filter(Opportunity.assigned_engineer == effective_engineer)
+
+    won_by_day: dict[str, int] = {}
+    lost_by_day: dict[str, int] = {}
+    for r in closed_trend_query.group_by(sa_func.date(Opportunity.updated_at), Opportunity.status).all():
+        if r.day is None:
+            continue
+        day_key = str(r.day)
+        if r.status == "Won":
+            won_by_day[day_key] = int(r.cnt)
+        elif r.status == "Lost":
+            lost_by_day[day_key] = int(r.cnt)
+
     trend_data = []
     for i in range(30):
-        day = date.today() - timedelta(days=29 - i)
-        day_start = datetime.combine(day, datetime.min.time())
-        day_end = datetime.combine(day + timedelta(days=1), datetime.min.time())
-        
-        new_count = db.query(Opportunity).filter(
-            Opportunity.created_at >= day_start,
-            Opportunity.created_at < day_end,
-        )
-        won_count = db.query(Opportunity).filter(
-            Opportunity.status == "Won",
-            Opportunity.updated_at >= day_start,
-            Opportunity.updated_at < day_end,
-        )
-        lost_count = db.query(Opportunity).filter(
-            Opportunity.status == "Lost",
-            Opportunity.updated_at >= day_start,
-            Opportunity.updated_at < day_end,
-        )
-        
-        if user_role == "lgo":
-            new_count = new_count.filter(Opportunity.created_by == current_user.id)
-            won_count = won_count.filter(Opportunity.created_by == current_user.id)
-            lost_count = lost_count.filter(Opportunity.created_by == current_user.id)
-        if effective_engineer:
-            new_count = new_count.filter(Opportunity.assigned_engineer == effective_engineer)
-            won_count = won_count.filter(Opportunity.assigned_engineer == effective_engineer)
-            lost_count = lost_count.filter(Opportunity.assigned_engineer == effective_engineer)
-        if status:
-            new_count = new_count.filter(Opportunity.status == status)
-        
+        day_iso = (today - timedelta(days=29 - i)).isoformat()
         trend_data.append(TrendData(
-            date=day.isoformat(),
-            new=new_count.count(),
-            won=won_count.count(),
-            lost=lost_count.count(),
+            date=day_iso,
+            new=new_by_day.get(day_iso, 0),
+            won=won_by_day.get(day_iso, 0),
+            lost=lost_by_day.get(day_iso, 0),
         ))
 
     # New Manager Metrics Calculations

@@ -24,7 +24,7 @@ export function useUnreadCount() {
     return useQuery<UnreadCountResponse>({
         queryKey: ["notifications", "unread-count"],
         queryFn: () => api.get("/api/notifications/unread-count"),
-        refetchInterval: 15000, // Poll every 15 seconds
+        staleTime: 15000,
     });
 }
 
@@ -70,6 +70,12 @@ export function useNotificationToaster() {
     });
 
     useEffect(() => {
+        if (typeof data?.unread_count === "number") {
+            queryClient.setQueryData<UnreadCountResponse>(
+                ["notifications", "unread-count"],
+                { unread_count: data.unread_count }
+            );
+        }
         if (!data?.items) return;
 
         const currentItems = data.items;

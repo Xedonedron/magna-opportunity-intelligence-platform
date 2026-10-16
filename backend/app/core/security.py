@@ -85,11 +85,32 @@ async def get_current_user(
     return user
 
 
+ROLE_ALIASES: dict[str, str] = {
+    "lead_gen": "lgo",
+    "lgo": "lgo",
+    "managerial": "manager",
+    "manager": "manager",
+    "presales": "engineer",
+    "engineer": "engineer",
+    "superadmin": "admin",
+    "admin": "admin",
+    "viewer": "viewer",
+}
+
+
+def normalize_role(role: str | None) -> str:
+    """Normalize legacy or UI role aliases into canonical backend role names."""
+    if not role:
+        return "viewer"
+    cleaned = role.strip().lower()
+    return ROLE_ALIASES.get(cleaned, cleaned)
+
+
 def require_capability(capability: str):
     """Dependency helper to require a specific capability string on current user."""
     def dependency(current_user: User = Depends(get_current_user)):
         caps = [c.strip() for c in (current_user.capabilities or "").split(",")]
-        if capability not in caps and current_user.role != "superadmin":
+        if capability not in caps and normalize_role(current_user.role) != "admin":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Anda tidak memiliki izin '{capability}' untuk melakukan aksi ini.",
@@ -100,7 +121,7 @@ def require_capability(capability: str):
 
 def require_superadmin(current_user: User = Depends(get_current_user)):
     """Dependency helper to require superadmin or admin role."""
-    if current_user.role not in ("superadmin", "admin"):
+    if normalize_role(current_user.role) != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Hanya administrator yang memiliki akses ke halaman operasional ini.",
@@ -117,9 +138,9 @@ def require_prospecting_access(current_user: User = Depends(get_current_user)):
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Fitur Prospecting dinonaktifkan untuk seluruh akun.",
         )
-    allowed_roles = {"lgo", "manager", "superadmin", "admin", "lead_gen", "managerial"}
+    allowed_roles = {"lgo", "manager", "admin"}
     caps = [c.strip() for c in (current_user.capabilities or "").split(",")]
-    user_role = (current_user.role or "").lower()
+    user_role = normalize_role(current_user.role)
 
     if user_role not in allowed_roles and "prospecting" not in caps:
         raise HTTPException(

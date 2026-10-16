@@ -842,8 +842,9 @@ async def global_search(
     """Global search for opportunities and meetings."""
     from sqlalchemy import or_
     from app.models.meeting import Meeting
+    from app.core.security import normalize_role
     
-    user_role = current_user.role
+    user_role = normalize_role(current_user.role)
     
     # 1. Search Opportunities
     opp_query = db.query(Opportunity)
