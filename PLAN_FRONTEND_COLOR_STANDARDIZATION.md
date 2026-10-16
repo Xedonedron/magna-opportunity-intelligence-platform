@@ -50,14 +50,14 @@
 
 ---
 
-### ⏳ Fase 3 — Halaman Dashboard & Sinkronisasi Warna Status (`/dashboard`) — STATUS: BELUM DIMULAI
+### ✅ Fase 3 — Halaman Dashboard & Sinkronisasi Warna Status (`/dashboard`) — STATUS: SELESAI (100%)
 **Checklist File Fase 3:**
-- [ ] `frontend/src/app/(main)/dashboard/page.tsx`
+- [x] `frontend/src/app/(main)/dashboard/page.tsx`
   - Hapus duplikasi `statusStyles` lokal yang berbeda sendiri (misal `Ready Meeting` warna ungu di dashboard padahal hijau di `STATUS_STYLES`), gunakan langsung `STATUS_STYLES` dari `frontend/src/types/opportunity.ts`.
-  - Ubah 40 titik penggunaan `blue` pada UI kartu/tombol/link dashboard menjadi monochrome `zinc`.
-- [ ] `frontend/src/components/dashboard/DashboardMetrics.tsx`, `DashboardFilters.tsx`, `DashboardFilterSheet.tsx`
+  - Ubah penggunaan `blue` pada UI kartu/tombol/link dashboard menjadi monochrome `zinc`.
+- [x] `frontend/src/components/dashboard/DashboardMetrics.tsx`, `DashboardFilters.tsx`, `DashboardFilterSheet.tsx`
   - Ubah aksen filter aktif dan ikon metrik dari `blue` menjadi `zinc`.
-- [ ] `frontend/src/components/dashboard/StatusChart.tsx` & `PipelineFunnelChart.tsx`
+- [x] `frontend/src/components/dashboard/StatusChart.tsx` & `PipelineFunnelChart.tsx`
   - Selaraskan hex color status pada chart dengan `STATUS_STYLES` di `types/opportunity.ts`.
 
 ---

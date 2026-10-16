@@ -18,16 +18,16 @@ interface StatusChartProps {
 const STATUS_COLORS: Record<string, string> = {
     New: "#3b82f6",
     "KYC Running": "#f97316",
-    "Ready Meeting": "#8b5cf6",
-    "Meeting Scheduled": "#06b6d4",
-    "Meeting Done": "#64748b",
-    "Need Proposal": "#eab308",
-    POC: "#6366f1",
-    Negotiation: "#ec4899",
-    PO: "#22c55e",
+    "Ready Meeting": "#22c55e",
+    "Meeting Scheduled": "#6366f1",
+    "Meeting Done": "#14b8a6",
+    "Need Proposal": "#a855f7",
+    POC: "#8b5cf6",
+    Negotiation: "#f59e0b",
+    PO: "#06b6d4",
     Won: "#10b981",
     Lost: "#ef4444",
-    "On Hold": "#6b7280",
+    "On Hold": "#71717a",
 };
 
 export function StatusChart({ data }: StatusChartProps) {

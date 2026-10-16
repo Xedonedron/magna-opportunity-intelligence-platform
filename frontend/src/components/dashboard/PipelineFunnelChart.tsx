@@ -29,72 +29,72 @@ const FUNNEL_STAGES: FunnelStageConfig[] = [
         name: "Ready Meeting / Scheduled",
         shortName: "Meeting Ready/Sched",
         statuses: ["Ready Meeting", "Meeting Scheduled"],
-        color: "#8b5cf6",
-        gradientFrom: "#a855f7",
-        gradientTo: "#7c3aed",
-        badgeBg: "bg-purple-50 dark:bg-purple-950/60",
-        badgeText: "text-purple-700 dark:text-purple-300",
-        badgeBorder: "border-purple-200 dark:border-purple-800",
-    },
-    {
-        id: "meeting_done",
-        name: "Meeting Done",
-        shortName: "Meeting Done",
-        statuses: ["Meeting Done"],
-        color: "#3b82f6",
-        gradientFrom: "#60a5fa",
-        gradientTo: "#2563eb",
-        badgeBg: "bg-blue-50 dark:bg-blue-950/60",
-        badgeText: "text-blue-700 dark:text-blue-300",
-        badgeBorder: "border-blue-200 dark:border-blue-800",
-    },
-    {
-        id: "need_proposal",
-        name: "Need Proposal",
-        shortName: "Need Proposal",
-        statuses: ["Need Proposal"],
-        color: "#eab308",
-        gradientFrom: "#facc15",
-        gradientTo: "#ca8a04",
-        badgeBg: "bg-yellow-50 dark:bg-yellow-950/60",
-        badgeText: "text-yellow-800 dark:text-yellow-300",
-        badgeBorder: "border-yellow-200 dark:border-yellow-800",
-    },
-    {
-        id: "poc",
-        name: "POC",
-        shortName: "POC",
-        statuses: ["POC"],
-        color: "#6366f1",
-        gradientFrom: "#818cf8",
-        gradientTo: "#4f46e5",
-        badgeBg: "bg-indigo-50 dark:bg-indigo-950/60",
-        badgeText: "text-indigo-700 dark:text-indigo-300",
-        badgeBorder: "border-indigo-200 dark:border-indigo-800",
-    },
-    {
-        id: "negotiation",
-        name: "Negotiation",
-        shortName: "Negotiation",
-        statuses: ["Negotiation"],
-        color: "#ec4899",
-        gradientFrom: "#f472b6",
-        gradientTo: "#db2777",
-        badgeBg: "bg-pink-50 dark:bg-pink-950/60",
-        badgeText: "text-pink-700 dark:text-pink-300",
-        badgeBorder: "border-pink-200 dark:border-pink-800",
-    },
-    {
-        id: "po",
-        name: "PO",
-        shortName: "PO",
-        statuses: ["PO"],
         color: "#22c55e",
         gradientFrom: "#4ade80",
         gradientTo: "#16a34a",
         badgeBg: "bg-green-50 dark:bg-green-950/60",
         badgeText: "text-green-700 dark:text-green-300",
         badgeBorder: "border-green-200 dark:border-green-800",
+    },
+    {
+        id: "meeting_done",
+        name: "Meeting Done",
+        shortName: "Meeting Done",
+        statuses: ["Meeting Done"],
+        color: "#14b8a6",
+        gradientFrom: "#2dd4bf",
+        gradientTo: "#0d9488",
+        badgeBg: "bg-teal-50 dark:bg-teal-950/60",
+        badgeText: "text-teal-700 dark:text-teal-300",
+        badgeBorder: "border-teal-200 dark:border-teal-800",
+    },
+    {
+        id: "need_proposal",
+        name: "Need Proposal",
+        shortName: "Need Proposal",
+        statuses: ["Need Proposal"],
+        color: "#a855f7",
+        gradientFrom: "#c084fc",
+        gradientTo: "#9333ea",
+        badgeBg: "bg-purple-50 dark:bg-purple-950/60",
+        badgeText: "text-purple-700 dark:text-purple-300",
+        badgeBorder: "border-purple-200 dark:border-purple-800",
+    },
+    {
+        id: "poc",
+        name: "POC",
+        shortName: "POC",
+        statuses: ["POC"],
+        color: "#8b5cf6",
+        gradientFrom: "#a78bfa",
+        gradientTo: "#7c3aed",
+        badgeBg: "bg-violet-50 dark:bg-violet-950/60",
+        badgeText: "text-violet-700 dark:text-violet-300",
+        badgeBorder: "border-violet-200 dark:border-violet-800",
+    },
+    {
+        id: "negotiation",
+        name: "Negotiation",
+        shortName: "Negotiation",
+        statuses: ["Negotiation"],
+        color: "#f59e0b",
+        gradientFrom: "#fbbf24",
+        gradientTo: "#d97706",
+        badgeBg: "bg-amber-50 dark:bg-amber-950/60",
+        badgeText: "text-amber-700 dark:text-amber-300",
+        badgeBorder: "border-amber-200 dark:border-amber-800",
+    },
+    {
+        id: "po",
+        name: "PO",
+        shortName: "PO",
+        statuses: ["PO"],
+        color: "#06b6d4",
+        gradientFrom: "#22d3ee",
+        gradientTo: "#0891b2",
+        badgeBg: "bg-cyan-50 dark:bg-cyan-950/60",
+        badgeText: "text-cyan-700 dark:text-cyan-300",
+        badgeBorder: "border-cyan-200 dark:border-cyan-800",
     },
     {
         id: "won",
@@ -198,7 +198,7 @@ export function PipelineFunnelChart({ data, wonRate }: PipelineFunnelChartProps)
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-100 dark:border-zinc-800/80">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-2xs">
+                    <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-700 dark:text-zinc-300 shrink-0 shadow-2xs">
                         <Layers className="w-5 h-5" />
                     </div>
                     <div>
@@ -272,8 +272,8 @@ export function PipelineFunnelChart({ data, wonRate }: PipelineFunnelChartProps)
                                             </linearGradient>
                                         ))}
                                         <linearGradient id="baseline-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                            <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.3} />
-                                            <stop offset="50%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                            <stop offset="0%" stopColor="#22c55e" stopOpacity={0.3} />
+                                            <stop offset="50%" stopColor="#a855f7" stopOpacity={0.3} />
                                             <stop offset="100%" stopColor="#10b981" stopOpacity={0.3} />
                                         </linearGradient>
                                     </defs>

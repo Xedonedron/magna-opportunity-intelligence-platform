@@ -37,10 +37,10 @@ export function DashboardFilterSheet({
                     <div className="w-10 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700 mx-auto mb-3" />
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Filter className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            <Filter className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
                             <h3 className="font-semibold text-base text-zinc-900 dark:text-zinc-100">Filter & Periode</h3>
                             {activeCount > 0 && (
-                                <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs font-semibold">
+                                <span className="px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 text-xs font-semibold">
                                     {activeCount}
                                 </span>
                             )}

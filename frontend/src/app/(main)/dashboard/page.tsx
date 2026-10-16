@@ -13,22 +13,8 @@ import { SolutionDistributionChart } from "@/components/dashboard/SolutionDistri
 import { IndustryDistributionChart } from "@/components/dashboard/IndustryDistributionChart";
 import { getDashboardMetrics, type DashboardFilters as Filters } from "@/lib/api/dashboard";
 import type { DashboardMetrics as Metrics } from "@/types/dashboard";
+import { STATUS_STYLES, type OpportunityStatus } from "@/types/opportunity";
 import { usePageTitle } from "@/hooks/use-page-title";
-
-const statusStyles: Record<string, string> = {
-    New: "bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 ring-blue-600/20 dark:ring-blue-500/30",
-    "KYC Running": "bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 ring-orange-600/20 dark:ring-orange-500/30",
-    "Ready Meeting": "bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 ring-purple-600/20 dark:ring-purple-500/30",
-    "Meeting Scheduled": "bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 ring-cyan-600/20 dark:ring-cyan-500/30",
-    "Meeting Done": "bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 ring-slate-600/20 dark:ring-slate-500/30",
-    "Need Proposal": "bg-yellow-50 dark:bg-yellow-950/60 text-yellow-800 dark:text-yellow-300 ring-yellow-600/20 dark:ring-yellow-500/30",
-    POC: "bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 ring-violet-600/20 dark:ring-violet-500/30",
-    Negotiation: "bg-pink-50 dark:bg-pink-950/60 text-pink-700 dark:text-pink-300 ring-pink-600/20 dark:ring-pink-500/30",
-    PO: "bg-green-50 dark:bg-green-950/60 text-green-700 dark:text-green-300 ring-green-600/20 dark:ring-green-500/30",
-    Won: "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 ring-emerald-600/20 dark:ring-emerald-500/30",
-    Lost: "bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 ring-red-600/20 dark:ring-red-500/30",
-    "On Hold": "bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-300 ring-gray-600/20 dark:ring-gray-500/30",
-};
 
 export default function DashboardPage() {
     usePageTitle("Dashboard");
@@ -129,17 +115,17 @@ export default function DashboardPage() {
 
             <div className={`space-y-6 sm:space-y-8 transition-opacity duration-150 ${isUpdating ? "opacity-75" : "opacity-100"}`}>
                 {activeEngineer && (
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-lg p-3 sm:px-4 sm:py-2 text-sm text-blue-900 dark:text-blue-200 animate-in fade-in duration-200">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-zinc-100/80 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 rounded-lg p-3 sm:px-4 sm:py-2 text-sm text-zinc-900 dark:text-zinc-100 animate-in fade-in duration-200">
                     <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-zinc-600 dark:text-zinc-400">Menampilkan analitik khusus Pre-Sales:</span>
-                        <span className="font-semibold text-blue-700 dark:text-blue-300 bg-white dark:bg-blue-900/60 px-2.5 py-0.5 rounded-md border border-blue-200 dark:border-blue-800">
+                        <span className="font-semibold text-zinc-900 dark:text-zinc-100 bg-white dark:bg-zinc-900 px-2.5 py-0.5 rounded-md border border-zinc-300 dark:border-zinc-700">
                             {activeEngineer}
                         </span>
                     </div>
                     <button
                         type="button"
                         onClick={() => setFilters({ ...filters, engineer_name: undefined, engineer_id: undefined })}
-                        className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium underline transition-colors"
+                        className="text-xs text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium underline transition-colors"
                     >
                         Tampilkan Semua Pre-Sales
                     </button>
@@ -186,7 +172,7 @@ export default function DashboardPage() {
                             <button
                                 type="button"
                                 onClick={() => setFilters({ ...filters, engineer_name: undefined, engineer_id: undefined })}
-                                className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 hover:underline font-medium"
+                                className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline font-medium"
                             >
                                 Reset Filter
                             </button>
@@ -208,7 +194,7 @@ export default function DashboardPage() {
                                     }}
                                     className={`w-full p-4 flex items-center justify-between text-left transition-colors ${
                                         isSelected
-                                            ? "bg-blue-50/80 dark:bg-blue-950/40 border-l-4 border-blue-600 dark:border-blue-400"
+                                            ? "bg-zinc-100/80 dark:bg-zinc-800/60 border-l-4 border-zinc-900 dark:border-zinc-100"
                                             : "hover:bg-zinc-50/50 dark:hover:bg-zinc-800/40"
                                     }`}
                                 >
@@ -216,7 +202,7 @@ export default function DashboardPage() {
                                         <div
                                             className={`w-2 h-2 rounded-full ${
                                                 isSelected
-                                                    ? "bg-blue-600 dark:bg-blue-400 ring-2 ring-blue-400/30"
+                                                    ? "bg-zinc-900 dark:bg-zinc-100 ring-2 ring-zinc-400/30"
                                                     : "bg-zinc-300 dark:bg-zinc-700"
                                             }`}
                                         />
@@ -224,7 +210,7 @@ export default function DashboardPage() {
                                             <p
                                                 className={`text-sm ${
                                                     isSelected
-                                                        ? "font-semibold text-blue-900 dark:text-blue-100"
+                                                        ? "font-semibold text-zinc-900 dark:text-zinc-100"
                                                         : "font-medium text-zinc-900 dark:text-zinc-100"
                                                 }`}
                                             >
@@ -232,7 +218,7 @@ export default function DashboardPage() {
                                             </p>
                                         </div>
                                         {isSelected && (
-                                            <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200 ml-1">
+                                            <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 ml-1">
                                                 Active
                                             </span>
                                         )}
@@ -241,7 +227,7 @@ export default function DashboardPage() {
                                         <span
                                             className={`text-sm ${
                                                 isSelected
-                                                    ? "font-semibold text-blue-700 dark:text-blue-300"
+                                                    ? "font-semibold text-zinc-900 dark:text-zinc-100"
                                                     : "text-zinc-500 dark:text-zinc-400"
                                             }`}
                                         >
@@ -291,7 +277,7 @@ export default function DashboardPage() {
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <span
-                                                className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ring-1 ring-inset ${statusStyles[opp.status] || statusStyles.New}`}
+                                                className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${STATUS_STYLES[opp.status as OpportunityStatus] || STATUS_STYLES.New}`}
                                             >
                                                 {opp.status}
                                             </span>

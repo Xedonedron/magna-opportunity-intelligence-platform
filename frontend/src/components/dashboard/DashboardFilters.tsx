@@ -85,10 +85,10 @@ export function DashboardFilters({
                     onClick={() => setIsMobileSheetOpen(true)}
                     className="flex-1 flex items-center justify-center gap-2 min-h-[44px] px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium text-sm transition-colors active:scale-[0.98]"
                 >
-                    <Filter className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <Filter className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
                     <span>Filter & Periode</span>
                     {hasActiveFilters && (
-                        <span className="px-2 py-0.5 rounded-full bg-blue-600 text-white text-xs font-bold">
+                        <span className="px-2 py-0.5 rounded-full bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 text-xs font-bold">
                             {activeFilterCount}
                         </span>
                     )}
@@ -125,13 +125,13 @@ export function DashboardFilters({
                     {/* Pre-Sales Dropdown */}
                     <div className="flex items-center gap-2">
                         <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 shrink-0">
-                            <UserCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            <UserCheck className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
                             Pre-Sales:
                         </label>
                         <select
                             value={activePresales || ""}
                             onChange={(e) => handlePresalesChange(e.target.value || undefined)}
-                            className="h-9 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors font-medium cursor-pointer min-w-[170px]"
+                            className="h-9 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:ring-2 focus:ring-zinc-500/20 transition-colors font-medium cursor-pointer min-w-[170px]"
                         >
                             <option value="">Semua Pre-Sales</option>
                             {presalesList.map((name) => (
@@ -150,7 +150,7 @@ export function DashboardFilters({
                         <select
                             value={currentFilters.status || ""}
                             onChange={(e) => handleStatusChange(e.target.value || undefined)}
-                            className="h-9 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors font-medium cursor-pointer min-w-[150px]"
+                            className="h-9 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:ring-2 focus:ring-zinc-500/20 transition-colors font-medium cursor-pointer min-w-[150px]"
                         >
                             <option value="">Semua Status</option>
                             {STATUS_OPTIONS.map((status) => (
@@ -174,7 +174,7 @@ export function DashboardFilters({
                         <Calendar className="w-3.5 h-3.5" />
                         Periode Tanggal
                         {(currentFilters.date_from || currentFilters.date_to) && (
-                            <span className="w-2 h-2 rounded-full bg-blue-600" />
+                            <span className="w-2 h-2 rounded-full bg-zinc-900 dark:bg-zinc-100" />
                         )}
                     </button>
                 </div>
@@ -205,7 +205,7 @@ export function DashboardFilters({
                                     date_from: e.target.value || undefined,
                                 })
                             }
-                            className="h-8 text-xs border border-zinc-200 dark:border-zinc-700 bg-transparent dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md px-2.5 outline-none focus:ring-1 focus:ring-blue-500"
+                            className="h-8 text-xs border border-zinc-200 dark:border-zinc-700 bg-transparent dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md px-2.5 outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:ring-1 focus:ring-zinc-500/20"
                         />
                     </div>
                     <div className="flex items-center gap-2">
@@ -219,7 +219,7 @@ export function DashboardFilters({
                                     date_to: e.target.value || undefined,
                                 })
                             }
-                            className="h-8 text-xs border border-zinc-200 dark:border-zinc-700 bg-transparent dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md px-2.5 outline-none focus:ring-1 focus:ring-blue-500"
+                            className="h-8 text-xs border border-zinc-200 dark:border-zinc-700 bg-transparent dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-md px-2.5 outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:ring-1 focus:ring-zinc-500/20"
                         />
                     </div>
                 </div>

@@ -74,7 +74,7 @@ export function DashboardMetrics({
                     key={metric.key}
                     className={cn(
                         "p-3.5 sm:p-4 shadow-sm hover:shadow transition-all active:scale-[0.99]",
-                        metric.isPrimary && "col-span-2 md:col-span-1 bg-gradient-to-br from-blue-50/40 via-white to-white dark:from-blue-950/20 dark:via-zinc-900 dark:to-zinc-900 border-blue-100 dark:border-blue-900/30"
+                        metric.isPrimary && "col-span-2 md:col-span-1 bg-gradient-to-br from-zinc-100/70 via-white to-white dark:from-zinc-800/50 dark:via-zinc-900 dark:to-zinc-900 border-zinc-300 dark:border-zinc-700"
                     )}
                 >
                     <div className="flex items-center justify-between">
@@ -83,7 +83,7 @@ export function DashboardMetrics({
                         </p>
                         <metric.icon className={cn(
                             "w-4 h-4 shrink-0",
-                            metric.isPrimary ? "text-blue-600 dark:text-blue-400" : "text-zinc-400 dark:text-zinc-500"
+                            metric.isPrimary ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 dark:text-zinc-500"
                         )} />
                     </div>
                     <div className="mt-1.5 sm:mt-2 flex items-baseline gap-2">
