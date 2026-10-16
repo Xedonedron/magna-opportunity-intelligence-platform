@@ -137,7 +137,7 @@ export function MoipLogo({
                         MOIP
                     </span>
                     {showVersion && (
-                        <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60">
+                        <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
                             v1.7.0
                         </span>
                     )}

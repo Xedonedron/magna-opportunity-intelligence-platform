@@ -75,11 +75,11 @@
 
 ---
 
-### ⏳ Fase 5 — Komponen Global, Notifications & Final Audit (`/notifications` & Shared UI) — STATUS: BELUM DIMULAI
+### ✅ Fase 5 — Komponen Global, Notifications & Final Audit (`/notifications` & Shared UI) — STATUS: SELESAI (100%)
 **Checklist File Fase 5:**
-- [ ] `frontend/src/app/(main)/notifications/page.tsx` & `frontend/src/components/domains/notifications/NotificationDropdown.tsx`
+- [x] `frontend/src/app/(main)/notifications/page.tsx` & `frontend/src/components/domains/notifications/NotificationDropdown.tsx`
   - Ubah unread dot indicator, highlight baris notifikasi, dan tombol "Mark all as read" dari `blue` menjadi monochrome `zinc`.
-- [ ] Final Audit seluruh `frontend/src/**/*.tsx` untuk memastikan tidak ada warna ungu/indigo/biru yang bocor di luar Status Opportunity & 4 Pilar Solusi.
+- [x] Final Audit seluruh `frontend/src/**/*.tsx` untuk memastikan tidak ada warna ungu/indigo/biru yang bocor di luar Status Opportunity & 4 Pilar Solusi.
 
 ---
 

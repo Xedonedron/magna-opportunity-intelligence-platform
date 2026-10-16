@@ -107,7 +107,7 @@ export function CompanyDetailDrawer({
                                 : "border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
                         }`}
                     >
-                        <Users className="w-4 h-4 text-blue-500" />
+                        <Users className="w-4 h-4 text-zinc-500" />
                         <span>Stakeholder Directory</span>
                     </button>
                 </div>

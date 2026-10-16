@@ -28,21 +28,21 @@ function getNotificationVisuals(type: string) {
             iconBg: "bg-rose-100 dark:bg-rose-900/40",
         };
     }
-    // Sisanya biru sesuai preferensi
-    let icon = <Activity className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />;
+    // Sisanya monokrom zinc sesuai standar desain
+    let icon = <Activity className="w-4 h-4 text-zinc-700 dark:text-zinc-300 shrink-0" />;
     if (type === "deal_value_changed") {
-        icon = <DollarSign className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />;
+        icon = <DollarSign className="w-4 h-4 text-zinc-700 dark:text-zinc-300 shrink-0" />;
     } else if (type === "opportunity_assigned") {
-        icon = <UserCheck className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />;
+        icon = <UserCheck className="w-4 h-4 text-zinc-700 dark:text-zinc-300 shrink-0" />;
     } else if (type === "meeting_scheduled" || type === "meeting_reminder") {
-        icon = <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />;
+        icon = <Calendar className="w-4 h-4 text-zinc-700 dark:text-zinc-300 shrink-0" />;
     }
 
     return {
-        dotColor: "bg-blue-500",
-        unreadBg: "bg-blue-50/50 dark:bg-blue-950/25",
+        dotColor: "bg-zinc-900 dark:bg-zinc-100",
+        unreadBg: "bg-zinc-100/70 dark:bg-zinc-800/50",
         icon,
-        iconBg: "bg-blue-100 dark:bg-blue-900/40",
+        iconBg: "bg-zinc-200/80 dark:bg-zinc-800",
     };
 }
 
@@ -114,7 +114,7 @@ export function NotificationDropdown() {
                         <div className="flex items-center gap-2">
                             <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Notifications</h3>
                             {unreadCount > 0 && (
-                                <span className="text-[11px] font-medium bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full">
+                                <span className="text-[11px] font-medium bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 px-2 py-0.5 rounded-full">
                                     {unreadCount} baru
                                 </span>
                             )}
