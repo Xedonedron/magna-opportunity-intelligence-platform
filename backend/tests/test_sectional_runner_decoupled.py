@@ -247,7 +247,7 @@ async def test_living_opportunity_intelligence_mom_and_docs_injection():
     )
 
     foundation_ctx = _build_company_foundation_context(state)
-    base_ctx, _, _, _ = _build_base_context(state)
+    base_ctx = _build_base_context(state)
     progression_ctx = _build_deal_progression_context(state)
 
     # Layer A must never receive meeting MoM or opportunity documents
@@ -291,8 +291,8 @@ async def test_living_opportunity_intelligence_mom_and_docs_injection():
             matched_smg_cards=[],
         )
 
-    assert "legacy VPN concentrator" in captured_prompts["Module 3"]
-    assert "RFP Network Modernization 2026.pdf" in captured_prompts["Module 6"]
+    assert "legacy VPN concentrator" in captured_prompts["Module 3: Pain Points & Needs"]
+    assert "RFP Network Modernization 2026.pdf" in captured_prompts["Module 6: Executive Summary"]
 
 
 if __name__ == "__main__":

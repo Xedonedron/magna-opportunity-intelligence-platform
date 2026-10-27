@@ -19,8 +19,7 @@ from app.models.company import Company
 from app.models.company_contact import CompanyContact
 from app.models.kyc_report import KYCReport
 from app.models.opportunity import Opportunity, TimelineEvent
-from app.models.user import User
-from app.core.security import normalize_role
+from app.models.user import User, normalize_role
 from app.api.companies import compute_normalized_name, resolve_or_create_company
 from app.schemas.prospecting import (
     ProspectingGenerateRequest,
@@ -556,7 +555,7 @@ class ProspectingService:
                 else f"Pilar: {pillar_text}. Sumber prospek: Lusha API."
             ),
             potential_revenue=potential_revenue,
-            status="Lead In",
+            status="New",
             created_by=current_user.id,
         )
         db.add(opportunity)
@@ -913,7 +912,7 @@ class ProspectingService:
                 else f"Pilar: {intel['pillar']}. Terhubung dengan {len(resolved_contacts)} kontak stakeholder direktori."
             ),
             potential_revenue=req.estimated_value or 0.0,
-            status="Lead In",
+            status="New",
             created_by=current_user.id,
             contacts=contacts_json,
         )

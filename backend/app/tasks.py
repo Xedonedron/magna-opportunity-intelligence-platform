@@ -11,12 +11,6 @@ from datetime import datetime, timedelta
 from app.core.celery_app import celery_app
 from app.core.database import SessionLocal
 from app.models.notification import Notification
-from app.core.opportunity_status import (
-    DEFAULT_OPPORTUNITY_STATUS,
-    KYC_COMPLETED_STATUS,
-    KYC_RUNNING_STATUS,
-    TERMINAL_OPPORTUNITY_STATUSES,
-)
 from app.models.opportunity import Opportunity
 from app.models.company import Company
 from app.models.user import User
@@ -186,7 +180,7 @@ def run_kyc_pipeline_task(
     """Run the AI KYC pipeline for an opportunity.
 
     This task:
-    1. Sets opportunity status to 'Research Only'
+    1. Sets opportunity status to 'KYC Running'
     2. Creates a KYCReport record
     3. Runs the LangGraph pipeline
     4. Saves results and updates status
@@ -262,11 +256,11 @@ def run_kyc_pipeline_task(
                     return {"status": "error", "message": "Version conflict — report already exists"}
 
         # Update opportunity status atomically in the worker (not in the API layer).
-        # Only transition to "Research Only" if status is "Lead In". Preserve higher
-        # pipeline statuses (e.g. "Contact Made") to avoid status regression.
+        # Only transition to "KYC Running" if status is "New". Preserve higher
+        # pipeline statuses (e.g. "Meeting Scheduled") to avoid status regression.
         old_status = opportunity.status
-        if opportunity.status == DEFAULT_OPPORTUNITY_STATUS:
-            opportunity.status = KYC_RUNNING_STATUS
+        if opportunity.status == "New":
+            opportunity.status = "KYC Running"
 
         # Add timeline event
         desc_text = f"AI KYC analysis initiated ({source_type})."
@@ -475,11 +469,11 @@ def run_kyc_pipeline_task(
             kyc_report.references = result.get("references")
             kyc_report.completed_at = datetime.now(timezone.utc)
 
-            # Update opportunity status — only advance to "Prospect Qualified" if
-            # current status is "Research Only" or "Lead In". Do NOT regress status
-            # for opportunities already at "Contact Made" or later stages.
-            if opportunity.status in (KYC_RUNNING_STATUS, DEFAULT_OPPORTUNITY_STATUS):
-                opportunity.status = KYC_COMPLETED_STATUS
+            # Update opportunity status — only advance to "Ready Meeting" if
+            # current status is "KYC Running" or "New". Do NOT regress status
+            # for opportunities already at "Meeting Scheduled" or later stages.
+            if opportunity.status in ("KYC Running", "New"):
+                opportunity.status = "Ready Meeting"
 
             # Add timeline event
             reused_flag = result.get("reused_company_profile", False)
@@ -625,6 +619,9 @@ def send_meeting_reminder(meeting_id: str, reminder_type: str = "h1") -> dict:
         db.close()
 
 
+TERMINAL_OPPORTUNITY_STATUSES = ("Won", "Lost", "Closed", "Cancelled", "On Hold")
+
+
 @celery_app.task(name="tasks.check_upcoming_meetings_and_stale_deals")
 def check_upcoming_meetings_and_stale_deals_task(
     meeting_window_hours: int = 24,
@@ -664,7 +661,7 @@ def check_upcoming_meetings_and_stale_deals_task(
                 .filter(Opportunity.id == meeting.opportunity_id)
                 .first()
             )
-            if not opportunity or opportunity.status in ("Closed Lost", "Hold"):
+            if not opportunity or opportunity.status in ("Lost", "Cancelled"):
                 continue
 
             meeting_id_str = str(meeting.id)

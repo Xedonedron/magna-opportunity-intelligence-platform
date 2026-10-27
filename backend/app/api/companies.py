@@ -693,7 +693,7 @@ async def create_company_opportunity(
         assigned_engineer=resolved_eng_name,
         assigned_engineer_id=resolved_eng_id,
         created_by=current_user.id,
-        status=data.status or "Lead In",
+        status=data.status or "New",
     )
     db.add(opportunity)
     db.flush()
@@ -703,7 +703,7 @@ async def create_company_opportunity(
         from datetime import datetime, timezone
         now = datetime.now(timezone.utc)
         m_dt = data.meeting_schedule if data.meeting_schedule.tzinfo else data.meeting_schedule.replace(tzinfo=timezone.utc)
-        opportunity.status = "Contact Made" if m_dt > now else "Needs Defined"
+        opportunity.status = "Meeting Scheduled" if m_dt > now else "Meeting Done"
 
         initial_meeting = Meeting(
             opportunity_id=opportunity.id,

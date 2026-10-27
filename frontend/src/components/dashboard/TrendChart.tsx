@@ -89,7 +89,7 @@ export function TrendChart({ data }: TrendChartProps) {
                             stroke="#3b82f6"
                             fillOpacity={1}
                             fill="url(#colorNew)"
-                            name="Lead In"
+                            name="New"
                         />
                         <Area
                             type="monotone"
@@ -97,7 +97,7 @@ export function TrendChart({ data }: TrendChartProps) {
                             stroke="#10b981"
                             fillOpacity={1}
                             fill="url(#colorWon)"
-                            name="Closed Won"
+                            name="Won"
                         />
                         <Area
                             type="monotone"
@@ -105,7 +105,7 @@ export function TrendChart({ data }: TrendChartProps) {
                             stroke="#ef4444"
                             fillOpacity={1}
                             fill="url(#colorLost)"
-                            name="Closed Lost"
+                            name="Lost"
                         />
                     </AreaChart>
                 </ResponsiveContainer>
@@ -113,15 +113,15 @@ export function TrendChart({ data }: TrendChartProps) {
             <div className="flex gap-4 mt-4 justify-center">
                 <div className="flex items-center gap-1.5 text-xs">
                     <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                    <span className="text-zinc-600 dark:text-zinc-400">Lead In</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">New</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs">
                     <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                    <span className="text-zinc-600 dark:text-zinc-400">Closed Won</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">Won</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs">
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                    <span className="text-zinc-600 dark:text-zinc-400">Closed Lost</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">Lost</span>
                 </div>
             </div>
         </Card>

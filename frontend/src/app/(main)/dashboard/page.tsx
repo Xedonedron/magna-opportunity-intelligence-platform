@@ -277,7 +277,7 @@ export default function DashboardPage() {
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <span
-                                                className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${STATUS_STYLES[opp.status as OpportunityStatus] || STATUS_STYLES["Lead In"]}`}
+                                                className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${STATUS_STYLES[opp.status as OpportunityStatus] || STATUS_STYLES.New}`}
                                             >
                                                 {opp.status}
                                             </span>

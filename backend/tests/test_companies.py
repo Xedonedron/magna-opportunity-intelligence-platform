@@ -188,7 +188,7 @@ def test_create_nested_opportunity_inherits_metadata(
     assert data["industry"] == "Banking & Financial Services"
     assert data["product"] == "Veeam / Dell Data Protection"
     assert data["contact_name"] == "Budi Santoso"
-    assert data["status"] == "Lead In"
+    assert data["status"] == "New"
     assert data["potential_revenue"] == 750000000.0
 
     # Verify in DB

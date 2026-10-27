@@ -382,7 +382,7 @@ def test_run_kyc_pipeline_task_in_place_retry():
         id=uuid.uuid4(),
         company_name="PT Darma Henwa Test",
         customer_needs="Predictive maintenance",
-        status="Lead In",
+        status="Draft",
         created_by=user.id,
     )
     init_db.add(opp)
@@ -432,9 +432,9 @@ def test_run_kyc_pipeline_task_in_place_retry():
     assert reports[0].version == 1
     assert reports[0].status == "completed"
 
-    # Verify opportunity status is Prospect Qualified
+    # Verify opportunity status is Ready Meeting
     opp_refreshed = verify_db.query(Opportunity).filter(Opportunity.id == uuid.UUID(opp_id)).first()
-    assert opp_refreshed.status == "Prospect Qualified"
+    assert opp_refreshed.status == "Ready Meeting"
     verify_db.close()
 
 

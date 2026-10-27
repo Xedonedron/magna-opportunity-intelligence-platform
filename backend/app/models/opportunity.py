@@ -6,7 +6,6 @@ from sqlalchemy import String, DateTime, Text, ForeignKey, Numeric, Float, func,
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
-from app.core.opportunity_status import DEFAULT_OPPORTUNITY_STATUS
 from app.models.user import User  # noqa: F401
 from typing import TYPE_CHECKING
 
@@ -41,9 +40,9 @@ class Opportunity(Base):
     estimated_agenda_date: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    status: Mapped[str] = mapped_column(String(50), default=DEFAULT_OPPORTUNITY_STATUS, nullable=False)
-    # Status: Research Only, Lead In, Contact Made, Needs Defined,
-    #         Prospect Qualified, Proposal Made, Closed Won, Closed Lost, Hold
+    status: Mapped[str] = mapped_column(String(50), default="New", nullable=False)
+    # Status: New, KYC Running, Ready Meeting, Meeting Scheduled, Meeting Done,
+    #         Need Proposal, POC, Negotiation, PO, Won, Lost, On Hold
     meeting_schedule: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

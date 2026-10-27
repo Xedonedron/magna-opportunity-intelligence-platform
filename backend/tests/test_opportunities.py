@@ -174,7 +174,7 @@ class TestOpportunityCreate:
         assert response.status_code == 201
         data = response.json()
         assert data["company_name"] == "New Test Company"
-        assert data["status"] == "Lead In"
+        assert data["status"] == "New"
         assert "id" in data
 
     def test_create_opportunity_with_revenue_and_agenda(
@@ -300,27 +300,27 @@ class TestOpportunityUpdate:
         response = client.patch(
             f"/api/opportunities/{test_opportunity.id}",
             headers=auth_headers,
-            json={"status": "Research Only"},
+            json={"status": "KYC Running"},
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "Research Only"
+        assert data["status"] == "KYC Running"
 
-    def test_update_opportunity_status_proposal_made(
+    def test_update_opportunity_status_poc(
         self,
         client: TestClient,
         auth_headers: dict[str, str],
         test_opportunity: Opportunity,
     ):
-        """Should update opportunity status to Proposal Made."""
+        """Should update opportunity status to POC."""
         response = client.patch(
             f"/api/opportunities/{test_opportunity.id}",
             headers=auth_headers,
-            json={"status": "Proposal Made"},
+            json={"status": "POC"},
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "Proposal Made"
+        assert data["status"] == "POC"
 
     def test_update_opportunity_invalid_status(
         self,

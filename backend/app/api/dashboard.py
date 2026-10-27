@@ -22,13 +22,12 @@ from app.schemas.dashboard import (
     ProductCount,
     IndustryCount,
 )
-from app.core.opportunity_status import KYC_RUNNING_STATUS, TERMINAL_OPPORTUNITY_STATUSES
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
 # Status groupings
-KYC_RUNNING_STATUSES = [KYC_RUNNING_STATUS]
-FOLLOW_UP_STATUSES = ["Needs Defined", "Proposal Made"]
+KYC_RUNNING_STATUSES = ["KYC Running"]
+FOLLOW_UP_STATUSES = ["Need Follow Up", "Meeting Done", "Need Proposal"]
 
 
 @router.get("/metrics", response_model=DashboardMetrics)
@@ -263,7 +262,7 @@ async def get_dashboard_metrics(
         Opportunity.status.label("status"),
         sa_func.count(Opportunity.id).label("cnt"),
     ).filter(
-        Opportunity.status.in_(["Closed Won", "Closed Lost"]),
+        Opportunity.status.in_(["Won", "Lost"]),
         Opportunity.updated_at >= window_start_dt,
         Opportunity.updated_at < window_end_dt,
     )
@@ -278,9 +277,9 @@ async def get_dashboard_metrics(
         if r.day is None:
             continue
         day_key = str(r.day)
-        if r.status == "Closed Won":
+        if r.status == "Won":
             won_by_day[day_key] = int(r.cnt)
-        elif r.status == "Closed Lost":
+        elif r.status == "Lost":
             lost_by_day[day_key] = int(r.cnt)
 
     trend_data = []
@@ -294,13 +293,13 @@ async def get_dashboard_metrics(
         ))
 
     # New Manager Metrics Calculations
-    total_won = query.filter(Opportunity.status == "Closed Won").count()
-    total_lost = query.filter(Opportunity.status == "Closed Lost").count()
+    total_won = query.filter(Opportunity.status == "Won").count()
+    total_lost = query.filter(Opportunity.status == "Lost").count()
     closed_count = total_won + total_lost
     won_rate = float(total_won) / closed_count * 100.0 if closed_count > 0 else 0.0
 
     active_count = query.filter(
-        ~Opportunity.status.in_(TERMINAL_OPPORTUNITY_STATUSES)
+        ~Opportunity.status.in_(["Won", "Lost", "On Hold"])
     ).count()
 
     # Product count aggregation (splitting comma-separated multi-select values)

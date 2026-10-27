@@ -129,7 +129,7 @@ def main():
                 return
 
         if not args.include_closed:
-            query = query.filter(~Opportunity.status.in_(["Closed Won", "Closed Lost"]))
+            query = query.filter(~Opportunity.status.in_(["Won", "Lost"]))
 
         if args.limit:
             query = query.limit(args.limit)
@@ -187,7 +187,7 @@ def main():
                 source_type="manual_regenerate",
             )
             db.add(report)
-            opp.status = "Research Only"
+            opp.status = "KYC Running"
 
             timeline_event = TimelineEvent(
                 opportunity_id=opp.id,
