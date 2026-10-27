@@ -366,7 +366,7 @@ def main():
             limit = args.limit or len(models)
             query = db.query(Opportunity).order_by(Opportunity.created_at.asc())
             if not args.include_closed:
-                query = query.filter(~Opportunity.status.in_(["Won", "Lost"]))
+                query = query.filter(~Opportunity.status.in_(["Closed Won", "Closed Lost"]))
             all_oppties = query.all()
 
             if not all_oppties:
@@ -434,7 +434,7 @@ def main():
                 source_type="benchmark",
             )
             db.add(report)
-            opp.status = "KYC Running"
+            opp.status = "Research Only"
 
             timeline_event = TimelineEvent(
                 opportunity_id=opp.id,
@@ -544,7 +544,7 @@ def main():
                 report.preparation_checklist = res_dict.get("preparation_checklist")
                 report.references = res_dict.get("references")
                 report.completed_at = datetime.now(timezone.utc)
-                opp.status = "Ready Meeting"
+                opp.status = "Prospect Qualified"
                 db.commit()
             elif res_dict.get("status") == "failed":
                 report.status = "failed"

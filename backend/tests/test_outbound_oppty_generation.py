@@ -671,7 +671,7 @@ class TestCreateOpportunityFromStakeholders:
         assert opp is not None
         assert opp.company_id == bank_company.id
         assert opp.primary_contact_id == security_contact.id
-        assert opp.status == "New"
+        assert opp.status == "Lead In"
         assert opp.created_by == lgo_user.id
 
     def test_opportunity_estimated_value_stored(

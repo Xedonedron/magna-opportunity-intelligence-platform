@@ -5,27 +5,13 @@ import { X, UserCheck, Calendar, Filter } from "lucide-react";
 import type { DashboardFilters as Filters } from "@/lib/api/dashboard";
 import { fetchMasterData, DEFAULT_PRESALES } from "@/lib/master-data";
 import { DashboardFilterSheet } from "@/components/dashboard/DashboardFilterSheet";
+import { ALL_STATUSES } from "@/types/opportunity";
 
 interface DashboardFiltersProps {
     onFilterChange: (filters: Filters) => void;
     userRole: string;
     currentFilters: Filters;
 }
-
-const STATUS_OPTIONS = [
-    "New",
-    "KYC Running",
-    "Ready Meeting",
-    "Meeting Scheduled",
-    "Meeting Done",
-    "Need Proposal",
-    "POC",
-    "Negotiation",
-    "PO",
-    "Won",
-    "Lost",
-    "On Hold",
-];
 
 export function DashboardFilters({
     onFilterChange,
@@ -114,7 +100,7 @@ export function DashboardFilters({
                 onReset={handleClearFilters}
                 activePresales={activePresales}
                 presalesList={presalesList}
-                statusOptions={STATUS_OPTIONS}
+                statusOptions={ALL_STATUSES}
                 activeCount={activeFilterCount}
             />
 
@@ -153,7 +139,7 @@ export function DashboardFilters({
                             className="h-9 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:ring-2 focus:ring-zinc-500/20 transition-colors font-medium cursor-pointer min-w-[150px]"
                         >
                             <option value="">Semua Status</option>
-                            {STATUS_OPTIONS.map((status) => (
+                            {ALL_STATUSES.map((status) => (
                                 <option key={status} value={status}>
                                     {status}
                                 </option>

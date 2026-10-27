@@ -140,11 +140,11 @@ def create_meeting(
 
     # Smart status transition
     should_update_status = False
-    if is_past and opp.status in ("New", "KYC Running", "Ready Meeting", "Meeting Scheduled"):
-        new_status = "Meeting Done"
+    if is_past and opp.status in ("Lead In", "Research Only", "Contact Made", "Prospect Qualified"):
+        new_status = "Needs Defined"
         should_update_status = True
-    elif not is_past and opp.status in ("New", "KYC Running", "Ready Meeting", "Meeting Done"):
-        new_status = "Meeting Scheduled"
+    elif not is_past and opp.status in ("Lead In", "Research Only", "Needs Defined", "Prospect Qualified"):
+        new_status = "Contact Made"
         should_update_status = True
 
     if should_update_status:

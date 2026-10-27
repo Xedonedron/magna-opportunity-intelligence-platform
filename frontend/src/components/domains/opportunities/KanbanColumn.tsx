@@ -14,6 +14,7 @@ interface KanbanColumnProps {
     hideFinancialNumbers: boolean;
     onDelete: (id: string, name: string) => void;
     fullWidth?: boolean;
+    compact?: boolean;
 }
 
 export function KanbanColumn({
@@ -24,6 +25,7 @@ export function KanbanColumn({
     hideFinancialNumbers,
     onDelete,
     fullWidth,
+    compact = false,
 }: KanbanColumnProps) {
     const totalRevenue = opportunities.reduce(
         (sum, opp) => sum + (opp.potential_revenue || 0),
@@ -31,11 +33,14 @@ export function KanbanColumn({
     );
 
     return (
-        <div className={`${fullWidth ? "w-full" : "w-72 shrink-0"} bg-zinc-50/80 dark:bg-zinc-900/60 border border-zinc-200/90 dark:border-zinc-800 rounded-2xl flex flex-col max-h-[calc(100vh-220px)] min-h-[450px]`}>
+        <div className={`${fullWidth ? "w-full" : "w-full min-w-0"} bg-zinc-50/80 dark:bg-zinc-900/60 border border-zinc-200/90 dark:border-zinc-800 rounded-2xl flex flex-col max-h-[calc(100vh-220px)] min-h-[450px]`}>
             {/* Column Header */}
-            <div className="p-3.5 border-b border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-zinc-900 rounded-t-2xl shadow-2xs">
+            <div className={`${compact ? "p-2" : "p-3.5"} border-b border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-zinc-900 rounded-t-2xl shadow-2xs min-w-0`}>
                 <div className="flex items-center gap-2">
-                    <StatusBadge status={status} />
+                    <StatusBadge
+                        status={status}
+                        className={compact ? "max-w-full overflow-hidden text-ellipsis text-[10px] px-1.5" : undefined}
+                    />
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
                         {opportunities.length}
                     </span>
@@ -68,6 +73,7 @@ export function KanbanColumn({
                                 canDelete={canDelete}
                                 hideFinancialNumbers={hideFinancialNumbers}
                                 onDelete={onDelete}
+                                compact={compact}
                             />
                         ))}
                         {provided.placeholder}

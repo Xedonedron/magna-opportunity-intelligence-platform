@@ -119,7 +119,7 @@ class CompanyOpportunityCreate(BaseModel):
     meeting_schedule: Optional[datetime] = None
     assigned_engineer: Optional[str] = None
     assigned_engineer_id: Optional[uuid.UUID] = None
-    status: str = Field("New", max_length=50)
+    status: str = Field("Lead In", max_length=50)
 
 
 class CompanyMergeResponse(BaseModel):

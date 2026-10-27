@@ -36,7 +36,7 @@ def _seed(SessionFactory):
     opp = Opportunity(
         id=uuid.uuid4(), company_name="PT Resilience Test",
         customer_needs="Test concurrency", industry="Technology",
-        website="https://resilience.test", status="New", created_by=user.id,
+        website="https://resilience.test", status="Lead In", created_by=user.id,
     )
     db.add(opp)
     db.commit()
@@ -73,7 +73,7 @@ def test_create_opportunity_stays_new_on_dispatch_failure(
         )
     assert response.status_code == 201
     data = response.json()
-    assert data["status"] == "New"
+    assert data["status"] == "Lead In"
     reports = db.query(KYCReport).filter(
         KYCReport.opportunity_id == uuid.UUID(data["id"])
     ).all()
@@ -98,7 +98,7 @@ def test_worker_sets_kyc_running_on_execution():
     assert result["status"] == "success"
     db = SessionFactory()
     opp = db.query(Opportunity).filter(Opportunity.id == uuid.UUID(opp_id)).first()
-    assert opp.status == "Ready Meeting"
+    assert opp.status == "Prospect Qualified"
     reports = db.query(KYCReport).filter(KYCReport.opportunity_id == uuid.UUID(opp_id)).all()
     assert len(reports) == 1
     assert reports[0].status == "completed"
@@ -161,7 +161,7 @@ def test_pipeline_failure_reverts_status():
 
     db = SessionFactory()
     opp = db.query(Opportunity).filter(Opportunity.id == uuid.UUID(opp_id)).first()
-    assert opp.status == "New"  # reverted from "KYC Running"
+    assert opp.status == "Lead In"  # reverted from "Research Only"
     report = db.query(KYCReport).filter(KYCReport.opportunity_id == uuid.UUID(opp_id)).first()
     assert report.status == "failed"
     assert "quota" in report.error_message.lower()
@@ -185,7 +185,7 @@ def test_create_opportunity_with_meeting_schedule_dispatches_kyc(
         )
     assert response.status_code == 201
     data = response.json()
-    assert data["status"] == "Meeting Scheduled"
+    assert data["status"] == "Contact Made"
     # Verify that KYC task was dispatched despite having meeting_schedule
     mock_kyc_delay.assert_called_once_with(data["id"], source_type="automatic")
 
@@ -201,7 +201,7 @@ def test_kyc_preserves_meeting_scheduled_status():
     opp = Opportunity(
         id=uuid.uuid4(), company_name="PT Meeting Test",
         customer_needs="Test status preservation", industry="Healthcare",
-        website="https://meetingtest.test", status="Meeting Scheduled", created_by=user.id,
+        website="https://meetingtest.test", status="Contact Made", created_by=user.id,
     )
     db.add(opp)
     db.commit()
@@ -221,7 +221,7 @@ def test_kyc_preserves_meeting_scheduled_status():
     db = SessionFactory()
     opp = db.query(Opportunity).filter(Opportunity.id == uuid.UUID(opp_id)).first()
     # Status must remain "Meeting Scheduled", NOT regressed to "Ready Meeting"
-    assert opp.status == "Meeting Scheduled"
+    assert opp.status == "Contact Made"
     reports = db.query(KYCReport).filter(KYCReport.opportunity_id == uuid.UUID(opp_id)).all()
     assert len(reports) == 1
     assert reports[0].status == "completed"

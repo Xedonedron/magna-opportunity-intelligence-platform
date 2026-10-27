@@ -54,7 +54,6 @@ export function KanbanBoard({
             return;
         }
 
-        const sourceStatus = source.droppableId as OpportunityStatus;
         const targetStatus = destination.droppableId as OpportunityStatus;
 
         // Find dragged opportunity
@@ -125,8 +124,8 @@ export function KanbanBoard({
                 />
             </div>
 
-            {/* Desktop: full multi-column horizontal scroll */}
-            <div className="hidden md:flex gap-4 overflow-x-auto pb-6 pt-1 px-1 scrollbar-thin scrollbar-thumb-zinc-300">
+            {/* Desktop: all revised stages remain visible without horizontal scrolling. */}
+            <div className="hidden lg:grid lg:grid-cols-9 gap-2 pb-6 pt-1 px-1">
                 {columnsToDisplay.map((status) => {
                     const columnItems = items.filter(
                         (item) => item.status === status
@@ -140,9 +139,26 @@ export function KanbanBoard({
                             canDelete={canDelete}
                             hideFinancialNumbers={hideFinancialNumbers}
                             onDelete={onDelete}
+                            compact
                         />
                     );
                 })}
+            </div>
+
+            {/* Tablet: show every stage in a readable 3-column grid without horizontal scrolling. */}
+            <div className="hidden md:grid lg:hidden md:grid-cols-3 gap-2 pb-6 pt-1 px-1">
+                {columnsToDisplay.map((status) => (
+                    <KanbanColumn
+                        key={status}
+                        status={status}
+                        opportunities={items.filter((item) => item.status === status)}
+                        canEdit={canEdit}
+                        canDelete={canDelete}
+                        hideFinancialNumbers={hideFinancialNumbers}
+                        onDelete={onDelete}
+                        compact
+                    />
+                ))}
             </div>
         </DragDropContext>
     );

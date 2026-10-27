@@ -33,16 +33,13 @@ from app.tasks import (
 from app.models.notification import Notification
 from app.services.notification_service import NotificationService
 from app.core.solutions_catalog import solutions_catalog
+from app.core.opportunity_status import DEFAULT_OPPORTUNITY_STATUS, OPPORTUNITY_STATUSES
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/opportunities", tags=["opportunities"])
 
-VALID_STATUSES = [
-    "New", "KYC Running", "Ready Meeting", "Meeting Scheduled",
-    "Meeting Done", "Need Proposal", "POC", "Negotiation", "PO",
-    "Won", "Lost", "On Hold",
-]
+VALID_STATUSES = list(OPPORTUNITY_STATUSES)
 
 
 def _resolve_engineer_assignment(
@@ -288,7 +285,7 @@ async def create_opportunity(
         assigned_engineer=resolved_eng_name,
         assigned_engineer_id=resolved_eng_id,
         created_by=current_user.id,
-        status="New",
+        status=DEFAULT_OPPORTUNITY_STATUS,
     )
     db.add(opportunity)
     db.flush()
@@ -298,7 +295,7 @@ async def create_opportunity(
         from datetime import datetime, timezone
         now = datetime.now(timezone.utc)
         m_dt = data.meeting_schedule if data.meeting_schedule.tzinfo else data.meeting_schedule.replace(tzinfo=timezone.utc)
-        opportunity.status = "Meeting Scheduled" if m_dt > now else "Meeting Done"
+        opportunity.status = "Contact Made" if m_dt > now else "Needs Defined"
 
         initial_meeting = Meeting(
             opportunity_id=opportunity.id,
@@ -333,7 +330,7 @@ async def create_opportunity(
         logger.error(f"Failed to dispatch opportunity created notification: {exc}")
 
     # Trigger AI KYC pipeline automatically for ALL new opportunities.
-    # Status stays "New" (or "Meeting Scheduled") until the Celery worker
+    # Status stays "Lead In" (or "Contact Made") until the Celery worker
     # actually starts execution. If dispatch fails, the status is preserved.
     try:
         run_kyc_pipeline_task.delay(str(opportunity.id), source_type="automatic")
@@ -1154,10 +1151,10 @@ async def import_opportunities(
 
             agenda_date = mapped_data["estimated_agenda_date"]
             now = datetime.now(timezone.utc)
-            opp_status = "New"
+            opp_status = DEFAULT_OPPORTUNITY_STATUS
             if agenda_date:
                 m_dt = agenda_date if agenda_date.tzinfo else agenda_date.replace(tzinfo=timezone.utc)
-                opp_status = "Meeting Scheduled" if m_dt > now else "Meeting Done"
+                opp_status = "Contact Made" if m_dt > now else "Needs Defined"
 
             # Resolve or create Company folder
             company = resolve_or_create_company(

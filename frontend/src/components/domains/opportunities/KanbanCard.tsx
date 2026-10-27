@@ -14,6 +14,7 @@ interface KanbanCardProps {
     canDelete: boolean;
     hideFinancialNumbers: boolean;
     onDelete: (id: string, name: string) => void;
+    compact?: boolean;
 }
 
 export function KanbanCard({
@@ -23,6 +24,7 @@ export function KanbanCard({
     canDelete,
     hideFinancialNumbers,
     onDelete,
+    compact = false,
 }: KanbanCardProps) {
     return (
         <Draggable
@@ -34,7 +36,7 @@ export function KanbanCard({
                 <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
-                    className={`group bg-white dark:bg-zinc-900 border rounded-xl p-3.5 shadow-sm transition-all text-xs space-y-3 relative ${
+                    className={`group bg-white dark:bg-zinc-900 border rounded-xl ${compact ? "p-2 space-y-2" : "p-3.5 space-y-3"} shadow-sm transition-all text-xs relative ${
                         snapshot.isDragging
                             ? "shadow-lg border-zinc-400 dark:border-zinc-500 ring-2 ring-zinc-400/20 rotate-1 z-50 bg-white dark:bg-zinc-800"
                             : "border-zinc-200/90 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow dark:shadow-zinc-950/50"
@@ -82,7 +84,7 @@ export function KanbanCard({
                     </div>
 
                     {/* Needs / Product Tag */}
-                    {opportunity.product && (
+                    {opportunity.product && !compact && (
                         <div className="flex flex-wrap gap-1">
                             {opportunity.product.split(", ").filter(Boolean).map((prod, idx) => (
                                 <span
@@ -96,7 +98,7 @@ export function KanbanCard({
                     )}
 
                     {/* Revenue & Date Metrics */}
-                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-[11px]">
+                    <div className={`grid ${compact ? "grid-cols-1 gap-1" : "grid-cols-2 gap-2"} pt-2 border-t border-zinc-100 dark:border-zinc-800 text-[11px]`}>
                         <div>
                             <span className="text-zinc-400 dark:text-zinc-500 block text-[9px] uppercase font-semibold tracking-wider">
                                 Potential Value
